@@ -54,7 +54,7 @@ const RULES: Record<string, Zone> = {
   colossus_bull: (x, y) => {
     if (x < -1.85) return null;
     if (x > 1.35 && y > 4.05) return { c: MP.gold, g: 1 }; // horns
-    if (x > 1.1 && y > 3.0 && y < 3.3) return { c: MP.red }; // the collar
+    if (x > 1.1 && y > 3.08 && y < 3.2) return { c: MP.red }; // the collar
     if (y < 0.45) return { c: MP.black };
     return { c: wash(MP.ochre, 0.18) };
   },
