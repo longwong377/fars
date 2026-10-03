@@ -1,4 +1,4 @@
-# V6 interior light and fire (D-530), report
+# V6 interior light and fire (D-530), report (final)
 
 **Broken / placeholder / unseen first.** Palace halls and the Terrace rooms were not reached: no frame of them in this session
 (the box crashed twice under the lab runs; the first full lab run with the Terrace never finished). Fire shadows (2 nearest
@@ -14,7 +14,7 @@ black hole (the ~9,100 doorways are daylight sources on the room side). At dusk 
 spills warm light on the lane or court before its door. Flames have tongues and a hot core; hearths and braziers sit on glowing coals.
 
 **Probe frames judged** (T:/s17-fire/shots, not committed): house-day-b (before), lanedoor-day-d (ports off/on), lanedoor-day-e,
-court-day-e, court-night-e, lanedoor-night-e (facade over-lit: lamp reverted, spill cut), *-f (final tune).
+court-day-e, court-night-e, lanedoor-night-e (facade over-lit: lamp reverted, spill cut to x0.8). The final tune (ports x2 by day, spill x0.8) got no GPU slot in 40 min and is UNSEEN: judge it in the train.
 
 **Views for the train:** a lane door by day and at night: fire lab cam 'door:q_s3:11:3.5' (grid -1154.2, 956.7 area; heading 78,
 pitch 4) at 11:00 and 20:40, day 20; court of q_s1 house 3 at 20:40.
