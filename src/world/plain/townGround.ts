@@ -77,7 +77,11 @@ function desireLinesOf(plan: TownPlan): { a: P2; b: P2; w: number }[] {
   const join = (p: P2, max: number): { q: P2; k: number } | null => {
     const cand = net.map((sg, k) => { const dx = sg.b[0] - sg.a[0], dy = sg.b[1] - sg.a[1], L2 = dx * dx + dy * dy || 1, t = Math.min(1, Math.max(0, ((p[0] - sg.a[0]) * dx + (p[1] - sg.a[1]) * dy) / L2));
       const q: P2 = [sg.a[0] + t * dx, sg.a[1] + t * dy]; return { q, k, d: d2(p, q) }; }).filter(c => c.d < max && c.d > 5).sort((x, y) => x.d - y.d);
-    for (const c of cand.slice(0, 6)) if (walk.clear(p, c.q)) return { q: c.q, k: c.k };
+    // (s18 C2, D-675: a long run pointing at the stair foot reads from the Terrace as one more ray of D-190's star: the next
+    // nearest joining point instead; tests/plain_d223)
+    const radial = (a: P2, b: P2) => { if (!stair || d2(a, b) < 150) return false; const mx = (a[0] + b[0]) / 2 - stair[0], my = (a[1] + b[1]) / 2 - stair[1], dx = b[0] - a[0], dy = b[1] - a[1];
+      return Math.abs(dx * mx + dy * my) / (Math.hypot(dx, dy) * Math.hypot(mx, my) || 1) > Math.cos(15 * Math.PI / 180); };
+    for (const c of cand.slice(0, 8)) if (!radial(p, c.q) && walk.clear(p, c.q)) return { q: c.q, k: c.k };
     return null;
   };
   const order = sites.map((s, i) => i).filter(i => stair && d2(sites[i].c, stair) < 3000).sort((i, j) => d2(sites[i].c, stair) - d2(sites[j].c, stair));
