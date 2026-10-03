@@ -65,6 +65,8 @@ export function partDesc(desc: Desc[], o: number, far: boolean): Desc | null {
   base.part = part; if (far) { base.lod = "far"; base.note = `${base.note} [${FAR_LOD_NOTE}]`; }
   return base;
 }
+/** s18 C2 (D-665): the lower-city belt's quarters (plan.ts q_b*) drawn in the mesh of the quarter beside them */
+const BELT_WITH: Record<string, string> = { q_b1: 'q_w1', q_b3: 'q_w3', q_b4: 'q_s1', q_b5: 'q_n1', q_b6: 'q_w1' };
 /** town meshes farther than this from the camera cast no shadows (they would only fill the Terrace's far cascades) */
 export const SHADOW_RANGE = 150;
 /** the town's trodden ground over the terrain (m): the terrain's coarser LODs must not poke through (fillPlan.ts TOWN_LIFT) */
@@ -112,7 +114,7 @@ export class Settlement {
     const clusters = new Map<string, Cluster>();
     const quarters = this.plan.sites.filter(s => s.meta.kind === 'quarter');
     const clusterOf = (s: Site): string => {
-      if (s.meta.kind === 'quarter') return s.id;
+      if (s.meta.kind === 'quarter') return BELT_WITH[s.id] ?? s.id; // (s18 C2, D-665: the belt's quarters in their neighbours' meshes: no new draws)
       // low garden and orchard walls in one mesh that casts no shadow; the four estates in one mesh
       if (s.plots.length && s.plots.every(p => p.kind === 'garden')) return 'gardens';
       if (s.id.startsWith('estate_')) return 'estates';

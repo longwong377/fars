@@ -4,6 +4,7 @@
 import { describe, it, expect } from 'vitest';
 import { SURFACES, atY, trafficMap, TRAFFIC } from '../src/render/materials';
 import { munsellY, srgbToLinear } from '../src/core/colour';
+import { renderMaterial } from '../src/arch/meshes';
 import { buildTerrace } from '../src/arch/terrace';
 import { ceilingTimbers, CEILING } from '../src/arch/ceilings';
 import { joistGeometry, JOIST_TRIS } from '../src/arch/meshes';
@@ -22,7 +23,7 @@ describe('albedos from the evidence (D-188)', () => {
     // the dark Majdabad stone: N3 (D-031) honed, its polished diffuse N2.7 (D-218)
     expect(Y(SURFACES.limestone_dark.albedo)).toBeCloseTo(munsellY(2.7), 3);
   });
-  it('mud plaster is a buff earth (no green cast); the greyish yellow-green clay paint is the Treasury walls alone', () => {
+  it('mud plaster is a buff earth (no green cast); the greyish yellow-green clay paint is the Treasury\'s, and the other palaces are painted in their own scheme (D-752)', () => {
     const m = lin(SURFACES.mudbrick.albedo), g = lin(SURFACES.mudbrick_painted.albedo);
     expect(m[0] / m[1]).toBeGreaterThan(1.25); // warm: red over green
     expect(g[0] / g[1]).toBeLessThan(1.1); // the paint: green-grey (R ≈ G), yellowish (B low)
@@ -33,9 +34,14 @@ describe('albedos from the evidence (D-188)', () => {
     expect(new Set(painted.map(p => p.building))).toEqual(new Set(['treasury']));
     expect(walls.filter(p => p.building !== 'treasury' && p.material === 'mudbrick').length).toBeGreaterThan(200);
     expect(walls.filter(p => p.building === 'treasury' && p.material === 'mudbrick').length).toBe(0);
+    // D-752 (holes.md #3/#6): no palace stands in bare buff mud: their walls and towers draw in the painted palace plaster
+    for (const b of ['gate_nations', 'apadana', 'tachara', 'hadish']) { const w = walls.filter(p => p.building === b && p.material === 'mudbrick' && !/under construction/.test(p.note ?? ''));
+      expect(w.length, b).toBeGreaterThan(0); for (const p of w) expect(renderMaterial(p), b).toBe('palace_plaster'); }
+    expect(SURFACES.palace_plaster.outerPaint).toBeDefined();
   });
-  it('cedar is a light brown wood (CIELAB L* ≈ 50), no longer a 5 % stained wood', () => {
-    const y = Y(SURFACES.timber.albedo); expect(y).toBeGreaterThan(0.15); expect(y).toBeLessThan(0.22);
+  it('the royal cedar is planed and painted in red ochre (D-752, holes.md #6): a mid-dark red, not raw wood nor a stained black', () => {
+    const y = Y(SURFACES.timber.albedo), c = lin(SURFACES.timber.albedo); expect(y).toBeGreaterThan(0.07); expect(y).toBeLessThan(0.15);
+    expect(c[0]).toBeGreaterThan(c[1] * 2); // red ochre: red well over green
     expect(SURFACES.roof_timber.albedo).toEqual(SURFACES.timber.albedo); expect(SURFACES.roof_timber.under).toBe('matting');
   });
   it('atY keeps the hue and sets the luminous reflectance', () => {

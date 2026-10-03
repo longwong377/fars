@@ -75,8 +75,8 @@ const WEAR_BY: Record<string, { s: [number, number]; f: [number, number]; soil: 
   // D-199: the king's robe newest and strongest; the delegations' best clothes, but after the road (C)
   king: { s: [0.9, 1], f: [0, 0.05], soil: [0.05, 0.12] }, court_woman: { s: [0.7, 1], f: [0, 0.2], soil: [0.04, 0.12] }, envoy: { s: [0.4, 0.9], f: [0.05, 0.35], soil: [0.2, 0.4] },
   envoy_short: { s: [0.4, 0.9], f: [0.05, 0.35], soil: [0.2, 0.4] }, envoy_bare: { s: [0.3, 0.8], f: [0.05, 0.4], soil: [0.2, 0.45] },
-  median: { s: [0.45, 0.95], f: [0.05, 0.35], soil: [0.15, 0.35] }, woman: { s: [0.4, 0.9], f: [0.1, 0.45], soil: [0.2, 0.45] },
-  worker: { s: [0.3, 0.8], f: [0.15, 0.6], soil: [0.3, 0.6] }, child: { s: [0.25, 0.7], f: [0.2, 0.6], soil: [0.35, 0.6] }, // D-780: cheap dyes, not weak ones (C)
+  median: { s: [0.45, 0.95], f: [0.05, 0.35], soil: [0.15, 0.35] }, woman: { s: [0.25, 1], f: [0.05, 0.6], soil: [0.15, 0.5] },
+  worker: { s: [0.15, 0.8], f: [0.05, 0.75], soil: [0.25, 0.65] }, child: { s: [0.1, 0.95], f: [0.05, 0.8], soil: [0.3, 0.65] }, // D-780: cheap dyes, not weak ones (C)
 };
 const LEATHER: RGB[] = [L(0.36, 0.24, 0.15), L(0.45, 0.31, 0.2), L(0.28, 0.19, 0.13), L(0.52, 0.38, 0.25)];
 /** undyed felt, tan to dark brown (C; no cream or light tan: a pale fluted cylinder in sunlight read as a modern cook's hat) */
@@ -96,9 +96,8 @@ export const ORIGIN_TONE: Record<string, number> = { Thracian: 0.2, Ionian: 0.28
   Syrian: 0.44, Babylonian: 0.46, Elamite: 0.48, Egyptian: 0.62,
   // the court setting's delegations only (D-199; the same cline, C)
   Scythian: 0.3, Armenian: 0.34, Cilician: 0.34, Parthian: 0.4, Arian: 0.4, Sagartian: 0.4, Arachosian: 0.46, Arab: 0.56, Libyan: 0.52, Gandharan: 0.58, Indian: 0.72, Kushite: 0.9 };
-// (D-780, C12 pass 2: the spread narrowed from 0.16 so the peoples of the empire read as themselves in a crowd, as the delegation
-// reliefs distinguish them; the means as before, the far ends of the cline a little further out: C)
-export const TONE_SD = 0.12;
+// (D-780: the far ends of the cline a little further out; the spread kept at 0.16 against look-alikes in a crowd: C)
+export const TONE_SD = 0.16;
 const rampAt = (p: number): RGB => { const f = Math.max(0, Math.min(1, p)) * (SKIN_RAMP.length - 1), i = Math.min(SKIN_RAMP.length - 2, Math.floor(f)), t = f - i;
   return [0, 1, 2].map(c => SKIN_RAMP[i][c] + (SKIN_RAMP[i + 1][c] - SKIN_RAMP[i][c]) * t) as RGB; };
 /** iris colour index (humanMaterial IRIS) by origin (C): dark to light brown for nearly everyone; a small share of
@@ -158,7 +157,7 @@ export const DELEGATION_OF_ORIGIN: Record<string, DelegationDef> = Object.fromEn
  *  paint, Akkadian guḫlu: RECOLLECTION, NOT SEEN; C). Median dress: the guards' shares, else the base (scribes, couriers) */
 export const JEWELS: Partial<Record<Dress, { base: { ear: number; brace: number; shield?: number; kohl?: number }; guard?: { ear: number; brace: number; shield?: number; kohl?: number } }>> = {
   persian: { base: { ear: 0.9, brace: 0.8, kohl: 0.5 } }, guard: { base: { ear: 0.85, brace: 0.6, shield: 0.35 } }, king: { base: { ear: 1, brace: 1, kohl: 1 } },
-  court_woman: { base: { ear: 1, brace: 1, kohl: 1 } }, median: { base: { ear: 0.45, brace: 0.4 }, guard: { ear: 0.8, brace: 0.5 } }, woman: { base: { ear: 0.75, brace: 0.6, kohl: 0.25 } },
+  court_woman: { base: { ear: 1, brace: 1, kohl: 1 } }, median: { base: { ear: 0.45, brace: 0.4 }, guard: { ear: 0.8, brace: 0.5 } }, woman: { base: { ear: 0.75, brace: 0.6, kohl: 0.45 } }, // (D-780: eye paint for nearly half the town's women: C)
   // D-780: a share of the working men with a bronze ring at the ear or the wrist (C, by analogy with the women's: D-207)
   worker: { base: { ear: 0.2, brace: 0.18 } },
 };
@@ -217,15 +216,15 @@ export function lookFor(A: HumanAssets, p: LookInput, worldSeed: number): Person
     case 'persian': mainK = rng.chance(0.08) ? 'purple' : pick(['madder', 'madder', 'kermes', 'woad', 'weld', 'ochre', 'purple']); secondK = pick(['wool', 'linen']); trimK = pick(['weld', 'woad', 'madder', 'ochre', 'purple']); break; // D-780: no undyed court robe
     case 'guard': if (rng.chance(0.6)) { pattern = 1; mainK = pick(['ochre', 'purple', 'linen', 'ochre']); trimK = pick(['turquoise', 'ochre', 'madder'].filter(k => k !== mainK)); } else { mainK = pick(['madder', 'woad', 'kermes', 'purple']); trimK = pick(['weld', 'woad', 'ochre']); } secondK = 'wool'; break; // D-780: the Susa archers' yellow, white and purple-brown robes (SUSA-ARCH, B), not undyed brown
     case 'median': mainK = pick(['madder', 'woad', 'green', 'weld', 'kermes', 'purple']); secondK = pick(['brown', 'woad', 'madder', 'weld', 'grey']); trimK = pick(['purple', 'madder', 'woad', 'brown', 'purple']); break; // trim also colours the kandys (often purple, B)
-    case 'woman': mainK = pick(['madder', 'woad', 'weld', 'madder', 'woad', 'green', 'kermes', 'wool', 'linen']); secondK = pick(['linen', 'wool', 'woad', 'madder', 'weld']); trimK = pick(['weld', 'madder', 'woad', 'madder']); break;
-    case 'child': mainK = pick(['wool', 'linen', 'madder', 'woad', 'weld', 'wool']); secondK = 'wool'; trimK = 'madder'; break; // D-780: a dyed band at the hem (C)
+    case 'woman': mainK = pick(['madder', 'woad', 'weld', 'madder', 'woad', 'green', 'kermes', 'wool', 'linen', 'grey', 'brown', 'purple', 'ochre']); secondK = pick(['linen', 'wool', 'woad', 'madder', 'weld']); trimK = pick(['weld', 'madder', 'woad', 'madder']); break;
+    case 'child': mainK = pick(['wool', 'linen', 'madder', 'woad', 'weld', 'wool', 'green', 'kermes', 'brown', 'grey', 'ochre', 'madder']); secondK = 'wool'; trimK = 'madder'; break; // D-780: a dyed band at the hem (C)
     // D-199: the king's robe purple (or red), the colour the sources give the royal robe (IR-CLOTH, B; the dye C)
     case 'king': mainK = rng.chance(0.7) ? 'purple' : 'madder'; secondK = 'wool'; trimK = 'purple'; break;
     // D-215: the court women's robe in the court's strong dyes, the veil fine wool or linen (C)
     case 'court_woman': mainK = pick(['purple', 'madder', 'kermes', 'woad', 'madder']); secondK = pick(['linen', 'wool', 'weld', 'linen']); trimK = pick(['purple', 'weld', 'woad', 'madder']); break;
     // D-780 (holes #11): madder, woad and weld were cheap dyes of everyday wool (B: dyed wool in the Pazyryk and Dura finds, the dye trade of the Babylonian
     // texts); a working man's tunic dyed about three times in five, the rest undyed wool, linen or dark wool, the hem bands dyed (C)
-    default: mainK = pick(['madder', 'woad', 'wool', 'linen', 'weld', 'brown', 'madder', 'woad', 'green', 'wool']); secondK = pick(['wool', 'brown', 'woad', 'madder', 'linen']); trimK = pick(['madder', 'woad', 'weld', 'madder', 'woad']); break;
+    default: mainK = pick(['madder', 'woad', 'wool', 'linen', 'weld', 'brown', 'kermes', 'woad', 'green', 'ochre', 'grey', 'madder']); secondK = pick(['wool', 'brown', 'woad', 'madder', 'linen']); trimK = pick(['madder', 'woad', 'weld', 'madder', 'woad']); break;
   }
   if (del) { mainK = pick(del.dyes.main); secondK = pick(del.dyes.second); trimK = pick(del.dyes.trim); } // D-199: the people's own palette (C)
   if (mainK === secondK && dress !== 'child') secondK = mainK === 'wool' ? 'brown' : 'wool';
@@ -240,8 +239,8 @@ export function lookFor(A: HumanAssets, p: LookInput, worldSeed: number): Person
     case 'median': on.add('bun'); if (man) on.add(beardRoll < 0.8 ? 'beard_long' : 'beard_short'); on.add('cap_soft'); if (p.role === 'guard') { on.add('akinaka'); on.add('gorytos'); }
       else if (rng.chance(0.45)) on.add('kandys'); break;
     case 'worker': if (man) { const egyptian = p.origin === 'Egyptian'; if (!egyptian && beardRoll < 0.3) on.add('beard_long'); else if (!egyptian && beardRoll < 0.8) on.add('beard_short'); }
-      if (rng.chance(0.4)) on.add('work_trousers'); if (rng.chance(0.6)) on.add('shoes'); const h = rng.next(); if (h < 0.3) on.add('headband'); else if (h < 0.45) on.add('cap_soft'); break;
-    case 'woman': if (rng.chance(0.8)) { on.add('headcloth'); on.delete('hair'); /* hidden under it (it poked through) */ } else { on.delete('hair'); on.add('hair_bob'); } if (rng.chance(0.6)) on.add('shoes'); break;
+      if (rng.chance(0.4)) on.add('work_trousers'); if (rng.chance(0.4)) on.add('shoes'); // (D-780, holes u4: most working men barefoot: C) const h = rng.next(); if (h < 0.4) on.add('headband'); else if (h < 0.65) on.add('cap_soft'); break; // (D-780: more heads covered, and more various)
+    case 'woman': if (rng.chance(0.65)) { on.add('headcloth'); on.delete('hair'); /* hidden under it (it poked through) */ } else { on.delete('hair'); on.add('hair_bob'); } if (rng.chance(0.45)) on.add('shoes'); break;
     case 'child': if (rng.chance(0.3)) on.add('shoes'); break;
     // D-199: the king as the reliefs carve him: hair gathered at the nape, the long squared beard, the crown (always)
     case 'king': on.add('bun'); on.add('beard_long'); break;
@@ -286,7 +285,7 @@ export function lookFor(A: HumanAssets, p: LookInput, worldSeed: number): Person
     const gm = by(['body']), gs = by(['legs', 'over']);
     if (gm) { mainK = gm.dye; col.main = dyeColour(mainK, sSet, gm.wear); wear.fade = gm.wear; wear.soil = Math.max(gm.dirt, 0.5 * wear.soil); wear.k[0] = DYES[mainK].fade; }
     if (gs && gs.dye !== mainK) { secondK = gs.dye; col.second = dyeColour(secondK, sSet, gs.wear); wear.k[1] = DYES[secondK].fade; } }
-  const hl = rng.range(0.85, 1.3); col.hair = col.hair.map(x => Math.min(0.2, x * hl)) as RGB;
+  const hl = rng.range(0.7, 1.7); col.hair = col.hair.map(x => Math.min(0.26, x * hl)) as RGB; // (D-780: a wider spread, against look-alikes in a crowd)
   // D-215 (gap audit item 21; new draws last): ornaments by rank, the guards' wicker shield and eye paint for the court
   // (the placement by rank is C; the things: JEWELS)
   const J = JEWELS[dress], free = !p.pieces && !del, add = (id: string) => { if (COSTUMES[dress].opt.includes(id) && !pieces.includes(id)) { mask |= 1 << pieceBit(dress, id); pieces.push(id); } };
@@ -294,6 +293,12 @@ export function lookFor(A: HumanAssets, p: LookInput, worldSeed: number): Person
   const uE = rng.next(), uB = rng.next(), uS = rng.next(), uK = rng.next();
   if (shares && free) { const bz = dress === 'woman' || dress === 'worker'; if (uE < shares.ear) add(bz ? 'earrings_b' : 'earrings'); if (uB < shares.brace) add(bz ? 'bracelets_b' : 'bracelets'); if (uS < (shares.shield ?? 0)) add('shield'); }
   const kohl = shares && (free || dress === 'king') && uK < (shares.kohl ?? 0) ? 1 : 0;
+  // D-780 (C14's look-alike measure; new draws last): one dye bath is not another and one garment's age is not another's: the
+  // main garment's value and the hair's warmth spread a little per person (C)
+  { const uH = rng.next(); if (uH < 0.35 && dress === 'child' && free) add('headband'); if (uH < 0.5 && dress === 'woman' && free && !pieces.includes('headcloth')) add('headband'); } // (D-780: a cloth band round a child's or a bareheaded woman's head, C)
+  { const vm = rng.range(0.7, 1.3), warm = rng.range(-0.15, 0.15); col.main = col.main.map(x => x * vm) as RGB; col.hair = [col.hair[0] * (1 + warm), col.hair[1], col.hair[2] * (1 - warm)] as RGB; }
+  // D-780 (C12 P2-7; new draws last): the women's necklaces: every court woman, three in five of the town's women (C)
+  const uN = rng.next(); if (free || dress === 'court_woman') { if (dress === 'court_woman') add('necklace'); else if (dress === 'woman' && uN < 0.6) add('necklace_b'); }
   // D-780 (holes #11; new draws last): the gold of the court's robes: the gold plaques sewn on the robes of Persians of rank
   // (HDT 9.80 'gold plaques'; the gold appliqués of the Oxus Treasure and of Achaemenid tombs: B for the thing) drawn as the
   // rosette motif in a gold-yellow (the shared motif of the material: one in three robes of the Persians and the court women; C)

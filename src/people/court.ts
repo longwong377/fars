@@ -100,7 +100,7 @@ export const FACING_ACTS = /^(queue|rest|inspect|shelter|eat)$/;
 const FAC: Record<string, P2> = Object.fromEntries((townData as any).facilities.map((f: any) => [f.id, f.at as P2]));
 const XY = new Map<string, P2>([...((placesData as any).places as CourtPlace[]), ...COURT_PLACES, ...COURT_PRIVATE].map(p => [p.id, p.at]));
 const ANCHOR = new Map(COURT_PLACES.filter(p => p.anchor).map(p => [p.id, p.anchor!]));
-const TOWN_PLACES = new Set(['court_camp', 'royal_store', 'store_town', 'stockyard', 'terrace_edge', 'station', 'offering_place']); // (D-252: the road station, where the court is first and last seen; D-780: the magi's fire)
+const TOWN_PLACES = new Set(['court_camp', 'royal_store', 'store_town', 'stockyard', 'terrace_edge', 'station', 'offering_place', 'craft_zone', 'garden_pw']); // (D-252: the road station, where the court is first and last seen; D-780: the magi's fire)
 const whereOf = (pl: string): Where => pl === '-' ? 'away' : TOWN_PLACES.has(pl) ? 'town' : pl === 'river' ? 'plain' : pl.startsWith('rcamp:') ? campOfPlace(pl)?.zone ?? 'town' : 'terrace';
 const xyOf = (pl: string): P2 => pl === 'court_camp' ? COURT_CAMP.c : pl.startsWith('rcamp:') ? campOfPlace(pl)?.c ?? [0, 0] : FAC[pl] ?? XY.get(pl) ?? [0, 0];
 const D = COURT.day;
@@ -230,7 +230,8 @@ export class CourtResidents {
       const EH = P.hh('court', 'terrace', true, 'court_guard_quarters');
       for (let i = 0; i < 4; i++) this.escort.push(add('king', 'escort', 'court_guard_quarters', { sex: 'm', age: 28 + 3 * i, job: 'guard', hh: EH, origin: i % 2 ? 'Median' : 'Persian', idx: i }));
       // D-780: the chiliarch, in the Median dress of the figure before the king on the Treasury relief (TREAS-AUD: B; C)
-      this.chiliarch = add('king', 'chiliarch', 'court_camp', { sex: 'm', age: 46, job: 'official', hh: P.hh('court', 'terrace', false, 'court_camp'), origin: 'Median' }); }
+      const CHH = P.hh('court', 'terrace', false, 'court_camp'); campHH.push([CHH, 'pavilion', 'court', pitchAt('court')]); // (his tent at the court's camp, among the nobles')
+      this.chiliarch = add('king', 'chiliarch', 'court_camp', { sex: 'm', age: 46, job: 'official', hh: CHH, origin: 'Median' }); }
     // petitioners and delegations (court.json visitors; C): parties arrive on their own days and stay 5-14 days; D-199: each
     // party is of one of the 23 peoples of the Apadana reliefs, brings its people's gifts, and is led before the king on one of
     // his audience mornings within its stay (none if he gives none then)
@@ -310,6 +311,9 @@ export class CourtResidents {
   banquetNight(d: number) { return d > this.firstDay && d < this.leaveDay && this.set.banquet.has(d); }
   /** D-780: the king rides out (or hunts) this morning: 'ride' | 'hunt' | null */
   kingOut(d: number): 'ride' | 'hunt' | null { const s = this.pop.seed; if (this.pop.sick(this.king, d)) return null; return isHuntDay(s, d) ? 'hunt' : isRideDay(s, d) ? 'ride' : null; }
+  /** D-780 (holes u1): the royal women go out to the paradise this afternoon (about one day in five, not a banquet night: C) */
+  womenOut(d: number) { return d > this.firstDay && d < this.leaveDay && !this.banquetNight(d) && u01(this.pop.seed, S.cer, d, 41) < 0.2; }
+  womenOutHours(d: number): [number, number] { const a = 14.6 + 0.6 * u01(this.pop.seed, S.cer, d, 42); return [a, a + 2.4]; }
   /** D-780: is a Persian of rank (or a groom, a beater) of today's ride or hunt: a share of each, drawn per person and day (C) */
   inOut(pid: number, d: number, share: number) { return u01(this.pop.seed, S.cer, pid, d) < share; }
   /** D-199: the king's day, shared by his bearers and escort */
@@ -514,14 +518,15 @@ class CourtDay {
         this.at(Math.min(end, this.t + this.r.range(0.4, 0.9)), RV, 'patrol', 'beating the reeds along the river with the others, driving the game toward the riders (the hunt: Cyr. 1.4, a claim, B; C)'); if (this.t < end - 0.5) this.at(Math.min(end, this.t + this.r.range(0.15, 0.3)), RV, 'rest', 'resting with the beaters while the riders go by'); }
       this.go(HL, 'walking back from the hunt with the beaters'); return; }
     this.at(o.t0 - 0.02, SF, who === 'groom' ? 'tend_animals' : 'rest', who === 'groom' ? 'holding the king’s horses at the stair foot, saddled for the ride' : `waiting at the stair foot while the horses are brought (${company})`, carry);
-    const out = hunt ? `riding out to the hunt on horseback, the bow and quiver at his side (${company}; Cyr. 1.4, a claim: B; C)` : `riding out on horseback over the plain (${company}; the king’s ride: Cyr. 8.3, a claim, B; C)`;
+    const chariot = who === 'king' && !hunt; // (D-780: the king drives in the royal chariot, a groom at the horses' heads: the reliefs, B; the others ride)
+    const out = hunt ? `riding out to the hunt on horseback, the bow and quiver at his side (${company}; Cyr. 1.4, a claim: B; C)` : chariot ? 'driving out over the plain in the royal chariot, the parasol held over him (the chariot on the reliefs, B; Cyr. 8.3, a claim: B; C)' : `riding out on horseback over the plain (${company}; the king’s ride: Cyr. 8.3, a claim, B; C)`;
     this.ride(HL, out, ms, carry);
     if (hunt) { const end = o.t1 - 0.7; let k = 0;
       while (this.t < end - 0.4) { const to = k++ % 2 ? HL : RV; this.ride(to, `on horseback in the hunt, riding after the game along the river reeds (${company}; C)`, ms * 1.4, carry);
         if (this.t < end - 0.3) this.add(this.t + this.r.range(0.15, 0.4), to, who === 'groom' ? 'tend_animals' : 'rest', who === 'groom' ? 'holding the spare horses for the hunters' : `reining in by the reeds, watching for the game (${company})`, carry);
         if (k === 4) this.add(this.t + 0.35, to, 'eat', 'a meal brought out to the hunt, eaten standing by the horses (C: D-780)'); } }
-    else this.add(Math.max(this.t + 0.2, o.t0 + (o.t1 - o.t0) * 0.5), HL, who === 'groom' ? 'tend_animals' : 'rest', who === 'king' ? 'the king at the royal horse lines, looking over the horses (C)' : `halting at the royal horse lines with the king (${company})`, carry);
-    this.ride(SF, `riding back on horseback to the stair foot (${company})`, ms, carry);
+    else this.add(Math.max(this.t + 0.2, o.t0 + (o.t1 - o.t0) * 0.5), HL, who === 'groom' ? 'tend_animals' : 'rest', who === 'king' ? 'the king in the royal chariot at the royal horse lines, looking over the horses (C)' : `halting at the royal horse lines with the king (${company})`, carry);
+    this.ride(SF, chariot ? 'driving back in the royal chariot to the stair foot' : `riding back on horseback to the stair foot (${company})`, ms, carry);
   }
   /** D-244 (T-D4): an errand in the open (`len` hours of walking and carrying from now) waits for the rain to pass. From now, the
    *  first start at which those hours are dry (the day's wet spells, as the population's ration issue: rainShiftedIssue); the wait
@@ -641,7 +646,9 @@ class CourtDay {
     this.add(T - r.range(4.2, 4.8), '-', 'offmap', 'at the last camp on the road from Susa, loading the animals and waiting for the column to move', undefined, 'away');
     this.add(T - 0.05, '-', 'offmap', 'on the road from Susa with the court', undefined, 'away');
     this.add(T, 'station', 'rest', 'halting by the road station while the column closes up'); this.cur = 'station';
-    const [act, why, carry] = this.columnWalk(true); this.go(g === 'king' && this.m.role !== 'escort' ? KING.private : g === 'king' ? KING.gather : home, why, act, carry);
+    const [act, why, carry] = this.columnWalk(true);
+    if (king) this.ride('stair_foot', 'arriving in the royal chariot along the royal road from the road station, a groom at the horses’ heads (the chariot on the reliefs, B; C1’s ask: C: D-780)', 2.2); // (D-780: then up the stair on foot)
+    this.go(g === 'king' && this.m.role !== 'escort' ? KING.private : g === 'king' ? KING.gather : home, why, act, carry);
     if (camp) this.at(this.t + r.range(0.6, 1.0), SL, 'carry_sack', 'unloading the animals and pitching the tents of the camp');
     else if (g === 'king' && !king) this.go(SL, this.m.role === 'escort' ? 'going to the quarters' : 'going to the south wing');
     const settle: Opt[] = king ? [[KING.private, 'rest', 'resting in the palace after the road', 2], [KING.private, 'talk', 'in council in the palace with the chiliarch (C)', 1]]
@@ -763,10 +770,22 @@ class CourtDay {
     if (vigil(this.d - 1)) { this.add(r.range(3.6, 4.4), this.cur, 'rest', 'awake with the lamps lit in the women’s court (Heracleides, a claim; no music is shown)'); this.go(this.m.sleep); this.add(r.range(10.5, 11.5), this.m.sleep, 'sleep', 'asleep after the night with the lamps'); }
     else this.morning(r.range(5.6, 7));
     this.meal(H, 0.5, 'breakfast brought from the king’s kitchens'); this.fill(r.range(12, 13), opts);
-    this.meal(H, 0.6, 'the midday meal brought from the king’s kitchens'); this.fill(r.range(18.3, 19.3), opts);
+    this.meal(H, 0.6, 'the midday meal brought from the king’s kitchens');
+    if (this.K.womenOut(this.d) && this.K.inOut(this.pid, this.d * 3 + 2, 0.12)) this.womenOuting(H); // (D-780, holes u1)
+    this.fill(r.range(18.3, 19.3), opts);
     this.meal(H, 0.7, 'the evening meal in the women’s court');
     if (vigil(this.d)) { this.at(24, H, 'rest', 'awake with the lamps lit in the women’s court (Heracleides, a claim; no music is shown)'); return; }
     this.fill(r.range(21, 22), opts); this.night();
+  }
+  /** D-780 (holes u1): a royal women's outing: on about one afternoon in five a party of the household's women goes down to the
+   *  paradise W of the town, veiled, among their attendants and eunuchs, and walks and sits in the garden until the evening
+   *  (the curtained carriages of the Persian women: Plutarch Them. 26, HDT 7.83, claims, B; the litter is not drawn yet: C) */
+  womenOuting(H: string) {
+    const G = 'garden_pw', [h0, h1] = this.K.womenOutHours(this.d), r = this.r;
+    this.fill(h0 - walkHours(this.cur, G), [[H, 'rest', 'resting in the women’s court before going out', 1]]);
+    this.go(G, this.m.g === 'women' ? 'going down to the paradise, veiled, among her attendants and the eunuchs (curtained litters: claims, B; C: D-780)' : 'walking beside the royal women to the paradise');
+    this.fill(h1 - walkHours(G, H), [[G, 'rest', this.m.g === 'women' ? 'sitting in the shade of the paradise with the women of the household' : 'in attendance on the royal women in the paradise', 2], [G, 'talk', this.m.g === 'women' ? 'walking and talking in the paradise with the women of the household' : 'keeping the way clear about the royal women in the paradise', 1.5]]);
+    this.go(H, 'going back up to the women’s court from the paradise'); void r;
   }
   attendant() {
     const r = this.r, f = this.p.sex === 'f', H = 'court_harem';
@@ -777,7 +796,9 @@ class CourtDay {
     const serve = (why: string) => { this.at(this.t + r.range(0.2, 0.4), 'court_kitchen', 'rest', 'waiting at the kitchens for the dishes'); this.go(H, why, 'carry_bread', 'dishes from the king’s kitchens'); };
     this.fill(r.range(6.8, 7.4), opts); serve('carrying the women’s breakfast from the kitchens');
     this.fill(r.range(11.5, 12.2), opts); serve('carrying the women’s midday meal from the kitchens');
-    this.meal(this.m.sleep, 0.5, 'the midday meal in the south wing'); this.fill(r.range(17.5, 18.2), opts); serve('carrying the women’s evening meal from the kitchens');
+    this.meal(this.m.sleep, 0.5, 'the midday meal in the south wing');
+    if (this.K.womenOut(this.d) && this.K.inOut(this.pid, this.d * 3 + 2, 0.2)) this.womenOuting(H); // (D-780)
+    this.fill(r.range(17.5, 18.2), opts); serve('carrying the women’s evening meal from the kitchens');
     this.fill(r.range(19.2, 19.8), opts); this.meal(this.m.sleep, 0.5, 'the evening meal in the south wing'); this.fill(r.range(20.8, 21.8), opts); this.night();
   }
   /** D-252: a day of the household that comes ahead, before the king's day: making ready (C) */
@@ -901,9 +922,11 @@ class CourtDay {
     const o = this.outing(), rides = !!o && K.inOut(this.pid, d, (o.kind === 'hunt' ? CE.hunt.nobles[0] + (CE.hunt.nobles[1] - CE.hunt.nobles[0]) * u01(K.pop.seed, S.cer, d, 1) : CE.ride.nobles[0] + (CE.ride.nobles[1] - CE.ride.nobles[0]) * u01(K.pop.seed, S.cer, d, 2)) / nN);
     this.morning(rides && o!.kind === 'hunt' ? Math.min(r.range(4.3, 4.8), o!.t0 - 1.2) : r.range(5.4, 6.6)); this.meal(this.m.sleep, 0.4, 'breakfast in his tent at the camp');
     const camp: Opt[] = [[this.m.sleep, 'rest', 'resting at the camp', 2], [this.m.sleep, 'talk', 'talking with other Persians of rank at the camp', 2], [this.m.sleep, 'tend_animals', 'seeing to his horses', 1], [this.m.sleep, 'train', 'shooting at the mark below the Terrace', 0.6]];
-    if (rides) { this.fill(o!.t0 - walkHours(this.m.sleep, 'stair_foot') - 0.3, camp); this.go('stair_foot', `going to the stair foot to ride with the king${o!.kind === 'hunt' ? ' to the hunt' : ''}`); this.outingRide(o!, 'noble'); }
+    const pm = rides && o!.kind === 'ride', drive = (opts: Opt[]) => { if (!pm) return; // (D-780: the king's drive in the afternoon)
+      this.fill(o!.t0 - walkHours(this.cur, 'stair_foot') - 0.3, opts); this.go('stair_foot', 'going to the stair foot to ride out with the king'); this.outingRide(o!, 'noble'); this.go(this.m.sleep, 'going back to the camp after the ride'); };
+    if (rides && !pm) { this.fill(o!.t0 - walkHours(this.m.sleep, 'stair_foot') - 0.3, camp); this.go('stair_foot', `going to the stair foot to ride with the king${o!.kind === 'hunt' ? ' to the hunt' : ''}`); this.outingRide(o!, 'noble'); }
     const dines = K.dines(this.pid, d);
-    if (!atCourt && !rides) { this.fill(r.range(12, 13), camp); this.meal(this.m.sleep, 0.6, 'the midday meal at the camp');
+    if (!atCourt && !(rides && !pm)) { this.fill(r.range(12, 13), camp); this.meal(this.m.sleep, 0.6, 'the midday meal at the camp'); drive(camp);
       if (dines) { this.go('forecourt', 'going up to the Terrace for the king’s banquet'); return this.banquet(); }
       this.fill(r.range(18.5, 19.5), camp); this.meal(this.m.sleep, 0.7, 'the evening meal at the camp'); this.fill(r.range(20.8, 22), camp); this.night(); return; }
     const opts: Opt[] = gift ? [['court_portico', 'inspect', 'standing in the Apadana’s N portico among the Persians of rank while the delegations go up with their gifts (the reliefs, B; C: D-780)', 3], ['apadana_hall', 'inspect', 'in attendance in the Apadana on the day of the peoples’ gifts', 2.5], ['court_apadana_e', 'inspect', 'standing below the Apadana’s E stair while the delegations go up', 1]]
@@ -918,6 +941,7 @@ class CourtDay {
       this.add(this.t + 0.1, 'court_audience', 'inspect', 'bowing low before the king, the right hand raised before his mouth, and receiving the king’s gift (C: D-780)'); }
     this.fill(r.range(11.8, 12.6), opts);
     this.meal('court_hadish', r.range(0.8, 1.3), 'a meal at the king’s table, in the hall apart from the king (Heracleides, a claim)');
+    drive(opts);
     if (dines) return this.banquet();
     this.fill(r.range(15, 16.5), opts); this.go(this.m.sleep, 'going down to the camp');
     this.fill(r.range(18.6, 19.4), camp); this.meal(this.m.sleep, 0.7, 'the evening meal at the camp'); this.fill(r.range(20.8, 22), camp); this.night();
@@ -938,14 +962,16 @@ class CourtDay {
       this.add(this.sun.rise + 0.3, 'offering_place', 'offer', 'the king standing before the fire with the magi at first light (the king before the fire altar on the royal tombs, B; the morning C: D-780)');
       this.go(PRV, 'walking back up to the palace', 'royal_walk'); }
     this.meal(PRV, 0.5, 'breakfast in the palace');
-    if (o) { const w = walkHours(PRV, SF); this.fill(o.t0 - w - 0.1, opts); this.go(SF, 'walking down the Great Stair to the horses, the parasol held over him', 'royal_walk');
-      this.outingRide(o, 'king'); this.go(PRV, 'walking back up the Great Stair to the palace', 'royal_walk'); }
+    const out = (x: NonNullable<typeof o>) => { const w = walkHours(PRV, SF); this.fill(x.t0 - w - 0.1, opts); this.go(SF, x.kind === 'hunt' ? 'walking down the Great Stair to the horses, the parasol held over him' : 'walking down the Great Stair to the royal chariot, the parasol held over him', 'royal_walk');
+      this.outingRide(x, 'king'); this.go(PRV, 'walking back up the Great Stair to the palace', 'royal_walk'); };
+    if (o?.kind === 'hunt') out(o);
     else if (Kd.aud || gifts) { const a0 = Kd.aud ? Kd.a0 : 9.0, a1 = Kd.aud ? Kd.a1 : 11.0, w = walkHours(PRV, TH); this.fill(a0 - w, opts); this.until(a0 - w, 'rest', 'resting in the palace');
       this.go(TH, Kd.aud ? 'walking to the Apadana for an audience, the parasol held over him (door-jamb reliefs, B)' : 'walking to the Apadana to give gifts to the Persians, the parasol held over him', 'royal_walk');
       this.add(a1, TH, 'enthroned', isGiftDay(K.pop.seed, this.d) ? 'enthroned in the Apadana on the day of the peoples’ gifts, the delegations led before him one by one (the Apadana and Treasury reliefs, B; the day C: D-780)'
         : Kd.aud ? 'enthroned in the Apadana, giving audience (the Treasury relief, B; the day and the hours C)' : 'enthroned in the Apadana, giving gifts to the Persians of rank (Cyr. 8.5.21, HDT 9.110: claims, B; C: D-780)');
       this.go(PRV, 'walking back to the palace', 'royal_walk'); }
     this.fill(r.range(12, 12.8), opts); this.meal(PRV, r.range(0.8, 1.1), 'the midday meal in the palace, apart (Heracleides, a claim)');
+    if (o?.kind === 'ride') out(o); // (D-780, C1's ask: the drive out most afternoons)
     if (K.banquetNight(this.d)) { const [b0, b1] = ceremonyHours(K.pop.seed, this.d).banquet, w = walkHours(PRV, TH);
       this.fill(b0 + 0.4 - w, opts); this.go(TH, 'walking to the Apadana for the banquet, lamps carried before him', 'royal_walk');
       this.add(b1 - 0.4, TH, 'enthroned', 'presiding over the great banquet from the throne under the canopy, apart from the diners (Heracleides: a claim, B; C: D-780)');
@@ -960,10 +986,12 @@ class CourtDay {
     const gifts = this.d === sd.kingGifts || this.d === sd.birthday;
     const opts: Opt[] = [[TR, 'talk', 'the chiliarch in council with the officials of the court in the Tripylon (C)', 3], ['gate_hall', 'inspect', 'the chiliarch looking over the parties at the Gate', 1], ['court_apadana_e', 'talk', 'the chiliarch talking with Persians of rank below the Apadana', 1]];
     this.morning(r.range(5.2, 5.8)); this.meal(this.m.sleep, 0.4, 'breakfast in his tent at the camp'); this.go(TR, 'going up to the Terrace');
-    if (o) { this.fill(o.t0 - walkHours(this.cur, 'stair_foot') - 0.2, opts); this.go('stair_foot', 'going down to the horses for the king’s ' + o.kind); this.outingRide(o, 'noble'); this.go(TR, 'going back up to the Tripylon'); }
+    const out = () => { this.fill(o!.t0 - walkHours(this.cur, 'stair_foot') - 0.2, opts); this.go('stair_foot', 'going down to the horses for the king’s ' + o!.kind); this.outingRide(o!, 'noble'); this.go(TR, 'going back up to the Tripylon'); };
+    if (o?.kind === 'hunt') out();
     else if (Kd.aud || gifts) { const a0 = Kd.aud ? Kd.a0 : 9.0, a1 = Kd.aud ? Kd.a1 : 11.0; this.fill(a0 - walkHours(TR, CH) - 0.15, opts); this.go(CH, 'walking to the Apadana for the audience');
       this.add(a1, CH, 'inspect', 'the chiliarch standing before the throne, his right hand raised before his mouth, presenting those called to the king (the Treasury relief, B; IR-CHIL: B; C: D-780)'); this.go(TR, 'walking back to the Tripylon'); }
     this.fill(r.range(12.2, 12.8), opts); this.meal('court_apadana_e', 0.6, 'a midday meal sent out from the king’s table');
+    if (o?.kind === 'ride') out();
     if (K.dines(this.pid, this.d)) return this.banquet();
     this.fill(r.range(16.5, 17.2), opts); this.go(this.m.sleep, 'going down to the camp'); this.fill(r.range(18.6, 19.2), [[this.m.sleep, 'talk', 'talking with Persians of rank at the camp', 2]]);
     this.meal(this.m.sleep, 0.6, 'the evening meal at the camp'); this.fill(r.range(20.8, 21.6), [[this.m.sleep, 'rest', 'resting in his tent', 2]]); this.night();
@@ -986,19 +1014,20 @@ class CourtDay {
     const other = role === 'prince' || role === 'weapons', walkAct: ActivityId = parasol ? 'bear_parasol' : other ? 'walk' : 'bear_whisk';
     // (D-780, C12 pass 4: under the hall's roof and the canopy the parasol is furled: no parasol over the king indoors)
     const standAct: ActivityId = parasol || other ? 'inspect' : 'attend_whisk';
-    const standWhy = parasol ? 'standing by the throne, the parasol furled under the roof' : role === 'prince' ? 'the crown prince standing behind the throne (the Treasury relief, B; C: D-780)' : role === 'weapons' ? 'the king’s weapon-bearer standing behind the throne with the bow case and the axe (the Treasury relief, B; C: D-780)' : 'standing behind the throne with the fly-whisk and the towel (the Treasury relief, B)';
+    const standWhy = parasol ? 'standing by the throne, the parasol furled under the roof (by lamp and torch light at night)' : role === 'prince' ? 'the crown prince standing behind the throne (the Treasury relief, B; C: D-780)' : role === 'weapons' ? 'the king’s weapon-bearer standing behind the throne with the bow case and the axe (the Treasury relief, B; C: D-780)' : 'standing behind the throne with the fly-whisk and the towel (the Treasury relief, B)';
     const wk = (where: string) => parasol ? `walking behind the king ${where}, the parasol held over him` : other ? `walking behind the king ${where}${role === 'weapons' ? ' with his bow case and axe' : ''}` : `walking behind the king ${where} with the fly-whisk and the towel`;
     this.morning(r.range(4.9, 5.4)); this.meal(this.m.sleep, 0.3, 'breakfast in the south wing');
     this.go(PRV, 'going to the palace to attend the king');
     const o = this.outing(), sd = K.set, gifts = !Kd.aud && (this.d === sd.kingGifts || this.d === sd.birthday);
-    if (o) { const w = walkHours(PRV, 'stair_foot'); this.fill(o.t0 - w - 0.1, opts); this.go('stair_foot', wk('down the Great Stair'), walkAct);
-      this.outingRide(o, 'escort'); this.go(PRV, 'walking behind the king back up to the palace', walkAct); }
+    const out = () => { const w = walkHours(PRV, 'stair_foot'); this.fill(o!.t0 - w - 0.1, opts); this.go('stair_foot', wk('down the Great Stair'), walkAct);
+      this.outingRide(o!, 'escort'); this.go(PRV, 'walking behind the king back up to the palace', walkAct); };
+    if (o?.kind === 'hunt') out();
     else if (Kd.aud || gifts) { const a0 = Kd.aud ? Kd.a0 : 9.0, a1 = Kd.aud ? Kd.a1 : 11.0, w = walkHours(PRV, post); this.fill(a0 - w, opts); this.until(a0 - w, 'inspect', 'in attendance on the king in the palace');
       this.go(post, wk('to the Apadana'), walkAct);
       this.add(a1, post, standAct, standWhy);
       this.go(PRV, 'walking behind the king back to the palace', walkAct); }
     this.fill(Math.max(this.t + 0.3, r.range(12.9, 13.4)), opts); this.meal(this.m.sleep, 0.5, 'the midday meal in the south wing');
-    this.go(PRV, 'going back to the palace');
+    this.go(PRV, 'going back to the palace'); if (o?.kind === 'ride') out();
     if (K.banquetNight(this.d)) { const [b0, b1] = ceremonyHours(K.pop.seed, this.d).banquet, w = walkHours(PRV, post); this.fill(b0 + 0.4 - w, opts);
       this.go(post, wk('to the banquet'), walkAct);
       this.add(b1 - 0.4, post, standAct, `${standWhy}, at the banquet`);
@@ -1013,12 +1042,14 @@ class CourtDay {
     const arms = 'spear with its apple-shaped butt, bow and quiver (reliefs B)';
     this.morning(r.range(5.2, 6)); this.meal(Q, 0.35, 'breakfast in the quarters');
     const o = this.outing(), sd = K.set, gifts = !Kd.aud && (this.d === sd.kingGifts || this.d === sd.birthday);
-    if (o) { const w = walkHours(G, 'stair_foot'); this.guardFree(o.t0 - w - 0.6); this.go(G, 'going to the Hadish to escort the king'); this.until(o.t0 - w - 0.1, 'stand_guard', 'on watch in the Hadish’s N court, waiting for the king');
-      this.go('stair_foot', 'walking before the king down the Great Stair', 'patrol', arms); this.outingRide(o, 'escort', arms); this.go(G, 'walking before the king back up to the Hadish', 'patrol', arms); }
+    const out = () => { const w = walkHours(G, 'stair_foot'); this.guardFree(o!.t0 - w - 0.6); this.go(G, 'going to the Hadish to escort the king'); this.until(o!.t0 - w - 0.1, 'stand_guard', 'on watch in the Hadish’s N court, waiting for the king');
+      this.go('stair_foot', 'walking before the king down the Great Stair', 'patrol', arms); this.outingRide(o!, 'escort', arms); this.go(G, 'walking before the king back up to the Hadish', 'patrol', arms); };
+    if (o?.kind === 'hunt') out();
     else if (Kd.aud || gifts) { const a0 = Kd.aud ? Kd.a0 : 9.0, a1 = Kd.aud ? Kd.a1 : 11.0, w = walkHours(G, post); this.guardFree(a0 - w - 0.5); this.go(G, 'going to the Hadish to escort the king'); this.until(a0 - w, 'stand_guard', 'on watch in the Hadish’s N court, waiting for the king');
       this.go(post, 'walking before the king to the Apadana', 'patrol', arms); this.add(a1, post, 'stand_guard', 'on watch beside the throne at the audience (C)', arms);
       this.go(G, 'walking before the king back to the Hadish', 'patrol', arms); this.at(this.t + 0.2, G, 'stand_guard', 'on watch in the Hadish’s N court until the king is inside', arms); }
     this.guardFree(r.range(11.8, 12.6)); this.meal(M, 0.6, 'a meal from the king’s table, carried out to the guards’ court (Heracleides, a claim)');
+    if (o?.kind === 'ride') out();
     if (K.banquetNight(this.d)) { const [b0, b1] = ceremonyHours(K.pop.seed, this.d).banquet, w = walkHours(G, post); this.guardFree(b0 - 0.6); this.meal(M, 0.5, 'the evening meal in the guards’ court before the banquet');
       this.go(G, 'going to the Hadish to escort the king to the banquet'); this.until(b0 + 0.4 - w, 'stand_guard', 'on watch in the Hadish’s N court, waiting for the king');
       this.go(post, 'walking before the king to the banquet', 'patrol', arms); this.add(b1 - 0.4, post, 'stand_guard', 'on watch beside the throne at the banquet (C)', arms);
@@ -1031,7 +1062,9 @@ class CourtDay {
   retinueDay() {
     const r = this.r, G = RET_BY_ID.get(this.m.role)!, CA = this.m.sleep, town = campOfPlace(CA)?.zone === 'town', dayOff = (this.d + this.pid) % 7 === 0;
     const leisure: Opt[] = [[CA, 'rest', 'resting at the camp', 2], [CA, 'talk', 'talking at the camp', 2], [CA, 'gamble', 'knucklebones at the camp', 0.6], [CA, 'wash', 'washing clothes at the camp', 0.5]];
-    const work: Opt[] = dayOff ? leisure : G.work === 'household' ? [[CA, 'clean', 'sweeping out the tents of the household', 1.2], [CA, 'draw_water', 'fetching water for the tents', 1], [CA, 'wash', 'washing the household’s clothes at the camp', 1], [CA, 'craft', 'mending clothes and gear at the camp', 1], [CA, 'knead', 'kneading dough for the household’s bread', 0.6], [CA, 'rest', 'resting between tasks', 0.6], [CA, 'talk', 'talking with the other servants', 0.6]]
+    // (D-780: a day off is not a day idle: mending one's own things, washing, a walk to the craft quarter to buy and sell, a visit, a game: C)
+    const off: Opt[] = [[CA, 'craft', 'mending his own clothes and gear on a day off', 1.2], [CA, 'wash', 'washing his own clothes on a day off', 0.8], ['craft_zone', 'exchange', 'at the craft quarter on a day off, trading for a few things', 1.2], [CA, 'talk', 'visiting people he knows at the camp', 1.2], [CA, 'gamble', 'knucklebones at the camp', 0.6], [CA, 'rest', 'resting at the camp', 0.8]];
+    const work: Opt[] = dayOff ? off : G.work === 'household' ? [[CA, 'clean', 'sweeping out the tents of the household', 1.2], [CA, 'draw_water', 'fetching water for the tents', 1], [CA, 'wash', 'washing the household’s clothes at the camp', 1], [CA, 'craft', 'mending clothes and gear at the camp', 1], [CA, 'knead', 'kneading dough for the household’s bread', 0.6], [CA, 'rest', 'resting between tasks', 0.6], [CA, 'talk', 'talking with the other servants', 0.6]]
       : G.work === 'horses' ? [[CA, 'tend_animals', 'seeing to the horses at the horse lines', 3], [CA, 'carry_sack', 'carrying fodder to the horse lines', 1], [CA, 'craft', 'mending bridles and saddle cloths', 0.8], [CA, 'rest', 'resting by the horse lines', 0.8]]
       : G.work === 'baggage' ? [[CA, 'tend_animals', 'seeing to the mules and camels of the baggage', 2.5], [CA, 'craft', 'mending pack saddles and ropes', 1.2], [CA, 'rest', 'resting by the baggage', 1], [CA, 'talk', 'talking with the drivers', 0.6]]
       : G.work === 'craft' ? [[CA, 'craft', 'at work at the camp’s benches', 3], [CA, 'exchange', 'trading with the camp’s people', 1.2], [CA, 'rest', 'resting at the camp', 0.6], [CA, 'talk', 'talking at the camp', 0.6]]
@@ -1043,7 +1076,8 @@ class CourtDay {
     // D-780: the king's horses: grooms bring them to the stair foot and ride with the king's ride or hunt; the soldiers of the
     // plain beat for the hunt; the rest of the grooms exercise the horses in strings out to the royal horse lines and back (C)
     const o = dayOff ? null : this.outing(), K = this.K, nG = G.n || 1;
-    if (o && G.work === 'horses' && K.inOut(this.pid, this.d, (o.kind === 'hunt' ? CE.hunt.grooms : CE.ride.grooms) / nG)) {
+    const groomOut = !!o && G.work === 'horses' && K.inOut(this.pid, this.d, (o.kind === 'hunt' ? CE.hunt.grooms : CE.ride.grooms) / nG);
+    if (o?.kind === 'hunt' && groomOut) {
       this.go('stair_foot', 'leading the king’s horses to the stair foot, saddled for the ' + o.kind, 'walk'); this.outingRide(o, 'groom'); this.go(CA, 'leading the horses back to the horse lines'); }
     else if (o && o.kind === 'hunt' && G.work === 'soldier' && G.zone === 'plain' && K.inOut(this.pid, this.d, CE.hunt.beaters / nG)) { this.fill(o.t0 - walkHours(CA, 'river'), work); this.outingRide(o, 'beater'); this.go(CA, 'going back to the camp from the hunt'); }
     else if (!dayOff && G.work === 'horses' && K.inOut(this.pid, this.d * 2 + 1, CE.exercise.share) && this.d > K.firstDay && this.d < K.leaveDay) { const [h0, h1] = (CE.exercise.hours as [number, number][])[0]; // (the morning: C)
@@ -1055,6 +1089,8 @@ class CourtDay {
       this.go(RS, 'going to the royal stores'); this.add(this.t + r.range(0.2, 0.4), RS, 'rest', 'waiting while the storekeeper weighs out the load');
       this.go(CA, `carrying ${G.work === 'household' ? 'flour' : 'barley'} from the royal stores to the camp`, 'carry_sack', load); }
     this.fill(r.range(11.6, 12.6), work); this.meal(CA, 0.5, 'the midday meal at the camp');
+    if (o?.kind === 'ride' && groomOut) { this.fill(o.t0 - walkHours(CA, 'stair_foot') - 0.4, work); // (D-780: the king's drive in the afternoon)
+      this.go('stair_foot', 'leading the king’s horses to the stair foot, saddled for the ride', 'walk'); this.outingRide(o, 'groom'); this.go(CA, 'leading the horses back to the horse lines'); }
     this.fill(r.range(17.2, 18.1), work);
     if (G.work === 'household' || r.chance(0.25)) this.at(this.t + r.range(0.5, 0.9), CA, 'cook', 'cooking the evening meal at the camp’s hearth');
     this.meal(CA, 0.6, 'the evening meal at the camp'); this.fill(r.range(20.6, 21.8), leisure); this.night('asleep in the tent');

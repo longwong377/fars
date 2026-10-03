@@ -104,6 +104,8 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
     variants: [
       // D-780 (s18 C13): the court's programme (people/ceremony.ts, court.ts): riding with the king, to the hunt and at exercise;
       // grooms leading the king's horses; a delegate leading his people's gift animals up the Apadana's stair (the reliefs, B)
+      { when: /in the royal chariot/, anim: 'ride', sound: undefined, animals: { kind: 'mount', species: ['horse_saddle'], pace: 1.8 },
+        note: 'the king driving out in the royal chariot (the reliefs, B): drawn mounted until the chariot and its pair are drawn under him (C14, the animals: C: D-780)' },
       { when: /on horseback/, anim: 'ride', sound: undefined, animals: { kind: 'mount', species: ['horse_saddle'], pace: 1.8 },
         note: 'riding with the king, to the hunt or at exercise, on a saddle cloth, no stirrups (blocklist; Cyr. 8.3, 1.4: claims, B; the pace C: D-780)' },
       { when: /leading the king’s horses|leading the horses back/, animals: { kind: 'string', species: ['horse_saddle', 'horse_saddle', 'horse_saddle'], n: 3, pace: 1.0 }, note: 'a groom leading the king’s saddled horses on a string (C: D-780)' },
@@ -194,8 +196,8 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
     // D-780: the court's audience and banquet (court.ts): the bow before the king (drawn with the bowed head and joined hands
     // of the mourning pose until a proskynesis pose exists: C), and the servers at the banquet's tables
     variants: [{ when: /bowing low before the king|right hand raised before his mouth/, anim: 'proskynesis', note: 'proskynesis before the king: bowing from the hips, the right hand raised before the mouth (the Treasury relief, B; HDT 1.134, a claim: B; the depth and timing C: D-780)' },
-      { when: /pouring wine at the tables/, prop: 'jar', note: 'pouring wine at the king’s banquet (C: D-780)' },
-      { when: /serving at the tables/, prop: 'bowl', note: 'serving dishes at the king’s banquet (C: D-780)' }] },
+      { when: /pouring wine at the tables/, anim: 'pour', prop: 'jar', note: 'pouring wine at the king’s banquet (C: D-780)' },
+      { when: /serving at the tables/, anim: 'serve', prop: 'bowl', note: 'serving dishes at the king’s banquet (C: D-780)' }] },
   shelter: { anim: 'idle', tier: 'C', note: 'waiting out rain under a roof (the Gate’s, a hut’s); in the open only a passing shower, the cloak drawn over the head: a longer rain sends people home (S1 of shadow review r5)' },
   play: { anim: 'play', tier: 'C', note: 'children playing: hopping and skipping about (C)',
     // D-215 (gap audit item 26; D-207): the kinds of play, by share and age (all C: no Persepolis evidence either way)
@@ -266,11 +268,11 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
         note: 'a driver holding his string of pack animals while the loads are taken off (C)' },
       { when: /holding the camels/, anim: 'hold_lead', prop: 'lead', work: [], animals: { kind: 'string', species: ['camel_pack'], n: 4, pace: 0, gap: 1.2, side: -1.1, lead: -1.5 },
         note: 'a camel driver holding his string while the loads are taken off (C)' },
-      { when: /holding the timber cart/, anim: 'idle', prop: 'goad', work: [{ kind: 'cart_timber', at: [0, 0, -4.7] }], animals: { kind: 'draught', species: ['ox', 'ox'], pace: 0 },
+      { when: /holding the timber cart/, anim: 'hold_lead', prop: 'goad', work: [{ kind: 'cart_timber', at: [0, 0, -4.7] }], animals: { kind: 'draught', species: ['ox', 'ox'], pace: 0 },
         note: 'a carter standing by his oxen while the beams are levered off at the drum ground (C)' },
-      { when: /holding the stone cart/, anim: 'idle', prop: 'goad', work: [{ kind: 'cart_stone', at: [0, 0, -4.7] }], animals: { kind: 'draught', species: ['ox', 'ox'], pace: 0 },
+      { when: /holding the stone cart/, anim: 'hold_lead', prop: 'goad', work: [{ kind: 'cart_stone', at: [0, 0, -4.7] }], animals: { kind: 'draught', species: ['ox', 'ox'], pace: 0 },
         note: 'a carter holding his yoked oxen while the block is levered off his cart (s17 V3, C3’s ask; C)' },
-      { when: /holding the ox cart/, anim: 'idle', prop: 'goad', work: [{ kind: 'cart', at: [0, 0, -4.7] }], animals: { kind: 'draught', species: ['ox', 'ox'], pace: 0 },
+      { when: /holding the ox cart/, anim: 'hold_lead', prop: 'goad', work: [{ kind: 'cart', at: [0, 0, -4.7] }], animals: { kind: 'draught', species: ['ox', 'ox'], pace: 0 },
         note: 'a carter standing by his oxen while the grain is taken off the cart (C)' },
       // D-210 (gap audit item 17, court setting): a delegation's gift animal at the court's camp (the Apadana reliefs: B imagery; C)
       { when: /Bactrian camel/, animals: { kind: 'beside', species: ['camel'] }, note: 'seeing to the party’s Bactrian camel, a gift of the Apadana reliefs (APA-RELIEF, B imagery; at the camp C)' },
@@ -448,7 +450,7 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
   bear_parasol: { anim: 'guard_walk', moving: true, prop: 'parasol', sound: 'footsteps', tier: 'B', note: 'an attendant walking behind the king holding the parasol over him (door-jamb reliefs: B); the parasol’s size and cloth C; the two are not held in step (each walks the view’s own route: C)' },
   attend_parasol: { anim: 'guard', prop: 'parasol', tier: 'C', note: 'the parasol bearer standing by while the king sits (C: indoors the reliefs show a canopy, not the parasol)' },
   bear_whisk: { anim: 'walk', moving: true, prop: 'whisk', prop2: 'towel', sound: 'footsteps', tier: 'B', note: 'a beardless attendant walking behind the king with a fly-whisk and a towel (door-jamb reliefs: B)' },
-  attend_whisk: { anim: 'idle', prop: 'whisk', prop2: 'towel', tier: 'B', note: 'the fly-whisk and towel bearer standing behind the throne (the Treasury audience relief: a beardless attendant with a towel behind the king, TREAS-AUD: B)' },
+  attend_whisk: { anim: 'fan', prop: 'whisk', prop2: 'towel', tier: 'B', note: 'the fly-whisk and towel bearer standing behind the throne (the Treasury audience relief: a beardless attendant with a towel behind the king, TREAS-AUD: B)' },
 };
 /** the placeholders (none since D-142; tests pin this list as empty, and the lint fails if one is added back) */
 export const ABSTRACT_PLACEHOLDERS = (Object.keys(ACTIVITIES) as ActivityId[]).filter(k => ACTIVITIES[k].abstractOnly || ACTIVITIES[k].placeholder);

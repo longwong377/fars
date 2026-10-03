@@ -55,6 +55,13 @@ const merge = (gs: THREE.BufferGeometry[]) => mergeGeometries(gs)!;
 const GUT: RGB = [0.86, 0.8, 0.64], CANE: RGB = [0.74, 0.66, 0.42];
 
 export const PROP_NOTES: Record<string, { tier: 'A' | 'B' | 'C'; note: string }> = {
+  // D-780: the delegations' gifts, as the Apadana reliefs show them carried up the stair (the kinds B; the forms C)
+  gift_amphora: { tier: 'B', note: 'a silver amphora with winged-ibex handles (the Armenian and Lydian gifts on the Apadana reliefs; the Achaemenid ibex-handled vessels: B type; the form C)' },
+  gift_armlets: { tier: 'B', note: 'a pair of gold armlets with griffin terminals (the Scythian and Sogdian gifts; the Oxus armlets: B type; C)' },
+  gift_tusk: { tier: 'B', note: 'an elephant tusk (the Kushite and Indian gifts on the reliefs: B)' },
+  gift_daggers: { tier: 'B', note: 'short swords (akinakes) in their sheaths with the lobed flap and chape (the Median and Scythian gifts: B type; C)' },
+  gift_bows: { tier: 'B', note: 'composite bows, unstrung and reflexed (the Scythian and Bactrian gifts: B type; C)' },
+  gift_cloth: { tier: 'B', note: 'garments folded and stacked with a woven border (the coats and trousers of the Median, Armenian and Cappadocian gifts: B; C)' },
   spear: { tier: 'B', note: 'long spear with a pomegranate-shaped butt counterweight, silver for the ordinary guards (Herodotus via IR-IMM; SUSA-ARCH); shaft length and blade C' },
   sack: { tier: 'B', note: 'sack on the shoulder (porters on the tribute reliefs carry skins and bags)' },
   jar: { tier: 'C', note: 'storage/water jar, plain buff ware (C)' },
@@ -459,6 +466,8 @@ export const PROP_CLASSES: string[][] = [
   ['babe', 'babe_wrapped', 'babe_sling', 'babe_wrapped_sling', 'babe_mat', 'babe_cradle'],
   // D-255: the crafts' and the records' tools (a class of their own: one draw more only where a craft is worked in view)
   ['hammer', 'tongs', 'hammer_s', 'punch', 'balance', 'seal_cyl', 'drill_bow', 'scraper', 'pestle'],
+  // D-780: the delegations' gifts (a class of their own: one draw more only where a delegation goes up in view)
+  ['gift_amphora', 'gift_armlets', 'gift_tusk', 'gift_daggers', 'gift_bows', 'gift_cloth'],
 ];
 /** the class of the carried children (crowd.ts tints its skin) */
 export const BABE_CLASS = 3;

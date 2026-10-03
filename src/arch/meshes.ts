@@ -40,7 +40,7 @@ const ALBEDO: Record<Material, [number, number, number]> = {
   limestone: [0.62, 0.6, 0.56], limestone_dark: [0.28, 0.28, 0.28], mudbrick: [0.66, 0.56, 0.44], mudbrick_painted: [0.58, 0.57, 0.45], plaster: [0.8, 0.76, 0.68],
   plaster_red: [0.5, 0.16, 0.12], bronze: [0.55, 0.4, 0.22],
   timber: [0.36, 0.27, 0.19], glazed: [0.2, 0.4, 0.55], earth: [0.5, 0.42, 0.32], scaffold: [0.45, 0.35, 0.24], rubble: [0.55, 0.52, 0.48],
-  court_fill: [0.5, 0.46, 0.39], terrace: [0.62, 0.6, 0.56], roof_earth: [0.61, 0.54, 0.42], mudbrick_bare: [0.6, 0.52, 0.41], steel: [0.3, 0.3, 0.31],
+  court_fill: [0.5, 0.46, 0.39], terrace: [0.62, 0.6, 0.56], roof_earth: [0.61, 0.54, 0.42], mudbrick_bare: [0.6, 0.52, 0.41], steel: [0.3, 0.3, 0.31], palace_plaster: [0.78, 0.69, 0.54], frame_coat: [0.8, 0.78, 0.72],
 };
 import { surfaceMaterial, paintedShaftMaterial } from '../render/materials';
 import { pointInPoly } from './parts';
@@ -200,7 +200,17 @@ export function bevelledBox(h: V3, r: number, edges: boolean[], round: boolean, 
  *  service ranges, the fortification, or the halls still under construction in 467 (the Hall of 100 Columns, the Tripylon) */
 /** D-334: the surface a part is drawn in: a mud-brick wall still under construction in 467 stands in its bare courses (the
  *  plaster is the last coat, laid when the brickwork is done: C); every other part its own material */
-export const renderMaterial = (p: Part): Material => p.material.startsWith('mudbrick') && /under construction/.test(p.note ?? '') ? 'mudbrick_bare' : p.material;
+export const renderMaterial = (p: Part): Material => {
+  if (p.material.startsWith('mudbrick') && /under construction/.test(p.note ?? '')) return 'mudbrick_bare';
+  if ((p as any).now) return p.material; // (the Now view's parts keep their own: UD-20)
+  // D-752: the palaces in residence: their walls and towers in the painted, kept plaster; the frames' dark stone under its coat
+  if (p.material === 'mudbrick' && PALACE_PLASTER.has(p.building) && PALACE_PLASTER_KINDS.has(p.kind)) return 'palace_plaster';
+  if (p.material === 'limestone_dark') return 'frame_coat';
+  return p.material;
+};
+/** D-752: the buildings whose mud-brick walls and towers are drawn in palace_plaster (the Treasury keeps its clay paint), and the kinds */
+export const PALACE_PLASTER = new Set(['gate_nations', 'apadana', 'tachara', 'hadish', 'harem', 'tripylon', 'hall100']);
+export const PALACE_PLASTER_KINDS = new Set(['wall', 'tower', 'storerooms', 'pier', 'pilaster']);
 export const PAINTED_INTERIORS = new Set<string>(v<any>('global', 'r_interior_paint').buildings); // SITE_SPEC global.r_interior_paint
 export class PartIndex {
   private cells = new Map<number, number[]>(); private CELL = 4;
