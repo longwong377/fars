@@ -20,11 +20,14 @@ const man = JSON.parse(readFileSync(join(ROOT, 'public/audio/score/manifest.json
 // are sparser than 24: shots may be rendered at different rates), then the clips are joined
 const shots = readdirSync(FR).filter(d => existsSync(join(FR, d, 'shot.json'))).map(d => ({ d, ...JSON.parse(readFileSync(join(FR, d, 'shot.json'), 'utf8')) })).sort((a, b) => a.t0 - b.t0);
 if (!shots.length) throw new Error(`no shots in ${FR}`);
-const clips = []; let t = 0;
+const clips = []; let t = 0, nb = 0;
+const W0 = shots[0].res?.[0] ?? 640, H0 = shots[0].res?.[1] ?? 268;
+/** black for a stretch no shot covers yet (an interim edit keeps the music's time) */
+const black = (a, b) => { const f = join(FR, `black${nb++}.mkv`); execFileSync('ffmpeg', ['-y', '-v', 'error', '-f', 'lavfi', '-i', `color=c=black:s=${W0}x${H0}:r=24`, '-t', (b - a).toFixed(4), '-c:v', 'ffv1', '-pix_fmt', 'yuv444p', f]); return f; };
 for (const s of shots) {
   const frames = readdirSync(join(FR, s.d)).filter(f => /^\d{5}\.png$/.test(f)).map(f => +f.slice(0, 5)).sort((a, b) => a - b);
   if (!frames.length) throw new Error(`${s.d}: no frames`);
-  if (Math.abs(s.t0 - t) > 0.05) console.warn(`  ! a gap before ${s.d}: ${t.toFixed(2)} -> ${s.t0.toFixed(2)} s`);
+  if (s.t0 - t > 0.05) { clips.push(black(t, s.t0)); console.warn(`  ! not rendered: ${t.toFixed(2)}-${s.t0.toFixed(2)} s (black)`); }
   const step = frames.length > 1 ? Math.min(...frames.slice(1).map((f, i) => f - frames[i])) : 1, rate = s.fps / step, len = s.t1 - s.t0;
   const pat = join(FR, s.d, '%05d.png'), clip = join(FR, `${s.d}.mkv`);
   // the frames that exist at this step, renumbered for the image demuxer
@@ -32,10 +35,11 @@ for (const s of shots) {
   for (const f of frames) if (f % step === frames[0] % step) L.push(`file '${join(FR, s.d, `${String(f).padStart(5, '0')}.png`)}'`, `duration ${(1 / rate).toFixed(6)}`);
   L.push(L[L.length - 2]); writeFileSync(list, L.join('\n') + '\n');
   const up = rate >= 24 ? 'fps=24' : `fps=${rate},minterpolate=fps=24:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1`;
-  execFileSync('ffmpeg', ['-y', '-v', 'error', '-f', 'concat', '-safe', '0', '-i', list, '-vf', `${up},tpad=stop_mode=clone:stop_duration=1`, '-t', len.toFixed(4), '-c:v', 'ffv1', clip]);
+  execFileSync('ffmpeg', ['-y', '-v', 'error', '-f', 'concat', '-safe', '0', '-i', list, '-vf', `${up},tpad=stop_mode=clone:stop_duration=1`, '-t', len.toFixed(4), '-c:v', 'ffv1', '-pix_fmt', 'yuv444p', clip]);
   clips.push(clip); t = s.t1;
   console.log(`${s.d.padEnd(14)} ${s.t0.toFixed(2)}-${s.t1.toFixed(2)} s, ${frames.length} frames at ${rate} fps`);
 }
+if (man.marks.end - t > 0.05) { clips.push(black(t, man.marks.end)); console.warn(`  ! not rendered: ${t.toFixed(2)}-${man.marks.end.toFixed(2)} s (black)`); t = man.marks.end; }
 const list = join(FR, 'film.ffconcat'); writeFileSync(list, ['ffconcat version 1.0', ...clips.map(c => `file '${c}'`)].join('\n') + '\n');
 const dur = Math.max(t, man.seconds);
 
