@@ -41,7 +41,7 @@
    "src": "RECON"
   },
   "calf": {
-   "inHash": "ec35c2fd1304caf3e717f67fb66a3026f3e1b61a63faa1ac0c25a7a39b5e66a7",
+   "inHash": "554adf00a9e2c4da65c2f9b65b33809af1b22eaa130b12252ce0768aff09c9d0",
    "class": "medium",
    "real": true,
    "files": {
@@ -263,7 +263,7 @@
    "src": "RECON"
   },
   "cheetah": {
-   "inHash": "33a189d7e3fe244b18b3393da52fe314a5967547c45709197b757e5210e9c8c7",
+   "inHash": "dd88cb81dc78b623df703e62dc628c7c3f87354d4bc86e3470682f37bdd7c2df",
    "class": "medium",
    "real": true,
    "files": {
@@ -407,7 +407,7 @@
    "src": "LIBRARY"
   },
   "cock": {
-   "inHash": "abc23e647368074b6a5ca59c12c91d9e4ded076c3e2f43f3b0f94d261d7c0401",
+   "inHash": "8caf6784281e5892378112ed60afa95d61f45f543dcd5f5a5537ec2816823829",
    "class": "fowl",
    "real": true,
    "files": {
@@ -523,7 +523,7 @@
    "src": "LIBRARY"
   },
   "cow": {
-   "inHash": "a369a2efea2bf40927cc4eaf8753f5d93e21b3804d9a76ea1b75b6ee333f6c2d",
+   "inHash": "0bc0933a1016bc9e22222fd12ba87b5ac566438874ce5b9f2f9812638d03b01f",
    "class": "large",
    "real": true,
    "files": {
@@ -667,7 +667,7 @@
    "src": "LIBRARY"
   },
   "deer": {
-   "inHash": "66edec07cf6cc75753e0c9d7eef2e60413d77e11959c9bd4369a7b22001e0afc",
+   "inHash": "738108e32d389b96b8c611f8d23739c09e5a6e6764d460ad55ee8046a9cf1275",
    "class": "medium",
    "real": true,
    "files": {
@@ -811,7 +811,7 @@
    "src": "LIBRARY"
   },
   "dog": {
-   "inHash": "de9fb7fd74872f9f3da43be38cb3d45ae825aeba592fa76947935776b3031af9",
+   "inHash": "ca5f8261e96f69f463ca833d4e10695d29da5ea1465b14e7aaa08dada012478c",
    "class": "small",
    "real": true,
    "files": {
@@ -955,7 +955,7 @@
    "src": "LIBRARY"
   },
   "donkey": {
-   "inHash": "9684ac92173584a1fd20315e2af447866d6f5b3209713344e6a5edcb3fff1313",
+   "inHash": "43bef03d196cf4b392614a833844fe285c2342094a5429f2f97cacc35105c843",
    "class": "medium",
    "real": true,
    "files": {
@@ -1099,7 +1099,7 @@
    "src": "LIBRARY"
   },
   "donkey_pack": {
-   "inHash": "d52fefaef9867b6c142854e80623ea65fae4353fec0e44ddf6e4853f05b2c65b",
+   "inHash": "29c960aa4540628b81657b69ba0b664b290732e83806870d8dfa327c3b79cf20",
    "class": "medium",
    "real": true,
    "files": {
@@ -1108,12 +1108,12 @@
      "sha256": "2fee9f7807b6a0a0ce3f98d1fcf850dc2cd92a5cfb7e1fa4526c1c831194121e"
     },
     "donkey_pack_albedo.ktx2": {
-     "bytes": 993510,
-     "sha256": "4e95538b63acf95e66cbc44f1ea88679c8aaa4b5926cdf71247ce85398c896b1"
+     "bytes": 993513,
+     "sha256": "91030fad91303745a472e24bb6cc5f4ddca44a6abddae030a5efb5fcbba32b56"
     },
     "donkey_pack_nrm.ktx2": {
-     "bytes": 1015948,
-     "sha256": "a7060008998fc740869d4444dbbf842439aa6b3abb51a40971e19d2c4a61acd0"
+     "bytes": 1015949,
+     "sha256": "81f18f52c35997b252fd8172604b445b5477a8dc7bc1a588d2e95f0c5f99c4d9"
     }
    },
    "tris": [
@@ -1243,7 +1243,7 @@
    "src": "LIBRARY"
   },
   "dromedary": {
-   "inHash": "4efeeceaefa71229f759a7046b3eb129f34f8f9bfb439606d4043e711355b02f",
+   "inHash": "86ed8b6b6271d44f1fac7a3898418518f7c261e35722ca215380eae9e93d995b",
    "class": "large",
    "real": true,
    "files": {
@@ -1257,7 +1257,7 @@
     },
     "dromedary_nrm.ktx2": {
      "bytes": 905763,
-     "sha256": "32d34cb74cfd1008394a926ae9a61bebd1908dc30c10209707cab89b46508dfd"
+     "sha256": "155e12d914222fc66513fe7e412bd2cd883ba4c92ac2a469a00250d710fba805"
     }
    },
    "tris": [
@@ -1387,7 +1387,7 @@
    "src": "LIBRARY"
   },
   "fox": {
-   "inHash": "570cc6785f6e7daf62144b571ff735d7eba407ea5ebb9d5f6b08e556e73c97b4",
+   "inHash": "52f1d4ac2dd6e5a2283b26b94d728c55af73b0115ad828972f143a96657f5f89",
    "class": "small",
    "real": true,
    "files": {
@@ -1400,8 +1400,8 @@
      "sha256": "72b66726e14ebe6dcdc463728b47817f20c6e4ea7f8dab568d9928f5de0d4b2b"
     },
     "fox_nrm.ktx2": {
-     "bytes": 449515,
-     "sha256": "205d2cc6dc78ab56ec32be1df52393e96f53e664cfd00e1be18a013dea799083"
+     "bytes": 449523,
+     "sha256": "1baf67a08a55006e10671d1325785c83e609668b9d65a755db16bd7815d4eeb2"
     }
    },
    "tris": [
@@ -1531,7 +1531,7 @@
    "src": "LIBRARY"
   },
   "gazelle": {
-   "inHash": "0f21948011faf837a9cc99bebf2dc0fecd43e4fa33f9b8f9680d0e2643038fe1",
+   "inHash": "338598ff4abdaf26691b0c20b536d14a7d9cf353a0f377adb3c816c97d5b01ff",
    "class": "small",
    "real": true,
    "files": {
@@ -1540,8 +1540,8 @@
      "sha256": "1b6773b73f956fc89df5d93504ed513c2864d81384f23070c223a2f04f63194d"
     },
     "gazelle_albedo.ktx2": {
-     "bytes": 792672,
-     "sha256": "0646baf13583a5f319ad877157a7c2b34acd794f4b8923417c86e4e15a2c72c0"
+     "bytes": 792671,
+     "sha256": "90af900ce07fd6b64073ea5030b63c8cc60ea3f5cd788b8c33f23428573200e6"
     },
     "gazelle_nrm.ktx2": {
      "bytes": 829903,
@@ -1675,7 +1675,7 @@
    "src": "LIBRARY"
   },
   "gazelle_m": {
-   "inHash": "f98842bc40d6794f935523ad967fa86aa54b91cf551308a2a54c7a9ca2e0c651",
+   "inHash": "35a1dd8b86b3378bb0ed7a912af77d15107dfd1a8762bd15d2a1f8e15df5838b",
    "class": "small",
    "real": true,
    "files": {
@@ -1819,7 +1819,7 @@
    "src": "LIBRARY"
   },
   "goat": {
-   "inHash": "19fd21a82fbf0f75c66f0234607f7407f7c1ed829c2e79f31706d1aeb9554524",
+   "inHash": "dfcf4e434686cb8c31852f750b8d65b6a9094caf39d5d2e2f44b63f98c1fef40",
    "class": "small",
    "real": true,
    "files": {
@@ -1828,8 +1828,8 @@
      "sha256": "9d61df757a88cf5f1a095fb1d18ab044a2d36e9cd9f2d00288fd9a8e2f5a1d4d"
     },
     "goat_albedo.ktx2": {
-     "bytes": 1062765,
-     "sha256": "2bd38f888af5066fd6cf4969b06868b9c740687825d8e4378ff0b161100e01cf"
+     "bytes": 1062768,
+     "sha256": "9300b5e61c2f40a5391fc93213c4cabb89b9e56d71a2a88399c503aedcf44bed"
     },
     "goat_nrm.ktx2": {
      "bytes": 1044893,
@@ -1998,7 +1998,7 @@
    "src": "RECON"
   },
   "hen": {
-   "inHash": "e734edc6d2d67e43266abb5516b9d8e527ea71a6829d12f7ac9a8494baad2f11",
+   "inHash": "0b351e3960d3c3024f7db0d2d3e3f5b984c9d50db6350bfad16b17eee65599aa",
    "class": "fowl",
    "real": true,
    "files": {
@@ -2007,8 +2007,8 @@
      "sha256": "3daa7bbd216394d8cba7673fe679eda55186a52f2616e94439739519046b0cec"
     },
     "hen_albedo.ktx2": {
-     "bytes": 289677,
-     "sha256": "9d1369c2c0a7c068d78ef1136e920ec7cf3f2f980fc23717e9f04462a4b3e5fa"
+     "bytes": 289679,
+     "sha256": "30bec1978ec643324002b7fa23b5438ee2c2f6152beb9201e58dcdcdcde6b2fe"
     },
     "hen_nrm.ktx2": {
      "bytes": 296654,
@@ -2114,7 +2114,7 @@
    "src": "LIBRARY"
   },
   "horse": {
-   "inHash": "6983ba94902a3e7d10faf2194b80f4c6c615c9bd518c7b837c5ff3ed997167c4",
+   "inHash": "596c58d6d0ea6642a004bb5edbcbf1a42fcbb414014ab6a4bddea378616f4e8f",
    "class": "large",
    "real": true,
    "files": {
@@ -2127,8 +2127,8 @@
      "sha256": "77ad9978b2e1dc1d0eccc011a503271bc536e3981f8620ba872a27ca8f979707"
     },
     "horse_nrm.ktx2": {
-     "bytes": 714943,
-     "sha256": "7feb5406e3576bda1a3964eb4464d4cd82578c5f6be034e28211fa34cfb9bcc2"
+     "bytes": 714936,
+     "sha256": "2507aa40ed36fb811adca8744ab1c8dbf3f89e2b3ee779f2cf6fec97e65af6c9"
     }
    },
    "tris": [
@@ -2258,7 +2258,7 @@
    "src": "LIBRARY"
   },
   "horse_saddle": {
-   "inHash": "5333d02cc60827070bce56230f88e84145e1401181ab297d6a22f78e6fd151c9",
+   "inHash": "f9b42288006b091f1cf936a7cbb156eaaca95bed5953346450923aa4cbbccf49",
    "class": "large",
    "real": true,
    "files": {
@@ -2402,7 +2402,7 @@
    "src": "LIBRARY"
   },
   "hyena": {
-   "inHash": "247f967604897df00c9bfb45d6947b724299b868595137ddb3afe6e1ba8f376b",
+   "inHash": "ec33b87019296c2e481b40cb3de16a970378c89c265b378744eef755ce4e9e52",
    "class": "medium",
    "real": true,
    "files": {
@@ -2546,7 +2546,7 @@
    "src": "LIBRARY"
   },
   "leopard": {
-   "inHash": "f9bfe0e7caa5a64faa033a7a1bd40fc437b401a192d3aba68f7238d3375c7a85",
+   "inHash": "b131fb6f835924089f1d588c42a338d82564b4706a817f059744044aa308ef4c",
    "class": "medium",
    "real": true,
    "files": {
@@ -2556,7 +2556,7 @@
     },
     "leopard_albedo.ktx2": {
      "bytes": 346886,
-     "sha256": "7800c8c3b4e922895ddd78f2628f8d897a43c4af3a02d4220d5c994dc56668aa"
+     "sha256": "75466c58a97fde4824f836533d70e46c142adeec7c7d25b0f6df1a52d476cf6e"
     },
     "leopard_nrm.ktx2": {
      "bytes": 262919,
@@ -2690,7 +2690,7 @@
    "src": "LIBRARY"
   },
   "lion": {
-   "inHash": "724fd301c8517e827874760435b6b888d375de1480a96ae2c41d62f6b0fa969e",
+   "inHash": "5d2cedbb4b4e836446714df71f5ebac67e78313db79d78cfcdab313fbc525bc0",
    "class": "large",
    "real": true,
    "files": {
@@ -2834,7 +2834,7 @@
    "src": "LIBRARY"
   },
   "lioness": {
-   "inHash": "a075e1b1b559cfe756664a9ca3dcdf3cbc6b5983a56176bee759b3a4ce1c853e",
+   "inHash": "4be2eb2410548d5821e24b7ee0ceb1572fc4180f86404d67f8ab64af0118a4c4",
    "class": "medium",
    "real": true,
    "files": {
@@ -2978,7 +2978,7 @@
    "src": "LIBRARY"
   },
   "mule": {
-   "inHash": "7d5b1772818431563b817ae3c05c4d20b616ba1d8506e6bbd65869d580883668",
+   "inHash": "7a9d32f7e66ce48d68ef4ac15ac19100a335aac389db85045fe37f82a69c13f7",
    "class": "large",
    "real": true,
    "files": {
@@ -2987,8 +2987,8 @@
      "sha256": "6215947a2b1382f820bb9dacab490f05eec4707504c646186e35d4237c1ff9dd"
     },
     "mule_albedo.ktx2": {
-     "bytes": 823486,
-     "sha256": "772ca9c9c78a639e3fa0b131ea8f15a1ee4d9f24849d2055546c795e2c715c7d"
+     "bytes": 823487,
+     "sha256": "7cb070c5fca8e535dfe509040a1fb207e38e7c2965807d06d54478318a9c523a"
     },
     "mule_nrm.ktx2": {
      "bytes": 799990,
@@ -3122,7 +3122,7 @@
    "src": "LIBRARY"
   },
   "mule_pack": {
-   "inHash": "d366d8e6824d3e186cec80cf697ccc179cc64f4eda51469d64b0d9cdb67e3d53",
+   "inHash": "bcc736fbea2f96ddea07ab87b9bc6bc4c7c0e32db3ca297cf7694c97dad5d2b2",
    "class": "large",
    "real": true,
    "files": {
@@ -3266,7 +3266,7 @@
    "src": "LIBRARY"
   },
   "onager": {
-   "inHash": "501ca21c8c1b815515770f7c86158a240dd2fb9caa7919509a41ce7712366111",
+   "inHash": "a55aac844a73edbcb4b4339cf582cbc9b01eb310802637dacd1fdae1cc00b172",
    "class": "medium",
    "real": true,
    "files": {
@@ -3275,8 +3275,8 @@
      "sha256": "db604a870faa0cc26d832001d7297c5d41df188c7ee61e2605d280e10d31cf9b"
     },
     "onager_albedo.ktx2": {
-     "bytes": 830166,
-     "sha256": "b8cdb6fe40dda809ee6bdc8ced07b314c78c6ce33595e8d315f4712761d0f4af"
+     "bytes": 830168,
+     "sha256": "e2b8077b3e00253769cc49b5acaa77aa811cc1842ffa99cedd09762cb18e1a95"
     },
     "onager_nrm.ktx2": {
      "bytes": 769839,
@@ -3410,21 +3410,21 @@
    "src": "LIBRARY"
   },
   "ox": {
-   "inHash": "41a70e623ee8093e28cc659374c72d0201f7eb10d22b4eb9499b6f3cff19ea35",
+   "inHash": "68ef5652699421f26ec97c5143a0f63798ca19ecfe6ac81f4d805400fee9eec0",
    "class": "large",
    "real": true,
    "files": {
     "ox.glb": {
-     "bytes": 92588,
-     "sha256": "729c6b7f8ec7746d710e724698ed3cf2a5ea942cb5cc93bf8d461e533e80c882"
+     "bytes": 93580,
+     "sha256": "17116d6420ed4fc442a32735bee0a9d171a45c98a8cb8754787c9d0d37e9ec5d"
     },
     "ox_albedo.ktx2": {
-     "bytes": 885197,
-     "sha256": "2813514d133f7c0e45712c796a9dfd24c3de809df9f7f69bd00885a54ec3229a"
+     "bytes": 922881,
+     "sha256": "12f3a66c5562f67e32ebbe60f413be709a6365f089d9a3c189587b590c6f5d5d"
     },
     "ox_nrm.ktx2": {
-     "bytes": 884717,
-     "sha256": "aadab43484459ce186ddcaee1d7201bb8cfed9678854b538d44c09f94f8b4ed8"
+     "bytes": 921573,
+     "sha256": "8e906447ebb73af6f8c768b0df94d49eefaa906442121c4fb8ecff91ee34090d"
     }
    },
    "tris": [
@@ -3433,7 +3433,7 @@
    ],
    "tex": 1024,
    "lod1At": 25.9,
-   "ao_mean": 0.623,
+   "ao_mean": 0.646,
    "mask_mean": 1,
    "rig": {
     "halfW": 0.322,
@@ -3554,7 +3554,7 @@
    "src": "LIBRARY"
   },
   "sheep": {
-   "inHash": "6765954d7c6da836480c1f91ed83af91c23e485ea8f0fba41027249aad0a06ac",
+   "inHash": "2266f8ec0e6c812dd0251a352ecf8ccfe04224cb10f143e22552699466118fea",
    "class": "small",
    "real": true,
    "files": {
@@ -3563,12 +3563,12 @@
      "sha256": "c254e541781bd3349b598af975d758709ea0e7014013943f6062d65e8a67ea8a"
     },
     "sheep_albedo.ktx2": {
-     "bytes": 1084443,
-     "sha256": "c542ab130e67290095dc541520a91e2e40b74a3ed3e54eca9aa5f1afe64cbc17"
+     "bytes": 1084438,
+     "sha256": "a2ff050d9844bace3dbb83967ba0e4e58ba8e7910e98b81db0e7370db31cd883"
     },
     "sheep_nrm.ktx2": {
-     "bytes": 1121934,
-     "sha256": "7519776908dc850f448b7142768730a0457d01eecabb16890800131151b82f56"
+     "bytes": 1121935,
+     "sha256": "f5b2e2986a85d724e4e3fc1a5133e089555399712bd09bfeaa246e9b00994fe6"
     }
    },
    "tris": [
@@ -3698,7 +3698,7 @@
    "src": "LIBRARY"
   },
   "stag": {
-   "inHash": "5f2b8eded94f401793b80b8af8641250bd4ac05202804aaf01cf05201049e136",
+   "inHash": "362586c4be6aee7dec57abe6f6772f39080000f6ed19c0ed6b59dcebca9cf4fe",
    "class": "medium",
    "real": true,
    "files": {
@@ -3707,8 +3707,8 @@
      "sha256": "ee88c4faeb98979e1e716ae7babff20f7ac4dd50094d115acb5ea24ad8255126"
     },
     "stag_albedo.ktx2": {
-     "bytes": 870490,
-     "sha256": "50a519b5b9c78fc02e99b3b282d66fb3e0a1aab728ed1ed5742f1ff6ab2ce9c6"
+     "bytes": 870487,
+     "sha256": "e62ca4a22d2b91efd40c91dbe11e5500cdeb07a51d7ca5cb475eff24b54d6999"
     },
     "stag_nrm.ktx2": {
      "bytes": 669358,
@@ -3838,7 +3838,7 @@
    "src": "LIBRARY"
   },
   "urial": {
-   "inHash": "008996cf69a3e8bfe72efde2641f487b8c0d3d7057d1ff72313ffddd4df5070e",
+   "inHash": "a5af2656ebe91c42f4292b40262cbbc1a579bb438328c06a140b62427b04cee8",
    "class": "medium",
    "real": true,
    "files": {
@@ -3978,7 +3978,7 @@
    "src": "LIBRARY"
   },
   "wild_goat": {
-   "inHash": "072837b75958184fdb90eaab073dec2381b966416811672632c0e5845525fe7c",
+   "inHash": "2928e5acff8e319b0a98c518f916c5f1f683ca59350274cf341943fd9cdb235b",
    "class": "medium",
    "real": true,
    "files": {
@@ -3987,12 +3987,12 @@
      "sha256": "02efe59f16d11f3406597596a126893e4ed20fa1c8b26c4267e41539e70ab719"
     },
     "wild_goat_albedo.ktx2": {
-     "bytes": 867707,
-     "sha256": "31758d3914a9f343d861d8c98498787cdc16a3a49f88887b08da74e59f56ad37"
+     "bytes": 867709,
+     "sha256": "951a90bb4685989c458d670b044ae3ea8d81fc0bc46a9db1b9b866dcbf3e50cc"
     },
     "wild_goat_nrm.ktx2": {
-     "bytes": 859866,
-     "sha256": "0c9c6611d4b848e2ec12831dbf7343de5811ef2c8ba5c325894089ba1eb3159a"
+     "bytes": 859865,
+     "sha256": "7f5be395745bf70db4a79101bdff269c813031e001d3e2f30948aa54a832bdd9"
     }
    },
    "tris": [
@@ -4118,7 +4118,7 @@
    "src": "LIBRARY"
   },
   "wolf": {
-   "inHash": "5131c3ee6dc7c37e569086f4c2e9f810118ee6769bc25bd43d035973eb22c942",
+   "inHash": "eed309fc4874f9c2c26ce58d9279bb04f312306e1b8324f1ecf2ac02b74d56a6",
    "class": "medium",
    "real": true,
    "files": {
@@ -4127,12 +4127,12 @@
      "sha256": "58c0558f2908bd7e176e9daebdb1b21c3a64c83c4038f8cd9fea4c4ec84d8055"
     },
     "wolf_albedo.ktx2": {
-     "bytes": 985873,
-     "sha256": "db7fdd24b6048dc9959d312a4e92372959f7155704cf7fe8ae43564007cf7479"
+     "bytes": 985870,
+     "sha256": "f266b0022785e3798794ddfe4f0989801676a48434982de354899e6d98ed903c"
     },
     "wolf_nrm.ktx2": {
-     "bytes": 573816,
-     "sha256": "7b59f0912e6e39710228c6a091b4327596b50184eb621f651c28e7a4bf53f1b1"
+     "bytes": 573793,
+     "sha256": "48a1ded066b6dab6c8b55ef22878a846375d7b68a5cb234676cdec11d2f6aae2"
     }
    },
    "tris": [

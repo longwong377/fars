@@ -84,6 +84,9 @@ class SunCSM extends (CSMShadowNode as any) {
   updateBefore(frame: any) {
     super.updateBefore(frame);
     const P = CASCADE_PERIOD, cam = (this as any).camera as THREE.Camera | null; if (!cam) return;
+    // D-473: the sun below the horizon stays in the scene at intensity 0 (skySystem): its cascades are not redrawn; at sunrise
+    // the sun's move (CASCADE_SUN_COS) or the period redraws them
+    if (!((this as any).light as THREE.DirectionalLight).intensity) { for (const lw of (this as any).lights) { lw.shadow.autoUpdate = false; lw.shadow.needsUpdate = false; } return; }
     if (!CASCADE_AMORTISE.on) { for (const lw of (this as any).lights) lw.shadow.autoUpdate = true; return; }
     const f = frame?.frameId ?? 0, pos = cam.getWorldPosition(_cp), dir = cam.getWorldDirection(_cd), L = (this as any).light as THREE.DirectionalLight;
     const sun = _sd.subVectors(L.position, L.target.position).normalize();

@@ -2,14 +2,27 @@
 // The HTTP cache cannot do it: the first minute fetches ~400 MB, past Chrome's HTTP-cache size, and its LRU evicts the early
 // files while the late ones arrive (measured: a second visit fetched every file again). Cache Storage has the origin's quota.
 // Same-origin GETs under this scope only (the models on Hugging Face are cached by their own loaders). The build stamps
-// BUILD (tools/deploy/build_site.mjs): a new deploy is a new worker, which drops the old build's cache when it activates.
-const BUILD = '__PARSA_BUILD__', CACHE = 'parsa-site-' + BUILD;
+// BUILD (tools/deploy/build_site.mjs): a new deploy is a new worker, with a cache of its own.
+// D-580 (s17): a new deploy no longer fetches the whole site again (~340 MB before the player can walk): the build lists every
+// file's content hash (site-files.json, kept in each build's cache at install); a file the new build has unchanged is taken
+// from the previous build's cache (and stored in the new one) instead of the network. One previous cache is kept; older ones
+// are dropped when a new worker activates.
+const BUILD = '__PARSA_BUILD__', CACHE = 'parsa-site-' + BUILD, MANIFEST = 'site-files.json';
+const tsOf = k => parseInt(k.split('-').pop(), 36) || 0, others = async () => (await caches.keys()).filter(k => k.startsWith('parsa-site-') && k !== CACHE).sort((a, b) => tsOf(b) - tsOf(a));
+let carryP = null;
+const carry = () => (carryP ??= (async () => {
+  const ks = await others(); if (!ks.length) return null; const prev = await caches.open(ks[0]), u = new URL(MANIFEST, self.registration.scope).href;
+  const [a, b] = await Promise.all([prev.match(u), caches.open(CACHE).then(c => c.match(u))]); if (!a || !b) return null;
+  const [ma, mb] = await Promise.all([a.json(), b.json()]);
+  return { prev, same: new Set(Object.keys(mb).filter(p => ma[p] && ma[p] === mb[p])) };
+})().catch(() => null));
 // D-393: a file already on its way (the page's early warming, src/shell/warm.ts, and then its loader) is fetched once: the
 // second request waits for the first to be stored and is answered from the cache
 const inflight = new Map();
-self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('install', e => { self.skipWaiting(); e.waitUntil((async () => { try {
+  const u = new URL(MANIFEST, self.registration.scope).href, r = await fetch(u, { cache: 'no-store' }); if (r.ok) await (await caches.open(CACHE)).put(u, r); } catch { /* no list: nothing carried over */ } })()); });
 self.addEventListener('activate', e => e.waitUntil((async () => {
-  for (const k of await caches.keys()) if (k.startsWith('parsa-site-') && k !== CACHE) await caches.delete(k);
+  for (const k of (await others()).slice(1)) await caches.delete(k); // (the newest previous build's cache is kept: carry())
   await self.clients.claim();
 })()));
 self.addEventListener('fetch', e => {
@@ -40,6 +53,8 @@ async function serve(r, u, waitUntil) {
       catch (err) { const h = await c.match(key); if (h) return h; throw err; } }
     const hit = await c.match(key);
     if (hit) return hit;
+    const cr = u.search ? null : await carry(), rel = u.pathname.slice(new URL(self.registration.scope).pathname.length);
+    if (cr?.same.has(rel)) { const h = await cr.prev.match(key); if (h) { const copy = h.clone(); waitUntil(copy.arrayBuffer().then(b => c.put(key, new Response(b, { status: 200, headers: copy.headers }))).catch(() => {})); return h; } }
     const was = inflight.get(key);
     if (was) { await was; const h = await c.match(key); if (h) return h; }
     let done; inflight.set(key, new Promise(ok => { done = ok; }));

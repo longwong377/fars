@@ -9572,6 +9572,10 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   far-bank reflection follows SEASON (was a hard-coded green).
 - Third pass: the footings take 75 % of the scan's buff (sunlit they read cold white-grey); the palaces' plaster bays 1σ 0.07 -> 0.09
   and rain wash 0.13 -> 0.17 (the Gate's 20 m wall read as one flat plane). Frames: shots/a4, t4.
+- KTX2 (the lead): dirt_floor, raked_dirt, stone_wall, clay_block_wall encoded by tools/bake_world/ktx_scans.ts (UASTC+RDO, zstd, mips;
+  public/textures/ktx.json lists them, scans.ts loads them through sharedKTX2; the jpgs stay as the fallback): 9 maps, 24 MB jpg ->
+  32 MB ktx2 on disk, GPU memory a quarter of RGBA8 and no decode on the page. House lab frames identical (shots/a5). The
+  20-80 m ground tiling: no visible repeat in the plain probe frames (shots/p1 stair-top, drum-road).
 
 ## D-480 (s17, V1 light): light v1, the art direction's light and tone
 - Tone (toneLook.ts): the fitted AgX look re-graded for the art direction (AC Origins / RDR2: rich, warm, controlled highlights,
@@ -9762,3 +9766,21 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   Not wired: a one-line call in world.ts after CourtCampTents is made (the lead's or C3's).
 - tools/dev/fire_lab.{ts,html,mjs}: the light lab plus fires, ports, the Terrace (?terrace=0 leaves it out), eye/look views.
 - fire_occ re-baked for the current Terrace (the parts hash had moved with V4's work; re-bake after V4's last change).
+
+- D-472 addendum (00:31 crash, the second): Windows logged "low virtual memory": COMMIT ran out (limit 71.5 GB = 63 GB RAM
+  + 8 GB page file) with 35 GB of RAM still free: Chrome GPU processes commit 5-10 GB each (9.8 + 8.2 + 5.5 GB at the event)
+  and the lead had started a full vitest run (up to 16 workers) beside the train and the agents' probes. The Claude app died
+  again and stopped every agent. Fix: boxguard.freeGB = min(free RAM, free commit) from perf counters; gpu slots start only
+  with >= 12 GB and end their job under 6 GB; scoreboard refuses under 24 GB. No full test suite on the Vagon box while
+  agents build (the cloud CI runs npm test on every s17-int push); targeted vitest files only.
+
+- D-523 addendum (s17, V5): the ox (drawn from the cow model) has no udder: tools/blender/animals_real.py `no_udder` presses
+  what hangs below the belly line between the hind legs and the navel up to the belly (72 vertices on the cow model) before
+  the levels and bakes are made.
+
+## D-524 (s17, V5): wet walls in streaks; the wet sheen and puddles verified with a sky to reflect
+- The ground's wet darkening, wet sheen (sky specular scaled by the wetness on porous surfaces), puddles in level hollows and
+  their dark mud rims were already in materials.ts finish() (D-219, D-335), driven by WEATHER uniforms; they read matte in the
+  weather probe only because the probe had no sky environment. The probe now prefilters a sky/ground sphere into skyEnv.
+- materials.ts (one line, uniform-driven, no new shader state): on walls the wet film runs in vertical streaks (wet 0.4-1.0 of
+  the ground's), not an even 55 % film.

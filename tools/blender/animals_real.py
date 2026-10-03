@@ -204,6 +204,17 @@ rig = {'halfW': halfW, 'bodyY': by, 'bellyY': bellyY, 'backY': backY, 'hipY': hi
 json.dump(rig, open(os.path.join(job['out_dir'], 'rig.json'), 'w'), indent=1)
 log('rig', json.dumps({k: rig[k] for k in ('bodyY', 'bellyY', 'backY', 'base', 'top', 'muzzle', 'tailRoot', 'min', 'max')}))
 
+# ---- 3b. no udder (job 'no_udder': an ox drawn from a cow model): what hangs below the belly between the hind legs and the
+# navel is pressed up to the belly line (game y = Blender z); the hide's colour there is darkened to the belly's in the bake below
+if job.get('no_udder'):
+    vv = vco(src); gx, gy, gz = vv[:, 0], vv[:, 2], -vv[:, 1]
+    fr = (np.abs(gx) < 0.3 * halfW) & (gz > 0.1 * L) & (gz < 0.3 * L) & (gy > 0.25 * gy.max())
+    bref = float(gy[fr].min()) if fr.any() else bellyY  # the belly line in front of the navel
+    m = (np.abs(gx) < 0.4 * halfW) & (gz > -0.5 * L) & (gz < 0.1 * L) & (gy < bref)
+    vv[m, 2] = bref - 0.03 * (bref - vv[m, 2]) / max(1e-3, float((bref - gy[m]).max()) if m.any() else 1)
+    src.data.vertices.foreach_set('co', vv.ravel()); src.data.update()
+    log('udder pressed up:', int(m.sum()), 'vertices')
+
 # ---- 4. lod0 and the bakes
 def activate(o):
     for x in bpy.data.objects: x.select_set(False)

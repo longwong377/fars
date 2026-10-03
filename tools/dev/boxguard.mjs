@@ -8,11 +8,23 @@ import { freemem } from 'node:os';
 import { existsSync, readdirSync, readFileSync, writeFileSync, utimesSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
-export const MIN_FREE_GB = +(process.env.MIN_FREE_GB ?? 4);
+export const MIN_FREE_GB = Math.max(12, +(process.env.MIN_FREE_GB ?? 12)); // s17 (D-472): a probe page commits ~5-10 GB; free = min(RAM, commit)
 export const MAX_AGENTS = +(process.env.MAX_AGENTS ?? 2); // session 15: 4 agents + their jobs pinned 4 cores at 100 %
 export const WT_ROOT = resolve(process.env.WT_ROOT ?? 'C:/Users/Administrator/fars-wt');
 export const SLOT_ROOTS = { gpu: 'T:/gpu-slots', cpu: process.env.CPU_SLOT_ROOT ?? 'C:/Users/Administrator/fars-train/cpu-slots' };
-export const freeGB = () => freemem() / 2 ** 30;
+// s17 (D-472): what runs out on Windows is COMMIT (RAM + the 8 GB page file = 71.5 GB), not physical memory: Chrome's GPU
+// processes commit 5-10 GB each beyond their working set; at 00:31 the box hit "low virtual memory" with 35 GB physically
+// free and the Claude app died with every agent. freeGB is the smaller of free physical and free commit (perf counters, no WMI).
+import { execFileSync } from 'node:child_process';
+let commitAt = 0, commitFree = Infinity;
+export function commitFreeGB() {
+  if (process.platform !== 'win32') return Infinity;
+  if (Date.now() - commitAt > 10_000) { commitAt = Date.now();
+    try { const [lim, used] = execFileSync('powershell', ['-NoProfile', '-Command', "(Get-Counter '\\Memory\\Commit Limit','\\Memory\\Committed Bytes').CounterSamples.CookedValue -join ' '"], { encoding: 'utf8', timeout: 20_000 }).trim().split(/\s+/).map(Number);
+      if (lim > 0) commitFree = (lim - used) / 2 ** 30; } catch { /* keep the last reading */ } }
+  return commitFree;
+}
+export const freeGB = () => Math.min(freemem() / 2 ** 30, commitFreeGB());
 
 export async function waitForMemory(label, tag) {
   let waited = 0;
