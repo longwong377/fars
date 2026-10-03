@@ -171,3 +171,15 @@ help") 16.7 % â†’ 0; a courtier's wrong history (work group, garrison) 16.7 % â†
 
 ## Tests
 tests/ownlines.test.ts (new, 8). Targeted: talk_prompt, converse, deeds, minds, talk_world, stranger_talk, npc_talk (results below).
+
+## Last (lead 3/4: drinking red, the s14-simtalk port; frozen at 771bcc7d)
+- **Not run (freeze):** converse, talk_intent and history tests were not finished before the freeze (a long world build);
+  simtalk 4/4, stranger_talk and ownlines (45) are green. drinking.test: 2/2 with more time (it times out at 180 s on this box).
+- **drinking.test red:** the beer errand read "buying a jar of beer" (the drinking's own words): a child sent on it counted as the
+  drinker. Now "fetching the house's beer for the evening, in a jar".
+- **s14-simtalk (D-358), what survives:** most of it was rebuilt in session 15 (D-370 the stranger's deals, work, guest-right,
+  petitions; D-371 real debts and dealings; D-375 needs and rumours; the trust gate). Ported: a person's means from the economy
+  (the house's barley in days, its silver, the market's price; a group's ration) into the brief, ground facts and own lines; no
+  invented debts without the economy; the stranger lends silver (a debt owed to him, repaid by the economy) and asks a house for
+  help (bread from its barley), both decided by the house's state, recorded with causes and told after. Not ported: its own
+  grounds.ts/deeds.ts modules and purse (the current Stranger holds the purse), its day-300 T-E9/T-E10 evidence runs.
