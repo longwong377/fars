@@ -436,7 +436,22 @@ export class EventCalendar {
   }
   /** chronicle rows between two times (hours) */
   eventsBetween(t0: number, t1: number): CalEvent[] {
-    const out: CalEvent[] = []; for (let d = Math.max(0, Math.floor(t0 / 24)); d <= Math.min(this.lastDay, Math.floor(t1 / 24)); d++) for (const e of this.days[d].events) if (e.t >= t0 && e.t < t1) out.push(e); return out;
+    const out: CalEvent[] = []; for (let d = Math.max(0, Math.floor(t0 / 24)); d <= Math.min(this.lastDay, Math.floor(t1 / 24)); d++) for (const e of this.days[d].events) if (e.t >= t0 && e.t < t1) out.push({ ...e, text: chronicleWords(e.text) }); return out;
   }
   snapshot() { return { days: this.days.length }; }
+}
+
+/** D-651 (s18 C12, 4-8): the chronicle as the world's own record, in plain English for the out-of-world layer. The rows the
+ *  calendar (and the court) write keep their sources and tiers for the dev overlay (the event's id and tier); what the reader
+ *  sees drops them: the decision ids, the tiers and sources in brackets ("(D-209)", "(C)", "(HDT 9.110: B claim)",
+ *  "(sesame attested)"), the clock times of the watches, the man-days, the scribes' unit BAR (a measure of ten qa) and the
+ *  marriš (a jar of about ten litres) named as what a reader sees */
+export function chronicleWords(text: string): string {
+  let s = text.replace(/\s*\((?=[^()]*(?:\bD-\d+|\btier\b|\b[ABC]\b|HDT|Cyr\.|KING\d*|claim|attested|NOT SEEN|RECON))[^()]*\)/g, '');
+  s = s.replace(/change of watch at (\d+):00 on the Terrace/, (_, h) => `the watch changed on the Terrace ${+h < 10 ? 'at first light' : +h < 18 ? 'in the afternoon' : 'late in the evening'}`);
+  s = s.replace(/special ration \(an extra day's\) for/, 'an extra day\'s ration for').replace(/ \(\d+ man-days\)/, '');
+  s = s.replace(/(\d+(?:\.\d+)?) BAR\b/g, (_, n) => `${n} measure${n === '1' ? '' : 's'}`).replace(/(\d+(?:\.\d+)?) marriš of /g, (_, n) => `${n} jar${n === '1' ? '' : 's'} of `);
+  s = s.replace(/;[^;]*\b(?:the seed|seed's)\b[^;]*/g, ''); // (the simulation's own workings: "its date ... drawn from the seed")
+  s = s.replace(/low\/dry/, 'low, the streams dry').replace(/^1 marriages\b/, '1 marriage').replace(/^1 births\b/, '1 birth').replace(/^1 deaths\b/, '1 death');
+  return s.replace(/\s+([;:,])/g, '$1').replace(/[;:,]\s*$/, '').replace(/\s{2,}/g, ' ').trim();
 }
