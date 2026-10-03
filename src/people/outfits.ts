@@ -384,8 +384,8 @@ export const COSTUMES: Record<Dress, CostumeDef> = {
   envoy_bare: { dress: 'envoy_bare', always: ['brows', 'tunic_skirt', 'belt'], opt: ['shoes', 'hair', 'bun', 'beard_long', 'beard_short', 'headband', 'hair_crown'] },
   median: { dress: 'median', always: ['brows', 'tunic_upper', 'tunic_skirt', 'trousers', 'belt', 'boots'], opt: ['hair', 'bun', 'beard_long', 'beard_short', 'cap_soft', 'akinaka', 'gorytos', 'kandys', 'earrings', 'bracelets', 'mouth_cover', 'hair_crown'] },
   worker: { dress: 'worker', always: ['brows', 'work_upper', 'work_skirt', 'belt'], opt: ['hair', 'beard_long', 'beard_short', 'work_trousers', 'shoes', 'headband', 'cap_soft', 'hair_crown', 'earrings_b', 'bracelets_b'] }, // (D-780: bronze rings, last: the earlier bits unchanged)
-  woman: { dress: 'woman', always: ['brows', 'dress_upper', 'dress_skirt', 'belt'], opt: ['hair', 'hair_bob', 'headcloth', 'shoes', 'earrings_b', 'bracelets_b', 'hair_crown', 'necklace_b'] },
-  child: { dress: 'child', always: ['brows', 'child_upper', 'child_skirt'], opt: ['hair', 'shoes', 'hair_crown'] },
+  woman: { dress: 'woman', always: ['brows', 'dress_upper', 'dress_skirt', 'belt'], opt: ['hair', 'hair_bob', 'headcloth', 'shoes', 'earrings_b', 'bracelets_b', 'hair_crown', 'necklace_b', 'headband'] },
+  child: { dress: 'child', always: ['brows', 'child_upper', 'child_skirt'], opt: ['hair', 'shoes', 'hair_crown', 'headband'] }, // (D-780: a cloth band for a third of the children, last)
 };
 /** D-307: pieces made of strand cards alone (people_hair): drawn at full detail only, and only when the cards are loaded */
 export const CARD_PIECES = new Set(['brows', 'hair_crown']);
