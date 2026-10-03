@@ -12,9 +12,10 @@ import { sharedKTX2, sharedDraco } from '../render/loaders';
 import type { Species } from './animals';
 import { rigWeights } from './animalRig';
 import { BASE } from '../core/base';
+import { setRealRig, type RealRig } from './animalReal';
 
-export interface AnimalAsset { inHash: string; class: string; files: Record<string, { bytes: number; sha256: string }>; tris: [number, number]; tex: number; lod1At: number; tier: string; src: string }
-export interface AnimalModel { sp: Species; lods: THREE.BufferGeometry[]; albedo: THREE.Texture; nrm: THREE.Texture; lod1At: number; tris: number[] }
+export interface AnimalAsset { inHash: string; class: string; files: Record<string, { bytes: number; sha256: string }>; tris: [number, number]; tex: number; lod1At: number; tier: string; src: string; real?: boolean; rig?: RealRig }
+export interface AnimalModel { sp: Species; lods: THREE.BufferGeometry[]; albedo: THREE.Texture; nrm: THREE.Texture; lod1At: number; tris: number[]; real?: boolean }
 const MODELS = new Map<Species, AnimalModel>();
 const LOAD = { ms: 0, loaded: [] as string[], failed: [] as string[], off: false, bytes: 0 };
 export const animalModelStats = () => ({ ...LOAD, count: MODELS.size });
@@ -38,7 +39,8 @@ export async function loadAnimalModels(base = BASE): Promise<ReturnType<typeof a
       for (const n of ['lod0', 'lod1']) { const m = g.scene.getObjectByName(n) as THREE.Mesh | undefined; if (!m?.isMesh) throw new Error(`level ${n} missing`); lods.push(m.geometry); }
       for (const t of [albedo, nrm]) { t.anisotropy = 8; t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.needsUpdate = true; }
       albedo.colorSpace = THREE.SRGBColorSpace; nrm.colorSpace = THREE.NoColorSpace;
-      MODELS.set(sp as Species, { sp: sp as Species, lods, albedo, nrm, lod1At: e.lod1At, tris: e.tris }); LOAD.loaded.push(sp);
+      setRealRig(sp, e.real && e.rig ? e.rig : null); // V5 D-520: a library model's own rig landmarks
+      MODELS.set(sp as Species, { sp: sp as Species, lods, albedo, nrm, lod1At: e.lod1At, tris: e.tris, real: !!e.real }); LOAD.loaded.push(sp);
       LOAD.bytes += Object.values(e.files).reduce((a, f) => a + f.bytes, 0);
     } catch (err) { LOAD.failed.push(sp); console.warn(`[animals] ${sp}: ${(err as Error).message}; its procedural stand-in is drawn`); }
   }));

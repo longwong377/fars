@@ -502,6 +502,9 @@ async function boot() {
   let talkStarted = false;
   const startTalk = async () => { if (talkStarted) return; talkStarted = true; const t0 = performance.now();
     while (TALK && !(api as any).converse && performance.now() - t0 < 30_000) await new Promise(r => setTimeout(r, 250)); // (the talk module is imported in parallel with the boot)
+    // D-580: the talk's start (its worker, the model's first fetches, the voices) waits for the main thread's first idle moment
+    // (at most 8 s): started on the 5th frame (or at ready, ?norender) it held the main thread ~4 s just as the player first moved
+    await new Promise(r => ((globalThis as any).requestIdleCallback ?? ((f: () => void) => setTimeout(f, 2000)))(r, { timeout: 8000 }));
     const c = (api as any).converse; TRACE('talk: model loading');
     try { if (c?.load) TRACE(`talk: model ${(await c.load()) ? 'ready' : 'not loaded'} (${((performance.now() - t0) / 1000).toFixed(0)} s)`); } finally { (world as any).neural?.start?.(); } };
   let firstFrames = P.has('trace') ? 3 : 0; // ?trace: time the first frames' stages (D-250)

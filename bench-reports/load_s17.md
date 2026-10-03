@@ -1,8 +1,8 @@
 # s17 load (C4, D-580): the built site's cold load on the cloud's 4-core box
 
 ## Broken or not met first
-- **UD-31's < 60 s is not met here.** Cold ready on the s17 tip with everyone's work in: **~70 s on the page's clock, ~80-85 s
-  as the harness sees it** (the main thread is busy for ~10 s after ready: the first frames). The day began at 79.1 s (harness;
+- **UD-31's < 60 s: met on the latest tip (harness 53-60 s, page 44-50 s, n=2; a new container host, so part may be the machine), not before it.** Earlier: Cold ready on the s17 tip (329bbbb1) with everyone's work in: **57-60 s
+  on the page's clock, 70-74 s as the harness sees it** (earlier today ~70 s / 80-85 s) (the main thread is busy for ~10 s after ready: the first frames). The day began at 79.1 s (harness;
   a smaller world). The main thread is the bottleneck: 58-71 CPU-s of JS and native work to ready, ~90 % busy, spread over the
   builders of other owners (table below). Nothing measured here is on a GPU: Vagon's T4 numbers are asked for.
 - **Page memory 5.5-5.7 GB (target 5).** The page's main-thread JS heap is 3.3 GB at ready, even after a full GC; 1.4 GB of it is
@@ -24,6 +24,9 @@ Chromium 141 on the cloud container: 4 cores, 15 GB, no GPU)
 | + SW prefetch (same tree) | 68.8 s | 57.6 s | 328 MB | 5.59 GB | every byte in at 34 s |
 | s17 tip (C1, C2, C3, C5 merged) + C4, prefetch on, n=3 | 76.8-93.5 | 64.7 / 70.2 / 80.0 | 337 MB | 5.53-5.63 | |
 | same dist, `?prefetch=0`, n=3 | 79.3-86.3 | 65.4 / 73.4 / 73.6 | 337 MB | 5.64-5.71 | no measurable difference now |
+| s17 tip 329bbbb1 (C5's lighter loading screen, C10, C9 merged) + C4, n=2 | 73.5 / 70.5 | 60.2 / 57.7 | 339 MB | 5.68-5.77 | compositor 62 -> 5 CPU-s |
+| tip 9e2f5201 (C2's plain bake + atlas worker, C6, C10 merged) + C4, no 404s, n=2 (new container host after a restart) | **60.1 / 53.2** | **50.0 / 43.9** | 338 MB | 5.78-5.81 | main thread 38 CPU-s (was 53-71) |
+| + the talk's start at the first idle moment, n=2 | 73.7 / 70.8 | 60.3 / 57.4 | 339 MB | 5.76-5.80 | the gap after ready is the first frames (C10) |
 | shared decoder + reaper, n=2 | 82.7 / 86.5 | 68.8 / 73.7 | 334 MB | 5.55 / 5.59 | renderer 4.9 GB (5.0-5.05 before) |
 | loading screen animations off (`--css`) | 76.7 | 63.7 | 337 MB | 5.64 | compositor 62 -> 1 CPU-s |
 | a never-answering file (HANG=models/trees/manifest.json, `?softs=40`) | 127.5 | 114.8 | | | reached ready (stale bake); before: waited forever |
@@ -48,7 +51,10 @@ plans over frames).
 192 MB scans.ts loadGround (the ground array); 133 + 90 + 10 + 6 MB world-cache units (outfits, detail rings: zero-copy
 views, in use); 80 MB humanScans; 105 MB terrain chunks; 64 MB relief atlases' mip chains; 44 MB relief shadow plan; 34 MB
 tree bark; 34 MB tree impostor bakers; 26 MB outdoor lightmap; ~100 MB town and village geometry (Batch.toGeometry slices).
-Total live typed arrays 1.4 GB of the 3.3 GB heap; JS objects ~0.5 GB (sampling heap profile); the rest is not attributed.
+Total live typed arrays found by site 1.3-1.4 GB. CDP Runtime.getHeapUsage at ready: JS objects 567 MB, ArrayBuffer backing
+stores 2,930 MB: the memory is buffers, and ~1.5 GB of them are not caught by the constructor/fetch/message hooks (the KTX2 and
+Draco workers' results are only 100 MB of them). In ?norender nothing is uploaded, so textures and geometry the render path
+would release after upload (world/cache/release.ts) stay; headless SwiftShader may also transcode KTX2 to RGBA (4x BC7).
 
 ## What C4 changed (D-580)
 - public/sw.js + src/core/prefetch.ts: the service worker fetches a cold visit's files (dist/boot-files.json, in the order the
@@ -62,5 +68,9 @@ Total live typed arrays 1.4 GB of the 3.3 GB heap; JS objects ~0.5 GB (sampling 
 - tools/deploy: measure.mjs (page-clock ready, memory by process type at ready and peak, heaps, the heap after GC, the
   scene's arrays, CPU by thread, --css), boot_profile.mjs (--stages, --heap), boot_mem.mjs, boot_list.mjs, serve.mjs HANG=,
   build_site.mjs (NOMINIFY, SOURCEMAP, '*' and '{seed}' in boot_files.txt).
+- public/sw.js + build_site.mjs (site-files.json: every file's content hash): a new deploy takes the files it has unchanged from
+  the previous build's cache. Measured: a cold visit, a rebuild, the same profile again: 34.5 MB in 9 requests (the full-size
+  scans the first visit had not upgraded to yet) instead of the whole site (~350 MB).
+- src/world/cache/pack.ts: the world cache's units are decoded in place (fill and village sites ~0.15 s less in all).
 - Tried and reverted: decoding the town's/plain's sets from the start (no gate): the Terrace's set then waited 18 s instead of
   8 s on 4 cores; starting the Terrace's set during the scans: the scans took 39 s instead of 17 s.

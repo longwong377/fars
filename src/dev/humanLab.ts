@@ -116,6 +116,8 @@ async function boot() {
      *  the crowd's clock now, toward the camera (or `at`); the pose's head/chest/right arm after `render` is read by `rot` */
     react: (i: number, kind: string, at?: [number, number, number]) => crowd.reactions.play(`lab${i}`, kind as any, time, at ?? [camera.position.x, camera.position.y, camera.position.z], { byName: true }),
     rot: (i: number) => { const r = crowd.persons.get(`lab${i}`)?.rig.pose?.rot; return r ? { head: r.head, chest: r.chest, r_upper: r.r_upper } : null; },
+    /** s17 V3: lineup person i's marks (humanMaterial MARK: wound 0-3, scar 0-1) */
+    marks: (i: number, wound: number, scar = 0) => { const p = crowd.persons.get(`lab${i}`); if (p) crowd.setMarkBits(p, wound, scar); return !!p; },
     impClear: () => { for (const I of Object.values(imps)) { I.begin(); I.end(); } },
     crowd, humans, renderer, camera, scene,
   };

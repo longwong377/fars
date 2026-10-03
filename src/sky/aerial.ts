@@ -57,6 +57,18 @@ export const AIR_ALBEDO = 0.92;
 /** the in-scatter table: scattering angle θ, u = √(θ/π) */
 export const J_N = 64;
 
+/** D-480 (light v1, the art direction: the distance lifts to a pale ochre-blue; cleaner after the spring rain, dustier from
+ *  June): the dry season's background dust over the plain (dust units, the weather's 0..1 scale), by the Julian month and day
+ *  (C: Fars has its dust from June to the autumn rains, the spring air washed clean): 0 through May, rising to 0.3 by mid-July,
+ *  0.25 through September, back to 0 by late November. The weather's own dust (storms) adds to it. */
+export function seasonalDust(month: number, day: number): number {
+  const t = month + (day - 1) / 31; // 1 = 1 Jan
+  const ss = (a: number, b: number, x: number) => { const u = Math.min(1, Math.max(0, (x - a) / (b - a))); return u * u * (3 - 2 * u); };
+  return 0.3 * ss(5.9, 7.5, t) - 0.05 * ss(8.5, 9.5, t) - 0.25 * ss(10, 11.8, t);
+}
+/** D-480: the in-scatter colour of the dust's share of the air (luminance 1): mineral dust absorbs the blue, so a dusty
+ *  distance is ochre, not grey (C, the art direction's pale ochre) */
+export const DUST_TINT: V3 = [1.12, 1.0, 0.72];
 export interface AirState { haze: number; dust?: number; mist?: number; rain?: number; snow?: number }
 export interface AirOptics { betaR: V3; betaM: V3; betaMist: number; betaPrecip: number }
 /** layer coefficients at the reference height Z0 for a weather state */
@@ -118,6 +130,10 @@ export class Air {
   readonly jTex: THREE.DataTexture;
   readonly jData = new Float32Array(J_N * 3);
   optics: AirOptics = airOptics({ haze: 0.25 });
+  /** D-480: the season's background dust (seasonalDust; set by the SkySystem from the date) */
+  seasonDust = 0;
+  /** D-480: the in-scatter's tint, mix(1, DUST_TINT, the dust's share of the aerosol extinction at 550 nm) */
+  readonly jTint = uniform(new THREE.Color(1, 1, 1));
   constructor(readonly courtAsl = 1625) {
     this.jTex = new THREE.DataTexture(new Uint16Array(J_N * 4), J_N, 1, THREE.RGBAFormat, THREE.HalfFloatType);
     this.jTex.minFilter = this.jTex.magFilter = THREE.LinearFilter; this.jTex.wrapS = this.jTex.wrapT = THREE.ClampToEdgeWrapping;
@@ -126,7 +142,9 @@ export class Air {
   }
   /** the weather's air (main.ts, every frame) */
   setWeather(s: AirState) {
-    const o = this.optics = airOptics(s);
+    const o = this.optics = airOptics({ ...s, dust: (s.dust ?? 0) + this.seasonDust });
+    { const dd = DUST_BETA * Math.max(0, (s.dust ?? 0) + this.seasonDust), f = Math.min(1, dd / Math.max(o.betaM[1] + o.betaR[1], 1e-12));
+      this.jTint.value.setRGB(1 + (DUST_TINT[0] - 1) * f, 1, 1 + (DUST_TINT[2] - 1) * f); }
     this.betaR.value.set(o.betaR[0], o.betaR[1], o.betaR[2]); this.betaM.value.set(o.betaM[0], o.betaM[1], o.betaM[2]);
     this.betaMist.value = o.betaMist; this.betaPrecip.value = o.betaPrecip;
   }
@@ -189,7 +207,7 @@ export class Air {
       const tg = tau.y, big = step(0.05, tg), tb = max(tg, 0.05);
       const f = mix(float(0.5).sub(tg.div(12)), float(1).sub(exp(tb.negate()).mul(tb.add(1))).div(tb.mul(float(1).sub(exp(tb.negate())))), big);
       const vp = sunVis ? sunVis(p) : float(1), veff = mix(this.vEye, vp, clamp(f, 0, 1));
-      const Jeff = jA.add(jSun.mul(float(1).sub(this.sunUp.mul(float(1).sub(veff)))));
+      const Jeff = jA.add(jSun.mul(float(1).sub(this.sunUp.mul(float(1).sub(veff))))).mul(this.jTint as any);
       // the enclosure's share of the path: its first dIn metres (the optical depth is linear in distance over a hall's size)
       const fin = clamp(this.dIn.div(max(length(p.sub(c)), 1e-3)), 0, 1), Tin = exp(tau.mul(fin).negate());
       const w = vec3(1).sub(Tin).mul(this.airEye).add(Tin.sub(T));

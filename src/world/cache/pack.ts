@@ -34,13 +34,15 @@ export function unpack<T = any>(buf: ArrayBuffer | Uint8Array): T {
   const aligned = u8.byteOffset % 8 === 0 ? u8 : u8.slice();
   const dec = (e: any): any => {
     if (e === null || typeof e !== 'object') return e;
-    if (Array.isArray(e)) return e.map(dec);
+    // (D-580: the parsed header is this call's own: arrays and plain objects are decoded in place, not copied: the town's
+    // fill and the villages' sites are 21-25 MB of JSON each, and the copy was a third of their unpack)
+    if (Array.isArray(e)) { for (let i = 0; i < e.length; i++) { const x = e[i]; if (x !== null && typeof x === 'object') e[i] = dec(x); } return e; }
     if (e.$t) { const C = TA[e.$t]; return new C(aligned.buffer, aligned.byteOffset + base + e.at, e.n); }
     if (e.$n !== undefined && Object.keys(e).length === 1) return Number(e.$n);
     if (e.$c && Object.keys(e).length === 2) { const c = CLS.get(e.$c); if (!c) throw new Error(`unpack: class ${e.$c} not registered`); return c.from(dec(e.v)); }
     if (e.$set && Object.keys(e).length === 1) return new Set(e.$set.map(dec));
     if (e.$map && Object.keys(e).length === 1) return new Map(e.$map.map(([k, x]: any) => [dec(k), dec(x)]));
-    const o: Record<string, any> = {}; for (const k of Object.keys(e)) o[k] = dec(e[k]); return o;
+    for (const k in e) { const x = e[k]; if (x !== null && typeof x === 'object') e[k] = dec(x); } return e;
   };
   return dec(head) as T;
 }

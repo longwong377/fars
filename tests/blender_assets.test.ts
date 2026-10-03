@@ -70,6 +70,9 @@ describe('Blender-built assets (D-305)', () => {
 
 describe('the capital protome in the game (D-305)', () => {
   const MAN0 = MAN.assets.capital_protome;
+  // D-511: from the scan route (tools/blender/scans/protome_scan.ts) the protome is its own mesh, fitted to the game's box
+  // (the game fits every level to protomeBox: meshes.ts fitLevel): bounds within 0.08 D, triangles within the game's budget
+  const SCAN = REG.assets.capital_protome.source.script.includes('scans/'), TOL = SCAN ? 0.08 : 2e-3;
   it('the levels stand as the game\'s pieces do: same axes and extent (accessor bounds within the Draco quantisation)', () => {
     // (the first build passed every other test lying on its side: y and z swapped by the PLY import, D-305)
     const { json } = parseGLB(readFileSync(`public/${MAN0.file}`));
@@ -77,12 +80,13 @@ describe('the capital protome in the game (D-305)', () => {
       const mesh = json.meshes.find((m: any) => m.name === `lod${lod}`), a = json.accessors[mesh.primitives[0].attributes.POSITION];
       const bb = new THREE.Box3().setFromArray(piece('protome', lod).pos);
       for (let k = 0; k < 3; k++) {
-        expect(Math.abs(a.min[k] - bb.min.getComponent(k)), `lod${lod} min[${k}]`).toBeLessThan(2e-3);
-        expect(Math.abs(a.max[k] - bb.max.getComponent(k)), `lod${lod} max[${k}]`).toBeLessThan(2e-3);
+        expect(Math.abs(a.min[k] - bb.min.getComponent(k)), `lod${lod} min[${k}]`).toBeLessThan(TOL);
+        expect(Math.abs(a.max[k] - bb.max.getComponent(k)), `lod${lod} max[${k}]`).toBeLessThan(TOL);
       }
     }
   });
   it('the baked levels keep the game\'s own triangles (the bake adds maps, not geometry)', () => {
+    if (SCAN) { expect(MAN0.lods[0].tris).toBeLessThanOrEqual(piece('protome', 0).idx.length / 3); expect(MAN0.lods[1].tris).toBeLessThanOrEqual(piece('protome', 1).idx.length / 3); return; }
     expect(MAN0.lods[0].tris).toBe(piece('protome', 0).idx.length / 3);
     expect(MAN0.lods[1].tris).toBe(piece('protome', 1).idx.length / 3);
   });
@@ -134,6 +138,10 @@ describe('the volute member and the colossi in the game (D-306)', () => {
   for (const [id, name] of [['capital_volute', 'volute'], ['colossus_bull', 'colossus_bull'], ['colossus_lamassu', 'colossus_lamassu']] as const) {
     it(`${id}: the levels keep the game's triangles and stand where the game's pieces do (bounds within the Draco quantisation)`, () => {
       const { json } = parseGLB(readFileSync(`public/${MAN.assets[id].file}`));
+      // D-510: a colossus from the scan route (tools/blender/scans/colossus_scan.ts) is its own form, placed by colossusPlacement
+      // in the reference box: it stands inside the box, its triangles its own
+      if (REG.assets[id].source.script.includes('scans/')) { for (const lod of [0, 1] as const) { const a = json.accessors[json.meshes.find((m: any) => m.name === `lod${lod}`).primitives[0].attributes.POSITION];
+        const B = new THREE.Box3().setFromArray(piece(name, lod).pos); for (let k = 0; k < 3; k++) { expect(a.min[k]).toBeGreaterThan(B.min.getComponent(k) - 0.35); expect(a.max[k]).toBeLessThan(B.max.getComponent(k) + 0.35); } } return; }
       for (const lod of [0, 1] as const) {
         // Blender's weld (bake.py) drops a triangle whose corners coincide, or that repeats another's three corners (the
         // lamassu's LOD1 has one, left by the simplifier): the rest are the game's own

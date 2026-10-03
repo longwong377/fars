@@ -48,11 +48,19 @@ run(`npx vite build${process.env.NOMINIFY ? ' --minify false' : ''}${process.env
   let b = 0; for (const p of have) b += sizeOf(p);
   writeFileSync(join(dist, 'boot-files.json'), JSON.stringify(have));
   lap(`boot files to warm: ${have.length} of ${want.length} listed, ${(b / 1048576).toFixed(1)} MB`); }
+// D-580: the optional KTX2 lists (src/render/scans.ts reads them and falls back to the jpgs without them) written empty when
+// the build has none, so a visit logs no 404 for them (scans.ts: no maps listed / no matching ground meta -> the jpgs)
+for (const [f, v] of [['textures/ktx.json', { about: 'no KTX2 scans in this build (tools/bake_world/ktx_scans.ts)', maps: {} }], ['textures/ground/ground.json', { about: 'no KTX2 ground array in this build (tools/bake_world/ktx_ground.ts)', res: 0, layers: [] }]])
+  if (!existsSync(join(dist, f))) { (await import('node:fs')).mkdirSync(join(dist, f, '..'), { recursive: true }); writeFileSync(join(dist, f), JSON.stringify(v)); }
 // GitHub Pages: no Jekyll (it would drop files and folders starting with _), the limits checked
 writeFileSync(join(dist, '.nojekyll'), '');
 // the service worker's build stamp (public/sw.js): a new deploy is a new worker, which drops the old build's cache
 { const sw = join(dist, 'sw.js'), id = (() => { try { return execSync('git rev-parse --short HEAD', { cwd: root }).toString().trim(); } catch { return 'nogit'; } })() + '-' + Date.now().toString(36);
   if (existsSync(sw)) writeFileSync(sw, readFileSync(sw, 'utf8').replace('__PARSA_BUILD__', id)); }
+// D-580: every file's content hash (public/sw.js carries a file over from the previous deploy's cache when it is unchanged)
+{ const { createHash } = await import('node:crypto'), man = {}, skip = new Set(['sw.js', 'index.html', 'site.json', 'site-files.json']);
+  const walkH = d => { for (const n of readdirSync(d)) { const p = join(d, n), st = lstatSync(p); if (st.isDirectory()) walkH(p); else { const r = p.slice(dist.length + 1).split('\\').join('/'); if (!skip.has(r)) man[r] = createHash('sha1').update(readFileSync(p)).digest('hex').slice(0, 16); } } };
+  walkH(dist); writeFileSync(join(dist, 'site-files.json'), JSON.stringify(man)); lap(`content hashes: ${Object.keys(man).length} files`); }
 const files = []; const walk = d => { for (const n of readdirSync(d)) { const p = join(d, n), s = lstatSync(p); if (s.isDirectory()) walk(p); else files.push([p.slice(dist.length + 1).split('\\').join('/'), s.size]); } };
 walk(dist);
 const total = files.reduce((a, [, b]) => a + b, 0), big = files.filter(([, b]) => b > 100e6), top = [...files].sort((a, b) => b[1] - a[1]).slice(0, 8);
