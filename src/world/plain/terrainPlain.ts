@@ -321,7 +321,7 @@ export class PlainGround {
       const soilT = soilP.mul(float(1).sub(tilled.mul(0.28).mul(furrow.mul(0.6).add(0.4))));
       const speck = mx_noise_float(positionWorld.mul(3.1)).mul(0.12).add(1);
       // each plot its own shade (sowing density, soil, weeding: +-12 %, C), so neighbouring plots of one crop still read apart
-      const tint = unitN(hash2N(ph, uint(5), 43)).mul(0.24).add(0.88).mul(plotKeep).add(float(1).sub(plotKeep));
+      const tint = unitN(hash2N(ph, uint(5), 43)).mul(0.34).add(0.83).mul(plotKeep).add(float(1).sub(plotKeep));
       let plotAlb: any = soilT.mul(bare).add(green.mul(gCov).mul(speck)).add(straw.mul(sCov).mul(speck)).mul(tint);
       let plotH: any = mix(G.dust.h, G.tilled.h, S.w).mul(bare).add(G.green.h.mul(gCov)).add(G.straw.h.mul(sCov)).mul(0.012);
       // bunds on plot edges (0.35 m) and a track along district edges (2.5 m wide), near only, in fields
@@ -356,6 +356,10 @@ export class PlainGround {
       const watering = SEASON.green.add(0.25).min(1);
       plotAlb = mix(plotAlb, mix(soil0.mul(0.62), vec3(0.09, 0.11, 0.1), watering.mul(0.55)), ditch.mul(0.9));
       plotH = mix(plotH, G.packed.h.mul(0.01), track.mul(0.9));
+      // D-670 (C6's dawn frame: the plain from the Terrace a flat sheet): the earthworks in relief for the low sun: the bunds
+      // ~0.2 m ridges, the basin ridges ~0.08 m, the ditches ~0.25 m deep, through the material's bump (metres), each faded
+      // with its pixel coverage so a far one shades as a soft line, not a sparkle (C)
+      plotH = plotH.add(bund.mul(0.18).mul(bl(1.2))).add(ridge.mul(basinOn).mul(0.08).mul(bl(1.0))).sub(ditch.mul(0.25).mul(bl(1.5)));
       // --- the uncultivated ground (D-302; was the earth surface's own procedural herbs and chips, whose 3 m blobs cut by a
       // hard threshold read as camouflage): the loam's dust (wet: mud), stony patches over ~150-400 m, dried and cracked silt
       // in the low spots where the rain stands (none while wet), and the season's herbs, their edge following the herb scan
