@@ -63,7 +63,7 @@ export class TownDoors {
   constructor(readonly doors: StreetDoor[], private phys: Physics | null, private variants = 6, name = 'settlement:doors') {
     this.group.name = name;
     this.moving = new Uint8Array(doors.length); this.open = new Float32Array(doors.length).fill(-1); this.target = new Float32Array(doors.length); this.sched = new Float32Array(doors.length);
-    const mat = surfaceMaterial('house_timber', { vertexColors: true }) as any; mat.aoNode = attribute('ao', 'float');
+    const mat = surfaceMaterial(variants === 1 ? 'house_timber' : 'door_planks', { vertexColors: true }) as any; mat.aoNode = attribute('ao', 'float'); // (s17 C1: the town's leaves their own boarded surface)
     for (let v = 0; v < variants; v++) { const m = new THREE.InstancedMesh(leafGeometry(variants === 1 ? 1 : v), mat, MAXI); m.name = `${name === 'settlement:doors' ? 'settlement-doors' : name}:${v}`; m.count = 0; m.frustumCulled = false; m.castShadow = true; m.receiveShadow = true;
       m.userData = { tier: 'C', src: 'MESO-HOUSE-SX;RECON', note: 'street door leaves (D-234)', describe: () => ({ tier: 'C', src: 'MESO-HOUSE-SX;RECON', note: 'street door: a leaf of poplar planks on battens, turning on a pivot post in a stone socket (B analogue: Babylonian doors on doorposts in sockets of brick or stone, search extract); shut and barred at night, open, ajar or shut by day by the household (C)' }) };
       this.meshes.push(m); this.group.add(m); }

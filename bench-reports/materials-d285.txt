@@ -1,9 +1,9 @@
-plaster, 24 m (0.032 m/px), sun 12° off the normal, 19° up, mid-wall: region 0.047 → 0.055; 0.5 m windows 0.020 → 0.031; 1.5 m windows 0.034 → 0.043 (photo: kahgel coat 0.036, weathered stone 0.383)
-plaster, 24 m (0.032 m/px), sun 12° off the normal, 19° up, top 4 m (rain wash): region 0.050 → 0.062; 0.5 m windows 0.021 → 0.033; 1.5 m windows 0.034 → 0.044 (photo: kahgel coat 0.036, weathered stone 0.383)
-plaster, 24 m (0.032 m/px), raking sun 60° off, 19° up, mid-wall: region 0.048 → 0.058; 0.5 m windows 0.020 → 0.036; 1.5 m windows 0.034 → 0.047 (photo: kahgel coat 0.036, weathered stone 0.383)
-plaster, 24 m (0.032 m/px), raking sun 60° off, 19° up, top 4 m (rain wash): region 0.050 → 0.064; 0.5 m windows 0.022 → 0.037; 1.5 m windows 0.034 → 0.047 (photo: kahgel coat 0.036, weathered stone 0.383)
-plaster, whole Gate wall at 60 m (0.081 m/px): region 0.067 → 0.071; 3.9 m windows 0.047 → 0.052
+plaster, 24 m (0.032 m/px), sun 12° off the normal, 19° up, mid-wall: region 0.047 → 0.062; 0.5 m windows 0.020 → 0.032; 1.5 m windows 0.034 → 0.049 (photo: kahgel coat 0.036, weathered stone 0.383)
+plaster, 24 m (0.032 m/px), sun 12° off the normal, 19° up, top 4 m (rain wash): region 0.050 → 0.075; 0.5 m windows 0.021 → 0.037; 1.5 m windows 0.034 → 0.055 (photo: kahgel coat 0.036, weathered stone 0.383)
+plaster, 24 m (0.032 m/px), raking sun 60° off, 19° up, mid-wall: region 0.049 → 0.066; 0.5 m windows 0.021 → 0.038; 1.5 m windows 0.035 → 0.054 (photo: kahgel coat 0.036, weathered stone 0.383)
+plaster, 24 m (0.032 m/px), raking sun 60° off, 19° up, top 4 m (rain wash): region 0.051 → 0.078; 0.5 m windows 0.023 → 0.042; 1.5 m windows 0.036 → 0.058 (photo: kahgel coat 0.036, weathered stone 0.383)
+plaster, whole Gate wall at 60 m (0.081 m/px): region 0.067 → 0.080; 3.9 m windows 0.047 → 0.061
 limestone: albedo 0-0.2 m under a bed joint / mid-block 0.9824 → 0.9786 (the drip stains)
 limestone: 10 m frontal, 48 px windows 0.059 → 0.059; #24 view (150 m, 34.4°, 905 rows) region on screen 0.091 → 0.091, scene-linear 0.145 → 0.145 (B40 0.15-0.25: NOT MET; photo #24 0.366, weathered)
 terrace: 10 m frontal, 48 px windows 0.059 → 0.059; #24 view (150 m, 34.4°, 905 rows) region on screen 0.091 → 0.092, scene-linear 0.145 → 0.147 (B40 0.15-0.25: NOT MET; photo #24 0.366, weathered)
-Now view stone (calib-24-now, lead's render s11): wall rgb 141/132/118 → 83/63/50; wall/ground 1.47 → 0.73 (photo 0.73); R/B 1.19 → 1.66 (photo 1.65)
+Now view stone (calib-24-now, D-300 render 2): wall rgb 108/86/73 → 111/80/62; luma → 85.4 (photo 86.3); R/B 1.48 → 1.80 (photo 1.74)
