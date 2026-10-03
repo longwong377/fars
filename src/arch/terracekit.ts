@@ -26,8 +26,9 @@ export function kitGeometry(name: string): THREE.BufferGeometry {
   g.setIndex(q.i); return g;
 }
 /** the module matrices along a run: x along the run scaled to the module's length, y up, z out of the face; origin at the foot */
-export function runMatrices(r: KitRun, y: number, out: THREE.Matrix4[] = []): THREE.Matrix4[] {
-  const n = Math.max(1, Math.round(r.len)), seg = r.len / n, X = new THREE.Vector3(r.u[0] * seg, 0, -r.u[1] * seg), Y = new THREE.Vector3(0, 1, 0), Z = new THREE.Vector3(r.n[0], 0, -r.n[1]);
+export function runMatrices(r: KitRun, y: number, out: THREE.Matrix4[] = [], s = 1): THREE.Matrix4[] {
+  // (scaled s: the profile s times taller and further out, the modules s times longer)
+  const n = Math.max(1, Math.round(r.len / s)), seg = r.len / n, X = new THREE.Vector3(r.u[0] * seg, 0, -r.u[1] * seg), Y = new THREE.Vector3(0, s, 0), Z = new THREE.Vector3(r.n[0] * s, 0, -r.n[1] * s);
   for (let i = 0; i < n; i++) { const e = r.a[0] + r.u[0] * i * seg, nn = r.a[1] + r.u[1] * i * seg; out.push(new THREE.Matrix4().makeBasis(X, Y, Z).setPosition(e, y, -nn)); }
   return out;
 }
@@ -37,7 +38,7 @@ export function buildTerraceKit(heads: KitRun[], feet: KitRun[], cornH = 0.72): 
   const mat = propMaterial('mud', { vertexColors: true });
   const place = (kind: keyof typeof KINDS, runs: KitRun[], dy: number) => {
     const K = KINDS[kind], by = new Map<string, THREE.Matrix4[]>(); let h = 0;
-    for (const r of runs) for (const m of runMatrices(r, r.y + dy)) { const name = K.near[(h++ * 2654435761 >>> 0) % K.near.length]; (by.get(name) ?? by.set(name, []).get(name)!).push(m); }
+    for (const r of runs) for (const m of runMatrices(r, r.y + dy * (r.s ?? 1), [], r.s ?? 1)) { const name = K.near[(h++ * 2654435761 >>> 0) % K.near.length]; (by.get(name) ?? by.set(name, []).get(name)!).push(m); }
     for (const [name, mats] of by) {
       const lod = new PieceLOD([kitGeometry(name), kitGeometry(K.far)], mat, mats); lod.name = `terracekit:${name}`;
       lod.userData = { tier: 'C', src: 'RECON;NR-TOMB;D-755', placeholder: false, model: 'terracekit', note: kind === 'cornice'

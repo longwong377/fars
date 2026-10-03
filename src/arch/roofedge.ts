@@ -19,7 +19,7 @@
 // plan tests keep the roofs as they were. An edge is drawn only where it is free: where another part continues the roof at
 // its level or rises past the parapet (a tower, a higher hall) nothing is added.
 import type { Part, Box, Material } from './parts';
-import { row } from './spec';
+import { row, v } from './spec';
 
 /** SITE_SPEC global.r_roof_edge (every size C; the portico entablature's form after the Naqsh-e Rustam facades); proud and
  *  sample are the drawing's own (the skin 6 mm over the slab's side, the edges sampled every 0.25 m) */
@@ -39,7 +39,7 @@ export interface BandFace { building: string; c: [number, number]; n: [number, n
 /** D-750: a portico's open front under a roof's edge (grid end points along the edge, outward normal, the slab's underside) */
 export interface Porch { building: string; a: [number, number]; b: [number, number]; n: [number, number]; y: number }
 /** D-803: a palace wall run's head or foot for the Terrace kit (grid start, unit along, outward normal, length, the height) */
-export interface KitRun { building: string; a: [number, number]; u: [number, number]; n: [number, number]; len: number; y: number }
+export interface KitRun { building: string; a: [number, number]; u: [number, number]; n: [number, number]; len: number; y: number; /** the cornice's scale (kitCorniceScale; 1 on a foot) */ s?: number }
 export interface RoofEdges { boxes: Box[]; pieces: Piece[]; crowns: Crown[]; bands: BandFace[]; porches: Porch[]; heads: KitRun[]; stats: { edges: number; free: number; wall: number; open: number; metres: number; tops: number } }
 
 /** D-750 (C): which roofs carry the stepped merlons. The stone stepped merlons found on the Terrace (the Apadana's, the stair
@@ -60,6 +60,10 @@ const CACHE = new WeakMap<Part[], RoofEdges>();
 /** D-803: the buildings whose wall heads and feet take the Terrace kit's cornice and plinth, and the cornice's height (m) */
 export const KIT_BUILDINGS = new Set(['gate_nations', 'apadana', 'tachara', 'hadish', 'harem', 'tripylon', 'hall100']);
 export const KIT_CORNICE_H = 0.72;
+/** D-803 batch 4 (C, UD-29): the cornice grows with the wall it crowns (the stone frames' gorges grow with their openings: the
+ *  Apadana's door cornices over the Gate's): 0.72 m up to a 12 m wall, then in proportion, to 2.2x (1.6 m tall, 0.8 m out) on
+ *  the 24 m Apadana towers. At 0.72 m a 20 m wall's head read as a 1-2 px line at 300 m */
+export const kitCorniceScale = (wallH: number) => Math.min(2.2, Math.max(1, wallH / 12));
 
 const inBox = (b: Box, e: number, n: number, y: number, pad = 0) => {
   if (y < b.y0 - 1e-6 || y > b.y1 + 1e-6) return false;
@@ -118,6 +122,9 @@ export function roofEdges(parts: Part[]): RoofEdges {
   const tops = solid.filter(p => p.kind !== 'roof' && p.material.startsWith('mudbrick') && !underConstruction(p) && ['wall', 'tower', 'curtain', 'storerooms'].includes(p.kind)
     && p.y1 - p.y0 > 2 && !coveredTop(p, grid));
   const heads: { b: Box; roof: boolean }[] = [...roofs.map(b => ({ b, roof: true })), ...tops.map(b => ({ b, roof: false }))];
+  // D-803 batch 4: each building's floor (the median foot of its walls and towers, its foundations aside), for the walls' heights
+  const feet = new Map<string, number[]>(); for (const p of solid) if ((p.kind === 'wall' || p.kind === 'tower') && p.y0 > -1) (feet.get(p.building) ?? feet.set(p.building, []).get(p.building)!).push(p.y0);
+  const floorOf = new Map([...feet].map(([k, ys]) => { ys.sort((a, c) => a - c); return [k, ys[ys.length >> 1]] as [string, number]; }));
   for (const { b, roof } of heads) {
     const base = { building: b.building, material: 'mudbrick' as Material, tier: R.tier, src: R.src, placeholder: false };
     const thin = !roof && Math.min(b.size[0], b.size[1]) < R.thinWall;
@@ -185,11 +192,14 @@ export function roofEdges(parts: Part[]): RoofEdges {
         }
         if (k === 'open' && roof) porches.push({ building: b.building, a: [sd.a[0] + ux * s0, sd.a[1] + uy * s0], b: [sd.a[0] + ux * s1, sd.a[1] + uy * s1], n: [sd.n[0], sd.n[1]], y: b.y0 });
         // D-803: the run's head for the kit's cornice (a palace's wall run, over a roof or an exposed top)
-        if (k === 'wall' && KIT_BUILDINGS.has(b.building) && s1 - s0 > 1) kitHeads.push({ building: b.building, a: [sd.a[0] + ux * s0, sd.a[1] + uy * s0], u: [ux, uy], n: [sd.n[0], sd.n[1]], len: s1 - s0, y: topY });
+        // (the Apadana's towers: the glazed frieze's band holds the 2 m between their tops and the portico roofs: the cornice
+        // over it only as tall as apadana.r_glazed_frieze.top_below leaves)
+        const cs = Math.min(kitCorniceScale(topY - (floorOf.get(b.building) ?? b.y0)), b.building === 'apadana' ? (v<any>('apadana', 'r_glazed_frieze').top_below - BAND_GAP) / KIT_CORNICE_H : 9);
+        if (k === 'wall' && KIT_BUILDINGS.has(b.building) && s1 - s0 > 1) kitHeads.push({ building: b.building, a: [sd.a[0] + ux * s0, sd.a[1] + uy * s0], u: [ux, uy], n: [sd.n[0], sd.n[1]], len: s1 - s0, y: topY, s: cs });
         // D-750: the glazed band's face on a palace's wall run
         if (k === 'wall' && roof && BAND_BUILDINGS.includes(b.building) && s1 - s0 > 2) {
           const m = (s0 + s1) / 2;
-          bands.push({ building: b.building, c: [sd.a[0] + ux * m, sd.a[1] + uy * m], n: [sd.n[0], sd.n[1]], length: s1 - s0, y1: topY - KIT_CORNICE_H - BAND_GAP }); // (D-803: under the kit's cornice)
+          bands.push({ building: b.building, c: [sd.a[0] + ux * m, sd.a[1] + uy * m], n: [sd.n[0], sd.n[1]], length: s1 - s0, y1: topY - KIT_CORNICE_H * cs - BAND_GAP }); // (D-803: under the kit's cornice)
         }
       }
     }
