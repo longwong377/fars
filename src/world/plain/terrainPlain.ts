@@ -329,7 +329,12 @@ export class PlainGround {
       // so past ~100 m, under a pixel wide, they aliased into dotted lines; now each is drawn by its pixel coverage (a line under
       // a pixel fades to its share of the pixel instead of breaking into dots)
       const fwEd = fwidth(edge).max(0.01), fwDd = fwidth(dEdge).max(0.01);
-      const bund = float(1).sub(smoothstep(float(0.45).sub(fwEd), float(0.45).add(fwEd), edge)).mul(clamp(float(0.45).div(fwEd), 0, 1)).mul(near).mul(mask); // earth bunds between plots, ~1 m wide (C)
+      // D-670 (the dotted seam, found: Vagon's pick on the 20 m frame hit the terrain on a plot edge): a bund drawn the full
+      // length of a straight Voronoi edge reads as a ruled seam across the plain; it now wanders (+-0.5 m over ~10 m) and comes
+      // and goes along its length (worn through, grassed over: ~40 % of it gone, in 20-60 m stretches), C
+      const bWob = edge.add(mx_noise_float(vec3(p.x.mul(0.09), 7.3, p.y.mul(0.09))).mul(0.5));
+      const bOn = smoothstep(-0.15, 0.25, mx_noise_float(vec3(p.x.mul(0.025), 2.9, p.y.mul(0.025))));
+      const bund = float(1).sub(smoothstep(float(0.45).sub(fwEd), float(0.45).add(fwEd), bWob)).mul(clamp(float(0.45).div(fwEd), 0, 1)).mul(near).mul(mask).mul(bOn); // earth bunds between plots, ~1 m wide (C)
       // D-670: the plot's margin, a headland of weeds and grass the plough turns on, 1-3 m wide and ragged (its width varies
       // along the edge), drawn by its pixel coverage at any distance (a fine line far off, not cut at a radius); and in the
       // irrigated plots the basins (kart) the water is let into, low ridges every ~11-15 m across and ~18-28 m along the strip,
