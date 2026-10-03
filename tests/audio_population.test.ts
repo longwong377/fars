@@ -142,13 +142,34 @@ describe('the human sounds that are not words (session 9, G33)', () => {
     expect(cries[0].voice.age).toBeLessThan(2);
     const coughs = L.filter(u => u.unit.startsWith('cough:')); expect(coughs.every(u => u.key !== 'b0')).toBe(true);
   });
-  it('D-292 (C-D30): a woman with a small child at its bedtime hums it a wordless lullaby, in phrases with a breath between; nobody else does', () => {
+  it('D-292 (C-D30): a woman with a small child at its bedtime hums or sings it a lullaby (D-720: words in her tongue every other phrase), in phrases with a breath between; nobody else does', () => {
     const { ctx, e } = engineOn(), v = new PopulationVoices(e, { seed: 7 }), L = log(v); v.coughEvery = 1e9;
     const mother: NearPerson = { key: 'm0', x: 2, y: 0, z: 2, talking: false, lang: 'Old Persian', sex: 'f', age: 24, seed: 11, group: null, lull: true };
     const other: NearPerson = { key: 'w1', x: -2, y: 0, z: 2, talking: false, lang: 'Old Persian', sex: 'f', age: 30, seed: 12, group: null };
     drive(ctx, 90, dt => v.update(dt, [mother, other], { x: 0, y: 1.6, z: 0 }));
-    const hums = L.filter(u => u.unit.startsWith('lull:')); expect(hums.length).toBeGreaterThan(12);
-    expect(hums.every(u => u.key === 'm0' && u.lang === 'wordless')).toBe(true);
+    // (D-720: every other phrase sung with words in her own tongue, reconstructed: 'rc:' units in Old Persian)
+    const hums = L.filter(u => u.unit.startsWith('lull:') || (u.key === 'm0' && u.unit.startsWith('rc:'))); expect(hums.length).toBeGreaterThan(12);
+    expect(hums.every(u => u.key === 'm0' && (u.lang === 'wordless' || u.lang === 'op'))).toBe(true);
     let breaths = 0; for (let i = 1; i < hums.length; i++) if (hums[i].t0 - hums[i - 1].t1 > 1) breaths++; expect(breaths).toBeGreaterThan(2);
+  });
+});
+
+describe('D-720 (the holes audit #15): songs and calls by what people do', () => {
+  it('work, field, well and market places have their songs; the words are the singer\'s own tongue, reconstructed', async () => {
+    const { songKind, SONGS } = await import('../src/audio/voices');
+    expect(songKind('well:q_n')).toBe('well'); expect(songKind('market:q_lt_e:12')).toBe('market'); expect(songKind('field:122:1')).toBe('field'); expect(songKind('ws:3')).toBe('work');
+    expect(songKind('h:12')).toBeNull(); expect(songKind(null)).toBeNull();
+    for (const k of ['work', 'field', 'well', 'market'] as const) expect(SONGS[k].length).toBeGreaterThan(2);
+  });
+  it('reapers in a field sing and a seller calls, two at most at once; a sung word is reconstructed, never another people\'s', () => {
+    const S = syntheticScene(4, 5);
+    S.people = [...['Persian', 'Elamite', 'Lydian', 'Persian'].map((lang, i) => ({ key: `r${i}`, x: 4 + i * 1.5, y: 0, z: 2, talking: false, lang, sex: 'm' as const, age: 30 + i, seed: 77 + i * 31, group: 'field:12:1' })),
+      { key: 'm0', x: -5, y: 0, z: 3, talking: false, lang: 'Babylonian', sex: 'f' as const, age: 40, seed: 991, group: 'market:q_lt_e:3' }];
+    const R = runScene(S, 600, 5), sung = R.voices.log!.filter(u => /:\d+(:,)?$/.test(u.unit) && /^(rc|tg):/.test(u.unit));
+    expect(sung.length).toBeGreaterThan(5); expect(new Set(sung.map(u => u.key)).size).toBeGreaterThan(1);
+    for (const u of sung) { if (u.key === 'r2') expect(u.unit.startsWith('tg:Lydian')).toBe(true); else expect(u.unit.startsWith('rc:')).toBe(true); }
+    expect(sung.some(u => u.key === 'm0')).toBe(true);
+    // never more than two singers at once
+    for (const u of sung) expect(new Set(sung.filter(v => v.t0 <= u.t0 && v.t1 > u.t0).map(v => v.key)).size).toBeLessThanOrEqual(2);
   });
 });
