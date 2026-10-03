@@ -6,7 +6,7 @@
 - Packed places now leave people undrawn rather than stacked: the royal kitchens' court ~82, the Tachara's court ~43, the Treasury N
   court ~27, the Harem W entrance ~9 (standcensus.ts, within 6 m of each spot). One spot is shared by 100+ people in a court too small
   for them at 1 m; the real fix is more spots per place (popgeo/population, not mine): ask below.
-- 4 of 399 town street doors still fail the door walk with people on, none touching a person (B690): q_w1 plot 141 also fails with
+- 4 of 399 town street doors still fail the door walk with people on, none touching a person (B691): q_w1 plot 141 also fails with
   nobody about (a wall collider across the door); 3 pass walked alone and fail late in the long run with a box at the jamb (likely a
   town door leaf shut by its household's hours as the run's clock moves).
 - Town bots seed 2: 39/40, stopped by a small animal lying in a q_s2 lane (solids.ts makes small animals solid). Terrace bot stuck
@@ -30,6 +30,6 @@
 
 **Files:** src/people/popview.ts (SEP, SPREAD_R, DOOR_CLEAR, inDoor, setDoorways, makeWay), src/people/crowd.ts (the head turned while
 making way), tools/dev/doorwalk.ts (who blocks, --only, --trace), tools/dev/walkers.ts (reachable plot cells), tools/dev/standcensus.ts
-(new), tools/dev/lib/offline_world.ts (setDoorways), tests/popview.test.ts (the spread bound reads SPREAD_R). DECISIONS D-690, BLOCKERS B690.
+(new), tools/dev/lib/offline_world.ts (setDoorways), tests/popview.test.ts (the spread bound reads SPREAD_R). DECISIONS D-690, BLOCKERS B691.
 **Asks:** world.ts after `new PopView(...)`: `view.setDoorways(doorways);` (else the view builds the doorways itself once, ~0.1 s).
 popgeo/population owner: more standing spots per crowded Terrace place (court_kitchen, court_tachara, the Treasury N court).

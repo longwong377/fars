@@ -48,8 +48,10 @@ export function verdictNote(d: Decision): string {
   if (d.noop) return `You may say yes: ${d.reason}.`;
   return d.ok ? 'You can do this, if you are willing.' : `You cannot do this: ${d.reason}.`;
 }
+/** D-720: what plays the person in a turn: the loaded model (mind.ts Mind) or, where it is not there, their own lines (ownlines.ts OwnMind) */
+export type TalkMind = Pick<Mind, 'answer' | 'judge'>;
 /** one turn: the stranger says `said` to person `pid` now (sim.t); conv: the conversation's id (its first turn's time) */
-export async function talkTurn(mind: Mind, sim: PeopleSim, pid: number, said: string, o: { conv: number; history?: Turn[]; prose?: string | null; /** D-375: why this person came up to the stranger (approach.ts opening) */ approached?: string; /** D-459: the model's reading of the words as a deed (deeds/extract.ts), when it made one */ deed?: OpenDeed | null } = { conv: sim.t }): Promise<TurnOut> {
+export async function talkTurn(mind: TalkMind, sim: PeopleSim, pid: number, said: string, o: { conv: number; history?: Turn[]; prose?: string | null; /** D-375: why this person came up to the stranger (approach.ts opening) */ approached?: string; /** D-459: the model's reading of the words as a deed (deeds/extract.ts), when it made one */ deed?: OpenDeed | null } = { conv: sim.t }): Promise<TurnOut> {
   const t = sim.t, day = Math.floor(t / 24), hour = t - day * 24;
   // D-370 (B234): the trust gate. A house that distrusts the stranger (a guest who left without thanks, a claim found false,
   // wages left unpaid by him, rumours) will not talk: the person turns away without a word from the model; a wary one is curt

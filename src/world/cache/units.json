@@ -113,6 +113,17 @@
     "public/generated"
    ],
    "keyed": "the world key (world.ts bakeKey)"
+  },
+  "plotcells": {
+   "version": 1,
+   "entries": [
+    "src/world/world.ts"
+   ],
+   "inputs": [
+    "public/generated"
+   ],
+   "keyed": "the world key (world.ts bakeKey)",
+   "about": "s17 V10 (D-479): the town plots' cells reached from their doors (walk.ts plotCells)"
   }
  }
 }
