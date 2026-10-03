@@ -30,7 +30,7 @@ const SPEC: Record<FireKind, { flameH: number; flameW: number; power: number; ra
   brazier: { flameH: 0.7, flameW: 0.55, power: 2.4, range: 22, smoke: 0.5 },
   hearth: { flameH: 0.5, flameW: 0.6, power: 1.6, range: 14, smoke: 1.0 },
   oven: { flameH: 0.25, flameW: 0.4, power: 0.8, range: 8, smoke: 1.2 },
-  lamp: { flameH: 0.06, flameW: 0.03, power: 0.08, range: 3.5, smoke: 0.0 },
+  lamp: { flameH: 0.06, flameW: 0.03, power: 0.22, range: 5, smoke: 0.0 }, // D-530: 0.08 / 3.5 left the rooms black at night (C)
   kiln: { flameH: 0.35, flameW: 0.5, power: 1.4, range: 10, smoke: 1.6 },
   // D-209: the kept fire on the precinct's stepped altar: a wood fire in the open, a little larger than a hearth's (C)
   altar: { flameH: 0.6, flameW: 0.55, power: 1.9, range: 16, smoke: 1.1 },
@@ -163,7 +163,15 @@ export class FireSystem {
   private smokeAlpha!: THREE.InstancedBufferAttribute;
   /** D-530: daylight ports (townPorts: x, y, z, nx, nz) and the daylight outside them */
   private ports: Float32Array = new Float32Array(0); private dayE = 0; private daySky = new THREE.Color(1, 1, 1); private portNear: number[] = []; private portEye = new THREE.Vector3(1e9, 0, 0);
-  setPorts(p: Float32Array) { this.ports = p; this.portEye.set(1e9, 0, 0); }
+  setPorts(p: Float32Array) { this.ports = p; this.portEye.set(1e9, 0, 0);
+    // each port's room fire: the nearest lamp, hearth or oven within PORT_FIRE_R m on the room's side of the doorway (-1: none)
+    const n = p.length / 5, pf = this.portFire = new Int32Array(n).fill(-1), G = new Map<string, number[]>(), C = 8, key = (x: number, z: number) => `${Math.floor(x / C)},${Math.floor(z / C)}`;
+    this.fires.forEach((f, i) => { if (f.kind !== 'lamp' && f.kind !== 'hearth' && f.kind !== 'oven') return; const k = key(f.pos.x, f.pos.z); (G.get(k) ?? G.set(k, []).get(k)!).push(i); });
+    for (let k = 0; k < n; k++) { const x = p[k * 5], z = p[k * 5 + 2], nx = p[k * 5 + 3], nz = p[k * 5 + 4]; let best = PORT_FIRE_R * PORT_FIRE_R;
+      for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) for (const i of G.get(`${Math.floor(x / C) + a},${Math.floor(z / C) + b}`) ?? []) {
+        const f = this.fires[i], dx = f.pos.x - x, dz = f.pos.z - z, d = dx * dx + dz * dz; if (d < best && dx * nx + dz * nz > 0.3 && Math.abs(f.pos.y - p[k * 5 + 1]) < 2.5) { best = d; pf[k] = i; } } }
+  }
+  private portFire: Int32Array = new Int32Array(0);
   private lightScale = 1;
   private rng = new Rng(1, 'fire');
   private uLit = uniform(1);
@@ -417,7 +425,7 @@ export class FireSystem {
     FIRE_GLOW.n = 0;
     for (let j = 0; j < GLOW_MAX; j++) {
       const f = !legacy && j < this.glowN ? lit_[this.forwardN + j] : undefined, A = FIRE_GLOW.A[j], B = FIRE_GLOW.B[j], C = FIRE_GLOW.C[j], D = FIRE_GLOW.D[j];
-      if (!f) { B.set(0, 0, 0, 0); A.w = 0; continue; }
+      if (!f) { B.set(0, 0, 0, 0); A.w = 0; D.w = 0; continue; }
       const L = fireLight(f.kind), R = this.roomOf(f); FIRE_GLOW.n++;
       A.set(f.pos.x, f.pos.y + L.height - LIFT[f.kind], f.pos.z, L.cutoff);
       if (f.occ === undefined) f.occ = tileOf(fireOcc(), A.x, A.y, A.z);
@@ -453,17 +461,29 @@ export class FireSystem {
    *  far corners fall off into a readable dark (C; the light-probe field holds no town room interiors) */
   private lightPorts(eye: THREE.Vector3, legacy: boolean) {
     const P = this.ports, np = P.length / 5; if (!np || legacy || this.glowN === 0) return;
-    const I = this.dayE * PORT_RHO * PORT_AREA / Math.PI; if (I <= 1e-6) return;
+    const I = this.dayE * PORT_RHO * PORT_AREA / Math.PI, PF = this.portFire;
     if (eye.distanceToSquared(this.portEye) > 1) { this.portEye.copy(eye); const c: { k: number; d: number }[] = [];
       for (let k = 0; k < np; k++) { const dx = P[k * 5] - eye.x, dy = P[k * 5 + 1] - eye.y, dz = P[k * 5 + 2] - eye.z, d = dx * dx + dy * dy + dz * dz; if (d < PORT_R * PORT_R) c.push({ k, d }); }
-      c.sort((a, b) => a.d - b.d); this.portNear = c.slice(0, GLOW_MAX).map(x => x.k); }
+      c.sort((a, b) => a.d - b.d); this.portNear = c.slice(0, GLOW_MAX * 4).map(x => x.k); }
     // the bounce takes the ground's warm ochre, the sky part the sky's colour (C)
     const r = (0.55 * this.daySky.r + 0.45 * 1.0) * I, g = (0.55 * this.daySky.g + 0.45 * 0.78) * I, b = (0.55 * this.daySky.b + 0.45 * 0.55) * I;
-    let k = 0;
-    for (let j = 0; j < GLOW_MAX && k < this.portNear.length; j++) {
+    // at night a doorway whose room has its lamp or hearth lit spills that light out (the room's walls seen through the
+    // opening: radiance ~ rho · I / (pi d^2) of the fire on them, times the opening's area), into the court or the lane (C)
+    let k = 0, j = 0; const fs = this.lightScale;
+    for (; j < GLOW_MAX && k < this.portNear.length; j++) {
       const B = FIRE_GLOW.B[j]; if (B.x + B.y + B.z > 0) continue;
-      const q = this.portNear[k++] * 5, A = FIRE_GLOW.A[j], D = FIRE_GLOW.D[j];
-      A.set(P[q], P[q + 1], P[q + 2], PORT_CUT); B.set(r, g, b, 0); D.set(0, 0, -1, 0); FIRE_GLOW.n++;
+      let q = -1, nI = 0;
+      while (k < this.portNear.length) { const c = this.portNear[k++], fi = PF[c] ?? -1, f = fi >= 0 ? this.fires[fi] : null;
+        nI = f && f.lit ? fireLight(f.kind).candela * FIRE_FLICKER_MEAN * fs * PORT_RHO * PORT_AREA / (Math.PI * Math.max(1, f.pos.distanceToSquared(new THREE.Vector3(P[c * 5], P[c * 5 + 1], P[c * 5 + 2])))) * PORT_NIGHT : 0;
+        if (I > 1e-6 || nI > 0) { q = c * 5; break; } }
+      if (q < 0) break;
+      const A = FIRE_GLOW.A[j], C = FIRE_GLOW.C[j], D = FIRE_GLOW.D[j];
+      // the daylight stands PORT_OUT m outside the opening and reaches only the room's side of the door's wall (half-space:
+      // the reveals are grazed, the facade round the door untouched); a night spill from the room's fire stands inside the
+      // room and lights only the open side (the ground and walls before the door)
+      const night = nI > I, o = night ? PORT_OUT * 0.8 : -PORT_OUT, sg = night ? -1 : 1;
+      A.set(P[q] + P[q + 3] * o, P[q + 1], P[q + 2] + P[q + 4] * o, PORT_CUT); B.set(r + FIRE_RGB.r * nI, g + FIRE_RGB.g * nI, b + FIRE_RGB.b * nI, 0);
+      C.set(P[q + 3] * sg, 0, P[q + 4] * sg, PORT_OUT * (night ? 0.8 : 1) - 0.05); D.set(0, 0, -1, 1); FIRE_GLOW.n++;
     }
   }
   /** the lit fires that get a light for an eye at `p`: the nearest `lights.length` (forward) + glow (deferred, D-355) within 90 m */
@@ -488,7 +508,10 @@ export class FireSystem {
 
 /** D-530: the daylight ports: the outside's reflectance seen through a doorway (sunlit ground and walls with the sky), the
  *  opening's area (m²), the light's cut-off (m) and how far from the eye ports are lit (m) */
-export const PORT_RHO = 0.35, PORT_AREA = 2.0, PORT_CUT = 7, PORT_R = 30;
+export const PORT_RHO = 0.55, PORT_AREA = 3.0, PORT_CUT = 9, PORT_R = 30, PORT_OUT = 1.0;
+/** D-530: the room fire a port spills at night lies within PORT_FIRE_R m of it; the spill's gain over the plain estimate
+ *  (the doorway sees the fire's lit walls, floor and the flame itself: C, judged in the fire lab) */
+export const PORT_FIRE_R = 6, PORT_NIGHT = 3;
 /** D-530: how many of the nearest fire lights cast shadows at high/ultra, their cube maps' reach (m), the soft filter's
  *  radius (texels; a flame a few decimetres across), and how often (frames) each is redrawn while it keeps its fire */
 export const FIRE_SHADOW_LIGHTS = 2, FIRE_SHADOW_FAR = 30, FIRE_SHADOW_RADIUS = 6, FIRE_SHADOW_REFRESH = 24;

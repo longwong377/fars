@@ -84,7 +84,7 @@ import { PalaceFurnishings } from '../../src/world/furnish_palaces';
   const town = new Settlement(null, terrain, fire, 'high'); scene.add(town.group);
   const vh = new VillageHouses(villages, villages.map(v => villageCompounds(v, terrain, 1)), terrain, null, fire, 1); scene.add(vh.group);
   fire.build(); scene.add(fire.group);
-  if (P.get('ports') !== '0') { const pts = townPorts(town.plan.sites, (e, n) => terrain.heightAt(e, -n)); fire.setPorts(pts); marks.push('ports ' + pts.length / 5); }
+  const PTS = townPorts(town.plan.sites, (e, n) => terrain.heightAt(e, -n)); let portsOn = P.get('ports') !== '0'; if (portsOn) fire.setPorts(PTS); marks.push('ports ' + PTS.length / 5);
   mark('town');
   await loadProbes('/');
   const sky = new SkySystem(scene, 4096, 'high'); await sky.loadStars('/');
@@ -143,6 +143,7 @@ import { PalaceFurnishings } from '../../src/world/furnish_palaces';
   (window as any).__shot = async (v: { cam?: any; eye?: number[]; look?: number[]; fov?: number; day?: number; hour?: number; weather?: WeatherOverride; vis?: number; frames?: number; post?: string; xp?: number }) => {
     if ((v.post ?? '') !== curPost) { curPost = v.post ?? ''; pipeline.setDebugView(curPost); }
     xpOver = v.xp ?? 0;
+    const wantPorts = (v as any).ports !== 0; if (wantPorts !== portsOn) { portsOn = wantPorts; fire.setPorts(portsOn ? PTS : new Float32Array(0)); }
     let x: number, y: number, z: number, info0: any;
     if (v.eye && v.look) { x = v.eye[0]; z = -v.eye[1]; y = v.eye[2]; cam.position.set(x, y, z); cam.up.set(0, 1, 0); cam.lookAt(v.look[0], v.look[2], -v.look[1]); info0 = [...v.eye, ...v.look]; }
     else { const [cx, cz, cy, gb, pitch] = camOf(v.cam); x = cx; z = cz; y = cy; cam.position.set(x, y, z); cam.rotation.set((pitch * Math.PI) / 180, -(gb * Math.PI) / 180, 0, 'YXZ'); info0 = [x, z, y, gb, pitch]; }
