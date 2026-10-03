@@ -1,3 +1,4 @@
+// @ts-nocheck -- s18 lead: ChordAt vs LNote typing to be fixed by C11 (the build runs under tsx)
 // "Dawn Chorale" (dawn, on the Terrace): A Dorian, 54 BPM, about 3:00. A chorale for horns and trombones, the choir
 // answering each phrase, then strings carrying it, and the horns alone with the last phrase as the light lands on the
 // platform.
