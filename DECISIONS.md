@@ -9960,3 +9960,16 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   no qanat, the king never staged, delegations/feasts `never`, words never joined) are listed so the fixes change them too.
   No src edits (an audit).
 - B580: a landlocked house whose only lane contact is a corner cell keeps a 0.02-0.3 m slot between the two crossing 0.7 m walls whatever door is cut (measured at 10 cm). access.ts' last pass cuts up to three connected cells at that corner (the house's own or a neighbour's; never a door cell or a small plot) back to the lane, the door through the cut (a narrow 0.6 m door allowed there), a neighbour's room the cut strands given an inner door, kept when the house is then at least half reached and no other plot loses a reached place; the cut reaching most is kept. q_s4-0074 (100/100 cells), q_s4-0161 (91/141: its inside split by a narrow inner passage), q_w3-0122 and one more entered. Then a lane pocket no body walks into (q_w2-0077 and q_w2-0082 faced a 40-cell one whose one exit was a one-cell lane, 0.15 m of room) gets its one-cell corridor widened into the larger plot along it (and, if the two wall corners across the junction still leave a diagonal slot, one cell beyond), kept when the pocket is then reached and every plot keeps its reached places (a large yard may lose 0.2 %). Every house of the town can now be entered: shut houses 6 → 0, quarter plot cells reached 99.437 → 99.805 %, lane cells 99.742 → 100 % (reach_census.ts). town_plots.json regenerated. The nav grid (public/generated/nav.i16, tools/build_nav.ts) still holds the old doors: the people do not yet route through the new ones (asked of the lead).
+
+## D-680 (s18, cloud C4): the far sun cascade; the Rahmat streak traced
+- sunShadows.ts: past the last cascade (600 m) nothing had a sun shadow, so the Terrace and town from the plain read flat-lit.
+  A fifth, static map fitted to the box of the Terrace and the town (FAR_BOX: east -1480..330, north -1580..840, 4096²,
+  texel <= 0.9 m at every sun: farCascadeFit), drawn once at load and again only when the sun has moved 0.4 deg (never while
+  it is down), shades fragments 560-600 m+ from the lens. It is read with textureLoad and a hand-made 2x2 bilinear comparison
+  (its depth texture has no compare function and nearest filtering), so it adds NO sampler to any material (the T4's 16 per
+  fragment stage, D-300); tests/far_cascade_d680.test.ts builds a lit surface with the cascades on and off: same sampler
+  count, the far map read by textureLoad. ?farcsm=0 (load) or __parsaFarCascade.value = 0 (run time) for the A/B. C.
+- Kuh-e Rahmat's bright streak: road_pasargadae's first segment (settlement.json [250,250] -> [2600,1900]) runs ruler-straight
+  from 2 m up to ~290 m over the mountain behind the Terrace; a data fix (reroute round the north end) asked of the lead.
+- Unseen: the cloud cannot draw Q=high (WebGL2: program validation failures and a lost device with the cascade on AND off;
+  WebGPU: SwiftShader's 16-texture cap), so the far cascade is verified node-side only; it needs a T4 frame.
