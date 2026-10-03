@@ -225,6 +225,8 @@ export class CourtResidents {
       this.king = add('king', 'king', KING.private, { sex: 'm', age: 51, job: 'official', hh: KH, origin: 'Persian', nm: 'Xšayāršā' } as any); // (the name as his inscriptions write it, XPa-XPh: A)
       const AH = P.hh('court', 'terrace', true, 'court_harem_s');
       this.bearers = { parasol: add('king', 'parasol', 'court_harem_s', { sex: 'm', age: 30, job: 'steward', hh: AH, origin: 'Persian' }), whisk: add('king', 'whisk', 'court_harem_s', { sex: 'm', age: 26, job: 'steward', hh: AH, origin: 'Persian' }) };
+      // D-780 (C12 pass 4): the crown prince and the king's weapon-bearer behind the throne (the Treasury relief, B; the persons C)
+      add('king', 'prince', 'court_harem_s', { sex: 'm', age: 18, job: 'official', hh: AH, origin: 'Persian' }); add('king', 'weapons', 'court_harem_s', { sex: 'm', age: 34, job: 'steward', hh: AH, origin: 'Persian' });
       const EH = P.hh('court', 'terrace', true, 'court_guard_quarters');
       for (let i = 0; i < 4; i++) this.escort.push(add('king', 'escort', 'court_guard_quarters', { sex: 'm', age: 28 + 3 * i, job: 'guard', hh: EH, origin: i % 2 ? 'Median' : 'Persian', idx: i }));
       // D-780: the chiliarch, in the Median dress of the figure before the king on the Treasury relief (TREAS-AUD: B; C)
@@ -406,6 +408,8 @@ export class CourtResidents {
     if (m.g === 'visitor' && p.sex === 'm') { const del = DELEGATIONS_BY_ORIGIN.get(p.origin); return del ? { delegation: del.id } : null; }
     if (m.g === 'king' && m.role === 'king') return { dress: 'king', stature: 1.66 };
     if (m.g === 'king' && (m.role === 'parasol' || m.role === 'whisk')) return { dress: 'persian', pieces: ['bun', 'fillet'], beardless: true };
+    if (m.role === 'prince') return { dress: 'persian', pieces: ['bun', 'beard_short', 'hat_fluted', 'torque', 'earrings', 'bracelets'] }; // D-780: the Treasury relief's crown prince (B)
+    if (m.role === 'weapons') return { dress: 'persian', pieces: ['bun', 'beard_long', 'hat_fluted', 'quiver', 'bow', 'earrings'] }; // D-780: the weapon-bearer (B)
     if (m.g === 'women') return { dress: 'court_woman' }; // D-215: the court women's dress (gap audit item 22, B20c)
     if (m.role === 'chiliarch') return { dress: 'median', pieces: ['cap_soft', 'bun', 'akinaka', 'kandys', 'earrings', 'bracelets'] }; // D-780: the Treasury relief's figure (B)
     return null;
@@ -419,7 +423,7 @@ export class CourtResidents {
     if (m.g === 'courier') return 'a courier of the royal road with letters for the court (the relay: HDT 8.98, a claim, B; the count C: D-780)';
     if (m.role === 'chiliarch') return 'the chiliarch (hazārapatiš), the king’s first officer, before the throne at every audience (TREAS-AUD, IR-CHIL: B; the person C: D-780)';
     if (m.g === 'king') return m.role === 'king' ? 'the king, Xerxes (court setting only, C: nothing places him at Persepolis in 467, Q-005; his dress, crown, staff and lotus as the reliefs carve them, B: D-199)'
-      : m.role === 'escort' ? 'a spearman of the king’s escort (court setting, C)' : `the king’s ${m.role === 'parasol' ? 'parasol bearer' : 'fly-whisk and towel bearer'} (the door-jamb reliefs, B; court setting, C)`;
+      : m.role === 'escort' ? 'a spearman of the king’s escort (court setting, C)' : m.role === 'prince' ? 'the crown prince (the Treasury relief: the figure behind the king, B; the person C: D-780)' : m.role === 'weapons' ? 'the king’s weapon-bearer (the Treasury relief, B; C: D-780)' : `the king’s ${m.role === 'parasol' ? 'parasol bearer' : 'fly-whisk and towel bearer'} (the door-jamb reliefs, B; court setting, C)`;
     if (m.g === 'retinue') { const R = RET_BY_ID.get(m.role); return `${R?.label ?? m.role}, lodged at ${CAMP_BY_ID.get(campOfPlace(m.sleep)?.id ?? '')?.label ?? m.sleep} (the court’s retinue, court setting, C: Q-333, D-199)`; }
     return `${G?.label ?? m.g}${m.role !== m.g ? ` (${m.role})` : ''} (court setting, C: ${G?.src ?? ''})`;
   }
@@ -976,23 +980,28 @@ class CourtDay {
   /** the parasol bearer and the fly-whisk and towel bearer: in attendance on the king in the palace (not drawn), behind him
    *  on his walks and at the throne; they eat and sleep with the household's attendants */
   bearerDay() {
-    const r = this.r, K = this.K, PRV = KING.private, parasol = this.m.role === 'parasol', post = parasol ? KING.attend.parasol : KING.attend.whisk, Kd = K.kingDay(this.d);
+    const r = this.r, K = this.K, PRV = KING.private, role = this.m.role, parasol = role === 'parasol', Kd = K.kingDay(this.d);
+    const post = parasol ? KING.attend.parasol : role === 'prince' ? 'court_throne_prince' : role === 'weapons' ? 'court_throne_weapons' : KING.attend.whisk;
     const opts: Opt[] = [[PRV, 'inspect', 'in attendance on the king in the palace', 3], [PRV, 'rest', 'resting in the palace while the king is in council', 1]];
-    const walkAct: ActivityId = parasol ? 'bear_parasol' : 'bear_whisk', standAct: ActivityId = parasol ? 'attend_parasol' : 'attend_whisk';
+    const other = role === 'prince' || role === 'weapons', walkAct: ActivityId = parasol ? 'bear_parasol' : other ? 'walk' : 'bear_whisk';
+    // (D-780, C12 pass 4: under the hall's roof and the canopy the parasol is furled: no parasol over the king indoors)
+    const standAct: ActivityId = parasol || other ? 'inspect' : 'attend_whisk';
+    const standWhy = parasol ? 'standing by the throne, the parasol furled under the roof' : role === 'prince' ? 'the crown prince standing behind the throne (the Treasury relief, B; C: D-780)' : role === 'weapons' ? 'the king’s weapon-bearer standing behind the throne with the bow case and the axe (the Treasury relief, B; C: D-780)' : 'standing behind the throne with the fly-whisk and the towel (the Treasury relief, B)';
+    const wk = (where: string) => parasol ? `walking behind the king ${where}, the parasol held over him` : other ? `walking behind the king ${where}${role === 'weapons' ? ' with his bow case and axe' : ''}` : `walking behind the king ${where} with the fly-whisk and the towel`;
     this.morning(r.range(4.9, 5.4)); this.meal(this.m.sleep, 0.3, 'breakfast in the south wing');
     this.go(PRV, 'going to the palace to attend the king');
     const o = this.outing(), sd = K.set, gifts = !Kd.aud && (this.d === sd.kingGifts || this.d === sd.birthday);
-    if (o) { const w = walkHours(PRV, 'stair_foot'); this.fill(o.t0 - w - 0.1, opts); this.go('stair_foot', parasol ? 'walking behind the king down the Great Stair, the parasol held over him' : 'walking behind the king down the Great Stair with the fly-whisk', walkAct);
+    if (o) { const w = walkHours(PRV, 'stair_foot'); this.fill(o.t0 - w - 0.1, opts); this.go('stair_foot', wk('down the Great Stair'), walkAct);
       this.outingRide(o, 'escort'); this.go(PRV, 'walking behind the king back up to the palace', walkAct); }
     else if (Kd.aud || gifts) { const a0 = Kd.aud ? Kd.a0 : 9.0, a1 = Kd.aud ? Kd.a1 : 11.0, w = walkHours(PRV, post); this.fill(a0 - w, opts); this.until(a0 - w, 'inspect', 'in attendance on the king in the palace');
-      this.go(post, parasol ? 'walking behind the king to the Apadana, the parasol held over him' : 'walking behind the king to the Apadana with the fly-whisk and the towel', walkAct);
-      this.add(a1, post, standAct, parasol ? 'standing by the throne with the parasol' : 'standing behind the throne with the fly-whisk and the towel (the Treasury relief, B)');
+      this.go(post, wk('to the Apadana'), walkAct);
+      this.add(a1, post, standAct, standWhy);
       this.go(PRV, 'walking behind the king back to the palace', walkAct); }
     this.fill(Math.max(this.t + 0.3, r.range(12.9, 13.4)), opts); this.meal(this.m.sleep, 0.5, 'the midday meal in the south wing');
     this.go(PRV, 'going back to the palace');
     if (K.banquetNight(this.d)) { const [b0, b1] = ceremonyHours(K.pop.seed, this.d).banquet, w = walkHours(PRV, post); this.fill(b0 + 0.4 - w, opts);
-      this.go(post, parasol ? 'walking behind the king to the banquet, the parasol held over him' : 'walking behind the king to the banquet with the fly-whisk and the towel', walkAct);
-      this.add(b1 - 0.4, post, standAct, parasol ? 'standing by the throne at the banquet' : 'standing behind the throne at the banquet with the fly-whisk and the towel');
+      this.go(post, wk('to the banquet'), walkAct);
+      this.add(b1 - 0.4, post, standAct, `${standWhy}, at the banquet`);
       this.go(PRV, 'walking behind the king back to the palace', walkAct); this.go(this.m.sleep, 'going back to the south wing'); this.night(); return; }
     this.fill(r.range(19.6, 20.2), opts); this.meal(this.m.sleep, 0.5, 'the evening meal in the south wing');
     this.fill(r.range(21, 21.8), [[this.m.sleep, 'rest', 'resting in the south wing', 2], [this.m.sleep, 'talk', 'talking with the other attendants', 1]]); this.night();
