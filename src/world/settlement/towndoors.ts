@@ -90,7 +90,7 @@ export class TownDoors {
             if (near && !this.moving[i]) this.onSound('door', { x: px, y: d.y + 1, z: pz }, false); // (it starts from rest)
             if (near && t < 0.02 && this.open[i] < 0.02) this.onSound('door_shut', { x: px, y: d.y + 1, z: pz }, this.night); }
           this.moving[i] = this.open[i] !== t ? 1 : 0; } else this.moving[i] = 0;
-        q.setFromAxisAngle(up, this.yaw(d, this.open[i])); pos.set(d.hinge[0], d.y, -d.hinge[1]); scl.set(1, Math.min(1.02, d.h / (DOOR_H - 0.05)), 1); M.compose(pos, q, scl); // the leaf cut to its doorway's lintel m.setMatrixAt(n++, M);
+        q.setFromAxisAngle(up, this.yaw(d, this.open[i])); pos.set(d.hinge[0], d.y, -d.hinge[1]); scl.set(1, Math.min(1.02, d.h / (DOOR_H - 0.05)), 1); M.compose(pos, q, scl); m.setMatrixAt(n++, M); // the leaf cut to its doorway's lintel (s18 C2, D-660: the draw had slid into this comment in s15: no leaf was drawn)
         if (this.open[i] < 0.02) shut++;
         this.collider(i, d, this.open[i] < 0.05 && nearTile(d.tile)); }
       m.count = n; m.instanceMatrix.needsUpdate = true; drawn += n; }

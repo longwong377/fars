@@ -9836,6 +9836,85 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   new parameters stay in relief_atlas.ts: the atlas test reads "not current", as it already did since D-510's polychromy
   change. To finish: `RELIEF_WORK=T:/fars-blender/reliefs node C:/Users/Administrator/fars/tools/dev/gpu_slot.mjs v4 -- npx tsx
   tools/blender/relief_atlas.ts --jobs=5 --reuse` (~8 min bake + pack), then commit the two KTX2 files and the index.
+- Fire shadow cubes off by default (the lead's allowed switch, s17 02:30): FIRE_SHADOW_LIGHTS 2 -> 0 in fire.ts (?fireshadows=K opts
+  in). Each cube added a sampler to every lit material; the built site still logged samplers 17/18 > 16 (pipelines 217, 228,
+  356) and their cascades (merlon, dove) after the surface cut to 5. TEX_LIMIT checks 32 textures, but the limit is 16 samplers.
+- Checked (s17 02:44, one full-world dev page with ?shaderlog through gpu_slot, this branch with fire shadows off): 156 render
+  pipelines over 18 min, no "samplers > 16", no BindGroupLayout and no writeMask validation error.
+
+## D-474 (s17, Vagon lead): s17-int goes to s14-int with a +9 s load
+- Built site, cold, T4, morning commit vs tonight: first frames 42.1 -> 50.6 s (world:fauna's town fill +4.2 s, C4's prefetch
+  +2-4 s, fire occlusion +2.6 s), but all shaders compiled 753 -> 181 s, memory 10.48 -> 9.7 GB, and the day's whole look
+  (light, surfaces, people, animals, Terrace, interiors). Holding every merge back for 9 s would ship none of it; the budget
+  baseline is NOT loosened (gates/budgets.json keeps the morning numbers), so the next merge has to win the 9 s back.
+- Fire shadow cube maps off (FIRE_SHADOW_LIGHTS 0): over the T4's 16 samplers the ground, hills and columns vanished.
+- D-474 correction: re-measured on the tip with the ground fix (de0c067a, built, cold, T4, a train sharing the GPU): page ready
+  41.6 s (morning ~42), first frames seen 58.9 s (45.5), shaders settled 931 s (753), memory 10.57 GB (10.48), frame 170 ms
+  (117), validation errors 1 (15). The "181 s settled" above was the bugged build that drew no ground. Decision unchanged.
+- D-474 REVERSED (03:50 UTC): s14-int is NOT pushed. The user's instruction for the day: push s14-int only after the
+  built-site load and the budget pass; the budget does not pass (first frames 45.5 -> 58.9 s, shaders settled 753 -> 931 s).
+  V10 (branch s17-loadback, D-479) wins the load back; the built site is re-measured and s14-int pushed only when no metric is
+  worse than the morning's. The final scoreboard (renders/2026-10-03T02-27-39-final2) and s17-int stand as they are.
+
+## D-479 (s17, V10 load win-back): the plots' door-reach cells baked; measure.mjs times ready before its probes
+- world:fauna's +4.2 s (0.6 -> 4.8 s on the T4 page) was not the fill or the tethers (WorldFill + TownTethers ~0.1 s in node,
+  <0.3 s on the page) but Fauna's constructor: its fromTown is the first caller of walk.ts plotCells, which since C1's D-550
+  runs reachFromDoor (cellRoom/edgeRoom over every plot cell of the town: 4.0-4.3 s of node CPU). The result is now a world-cache
+  unit ('plotcells', keyed by the world key, taken at the same point of the build so it sees the same solids; listed in
+  boot_files.txt for the prefetch): node, baked world read: Fauna 4006 -> 108 ms, world:fauna 4657 -> 741 ms. Nothing drawn changes.
+- measure.mjs: readyS/framesS were taken after D-580's memory probes (a forced GC, a scene walk, every worker's heap), which
+  added ~10-15 s to tonight's "first frames seen 58.9 s" (page clock: ready 41.6 s, frame 2 rendered 48.6 s). Now taken at ready.
+- fireOcc's "+2.6 s" is when its promise resolved under a busier main thread; the build awaits it only after the palace,
+  long after: it never blocked. Its half-float decode now uses a 64 K table instead of 1.7 M conversions.
+## D-730 (s18, cloud lead): the Pasargadae and Naqsh-e Rustam roads go round Kuh-e Rahmat's spur
+road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Rahmat's north spur: they climbed straight over it (~290 m and ~100 m) and the Pasargadae road drew the bright streak down Rahmat's face (C4's find). Least-cost courses on a 40 m grid (slope penalty, river cells a ford, the town's plots clear): shared out of town and over the Takht-e Rustam ford, then the Pasargadae road up the east bank (a second ford ~2.5 km E). settlement.test green; religion.test (3 tests, slow) left to C7 on the merged head (C).
+
+## D-670 The river meanders, the fields have texture, the plain stands filled to the far views (session 18, cloud C3)
+- The Pulvar and the Kur were ruler-straight: plain.json's courses are OSM lines with ~450 m vertices, and build_terrain.py
+  carved and rivers.ts drew straight reaches between them. tools/plain/meander.ts (run once after build_terrain.py) rounds the
+  course and gives it a reconstructed meander train (C): sine-generated bends (Langbein & Leopold), arc wavelength ~11-19
+  widths, swing 0.2-1.3 rad by reach, a third harmonic for skew, a slow +-110 m belt wander; Pulvar length x1.17, Kur x1.04
+  (the Kur hemmed by its canals). It fills the old straight trench (never above the old floodplain), carves the new course
+  (radius top/2 + 1.42 cells) and rewrites rivers.json with the base course (base_x/y/bank) and the samples it changed
+  (prior). The canals and villages are placed on that base course and prior ground (data.ts baseCourse/priorTerrain), so no
+  village moves (all 37 identical for seed 1; the meanders keep 30 m off every pool seed's canals beyond their heads, 60 m
+  off its villages, 14 m off the roads and cross each road where it did); canal heads are joined to the water in 25 m steps
+  (7 of 37 shortened where a bend reaches them).
+- Banks (rivers.ts BEND): point bars on the inner side of a bend (slope up to 2x gentler, gravel and sand in the shader), cut
+  banks steeper and raised up to 0.7 m, +-15 % slope and 0-0.3 m top along any reach, calm within 70-150 m of every ford; the
+  water's edge follows each side's slope; sections every R/4 (8-20 m) near, R/3 (12-45 m) far (banks 266k -> 192k tris).
+  Reeds in 3-9 m clumps with gaps and their own heights, on the upper slope (knee-deep at the flood), few on bars and cut
+  banks; bank trees stand back of the bars.
+- Fields (terrainPlain.ts): greyer olive greens, a hue per plot, uneven vigour inside a plot, drill rows while young, a ragged
+  1-3 m weedy headland drawn by coverage at any distance, irrigation basins (11-15 x 18-28 m) with ridges and their own
+  wetness (all C). The plot bunds and district tracks drawn by pixel coverage: cut at a width in metres they aliased into the
+  "dark dotted seam" across the near plain.
+- The far plain: field-edge trees (now ~17 a km2 of fields) and a new fallow scrub (almond, tamarisk, pistachio; thinned near
+  the Terrace) within 8 km stand in the static far impostor set (they ended at the 900 m mid ring); the villages' floors,
+  stacks, heaps and folds drawn to 2.2 km; crop guards' reed shelters at irrigated plot edges and herders' wattle pens with
+  their huts on the fallow (the kit's models), to 2.2 km (fieldFill.ts LAND). Census (plain_census, 18 Apr): bare 3.0 % and
+  repeats 0.0 % as in s17; field trees near paths 25 -> 77.
+
+## D-720 Follow thirty: the people answer from their own lives without the model, and the town's deeds and yesterday reach their talk (session 18, cloud C8; UD-07, UD-08, UD-11, UD-21, UD-24, UD-32)
+- Measured (tools/dev/follow30.ts; REVIEWS/follow30.json): thirty people drawn by seed across the town, the villages, the Terrace's
+  staff, the road folk, the court in residence and the camps (seeds 1, 7, 42; day 60 with five days run live; the world as world.ts
+  builds it), each followed through the day, the next day and the day a season on, and asked five things (who, house, work, the
+  year, cares) through talkTurn. Before: 0 of 150 replies from their own life (ui.ts ownLine's three glosses answered everyone
+  whenever the model was not loaded: a first visit for minutes, any card that cannot hold it, the cloud); news "heard of wrong the
+  house of X" (the deeds' rumour kinds had no words); the court's people told they came "with a newly sent work group", lived in
+  "the garrison quarters", with nine unrelated tent-fellows as "kinswoman of the house" and no friend; 18 of 30 with nothing done
+  by or to them that they could tell; no townsfolk deed reached anyone's brief (briefOf carried the stranger's deeds only).
+- Fixed for everyone: converse/ownlines.ts OwnMind plays the person in the SAME turn as the model (the trust gate, the simulation's
+  word on an ask, deeds, the sandbox, memory and gossip are the simulation's): first-person answers from the life record in their
+  manner (temperament, oath, age; a question back, an oath, a proverb once a talk), a refusal said and tagged; ui.ts uses it
+  whenever the model is not loaded. deeds/lately.ts: what each person lately did, had done to them, was talked of in or saw among
+  the townsfolk (the minds' memories), worded from their side and registered into lifeRecord (the Lately line, ground.ts, own
+  lines); life.ts yesterday (their own plan's doings of the day before that today does not repeat). The deeds' save keeps the
+  count of all deeds and ten days of the log (a loaded save began the ids again at 0: memories read other deeds and the town's
+  talk of deeds stopped until the count caught up). Tier C throughout.
+- Not fixed (other owners or by design): the court's retinue servants can spend a whole day at the camp at rest and knucklebones
+  (court.ts: asked of the lead); the minds' deeds touch ~600 people a day of 81,000 (initiative.ts caps feeling-driven deeds at 300
+  a day, D-462's cost): most people have no deed of the townsfolk to tell in a given week; aims.ts "a trade for X" reads oddly.
 
 ## D-650 The day change behind the world's clock (s18 cloud C1)
 - Measured first (tools/dev/jump_bench.ts; node, seed 1, the world's options): a jump of +180 days was one call of 90-105 s, +1 day 1.3-2.3 s, the turn at midnight one 30-s step of 1.6-1.8 s; in the page (?norender, cloud, `__parsa.setTime` + `tick`) +1 day 0.98 s, +60 days 20.5 s (≈ 0.34 s a day; the T4's 723 s for day 180 was a busy box). 90 % of it is the living world stepped day by day (the town's talk 50 %, the minds' deeds 25 %, the asks, the relations' weeks), ~2,100 people's raw days built a day with no single hot spot; the rest is the ~135 Terrace people's plans for the new day (~20 ms each). It cannot be skipped or cached: a save and its load are not the same world (≈ 1 % of plans differ; tests/sim_fixture, living_world and day_slice already fail on that and on the minds' wall-clock counters in the save, before this change).

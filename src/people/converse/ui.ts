@@ -10,6 +10,7 @@ import { parseDeed } from '../deeds/parse';
 import { fromModel } from '../deeds/extract';
 import * as THREE from 'three/webgpu';
 import { Mind, Ears, Mic, EnglishVoice } from './mind';
+import { OwnMind } from './ownlines';
 import { lifeRecord, type LifeRecord } from './life';
 import { heardReply, heardReplyNeural, replyVoice, type HearIn } from './voice';
 import { unitsFor, voiceLang, WORDLESS } from '../../audio/voices';
@@ -56,7 +57,7 @@ export function listeners(world: any, eye: { e: number; n: number }, r: number =
 }
 
 export function mountConverse(c: Ctx) {
-  const gpu = !!(navigator as any).gpu; const mind = new Mind(); let ears: Ears | null = null; let en: EnglishVoice | null = null;
+  const gpu = !!(navigator as any).gpu; const mind = new Mind(), ownMind = new OwnMind(); let ears: Ears | null = null; let en: EnglishVoice | null = null;
   const P = new URLSearchParams(location.search); const model = P.get('model') ?? DEFAULT_MODEL;
   const panel = document.createElement('div'); panel.id = 'converse';
   panel.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);max-width:min(720px,92vw);font:15px/1.4 Georgia,serif;color:#f1e6cf;background:rgba(20,16,11,.72);padding:10px 14px;border-radius:6px;z-index:20;display:none';
@@ -114,13 +115,15 @@ export function mountConverse(c: Ctx) {
     { const sim = c.world.people.sim; noteOverheard(sim.talk, E.H, sim.t, state.talking?.pid === near.pid ? state.talking.conv : sim.t, text); }
     // D-376: before the model is ready (or where it cannot run) the person still answers: a line of their own in their own
     // language and voice, chosen by how often they have met the stranger; never a loading screen in the world
-    if (!state.loaded) { void ensure(); return ownLine(near, text); }
+    // D-720: they answer from their own life (ownlines.ts) through the same turn as the model: the asks, deeds, memory and gossip
+    // are the simulation's either way (the three stock glosses answered 150 of 150 questions in the follow-thirty audit)
+    const own = !state.loaded; if (own) void ensure(); const m = own ? ownMind : mind;
     const sim = c.world.people.sim; const day = c.clock.dayIndex, hour = c.clock.localHour;
     const L: LifeRecord = lifeRecord(sim.pop, sim.cal, near.pid, day, hour);
     const key = near.agent ?? -1 - near.pid;
     const hist = state.history.get(near.pid) ?? [];
     if (state.talking?.pid !== near.pid) { endTalk(); state.talking = { pid: near.pid, conv: sim.t, r: Math.max(NEAR_M, near.d) }; }
-    await primeP; state.busy = true; show(`<b>${L.name}</b> <i>…</i>`, 'translation layer');
+    if (!own) await primeP; state.busy = true; show(`<b>${L.name}</b> <i>…</i>`, 'translation layer');
     // (D-315: the words and the deed together: the pause, the memory, the ask decided by the simulation, the memory row)
     // D-370 (UD-25 (10)): words to a group ("everyone", "all of you", "good people") reach every house within earshot: a claim
     // or news is heard by all of them; an ask is answered by the first house that would (the nearest person speaks)
@@ -132,7 +135,7 @@ export function mountConverse(c: Ctx) {
     const hourNow = sim.t - Math.floor(sim.t / 24) * 24;
     const mdj = mind.engine && !/\?\s*$/.test(text) && !requestOf(text) && !sim.strangerAsk(near.pid, text) && !parseDeed(text, 'player', { addressee: near.pid, hour: hourNow }) ? await mind.readDeed(text) : null;
     const mdeed = mdj ? fromModel(mdj, 'player', { addressee: near.pid, hour: hourNow, said: text, named: w => sim.namedIn(w, near.pid) }) : null;
-    const T = await talkTurn(mind, sim, near.pid, text, { conv: state.talking!.conv, history: hist, prose: prose(near.pid), approached: ap, deed: mdeed }); const a = T.answer; state.busy = false;
+    const T = await talkTurn(m, sim, near.pid, text, { conv: state.talking!.conv, history: hist, prose: prose(near.pid), approached: ap, deed: mdeed }); const a = T.answer; state.busy = false;
     hist.push({ role: 'user', content: text }, { role: 'assistant', content: a.ok ? a.text : '' }); state.history.set(near.pid, hist.slice(-8));
     let heard = null as any;
     if (a.ok) {
@@ -151,27 +154,16 @@ export function mountConverse(c: Ctx) {
     const sb = T.sandbox ? ` <br><i>(${T.sandbox.done?.ok ? SANDBOX_DONE[T.sandbox.act.a] ?? 'done' : T.sandbox.verdict.ok ? 'they would not' : T.sandbox.verdict.why})</i>` : '';
     // D-459: an open deed's outcome, out of world (what was done, or why not)
     const dd = T.deed ? ` <br><i>(${T.deed.done?.out.ok ? `${T.deed.deed.verb.replace(/_/g, ' ')}${T.deed.deed.act ? `: ${T.deed.deed.act.replace(/_/g, ' ')}` : ''}: done` : T.deed.out.ok ? 'they would not' : T.deed.out.why})</i>` : '';
-    show((a.ok ? `<b>${L.name}</b>: ${a.text}` : `<b>${L.name}</b> <i>shrugs and turns back to the work.</i>`) + sb + dd, `translation layer (English, out of world); heard: ${heard ? (heard.layer === 'own' ? `${heard.lang} “${heard.units.join(' … ')}” (the person's own words, tier C: not a rendering of this English)` : `${heard.layer === 'fa' ? 'Farsi' : 'English'} (opt-in, in their own voice): “${heard.text}”`) : 'nothing'}; ${((performance.now() - t0 + heardMs) / 1000).toFixed(1)} s${T.decision ? `; ${T.decision.kind}: ${T.decision.ok ? (T.decision.noop ? 'nothing to change' : 'done') : 'refused'} (${T.decision.reason})` : ''}`);
-    const row = { pid: near.pid, name: L.name, d: +near.d.toFixed(2), said: text, reply: a.text, ok: a.ok, hits: a.hits, ms: performance.now() - t0 + heardMs, ttft: a.ttftMs, heard, key, ask: T.ask, tag: T.tag, decision: T.decision ? { kind: T.decision.kind, ok: T.decision.ok, reason: T.decision.reason, noop: !!T.decision.noop } : null, memory: T.memory };
+    show((a.ok ? `<b>${L.name}</b>: ${a.text}` : `<b>${L.name}</b> <i>shrugs and turns back to the work.</i>`) + sb + dd, `translation layer (English, out of world)${own ? ownNote() : ''}; heard: ${heard ? (heard.layer === 'own' ? `${heard.lang} “${heard.units.join(' … ')}” (the person's own words, tier C: not a rendering of this English)` : `${heard.layer === 'fa' ? 'Farsi' : 'English'} (opt-in, in their own voice): “${heard.text}”`) : 'nothing'}; ${((performance.now() - t0 + heardMs) / 1000).toFixed(1)} s${T.decision ? `; ${T.decision.kind}: ${T.decision.ok ? (T.decision.noop ? 'nothing to change' : 'done') : 'refused'} (${T.decision.reason})` : ''}`);
+    const row = { pid: near.pid, name: L.name, d: +near.d.toFixed(2), said: text, reply: a.text, ok: a.ok, hits: a.hits, ms: performance.now() - t0 + heardMs, ttft: a.ttftMs, heard, key, ask: T.ask, tag: T.tag, decision: T.decision ? { kind: T.decision.kind, ok: T.decision.ok, reason: T.decision.reason, noop: !!T.decision.noop } : null, memory: T.memory, ...(own ? { own: true } : {}) };
     state.last = row; state.log.push(row); return row;
   }
-  /** D-376: the person's own answer while the model is not there: they stop and turn, and answer with a greeting or a word of
-   *  their own in their language and voice (the translation layer gives its sense) */
   /** D-590 (C5, assigned by the cloud lead): why the person answered in their own lines, said honestly (out of world) */
   const ownNote = () => { const st = state.status ?? '';
     if (st === 'loading') return `; the talk is still arriving (${(state.progress * 100).toFixed(0)} %): until it does, the people answer from their own lines`;
     if (/did not load/.test(st)) return '; the talk could not be fetched in this browser, so the people answer from their own lines (reload to try again)';
     if (/cannot hold|no WebGPU/.test(st)) return '; this graphics card cannot run the talk, so the people answer from their own lines';
     return ''; };
-  function ownLine(near: Near, text: string) {
-    const sim = c.world.people.sim, day = c.clock.dayIndex; sim.talkAddressed(near.pid);
-    const met = state.history.get(near.pid)?.length ?? 0; state.history.set(near.pid, [...(state.history.get(near.pid) ?? []), { role: 'user', content: text }, { role: 'assistant', content: '' }]);
-    const gloss = met === 0 ? 'Greetings, stranger.' : /\?$/.test(text.trim()) ? 'I do not understand you, stranger.' : 'Go well, stranger.';
-    const agent = near.agent !== null ? sim.agents[near.agent] : null; const f = heardReply(sim.pop, near.pid, day, gloss, c.seed, 24000, agent); play(f.data, f.rate);
-    const name = sim.pop.nameOf(near.pid)?.replace(/^\*/, '') ?? 'They';
-    show(`<b>${name}</b> <i>answers in their own tongue:</i> ${gloss}`, `translation layer (out of world)${ownNote()}`);
-    const row = { pid: near.pid, said: text, reply: gloss, ok: true, own: true }; state.last = row; state.log.push(row); return row;
-  }
   /** D-376: begin streaming the model in (main.ts calls it after the first frames; idempotent) */
   const preload = () => { if (gpu) void ensure(); };
   const mic = new Mic(); let recording = false;

@@ -15,7 +15,9 @@ import type { Player } from '../../src/player/player';
 
 type P2 = [number, number];
 const argv = process.argv.slice(2), flag = (k: string, d: number) => { const i = argv.indexOf(k); return i >= 0 ? +argv[i + 1] : d; };
-const PEOPLE = argv.includes('--people'), TOWN_N = flag('--town', 400);
+const PEOPLE = argv.includes('--people'), TOWN_N = flag('--town', 400), TRACE = argv.includes('--trace');
+/** --only <text>: walk only the doors whose label holds it (with --trace: the body's way and who is near, every 0.5 s) */
+const ONLY = argv.indexOf('--only') >= 0 ? argv[argv.indexOf('--only') + 1] : null;
 const W = await buildOfflineWorld({ seed: 1, day: 25, hour: 10, court: true, people: PEOPLE });
 const { T, P, nav, doors } = W;
 const shut = new Map<string, string>(); // the doors that refuse to open (sealed or barred stores, the Treasury's E door): not enterable
@@ -27,8 +29,13 @@ const kill = (pl: Player) => { P.world.removeCollider(pl.collider, false); P.wor
 /** what the body touches ahead (the controller's contacts last step) */
 const touching = (pl: Player) => { const o: string[] = []; for (let i = 0; i < pl.controller.numComputedCollisions(); i++) { const c = pl.controller.computedCollision(i); if (!c?.collider) continue;
   const n = c.normal1, sh: any = c.collider.shape, tr = c.collider.translation(), living = c.collider.parent() && W.livingBodies.has(c.collider.parent()!.handle);
-  o.push(`${living ? 'person/animal' : sh.halfExtents ? 'box' : c.collider.shapeType() === P.R.ShapeType.HeightField ? 'terrain' : 'mesh'} n(${n.x.toFixed(2)},${n.y.toFixed(2)},${(-n.z).toFixed(2)}) at (${tr.x.toFixed(1)}, ${(-tr.z).toFixed(1)}, y ${tr.y.toFixed(2)})`); }
+  o.push(`${living ? who(tr.x, -tr.z) : sh.halfExtents ? 'box' : c.collider.shapeType() === P.R.ShapeType.HeightField ? 'terrain' : 'mesh'} n(${n.x.toFixed(2)},${n.y.toFixed(2)},${(-n.z).toFixed(2)}) at (${tr.x.toFixed(1)}, ${(-tr.z).toFixed(1)}, y ${tr.y.toFixed(2)})`); }
   return [...new Set(o)].join('; ') || 'nothing'; };
+/** who a living body is (s18 C5, D-690): a detailed agent (sim.ts), one of the population (popview.ts: standing or walking,
+ *  and what), or an animal */
+const who = (e: number, n: number) => { for (const a of W.sim?.agents ?? []) if (!a.offmap && Math.hypot(a.pos[0] - e, a.pos[1] - n) < 0.15) return `agent ${(a as any).role}${a.walking ? ' walking' : ` ${a.task?.act ?? ''}`}`;
+  let best: any = null, bd = 0.3; for (const v of W.view?.query([e, n], 1) ?? []) { const d = Math.hypot(v.e - e, v.n - n); if (d < bd) { bd = d; best = v; } }
+  return best ? `passer-by ${best.moving ? 'walking' : `standing (${best.act}${best.glance ? `, making way ${best.glance.toFixed(2)}` : ''})`} [${best.what.slice(0, 60)}]` : 'person/animal'; };
 /** walk the player along pts (grid e, n) from a standing start at pts[0]; true when it reaches the last within 0.4 m */
 function walk(pts: P2[], floor0: number): { ok: boolean; at: P2; why: string; t: number } {
   const pl = W.spawn(pts[0][0], -pts[0][1], floor0); for (let i = 0; i < 6; i++) W.step(pl, DT, { forward: 0, yaw: 0 });
@@ -38,6 +45,9 @@ function walk(pts: P2[], floor0: number): { ok: boolean; at: P2; why: string; t:
     if (d < (i === pts.length - 1 ? 0.4 : 0.5)) { if (i === pts.length - 1) { kill(pl); return { ok: true, at: [p.x, -p.z], why: '', t }; } i++; best = Infinity; lp = t; continue; }
     if (d < best - 0.05) { best = d; lp = t; } if (t - lp > 4) break;
     W.step(pl, DT, { forward: 1, yaw: Math.atan2(-de, dn) }); t += DT;
+    if (TRACE && Math.round(t / DT) % 15 === 0) { const q = pl.position, near: string[] = []; for (const v of W.view?.query([q.x, -q.z], 2.5) ?? []) near.push(`${v.moving ? 'walking' : 'standing'} ${v.act} (${v.e.toFixed(1)}, ${v.n.toFixed(1)})`);
+      for (const a of W.sim?.agents ?? []) if (!a.offmap && Math.hypot(a.pos[0] - q.x, a.pos[1] + q.z) < 2.5) near.push(`agent (${a.pos[0].toFixed(1)}, ${a.pos[1].toFixed(1)})`);
+      console.log(`      t ${t.toFixed(1)} at (${q.x.toFixed(2)}, ${(-q.z).toFixed(2)}) to wp ${i}; near: ${near.join(', ') || 'nobody'}; touching ${touching(pl)}`); }
   }
   const p = pl.position, why = touching(pl); kill(pl); return { ok: false, at: [p.x, -p.z], why, t };
 }
@@ -54,6 +64,7 @@ const { doorways } = buildTerrace();
 for (const dw of doorways) {
   const k = dw.depth / 2 + 1.4, a: P2 = [dw.c[0] - dw.n[0] * k, dw.c[1] - dw.n[1] * k], b: P2 = [dw.c[0] + dw.n[0] * k, dw.c[1] + dw.n[1] * k];
   if (!nav.walkable(...a) || !nav.walkable(...b)) continue;
+  if (ONLY && !dw.id.includes(ONLY)) continue;
   if (shut.has(dw.id)) { res.terrace.shut.push(`${dw.id} (${shut.get(dw.id)})`); continue; }
   const path = nav.findPath(a, b); if (!path || path.length > 40) continue; // joined only the long way round: not this door
   res.terrace.doors++;
@@ -72,7 +83,7 @@ const all: { s: (typeof plan.sites)[number]; p: any }[] = [];
 for (const s of plan.sites) if (Math.hypot(s.frame.c[0], s.frame.c[1]) < 3500) for (const p of s.plots) if (p.door && p.kind !== 'garden') all.push({ s, p });
 const stride = Math.max(1, all.length / TOWN_N), t1 = Date.now();
 for (let q = 0; q < all.length && res.town.doors < TOWN_N; q += stride) {
-  const { s, p } = all[Math.floor(q)], d = s.doorPoints(p)!; if (!d) continue;
+  const { s, p } = all[Math.floor(q)], d = s.doorPoints(p)!; if (!d) continue; if (ONLY && !`${s.meta.id} plot ${p.idx}`.includes(ONLY)) continue;
   const out = s.grid(...d.out), mid = s.grid(...d.mid), inside = s.grid(...d.inside);
   // a metre and a half out from the door's own cells, along the door's line (so the walk starts and ends clear of the jambs)
   const ux = inside[0] - out[0], uy = inside[1] - out[1], L = Math.hypot(ux, uy) || 1, a: P2 = [mid[0] - ux / L * 1.5, mid[1] - uy / L * 1.5], b: P2 = [mid[0] + ux / L * 1.5, mid[1] + uy / L * 1.5];

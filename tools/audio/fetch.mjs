@@ -75,7 +75,9 @@ async function freesound(q, minDur, maxDur) {
       const ids = [...new Set([...(html ?? '').matchAll(/href="\/people\/([^/"]+)\/sounds\/(\d+)\/"/g)].map(m => `${m[1]}/${m[2]}`))].slice(0, 12);
       for (const [rank, pi] of ids.entries()) {
         const [user, id] = pi.split('/'), page = `https://freesound.org/people/${user}/sounds/${id}/`, h = await get(page); if (!h) continue;
-        const audio = /<meta property="og:audio" content="([^"]+)"/.exec(h)?.[1] ?? /(https:\/\/cdn\.freesound\.org\/previews\/[^"']+-hq\.(?:ogg|mp3))/.exec(h)?.[1];
+        // (s17: freesound's og:audio reads "https://freesound.orghttps://cdn.freesound.org/...": keep the inner absolute URL; prefer the HQ preview)
+        const audio0 = /(https:\/\/cdn\.freesound\.org\/previews\/[^"']+-hq\.(?:ogg|mp3))/.exec(h)?.[1] ?? /<meta property="og:audio" content="([^"]+)"/.exec(h)?.[1];
+        const audio = audio0?.replace(/^https?:\/\/freesound\.org(?=https?:)/, '');
         const licUrl = /(https?:\/\/creativecommons\.org\/[^"' ]+)/.exec(h)?.[1] ?? lic, title = /<meta property="og:title" content="([^"]+)"/.exec(h)?.[1] ?? id;
         const tags = [...h.matchAll(/\/browse\/tags\/([^/"?]+)\//g)].map(m => decodeURIComponent(m[1])).join(' '), desc = /<meta (?:name|property)="(?:og:)?description" content="([^"]*)"/.exec(h)?.[1] ?? '';
         const dur = parseFloat(/data-duration="([\d.]+)"/.exec(h)?.[1] ?? /"duration":\s*([\d.]+)/.exec(h)?.[1] ?? 'NaN');
