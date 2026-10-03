@@ -245,6 +245,23 @@ export class DeedWorld {
       const act: ActivityId = d.act ?? (d.verb === 'visit' || d.verb === 'meet' || d.verb === 'intercede' || d.verb === 'reconcile' || d.verb === 'introduce' ? 'talk' : d.verb === 'share_food' ? 'eat' : d.verb === 'pray' ? 'offer' : d.verb === 'heal' ? 'tend_body' : d.verb === 'carry' ? 'carry_sack' : d.verb === 'come_with' ? 'walk' : 'talk');
       const aim = d.aim ? `: ${d.aim}` : '';
       const why = `${typeof d.actor === 'number' && VERB_TO[d.verb] ? VERB_TO[d.verb] : d.verb === 'help' ? 'helping' : d.verb === 'join' ? 'together with' : d.verb.replace(/_/g, ' ')} ${this.name(d.actor)}${d.act ? `: ${d.act.replace(/_/g, ' ')}` : ''}`;
+      // D-720 (the chain census: no house ever put anyone up): kin or a friend who live more than an hour's walk away come of an
+      // evening and stay the night: the evening with the household, the meal at its hearth, the night under its roof, home in the
+      // morning; the host feeds the guest from its own grain (an economy event: the hosting enters the chains). C: the guest-friend
+      // and the kinsman's night are the custom of every people of the empire
+      if (d.verb === 'visit' && typeof d.actor === 'number' && h0 >= 15 && dd < 360) { const ah = `h:${P.home(d.actor, dd)}`;
+        const walk = ah === place ? 0 : P.walkH(ah, place, dd, this.whereOf(ah, d.actor, dd), this.whereOf(place, tg, dd));
+        if (walk >= 1 && Number.isFinite(walk)) { const host = this.name(tg), wh = `h:${P.home(tg, dd)}`;
+          const w = Math.min(walk, 3), a0 = Math.max(h0, 16.5), road = (x: string) => `road:${this.whereOf(x, d.actor as number, dd)}`;
+          out.push({ k: 'lay', pid: d.actor, day: dd, h0: a0 - w, h1: a0, place: road(wh), act: 'walk', why: `on the way to ${host}'s house, to stay the night` },
+            { k: 'lay', pid: d.actor, day: dd + 1, h0: 6.1, h1: 6.1 + w, place: road(ah), act: 'walk', why: 'walking home after a night with kin' },
+            { k: 'lay', pid: d.actor, day: dd, h0: a0, h1: 19, place: wh, act: 'talk', why: `a guest in the house of ${host}${aim}` },
+            { k: 'lay', pid: d.actor, day: dd, h0: 19, h1: 19.8, place: wh, act: 'eat', why: `the evening meal at the hearth of ${host}, a guest` },
+            { k: 'lay', pid: d.actor, day: dd, h0: 19.8, h1: 24, place: wh, act: 'sleep', why: `staying the night in the house of ${host}` },
+            { k: 'lay', pid: d.actor, day: dd + 1, h0: 0, h1: 5.6, place: wh, act: 'sleep', why: `staying the night in the house of ${host}` },
+            { k: 'lay', pid: d.actor, day: dd + 1, h0: 5.6, h1: 6.1, place: wh, act: 'eat', why: `bread before the road home, from ${host}'s house` });
+          out.push({ k: 'hosted', host: `h:${P.home(tg, dd)}`, guest: `h:${P.home(d.actor, dd)}`, day: dd });
+          return out; } }
       if (h1 - h0 > 0.15) { out.push({ k: 'lay', pid: tg, day: dd, h0, h1, place, act, why, with: d.actor });
         if (typeof d.actor === 'number') out.push({ k: 'lay', pid: d.actor, day: dd, h0, h1, place, act, why: `${VERB_ING[d.verb] ?? d.verb.replace(/_/g, ' ')} ${this.name(tg)}${aim}`, with: tg }); }
     }
@@ -267,6 +284,7 @@ export class DeedWorld {
       case 'work': if (E) { const H = E.hh.get(e.hh); if (H) { if (/reap|thresh|field|plough|irrigat|garden|pick/.test(e.what)) H.grain += 0.8 * e.amt; else if (/craft|weave|spin|smith|work_wood|pot/.test(e.what)) H.goods += 0.05 * e.amt; } } break;
       case 'job': this.joint.add(e.job, e.segs); break;
       case 'hire': if (e.said === '@dismiss') this.joint.dismiss(e.pid, day); else this.joint.hire(e.pid, e.said, t); break;
+      case 'hosted': { const E2 = this.w.econ(e.day); if (E2?.hh.has(e.host)) { const H = E2.hh.get(e.host)!; H.grain = Math.max(0, H.grain - 1.2); E2.record(e.day, e.host, 'hosted_guest', [], e.guest, 1.2); } break; }
       case 'lay': this.lay(e.pid, e.day, { t0: e.h0, t1: e.h1, place: e.place, act: e.act, why: e.why, where: this.whereOf(e.place, e.pid, e.day) }); break;
     }
     void d;
@@ -301,19 +319,24 @@ export class DeedWorld {
   /** a laid stretch cut into the day with the walks to it from where the day has the person before and back to where it goes
    *  on after, taken out of its own hours (planCheck: nobody changes place without a walk); a walk of the day at either edge is
    *  left to lead there; too short once walked: not laid (C7 D-710) */
-  private walkedIn(pid: number, day: number, base: Seg[], s: Seg): Seg[] {
-    if (s.t0 <= 1e-6 && s.t1 >= 24 - 1e-6) return cutIn(base, s);
-    if (s.act === 'walk' || s.where === 'road') return cutIn(base, s); // (D-720: a laid walk (an errand, a message carried) is its own way there)
+  private walkedIn(pid: number, day: number, base: Seg[], run: Seg[]): Seg[] {
+    // (D-720: a run of back-to-back laid stretches (a hearing's wait and the hearing, a night's stay, a deed's own walks and its
+    // work) is walked to at its start and back from its end, once; a run that begins or ends with a walk has its own way)
+    const first = run[0], last = run[run.length - 1], isWalk = (x: Seg) => x.act === 'walk' || x.where === 'road';
+    if (run.length === 1 && first.t0 <= 1e-6 && first.t1 >= 24 - 1e-6) return cutIn(base, first);
     const P = this.w.pop, bad = (x: Seg) => x.where === 'road' || x.place.startsWith('road:') || x.place.startsWith('@') || x.where === 'away';
-    const b = s.t0 > 1e-6 ? segAt(base, s.t0 - 1e-6) : null, a = s.t1 < 24 - 1e-6 ? segAt(base, s.t1 + 1e-6) : null;
+    const b = first.t0 > 1e-6 && !isWalk(first) ? segAt(base, first.t0 - 1e-6) : null, a = last.t1 < 24 - 1e-6 && !isWalk(last) ? segAt(base, last.t1 + 1e-6) : null;
     const wh = (x: string) => this.whereOf(x, pid, day), walk = (x: string, y: string) => x === y ? 0 : P.walkH(x, y, day, wh(x), wh(y));
-    const w1 = b && !bad(b) ? walk(b.place, s.place) : 0, w2 = a && !bad(a) ? walk(s.place, a.place) : 0;
-    if (s.t1 - s.t0 - w1 - w2 < 0.1) return base;
-    const mid: Seg[] = [...(w1 > 0 ? [{ t0: s.t0, t1: s.t0 + w1, place: `road:${wh(s.place)}`, act: 'walk' as ActivityId, why: 'walking', where: 'road' as Where }] : []), { ...s, t0: s.t0 + w1, t1: s.t1 - w2 },
-      ...(w2 > 0 ? [{ t0: s.t1 - w2, t1: s.t1, place: `road:${wh(a!.place)}`, act: 'walk' as ActivityId, why: 'walking back', where: 'road' as Where }] : [])];
+    const w1 = b && !bad(b) ? walk(b.place, first.place) : 0, w2 = a && !bad(a) ? walk(last.place, a.place) : 0;
+    const pieces = run.map(x => ({ ...x }));
+    if (w1 > 0) pieces[0].t0 += w1; if (w2 > 0) pieces[pieces.length - 1].t1 -= w2;
+    const kept = pieces.filter(x => x.t1 - x.t0 >= (isWalk(x) ? 0.02 : 0.1)); if (!kept.some(x => !isWalk(x))) return base;
+    const mid: Seg[] = [...(w1 > 0 ? [{ t0: first.t0, t1: first.t0 + w1, place: `road:${wh(first.place)}`, act: 'walk' as ActivityId, why: 'walking', where: 'road' as Where }] : []), ...kept,
+      ...(w2 > 0 ? [{ t0: last.t1 - w2, t1: last.t1, place: `road:${wh(a!.place)}`, act: 'walk' as ActivityId, why: 'walking back', where: 'road' as Where }] : [])];
     const wx = P.cal?.ctx(day).wx; if (wx) { dustWear(mid, wx); coldWear(mid, wx); } // (dressed for the cold and the dust by their own hours, as the living world's errands)
     let out = base; for (const x of mid) out = cutIn(out, x);
-    return this.keepDay(base, out, s, mid.find(x => x.act !== 'walk'));
+    const body = kept.filter(x => !isWalk(x)).sort((p, q) => (q.t1 - q.t0) - (p.t1 - p.t0))[0];
+    return this.keepDay(base, out, { ...first, t0: first.t0, t1: last.t1 }, body);
   }
   /** D-720 (C7's plan checks): the day's meals and a mother's nursing are kept where the person is, and a rest 'through the heat'
    *  cut short becomes a short rest */
@@ -324,19 +347,17 @@ export class DeedWorld {
     if (body) for (const m of base) { if (!FEED_SEG.test(m.why) || m.t1 <= body.t0 || m.t0 >= body.t1) continue; const t0 = Math.max(m.t0, body.t0), t1 = Math.min(Math.max(m.t1, t0 + 0.25), body.t1);
       if (t1 - t0 >= 0.1) out = cutIn(out, { ...body, t0, t1, act: 'rest', why: 'stopping to nurse the baby' }); }
     // (a meal the walks there or back covered is eaten at the stretch's nearest end)
-    if (body) for (const m of base) { if (m.act !== 'eat' || m.t1 <= s.t0 || m.t0 >= s.t1) continue; const len = Math.max(0.3, Math.min(m.t1, s.t1) - Math.max(m.t0, s.t0)), t0 = Math.min(Math.max(m.t0, body.t0), body.t1 - len), t1 = Math.min(t0 + len, body.t1);
+    if (body) for (const m of base) { if (m.act !== 'eat' || m.t1 <= s.t0 || m.t0 >= s.t1) continue; const len = Math.max(0.3, Math.min(m.t1, s.t1) - Math.max(m.t0, s.t0)), room = body.t1 - body.t0 > len + 0.5 ? 0.25 : 0, t0 = Math.min(Math.max(m.t0, body.t0 + room), body.t1 - len - room), t1 = Math.min(t0 + len, body.t1); // (a quarter of an hour clear of either end when there is room: arrived, eaten at the work, back to it)
       if (t1 - t0 >= 0.2) out = cutIn(out, { ...body, t0, t1, act: 'eat', why: /visit|guest|eating with|talk/.test(body.why) ? 'eating with them' : 'bread and water at the work' }); }
     return relabelCuts(base, out);
   }
   /** the deeds' overlay of the day plans (Population.deeds) */
   readonly overlay = {
     touches: (pid: number, day: number) => this.lays.has(`${pid}:${day}`),
-    overlay: (pid: number, day: number, base: Seg[]): Seg[] => { let out = base; const L = this.lays.get(`${pid}:${day}`) ?? [];
-      // (D-720: a stretch its deed already walks to or from (deeds/joint.ts lays its own walks) is cut in as it is)
-      const walked = (s: Seg) => L.some(w => w !== s && (w.act === 'walk' || w.where === 'road') && (Math.abs(w.t1 - s.t0) < 1e-6 || Math.abs(w.t0 - s.t1) < 1e-6));
-      const isWalk = (x: Seg) => x.act === 'walk' || x.where === 'road', next = (s: Seg) => L.find(w => !isWalk(w) && (Math.abs(w.t1 - s.t0) < 1e-6 || Math.abs(w.t0 - s.t1) < 1e-6));
-      const wx = this.w.pop.cal?.ctx(day).wx, dressed = (s: Seg) => { if (!wx) return s; const r = [{ ...s }]; coldWear(r, wx); dustWear(r, wx); return r[0]; }; // (dressed by their own hours)
-      for (const s of L) out = walked(s) ? this.keepDay(out, cutIn(out, dressed(s)), s, isWalk(s) ? next(s) : s) : this.walkedIn(pid, day, out, s); return out; },
+    overlay: (pid: number, day: number, base: Seg[]): Seg[] => { let out = base; const L = [...(this.lays.get(`${pid}:${day}`) ?? [])].sort((a, b) => a.t0 - b.t0);
+      // (D-720: the laid stretches in runs of back-to-back ones, each run walked in once: deeds/joint.ts lays its own walks)
+      for (let i = 0; i < L.length;) { let j = i + 1; while (j < L.length && Math.abs(L[j].t0 - L[j - 1].t1) < 1e-6) j++; out = this.walkedIn(pid, day, out, L.slice(i, j)); i = j; }
+      return out; },
   };
 
   // ---------------------------------------------------------------- the law, promises (day by day)

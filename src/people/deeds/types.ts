@@ -71,6 +71,8 @@ export type Effect =
   | { k: 'promise'; from: Actor; to: Actor; what: string; due: number }
   | { k: 'work'; hh: string; what: string; amt: number }
   | { k: 'lay'; pid: number; day: number; h0: number; h1: number; place: string; act: ActivityId; why: string; with?: Actor }
+  /** D-720: a guest put up for the night: the host house feeds them (an economy event) */
+  | { k: 'hosted'; host: string; guest: string; day: number }
   // D-462: an undertaking with its walks laid (deeds/joint.ts), and a person hired by the stranger
   | { k: 'job'; job: Job; segs: [number, number, Seg][] }
   | { k: 'hire'; pid: number; said: string };
