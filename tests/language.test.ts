@@ -623,6 +623,7 @@ describe('language lint: every source that can reach the canvas', () => {
     'public/textures/sandy_gravel_02/diff.jpg': 'CC0 scan albedo (sandy_gravel_02; viewed in a contact sheet, session 11 D-301: no text)',
     'public/textures/sandy_gravel_02/arm.jpg': 'CC0 scan AO/roughness/metal pack (sandy_gravel_02; viewed in a contact sheet, session 11 D-301: no text)',
     'public/textures/Fabric043/arm.ktx2': 'KTX2 encoding of the checked Fabric043/arm.jpg (C9 D-740, ktx; the same picture: no text; registered by C7 D-710)',
+    'public/generated/humans/scans/scans.ktx2': 'the checked skin, cloth and fold layers (skin_*.jpg, cloth_*.jpg, people_cloth_folds.png) packed as one KTX2 array, format only (C9 D-740, tools/bake_world/ktx_humans.ts; the same pictures: no text)',
     'public/textures/Fabric043/arm.low.ktx2': 'ETC1S low-first twin (smaller, fewer bits) of the checked Fabric043/arm.jpg (C9 D-740, tools/bake_world/ktx_low.ts; the same picture: no text; registered by C7 D-710)',
     'public/textures/Fabric043/diff.ktx2': 'KTX2 encoding of the checked Fabric043/diff.jpg (C9 D-740, ktx; the same picture: no text; registered by C7 D-710)',
     'public/textures/Fabric043/diff.low.ktx2': 'ETC1S low-first twin (smaller, fewer bits) of the checked Fabric043/diff.jpg (C9 D-740, tools/bake_world/ktx_low.ts; the same picture: no text; registered by C7 D-710)',
