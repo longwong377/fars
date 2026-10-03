@@ -49,6 +49,12 @@ export const SNOW_RHO: [number, number, number] = [0.82, 0.83, 0.86];
  *  skylight that reaches the ground and the walls is raised by up to this factor in full darkness (the eye's adaptation is already at its
  *  limit there: the camera does not compensate), so a starlit lane reads as dim shapes, while the dome, the stars and the fires
  *  keep their values (it is applied after the dome's calibration, the air and the clouds) */
+/** D-680 (s18 reset: the blind reviewers' "flat grey-beige everywhere"): the sky's share of the renderer's light (x the
+ *  session-3 calibration). That calibration put the clear noon sky at ~1/3 of the sun on the ground (sun/hemi 2.9 at 69 deg),
+ *  where USNO's clear-sky lux give ~1/7; shade, lanes and wall faces away from the sun drew nearly as bright as the sunlit
+ *  ones. 0.65 sets ~1/4.5 (the dry season's dust and the ground's bounce between the two; C): sun and shade read apart. By day
+ *  only (eased in from -4 to 8 deg of sun): twilight and the night keep their perceptual fill */
+export const SKY_AMBIENT = 0.65;
 export const NIGHT_FILL = 10;
 /** D-480 (light v2): the fill is a floor, not a fixed factor: the skylight is raised until a grey ground under it would be shown at
  *  NIGHT_GREY of the daylight grey (at most NIGHT_FILL times), so the evening falls monotonically from civil twilight to
@@ -466,7 +472,7 @@ export class SkySystem {
     // shadow the eye adapts to the skylight)
     const vS = this.eyeSunVisibility, vM = eyeMoon;
     this.lux = sunN * sinA * vS + skyL + moonN * sinM * vM; this.skyLux = skyL;
-    const sunI = sunN * REN_PER_LUX_SUN, hemiI = skyL * REN_PER_LUX_SKY, moonI = moonN * REN_PER_LUX_SUN;
+    const sunI = sunN * REN_PER_LUX_SUN, hemiI = skyL * REN_PER_LUX_SKY * (1 - (1 - SKY_AMBIENT) * smoothstepJS(-4, 8, s.altitude)), moonI = moonN * REN_PER_LUX_SUN;
     this.gain = skyGain(sunI * sinA * vS + hemiI * 0.8 + moonI * 0.3 * vM, this.lux, skyL); // the exposure estimate's weights (main.ts)
     const G = this.gain; this.fireScale = fireLightScale(G);
     // ---- the physical atmosphere (D-116): sun colour, cloud light at the cloud's height, twilight dome ----------------------
