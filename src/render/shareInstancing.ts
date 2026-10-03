@@ -19,8 +19,12 @@ export function setShareInstancing(on: boolean) { ON = on; }
 export const MAX_VERTEX_ATTRIBUTES = 16;
 /** and vertex buffers (D-473): the matrix, the previous frame's and the instance colour are 3 more, within WebGPU's default 8 */
 export const MAX_VERTEX_BUFFERS = 8;
-export function fitsAttributes(o: any): boolean { const A = Object.values(o.geometry?.attributes ?? {}) as any[];
-  return A.length + 9 <= MAX_VERTEX_ATTRIBUTES && new Set(A.map(a => a.isInterleavedBufferAttribute ? a.data : a)).size + 3 <= MAX_VERTEX_BUFFERS; }
+// D-740 (s18 C9): counted exactly: 4 for the matrix and 4 for the previous frame's (always assumed: TRAA's velocity), 1 for an
+// instance colour only when the mesh has one (was 9 for every mesh): the birds' take-off levels (8 attributes) were kept off
+// the shared path, and on three's uniform path every mesh's matrix buffer is named after its node (`NodeBuffer_<id>`), so each
+// such mesh was its own shader program, whatever its count (the census: 43 programs for 59 bird groups)
+export function fitsAttributes(o: any): boolean { const A = Object.values(o.geometry?.attributes ?? {}) as any[], c = o.instanceColor ? 1 : 0;
+  return A.length + 8 + c <= MAX_VERTEX_ATTRIBUTES && new Set(A.map(a => a.isInterleavedBufferAttribute ? a.data : a)).size + 2 + c <= MAX_VERTEX_BUFFERS; }
 if (!proto.__parsaShareInstancing) {
   const base = proto.getUniformBufferLimit;
   proto.getUniformBufferLimit = function (this: any) { const o = this.object; return ON && o?.isInstancedMesh && !o.isSkinnedMesh && fitsAttributes(o) ? 0 : base.call(this); };

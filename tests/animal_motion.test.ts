@@ -7,7 +7,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync, existsSync, appendFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { deformAnimal, type Species } from '../src/people/animals';
+import { deformAnimal, ANIMAL_BUILD, type Species } from '../src/people/animals';
 import { rigWeights } from '../src/people/animalRig';
 import { setRealRig } from '../src/people/animalReal';
 // @ts-ignore plain node module shared with the build
@@ -19,14 +19,14 @@ const MAN = HAVE ? JSON.parse(readFileSync('public/models/animals/manifest.json'
 for (const [sp, e] of Object.entries(MAN.assets) as [string, any][]) if (e.real) setRealRig(sp, e.rig);
 const lod0 = async (sp: string) => { const buf = readFileSync(`public/models/animals/${sp}.glb`), { json } = parseGLB(buf), c: any = await glbContent(buf);
   const g = c.geo.find((x: any) => x.mesh === 'lod0'), m = json.meshes.find((x: any) => x.name === 'lod0'), names = Object.keys(m.primitives[0].extensions.KHR_draco_mesh_compression.attributes);
-  return { pos: g.parts[names.indexOf('POSITION')] as Float32Array, index: Uint32Array.from(g.parts[names.length]) }; };
+  return { pos: g.parts[names.indexOf('POSITION')] as Float32Array, nrm: g.parts[names.indexOf('NORMAL')] as Float32Array, index: Uint32Array.from(g.parts[names.length]) }; };
 
 const WORK: Species[] = ['donkey', 'ox', 'cow', 'sheep', 'goat', 'dog', 'horse', 'camel', 'dromedary', 'mule', 'donkey_pack', 'mule_pack', 'camel_pack'];
 describe.skipIf(!HAVE)('the animals move like living things (D-362)', () => {
   it('walking: the belly, ears, tail and load move visibly; standing they settle; the body stays whole', async () => {
     const rows: string[] = [];
     for (const sp of WORK) {
-      const { pos, index } = await lod0(sp), W = rigWeights(sp, pos), n = pos.length / 3, seed = 0.31;
+      const { pos, nrm, index } = await lod0(sp), W = rigWeights(sp, pos, undefined, nrm), n = pos.length / 3, seed = 0.31; // (s18 C14 D-790: the normals find a library model's ears)
       const at = (i: number, st: any, t: number, jig = true) => deformAnimal(sp, [pos[i * 3], pos[i * 3 + 1], pos[i * 3 + 2]], W.leg.subarray(i * 4, i * 4 + 4), W.piv.subarray(i * 4, i * 4 + 4), W.ht.subarray(i * 4, i * 4 + 4), st, t, [0, 0, 0], jig ? W.jig.subarray(i * 4, i * 4 + 4) : undefined, seed);
       // the vertices of each channel: the most weighted of each
       const pick = (f: (i: number) => number) => { let best = -1, v = 0; for (let i = 0; i < n; i++) { const x = f(i); if (x > v) { v = x; best = i; } } return { i: best, v }; };
@@ -54,7 +54,8 @@ describe.skipIf(!HAVE)('the animals move like living things (D-362)', () => {
       rows.push(`${sp}: belly ${(bW * 100).toFixed(1)} cm walking / ${(bS * 100).toFixed(1)} standing; ear flick ${(eS * 100).toFixed(1)} cm, moving ${(moving / 6).toFixed(0)} % of the time; tail ${(tW * 100).toFixed(1)} cm; load ${(lW * 100).toFixed(1)} / ${(lS * 100).toFixed(1)} cm; whole ${(worst * 100).toFixed(1)} cm`);
       appendFileSync(join(tmpdir(), 'animal_motion.txt'), rows[rows.length - 1] + '\n');
       expect(bW, `${sp} belly walking`).toBeGreaterThan(0.015); expect(bS, `${sp} belly standing (breathing only)`).toBeLessThan(Math.max(0.012, bW / 3));
-      if (!MAN.assets[sp]?.real) expect(eS, `${sp} ear flick`).toBeGreaterThan(0.015); // (a library model's ears are not yet found: B550) expect(moving / 600, `${sp} ear settles between flicks`).toBeLessThan(0.35);
+      // (s18 C14 D-790: a library model's ears are found on its mesh (animalRig realEars; horned heads left out): they flick too)
+      if (!MAN.assets[sp]?.real || (ear.v > 0 && !ANIMAL_BUILD[sp].horns)) expect(eS, `${sp} ear flick`).toBeGreaterThan(MAN.assets[sp]?.real ? 0.01 : 0.015); // expect(moving / 600, `${sp} ear settles between flicks`).toBeLessThan(0.35);
       // (the goats' short tails are fused to the quarters in the models, D-326: no free tail to swing; logged, B330)
       if (tail.v >= 0.08 && !/goat/.test(sp)) expect(tW, `${sp} tail walking`).toBeGreaterThan(MAN.assets[sp]?.real ? 0.01 : 0.04); else expect(sp, 'only the goats (and the library sheep, B550) have no free tail').toMatch(MAN.assets[sp]?.real ? (MAN.assets[sp].rig.tailR === 0 ? new RegExp(sp) : /goat|sheep/) : /goat/); // (V5: the library goat's short tail swings a little, under 4 cm; a library model's tail from 1 cm: its tail is its own length, B550)
       if (/pack/.test(sp)) { expect(lW, `${sp} load walking`).toBeGreaterThan(0.02); expect(lS, `${sp} load standing`).toBeLessThan(0.002); }

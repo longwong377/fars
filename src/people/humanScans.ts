@@ -13,11 +13,12 @@
 import * as THREE from 'three/webgpu';
 import type { HumanVariantMeta } from './humanFormat';
 import { BASE } from '../core/base';
+import { sharedKTX2 } from '../render/loaders';
 
 export interface ScanLayerMeta { id: string; layer: number; tile?: number; fabric?: string; k?: number }
 /** D-307: skin and cloth are one array texture (the skin's layers first, the cloth's from `clothBase`): one binding and one
  *  sampler in the human material's fragment stage, whose samplers the world's lights and shadows nearly fill (WebGPU: 16) */
-export interface HumanScans { skin: THREE.DataArrayTexture; cloth: THREE.DataArrayTexture; clothBase: number; skinIds: string[]; cloth_: ScanLayerMeta[]; clothK: number;
+export interface HumanScans { skin: THREE.DataArrayTexture | THREE.CompressedArrayTexture; cloth: THREE.DataArrayTexture | THREE.CompressedArrayTexture; clothBase: number; skinIds: string[]; cloth_: ScanLayerMeta[]; clothK: number;
   /** D-322: the garments' fold-height layers (people_cloth: RGB the men's, women's and children's settled folds finer than the
    *  full-detail mesh (layer foldBase) and than the mid one (foldBase + 1), sRGB-encoded heights about 0.5, ± foldScale m);
    *  foldBase −1: none */
@@ -40,6 +41,16 @@ function arrayTex(data: Uint8Array, n: number, layers: number, srgb: boolean) {
   t.anisotropy = 8; t.flipY = false; t.needsUpdate = true; return t;
 }
 
+async function ktxArray(dir: string, n: number, skins: number, cloth: number, folds: FoldSource | null): Promise<any> {
+  if (new URLSearchParams(location.search).has('scanjpg')) return null;
+  try {
+    const m = await fetch(dir + 'scans_ktx.json').then(r => (r.ok && (r.headers.get('content-type') ?? '').includes('json') ? r.json() : null));
+    if (!m || m.size !== n || m.skin !== skins || m.cloth !== cloth || (m.folds?.layers ?? 0) !== (folds?.layers ?? 0) || (folds && !folds.url.endsWith(m.folds?.file))) return null;
+    const K = await sharedKTX2(BASE), t = await K.loadAsync(dir + 'scans.ktx2');
+    t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.minFilter = THREE.LinearMipmapLinearFilter; t.magFilter = THREE.LinearFilter; t.anisotropy = 8; t.needsUpdate = true;
+    return t;
+  } catch (e) { console.warn('[humanScans] scans.ktx2 not loaded; the jpgs', e); return null; }
+}
 /** load and pack the layers; null without a DOM, with `?noscans`, or when the files are missing (the procedural path) */
 export async function loadHumanScans(base = BASE, folds: FoldSource | null = null): Promise<HumanScans | null> {
   if (typeof document === 'undefined' || typeof createImageBitmap === 'undefined') return null;
@@ -48,6 +59,10 @@ export async function loadHumanScans(base = BASE, folds: FoldSource | null = nul
     const dir = `${base}${SCANS_DIR}/`;
     const meta = await (await fetch(dir + 'scans.json')).json();
     const n: number = meta.size, skins: ScanLayerMeta[] = meta.skin, cloth: ScanLayerMeta[] = meta.cloth;
+    // D-740 (s18 C9, format only): the same layers baked as one KTX2 array (tools/bake_world/ktx_humans.ts): BC7 on the GPU (a
+    // quarter of the RGBA8 array's 107 MB), nothing decoded or packed here; used when its layers are the ones packed below
+    const kx = await ktxArray(dir, n, skins.length, cloth.length, folds);
+    if (kx) return { skin: kx, cloth: kx, clothBase: skins.length, skinIds: skins.map(s => s.id), cloth_: cloth, clothK: cloth[0]?.k ?? 0.4, foldBase: folds ? skins.length + cloth.length : -1, foldScale: folds?.scale ?? 0 };
     const cv = document.createElement('canvas'); cv.width = cv.height = n;
     const ctx = cv.getContext('2d', { willReadFrequently: true, colorSpace: 'srgb' } as any) as CanvasRenderingContext2D;
     // D-322: the garments' fold layers follow the cloth's (none if their image fails: the folds in the geometry stay)

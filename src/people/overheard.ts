@@ -48,6 +48,12 @@ const RC_SAY: Record<string, readonly (readonly [string, string])[]> = {
   water: [['the water is low this month', 'may the god give rain']],
   weather: [['the rain is good for the barley', 'may the god keep the field']],
 };
+/** D-720: a topic's fact as a plain sentence to say (no names: a name is the person's, not a word of the language), at most eight words */
+export function factSentence(topic: string): string | null {
+  let t = topic.replace(/^[^:]*: /, '').replace(/\s*\([^)]*\)/g, '').replace(/\b[A-ZĀĪŪŠČÇΘ][\p{L}’'-]*(?: (?:son|daughter|wife) of [A-ZĀĪŪŠČÇΘ][\p{L}’'-]*)?/gu, 'someone').replace(/\b(someone(?:,? )?)+/g, 'someone ').trim();
+  if (/^(their work|the festival day|the rain|the king's works|barley is dear)/.test(t)) return null;
+  const w = t.split(/\s+/).filter(Boolean); if (w.length < 2) return null; let o = w.slice(0, 8).join(' ').replace(/[,;:]+$/, ''); while (/\s(when|who|and|the|a|of|to|about|for|with|in)$/.test(o)) o = o.replace(/\s\S+$/, '').replace(/[,;:]+$/, ''); return o;
+}
 const OPEN = /\b(peace|well-being|greet|hail|rejoic|lord|master)\b/i, CLOSE = /\b(farewell|go|fare well|peace|god|gods|protect)\b/i;
 
 export class Overheard {
@@ -94,8 +100,11 @@ export class Overheard {
       const turns: Exchange['turns'] = [], add = (who: 'a' | 'b', u: Unit | null) => { if (u) turns.push({ who, unit: u }); };
       add('a', pick(opens, 0)); add('b', pick(opens, 1));
       // D-387: no attested word for the topic in this tongue: the topic said in reconstructed period speech (C)
-      const say = topicWords.length ? null : (RC_SAY[key] ?? RC_SAY.king)[Math.floor(r(9) * (RC_SAY[key] ?? RC_SAY.king).length)];
-      if (say) { add('a', reconstructedUnit(say[0], lang)); if (r(10) < 0.8) add('b', reconstructedUnit(say[1], lang)); }
+      // D-720 (UD-23, UD-24; the holes audit #15): the pair's own fact said in reconstructed speech (the life's, the deed's, the
+      // talk's: "the harvest was poor", "a son was born"), the other's answer after it; the templated line only where the fact
+      // gives no sentence to say
+      const pool = RC_SAY[key] ?? RC_SAY.king, say = pool[Math.floor(r(9) * pool.length)], fact = factSentence(topic);
+      if (fact || !topicWords.length) { add('a', reconstructedUnit(fact ?? say[0], lang)); if (r(10) < 0.8) add('b', reconstructedUnit(say[1], lang)); }
       add('a', pick(topicWords, 2)); add('a', pick(topicWords.filter(w => w.id !== turns[turns.length - 1]?.unit.id), 3));
       add('b', pick(topicWords, 5) ?? pick(U.lines, 6)); add(r(7) < 0.5 ? 'a' : 'b', pick(closes, 8));
       const sig = turns.map(t => t.unit.id).join('|'); if (!turns.length || said.has(sig)) continue;

@@ -91,13 +91,13 @@ export function perform(part: Part, tempo: Tempo, seed: number): MidiPart {
     const at = Math.max(0, t0 + jit - (part.lead ?? 0) * (k === 0 || !legato ? 1 : 0));
     notes.push({ t: at, dur: Math.max(0.05, dur + (part.lead ?? 0) * 0.5), p: n.p, v: Math.max(8, Math.min(127, v)) });
     // the note's own breath inside the hairpin: long notes rise a little to their middle and ease off at the end
-    if (!I.perc && len > 1.2) breaths.push([t0, t1, 0.05 + 0.04 * R()]);
+    if (!(I as any).perc && len > 1.2) breaths.push([t0, t1, 0.05 + 0.04 * R()]);
     // vibrato: none at the attack, blooming over the first second of a held note
-    if (!I.perc && len > 0.7) { const depth = part.vib ?? (part.inst.endsWith('Solo') || part.inst === 'eh' || part.inst === 'afl' ? 0.62 : 0.45);
+    if (!(I as any).perc && len > 0.7) { const depth = part.vib ?? (part.inst.endsWith('Solo') || part.inst === 'eh' || part.inst === 'afl' ? 0.62 : 0.45);
       vibPts.push([t0, 10], [t0 + Math.min(1.1, len * 0.45), 127 * depth * (0.7 + 0.6 * d)], [t1, 127 * depth * 0.8]); }
   }
   const cc: Record<number, [number, number][]> = {};
-  if (!I.perc) {
+  if (!(I as any).perc) {
     // CC1 every 40 ms: the composer's hairpin at that moment plus the breath of the note sounding then
     const end = tempo.s(part.notes.reduce((a, n) => Math.max(a, n.b + n.d), 0)) + 2, curve: [number, number][] = [];
     let bLo = 0;

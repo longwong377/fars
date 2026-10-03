@@ -167,8 +167,10 @@ export class SkySystem {
       // squares as x·x: pow() of a negative base is undefined on the GPU (NaN), and TRAA spread those NaNs over the frame
       const sq = (x: any) => x.mul(x);
       const alongC = exp(sq(ld.div(62)).negate()); // brighter toward the centre
-      const width = float(7).add(alongC.mul(6)); // the band thickens toward Sagittarius (deg)
-      const disk = exp(abs(bd.add(0.5)).div(width).negate()).mul(float(0.35).add(alongC.mul(0.65)));
+      const width = float(8).add(alongC.mul(10)); // the band thickens toward Sagittarius (deg; D-680: was 7 + 6, a ray, not a band, where it rises)
+      // D-680: a smooth (Gaussian) cross-section; the exp(-|b|/w) cusp drew a thin bright ridge beside the Great Rift's lane,
+      // which near the horizon read as one light streak rising from a point (cov-000, T4 and cloud frames)
+      const disk = exp(sq(bd.add(0.5).div(width.mul(0.9))).mul(-0.5)).mul(float(0.3).add(alongC.mul(0.55)));
       const bulge = exp(sq(ld.div(14)).add(sq(bd.add(3).div(10))).negate()).mul(0.9);
       const rift = float(1).sub(exp(sq(bd.sub(1.5).div(2.4)).negate()).mul(smoothstep(-20, -8, ld).mul(float(1).sub(smoothstep(55, 75, ld)))).mul(0.7)); // Great Rift
       const coal = float(1).sub(exp(sq(ld.add(59).div(3)).add(sq(bd.add(1).div(2.5))).negate()).mul(0.8)); // Coalsack (l ≈ 301°)

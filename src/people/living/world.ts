@@ -82,8 +82,11 @@ export class LivingWorld {
     // (each intent kept by the day it enters: its own, or the first day not yet stepped when it came late, from a player's act;
     // one dated before a load's day is in the saved economy already; kept, so a re-derivation from day 0 enters them again)
     rel.opts.econ = i => { if (i.day <= this.relFloor) return; const at = Math.max(i.day, this.upTo + (this.running ? 0 : 1)); (this.relAt.get(at) ?? this.relAt.set(at, []).get(at)!).push(i); }; }
-  private relDay(E: Economy, d: number) {
-    const R = this.rel; if (!R) return; R.advance(d + 7);
+  private *relDay(E: Economy, d: number): Generator<void> {
+    const R = this.rel; if (!R) return;
+    // (D-650: a week at a time, yielding between them: the first day steps the set-up and two weeks, ~1.1 s in one piece;
+    // the same weeks in the same order as advance(d + 7) at once)
+    for (let w = 0; w * 7 < d + 7; w++) { R.advance(w * 7); yield; } R.advance(d + 7);
     for (const i of this.relAt.get(d) ?? []) { E.enter({ ...i, day: d, payload: { ...i.payload } }); this.relEntered++; }
   }
   /** D-375: does the giver's house shun the asker's over what it has heard (set by PeopleSim from the rumours; `into`: the help
@@ -155,7 +158,7 @@ export class LivingWorld {
   /** D-388: one day of the living world in parts (the relations' week and the economy's step; the talk, meeting by meeting;
    *  the asks and the rumours), yielding between them; run whole by advance(), or across frames by advanceSliced() */
   private *dayParts(E: Economy, d: number): Generator<void> {
-    let t0 = performance.now(); this.relDay(E, d); this.stats.msEcon += performance.now() - t0; yield; t0 = performance.now(); E.step(d); this.stats.msEcon += performance.now() - t0; yield;
+    let t0 = performance.now(); for (const _ of this.relDay(E, d)) { this.stats.msEcon += performance.now() - t0; yield; t0 = performance.now(); } this.stats.msEcon += performance.now() - t0; yield; t0 = performance.now(); E.step(d); this.stats.msEcon += performance.now() - t0; yield;
     let t1 = performance.now(); for (const _ of this.simulateParts(E, d)) { this.stats.msSim += performance.now() - t1; yield; t1 = performance.now(); } this.stats.msSim += performance.now() - t1;
     this.stats.days++; const r = this.onDay?.(d); if (r) for (const _ of r) yield;
   }
