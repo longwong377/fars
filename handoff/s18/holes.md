@@ -87,6 +87,7 @@ None of it is verified in a render yet (pagecheck and C6 are the check).
 | P2-9 | Rahmat quarries, E-foot cistern, Akhor Rostam niches | C3, C10, C15 | DONE-b / ? | 6fa03934 Akhor Rostam niches and private rock tombs (C15); Rahmat quarry faces and the E-foot cistern not seen |
 | P2-10 | soil moisture; gates barred at night | C3, C5 | WIP | both on the agents' lists |
 | stale | 'court ABSENT default' in the data files | C13 | DONE-b | no "court ABSENT default" wording left in court.json, events_calendar.json, population.json or town.json on cloud-s18-c13-court |
+| T1 | **Time jump keeps people at stale places** (after setTime, save/load or a skip): 58 in the Apadana hall and 44 in the forecourt on day 200, off-season | C5, C1 | SENT 07:56 | pagecheck run 5 + C13's node check (no plan holds them) |
 | 4-1 | the world never notices you | C5, C8, C13 | WIP | cddd96c0 trespass (DONE-b); C5 visitor default |
 | 4-2 | nothing moves in the wind | C3 | DONE | 677621a9 one wind for every plant |
 | 4-3 | invisible walls, glued escort | C5 | WIP | src/world/visitor on C5's list |
