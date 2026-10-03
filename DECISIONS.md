@@ -9762,3 +9762,8 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   weather probe only because the probe had no sky environment. The probe now prefilters a sky/ground sphere into skyEnv.
 - materials.ts (one line, uniform-driven, no new shader state): on walls the wet film runs in vertical streaks (wet 0.4-1.0 of
   the ground's), not an even 55 % film.
+
+## D-525 (s17, V5): puddles fade far off and at grazing angles
+- materials.ts finish() (one line, no new shader state): the puddle mask fades over 60-150 m of view distance and below
+  ~10 degrees between the view and the surface, so thin pools far off no longer show as white slivers of mirrored sky
+  along the horizon (shots/wx-wet-flat-w8.png); they read as wet ground there. shader_build and material tests green.
