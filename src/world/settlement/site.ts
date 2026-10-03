@@ -50,7 +50,9 @@ export const snapSite = (s: Site) => ({ id: s.id, ...Object.fromEntries(SITE_STA
 export function restoreSite(s: Site, x: Record<string, any>) { for (const k of SITE_STATE) if (k in x) (s as any)[k] = x[k]; }
 
 export class Site {
-  readonly cell: Int32Array; readonly sub: Uint8Array; readonly room: Int32Array;
+  /** s15 (D-386): 16-bit (a site's plots and rooms number in the hundreds to low thousands; newRoom and addPlot check): half the
+   *  rasters' memory (the town's and 74 villages' ~110 MB) */
+  readonly cell: Int16Array; readonly sub: Uint8Array; readonly room: Int16Array;
   readonly doors = new Set<number>();
   /** edges where no wall stands at all (another structure closes them, e.g. the Tol-e Ajori gate body) */
   readonly noWall = new Set<number>();
@@ -65,7 +67,7 @@ export class Site {
   readonly u0: number; readonly v0: number;
   private roomN = 0;
   constructor(readonly meta: SiteMeta, readonly frame: Frame, readonly W: number, readonly H: number) {
-    this.cell = new Int32Array(W * H).fill(FREE); this.sub = new Uint8Array(W * H); this.room = new Int32Array(W * H).fill(-1);
+    this.cell = new Int16Array(W * H).fill(FREE); this.sub = new Uint8Array(W * H); this.room = new Int16Array(W * H).fill(-1);
     this.u0 = -W / 2; this.v0 = -H / 2;
   }
   get id() { return this.meta.id; }
@@ -84,7 +86,7 @@ export class Site {
     for (let j = Math.max(0, j0); j < Math.min(this.H, j1); j++) for (let i = Math.max(0, i0); i < Math.min(this.W, i1); i++) {
       const k = j * this.W + i; if (!over || over(this.cell[k])) this.cell[k] = code; }
   }
-  newRoom() { return this.roomN++; }
+  newRoom() { if (this.roomN >= 32767) throw new Error(`site ${this.meta.id}: over 32767 rooms (16-bit raster)`); return this.roomN++; }
   /** edge ids: 'h' between (i, j) and (i, j + 1); 'v' between (i, j) and (i + 1, j) */
   eh(i: number, j: number) { return j * this.W + i; }
   ev(i: number, j: number) { return this.W * this.H + j * this.W + i; }
@@ -96,6 +98,7 @@ export class Site {
   }
   /** add a plot over the given cells (all set to `sub`) */
   addPlot(p: Omit<Plot, 'idx' | 'area' | 'roofed' | 'capacity'> & { capacity?: number }): Plot {
+    if (this.plots.length >= 32767) throw new Error(`site ${this.meta.id}: over 32767 plots (16-bit raster)`);
     const plot: Plot = { ...p, idx: this.plots.length, area: 0, roofed: 0, capacity: p.capacity ?? 0 };
     this.plots.push(plot); return plot;
   }
