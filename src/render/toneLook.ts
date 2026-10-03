@@ -24,6 +24,9 @@ export const MIN_EV = -12.47393, MAX_EV = 4.026069;
 /** three's mat3(vec3 a, vec3 b, vec3 c) takes COLUMNS: M·v = a·v.x + b·v.y + c·v.z */
 export const mulC = (m: number[], v: number[]) => [m[0] * v[0] + m[3] * v[1] + m[6] * v[2], m[1] * v[0] + m[4] * v[1] + m[7] * v[2], m[2] * v[0] + m[5] * v[1] + m[8] * v[2]];
 export const sigmoid = (x: number) => { const x2 = x * x, x4 = x2 * x2; return 15.5 * x4 * x2 - 40.14 * x4 * x + 31.96 * x4 - 6.868 * x2 * x + 0.4298 * x2 + 0.1191 * x - 0.00232; };
+/** D-480: run-time grade inputs from the sky (SkySystem.update): the night toe lift's share (1 on a moonless night, less under a
+ *  bright moon, whose own light already reads) */
+export const GRADE = { nightLift: 1 };
 export type Look = { slope: number; power: number; sat: number; exposure: number; warm?: number; split?: number; lift?: number };
 /** the look as uniforms (D-480: the light lab sweeps them without a reload; the game sets them once from TONE_LOOK) */
 export const TONE_U = { slope: uniform(TONE_LOOK.slope), power: uniform(TONE_LOOK.power), sat: uniform(TONE_LOOK.sat), exposure: uniform(TONE_LOOK.exposure), warm: uniform(TONE_LOOK.warm), split: uniform(TONE_LOOK.split), lift: uniform(TONE_LOOK.lift) };
