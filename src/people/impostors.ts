@@ -49,7 +49,7 @@ export const FRAMES: Frame[] = [
   { id: 'winnow@16.4', anim: 'winnow', ph: 0, t: 16.4 }, { id: 'plough@6.4', anim: 'plough', ph: 0, t: 6.4 }, { id: 'plough@31', anim: 'plough', ph: 0, t: 31 },
   { id: 'gather@25.5', anim: 'gather', ph: 0, t: 25.5 }, { id: 'gather@58', anim: 'gather', ph: 0, t: 58 }, { id: 'pass@10.3', anim: 'pass', ph: 0, t: 10.3 },
   { id: 'pass@39.6', anim: 'pass', ph: 0, t: 39.6 }, { id: 'pick@10.7', anim: 'pick', ph: 0, t: 10.7 }, { id: 'pick@19.6', anim: 'pick', ph: 0, t: 19.6 },
-  { id: 'tread@29', anim: 'tread', ph: 0, t: 29 }, { id: 'tread@10.2', anim: 'tread', ph: 0, t: 10.2 }, { id: 'wash@23.5', anim: 'wash', ph: 0, t: 23.5 },
+  { id: 'tread@29', anim: 'tread', ph: 0, t: 29 }, { id: 'wash@23.5', anim: 'wash', ph: 0, t: 23.5 },
   { id: 'wash@51.6', anim: 'wash', ph: 0, t: 51.6 }, { id: 'archery@4.1', anim: 'archery', ph: 0, t: 4.1 }, { id: 'archery@8.6', anim: 'archery', ph: 0, t: 8.6 },
   { id: 'harp_h@30.9', anim: 'harp_h', ph: 0, t: 30.9 }, { id: 'reed_pipe@16.5', anim: 'reed_pipe', ph: 0, t: 16.5 }, { id: 'stoke@22.7', anim: 'stoke', ph: 0, t: 22.7 },
   { id: 'wash@26.8', anim: 'wash', ph: 0, t: 26.8 }, { id: 'enthroned@20.7', anim: 'enthroned', ph: 0, t: 20.7 }, { id: 'ride@45.8', anim: 'ride', ph: 0, t: 45.8 },
@@ -63,7 +63,8 @@ export const FRAMES: Frame[] = [
   { id: 'smith@28.5', anim: 'smith', ph: 0, t: 28.5 }, { id: 'chasing@54.2', anim: 'chasing', ph: 0, t: 54.2 }, { id: 'seal_jar@41.6', anim: 'seal_jar', ph: 0, t: 41.6 },
   { id: 'scrape@31.3', anim: 'scrape', ph: 0, t: 31.3 }, { id: 'pound@41.8', anim: 'pound', ph: 0, t: 41.8 },
   // D-292: the body's care, each its medoid (tools/dev/imp_keys.ts wash_face delouse shave: no frame within 0.09 m before)
-  { id: 'wash_face@13.1', anim: 'wash_face', ph: 0, t: 13.1 }, { id: 'delouse@6.6', anim: 'delouse', ph: 0, t: 6.6 }, { id: 'shave@30.9', anim: 'shave', ph: 0, t: 30.9 },
+  { id: 'recline@5.5', anim: 'recline', ph: 0, t: 5.5 }, // (s18 C14: the recliner's own frame, 0.014 m; wash_face shares wash@26.8, 0.073, and tread keeps tread@29, 0.050: the atlas back within its GPU budget)
+  { id: 'delouse@6.6', anim: 'delouse', ph: 0, t: 6.6 }, { id: 'shave@30.9', anim: 'shave', ph: 0, t: 30.9 },
   { id: 'sling@27', anim: 'sling', ph: 0, t: 27 },
   // D-333: the motion capture (the sitting capture's two ways of sitting, the bearers' captured walk, the talkers' gestures,
   // the seated crafts over the capture layer): tools/dev/imp_keys.ts --cover --pairs=sit,bier_l,bier_r (a walking frame at its
@@ -103,14 +104,14 @@ export const IMP_MAP: Partial<Record<AnimId, [string] | [string, string, string]
   smith: ['smith@28.5'], bellows: ['pat@52.2'], chasing: ['chasing@54.2'], weigh: ['harp_h@30.9'], seal: ['reed_pipe@16.5'], seal_jar: ['seal_jar@41.6'],
   drill: ['chasing@54.2'], scrape: ['scrape@31.3'], pound: ['pound@41.8'],
   // D-292 (the nearest frames by tools/dev/imp_keys.ts)
-  wash_face: ['wash_face@13.1'], delouse: ['delouse@6.6'], shave: ['shave@30.9'], sling: ['sling@27'], proskynesis: ['harp_h@30.9'], recline: ['sit'], pour: ['pour@34.7'], serve: ['serve@50.5'], fan: ['fan@15.9'], charioteer: ['pour@34.7'],
+  wash_face: ['wash@26.8'], delouse: ['delouse@6.6'], shave: ['shave@30.9'], sling: ['sling@27'], proskynesis: ['harp_h@30.9'], recline: ['recline@5.5'], pour: ['pour@34.7'], serve: ['serve@50.5'], fan: ['fan@15.9'], charioteer: ['pour@34.7'],
   hoe: ['hoe@44.5', 'hoe@5.8', '3e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f'],
   winnow: ['winnow@36.4', 'winnow@16.4', '000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fff'],
   plough: ['plough@6.4', 'plough@31', 'ff803fe00ff807fc01ff007fc01fe00ff803fe00ff807fc01ff007fc01ff000007fffff000003ff803fe00ff803fe01ff007fc01ff007f803fe00ff803fe01ff007fc01ff007fc0000ffff'],
   gather: ['gather@25.5', 'gather@58', '3fffc0000003fffc0000003fffc0000003fffc0000003fffc0000003fffc0000003fffc0000003fffc0000003fffc0000003fffc0000003fffc0000003fffc0000003fffc0000003fffc00'],
   pass: ['pass@10.3', 'pass@39.6', '1ffe0007ff8001ffe0007ff8001ffe0007ff8001ffe0007ff8001ffe0007ff8001ffe0007ff8001ffe0007ff8001ffe0007ff8001ffe0007ff8001ffe0007ff8001ffe0007ff8001ffe000'],
   pick: ['pick@10.7', 'pick@19.6', '000ffc000000ffc000000ffc000000ffc000000ffc000000ffc000000ffc000000ffc000000ffc000000ffc000000ffc000000ffc000000ffc000000ffc000000ffc000000ffc000000ffc'],
-  tread: ['tread@29', 'tread@10.2', '01fc03f807f00fe01fc03f807f00fe01fc03f807f00fe01fc03f807f00fe01fc03f807f00fe01fc03f807f00fe01fc03f807f00fe01fc03f807f00fe01fc03f807f00fe01fc03f807f00fe'],
+  tread: ['tread@29'],
   wash: ['wash@23.5', 'wash@51.6', '0000000fc3c0fffff800000001f8781fffff000000001e0f03ffffe000000003c1e07ffffc00000000f83c0fffff800000001f8781fffff000000001f0f03ffffe000000003c1e07ffffc0'],
   archery: ['archery@4.1', 'archery@8.6', 'fffffc000000000ffffffffffc000000000ffffffffffc000000000ffffffffffc000000000ffffffffffc000000000ffffffffffc000000000ffffffffffc000000000ffffffffffc0000'],
 };
