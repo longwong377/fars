@@ -9697,3 +9697,4 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   (glazed.ts doorFriezeFaces + the shared band builder): both broad faces, border courses and ground with rosettes, the
   courses fitted to each part's height (10 courses, 5 rosettes a face), a child mesh of the Apadana frieze (one draw; the
   Apadana frieze's own test unchanged). Colours, layout C as D-214.
+- (D-500, close) Cycles impostors re-rendered after the last cloth change; report handoff/s17/report_people.md.
