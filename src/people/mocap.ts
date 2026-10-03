@@ -86,10 +86,11 @@ export const pickOf = (k: number, n: number, salt = 0) => Math.floor(fr(Math.sin
 /** the walking classes: the clips of each, their mean speed (m/s, reference body) */
 export type GaitStyle = 'man' | 'woman' | 'old' | 'carry' | 'carry_side' | 'limp' | 'run';
 export const GAITS: Record<GaitStyle, { slow: string[]; normal: string[]; brisk: string[] }> = {
-  man: { slow: ['walk_slow_a', 'walk_slow_c', 'walk_slow_d'], normal: ['walk_c', 'walk_d', 'walk_e', 'walk_g', 'walk_a'], brisk: ['walk_brisk_a', 'walk_brisk_b', 'walk_b'] },
-  woman: { slow: ['walk_slow_c', 'walk_w_b'], normal: ['walk_w_b', 'walk_g', 'walk_d'], brisk: ['walk_brisk_a', 'walk_d'] },
+  // (s18 C14 D-790: + ACCAD's Male1 (walk_m_h, normal) and its woman, walk_w_c, a woman's own walk at last)
+  man: { slow: ['walk_slow_a', 'walk_slow_c', 'walk_slow_d'], normal: ['walk_c', 'walk_d', 'walk_e', 'walk_g', 'walk_a', 'walk_m_h'], brisk: ['walk_brisk_a', 'walk_brisk_b', 'walk_b'] },
+  woman: { slow: ['walk_slow_c', 'walk_w_b'], normal: ['walk_w_c', 'walk_w_b', 'walk_w_c', 'walk_g'], brisk: ['walk_w_c', 'walk_brisk_a'] },
   old: { slow: ['walk_slow_d', 'walk_slow_c'], normal: ['walk_slow_c', 'walk_slow_a'], brisk: ['walk_slow_a'] },
-  carry: { slow: ['carry_a', 'carry_b'], normal: ['carry_a', 'carry_b'], brisk: ['carry_a', 'carry_b'] },
+  carry: { slow: ['carry_a', 'carry_b'], normal: ['carry_a', 'carry_b', 'carry_w'], brisk: ['carry_a', 'carry_b', 'carry_w'] },
   carry_side: { slow: ['carry_side'], normal: ['carry_side'], brisk: ['carry_side'] },
   limp: { slow: ['limp_a'], normal: ['limp_a'], brisk: ['limp_a'] },
   run: { slow: ['run_a'], normal: ['run_a', 'run_b'], brisk: ['run_b'] },
@@ -130,3 +131,6 @@ function stoop(): Float32Array {
 /** the standing clips a person idles through; the talking ones; sitting on the ground */
 export const IDLES = ['idle_a', 'idle_b', 'idle_c', 'idle_d', 'idle_e'] as const;
 export const TALKS = ['talk_a', 'talk_b', 'talk_c'] as const;
+/** s18 C14 (D-790): a woman's standing and talking from ACCAD's female performer (CC BY 3.0), with two of the men's */
+export const IDLES_W = ['idle_w_a', 'idle_w_b', 'idle_w_c', 'idle_b', 'idle_e'] as const;
+export const TALKS_W = ['talk_w_a', 'talk_b', 'talk_w_a'] as const;
