@@ -17,17 +17,22 @@ import { groundScan, groundLoaded } from '../../render/scans';
 import type { RiverProfile } from './data';
 import type { Canal } from './canals';
 import { feature, tag } from './data';
+import { mxNoise2 } from '../../render/mx_noise_cpu';
 
 export const LIFT = { start: 1200, full: 2500, max: 3 } as const;
 /** vertex-shader lift (m) as a function of camera distance: keeps far ribbons above coarse terrain LODs */
 export function liftNode(p: any) { const d = length(p.xz.sub(cameraPosition.xz)); return smoothstep(LIFT.start, LIFT.full, d).mul(LIFT.max); }
 
 interface Section { x: number; y: number; tx: number; ty: number; bank: number; s: number; ring: 'mid' | 'far' }
-/** centreline sections: 10 m spacing within 12 km of the Apadana, 30 m beyond; tangents smoothed over +-60 m */
+/** centreline sections: within 12 km of the Apadana every R/4 m along the bends (R the local radius, D-670: 8-20 m, so a
+ *  tight meander stays round and a straight reach costs no more than before), 30 m beyond; tangents smoothed over +-60 m */
 function sections(r: RiverProfile): Section[] {
   const out: Section[] = []; const n = r.x.length; let s = 0, acc = 0;
+  const radiusAt = (i: number) => { const a = Math.max(0, i - 2), b = Math.min(n - 1, i + 2), c = Math.min(n - 1, i + 1), d0 = Math.max(0, i - 1);
+    let dth = Math.atan2(r.y[b] - r.y[c], r.x[b] - r.x[c]) - Math.atan2(r.y[d0] - r.y[a], r.x[d0] - r.x[a]); if (dth > Math.PI) dth -= 2 * Math.PI; if (dth < -Math.PI) dth += 2 * Math.PI;
+    return Math.abs(dth) > 1e-4 ? Math.hypot(r.x[b] - r.x[a], r.y[b] - r.y[a]) * 0.75 / Math.abs(dth) : 1e9; };
   for (let i = 0; i < n - 1; i++) {
-    const near = Math.hypot(r.x[i], r.y[i]) < 12000, step = near ? 10 : 30;
+    const near = Math.hypot(r.x[i], r.y[i]) < 12000, step = near ? Math.min(20, Math.max(8, Math.min(radiusAt(i), radiusAt(i + 1)) / 4)) : 30;
     const seg = Math.hypot(r.x[i + 1] - r.x[i], r.y[i + 1] - r.y[i]);
     for (; acc < seg; acc += step) {
       const t = acc / seg, x = r.x[i] + (r.x[i + 1] - r.x[i]) * t, y = r.y[i] + (r.y[i + 1] - r.y[i]) * t;
@@ -44,11 +49,17 @@ function sections(r: RiverProfile): Section[] {
 /** one cross-section of the corridor mesh as drawn: centre (grid), left normal and tangent (grid), distance along the river,
  *  and its 13 vertices (0 centre, 1-6 right side outward, 7-12 left side outward): signed lateral offset (m), height
  *  (world y, before the distance lift), height above the bed (m) and apron fraction t (0 inside the channel) */
-export interface CorridorSection { ri: number; x: number; y: number; nx: number; ny: number; tx: number; ty: number; s: number; off: Float32Array; hy: Float32Array; hrel: Float32Array; t: Float32Array }
+export interface CorridorSection { ri: number; x: number; y: number; nx: number; ny: number; tx: number; ty: number; s: number; off: Float32Array; hy: Float32Array; hrel: Float32Array; t: Float32Array;
+  /** D-670: the bend (+ left / - right turn, 0..1: the point bar is on the turn's side) and the right/left slope factors */ bar: number; slK: [number, number] }
 export interface RiverBuild { group: THREE.Group; banks: THREE.Mesh; water: THREE.Mesh; profiles: CorridorSection[][]; update(dayState: { pulvar: { width: number; depth: number; turbid: number; flowRel: number }; kur: { width: number; depth: number; turbid: number; flowRel: number }; margins?: { grassGreen: number } }, sky: { sky: THREE.Color; horizon: THREE.Color }): void;
   segments: { cx: number; cy: number; pos: Float32Array; idx: Uint32Array }[]; stats(): { tris: number; sections: number } }
 
-export function buildRivers(terrain: Terrain, rivers: RiverProfile[], canals: Canal[] = []): RiverBuild {
+/** D-670: the cross-section's asymmetry at a bend (0 straight .. 1 tight): the point bar's slope on the inner side is up to
+ *  2x gentler (a wide low bar of gravel and sand), the cut bank's up to ~0.45x steeper and its top raised up to 0.7 m (a
+ *  levee of overbank silt), plus +-15 % of slope and 0-0.3 m of bank top along any reach (C: the shapes of free meandering
+ *  channels, general fluvial geomorphology); none within ~100 m of a crossing (the fords keep the trapezoid: crossings.ts) */
+export const BEND = { inner: 1.0, outer: 0.55, levee: 0.7, slopeVar: 0.15, topVar: 0.3, calmR: [70, 150] } as const;
+export function buildRivers(terrain: Terrain, rivers: RiverProfile[], canals: Canal[] = [], calm: [number, number][] = []): RiverBuild {
   const court = terrain.meta.court_asl;
   const wy = (asl: number, x: number, y: number) => asl - court - curvatureDrop(x, -y);
   const PER = 13; // cross-section vertices of the corridor: 0 = centre, 1-6 right side outward, 7-12 left side outward
@@ -74,31 +85,42 @@ export function buildRivers(terrain: Terrain, rivers: RiverProfile[], canals: Ca
       const apron = carve + 1.5 * cell - top / 2;
       const bankY = wy(q.bank, q.x, q.y), bedY = bankY - H;
       const turn = Math.sign(radius[i] < 1e8 ? (secs[Math.max(0, i - 3)].tx * secs[Math.min(secs.length - 1, i + 3)].ty - secs[Math.max(0, i - 3)].ty * secs[Math.min(secs.length - 1, i + 3)].tx) : 0); // +1 = turning left
+      // D-670: the bend's asymmetry (BEND), calmed near the crossings
+      let calmK = 1; for (const [cx, cy] of calm) { const d = Math.hypot(cx - q.x, cy - q.y); if (d < BEND.calmR[1]) calmK = Math.min(calmK, Math.max(0, (d - BEND.calmR[0]) / (BEND.calmR[1] - BEND.calmR[0]))); }
+      const bendK = Math.min(1, Math.max(0, (top * 3.2) / Math.max(1, radius[i]) - 0.35)) * calmK, vn = (salt: number, L: number) => mxNoise2(q.s / L + salt, ri * 7.1 + salt * 0.37);
+      const slK: Record<number, number> = {}, rise: Record<number, number> = {};
+      for (const side of [-1, 1]) { const inner = side === turn ? 1 : 0, k0 = 1 + BEND.slopeVar * vn(side * 3.1, 90) * calmK;
+        const kMax = (carve - 3 - b / 2) / (sl * H); // the bar stays inside the carved trench
+        slK[side] = Math.min(kMax, inner ? k0 * (1 + BEND.inner * bendK) : k0 * (1 - BEND.outer * bendK));
+        rise[side] = ((1 - inner) * BEND.levee * bendK + BEND.topVar * Math.max(0, vn(side * 5.3 + 2, 140))) * calmK; }
       const offs: number[] = [0];
-      for (const side of [-1, 1]) for (const u of [b / 2, b / 2 + sl * H / 2, top / 2, top / 2 + apron / 3, top / 2 + 2 * apron / 3, top / 2 + apron]) offs.push(side * u);
+      for (const side of [-1, 1]) { const ts = b / 2 + sl * slK[side] * H, ap = carve + 1.5 * cell - ts;
+        for (const u of [b / 2, b / 2 + sl * slK[side] * H / 2, ts, ts + ap / 3, ts + 2 * ap / 3, ts + ap]) offs.push(side * u); }
       const edgeX = (side: number, u: number) => { const lim = side === turn ? Math.max(top / 2 + 4, radius[i] * 0.8) : 1e9; return Math.min(u, lim); };
-      const cs: CorridorSection = { ri, x: q.x, y: q.y, nx, ny, tx: q.tx, ty: q.ty, s: q.s, off: new Float32Array(PER), hy: new Float32Array(PER), hrel: new Float32Array(PER), t: new Float32Array(PER) }; prof.push(cs);
+      const cs: CorridorSection = { ri, x: q.x, y: q.y, nx, ny, tx: q.tx, ty: q.ty, s: q.s, off: new Float32Array(PER), hy: new Float32Array(PER), hrel: new Float32Array(PER), t: new Float32Array(PER), bar: 0, slK: [0, 0] }; prof.push(cs);
       for (let k = 0; k < PER; k++) {
         const u0 = offs[k], side = Math.sign(u0) || 1, u = side * edgeX(side, Math.abs(u0));
-        const x = q.x + nx * u, y = q.y + ny * u, au = Math.abs(u);
+        const x = q.x + nx * u, y = q.y + ny * u, au = Math.abs(u), sls = sl * slK[side], ts = b / 2 + sls * H, ap = carve + 1.5 * cell - ts, topY = bankY + rise[side];
         let hy: number, hrel: number, t: number;
         if (au <= b / 2 + 1e-6) { hy = bedY; hrel = 0; t = 0; }
-        else if (au <= top / 2 + 1e-6) { hrel = Math.min(H, (au - b / 2) / sl); hy = bedY + hrel; t = 0; }
+        else if (au <= ts + 1e-6) { hrel = Math.min(H, (au - b / 2) / sls); hy = bedY + hrel * (topY - bedY) / H; hrel = hy - bedY; t = 0; }
         else {
-          t = Math.min(1, (au - top / 2) / apron);
-          const edge = terrain.heightAt(q.x + nx * side * (top / 2 + apron), -(q.y + ny * side * (top / 2 + apron)));
+          t = Math.min(1, (au - ts) / ap);
+          const edge = terrain.heightAt(q.x + nx * side * (ts + ap), -(q.y + ny * side * (ts + ap)));
           const s = t * t * (3 - 2 * t);
-          hy = Math.max(bankY + (edge - bankY) * s, t > 0.99 ? edge : terrain.heightAt(x, -y) + 0.05);
+          hy = Math.max(topY + (edge - topY) * s, t > 0.99 ? edge : terrain.heightAt(x, -y) + 0.05);
           hrel = hy - bedY;
         }
         bankPos.push(x, hy, -y);
         bankCol.push(soil.r, soil.g, soil.b);
-        bankAttr.push(hrel, t, ri, 0);
+        // w: the point bar (the inner side's channel slope at a bend: gravel and sand, few reeds; riparian.ts, the bank shader)
+        bankAttr.push(hrel, t, ri, side === turn && t === 0 && k !== 0 ? bendK : 0);
         cs.off[k] = u; cs.hy[k] = hy; cs.hrel[k] = hrel; cs.t[k] = t;
       }
+      cs.bar = bendK * turn; cs.slK = [slK[-1], slK[1]];
       if (i > 0) quads(bankIdx, base0 + (i - 1) * PER, base0 + i * PER);
       // water: three vertices across (edges and centre), placed in the vertex shader from width and depth uniforms
-      for (const side of [-1, 0, 1]) { wPos.push(q.x, bedY, -q.y); wAttr.push(nx, -ny, side, ri); wAttr2.push(q.s, q.tx, -q.ty, 0); }
+      for (const side of [-1, 0, 1]) { wPos.push(q.x, bedY, -q.y); wAttr.push(nx, -ny, side, ri); wAttr2.push(q.s, q.tx, -q.ty, side ? slK[side] : 1); } // w: the side's slope factor (D-670)
       if (i > 0) { const w0 = (wPos.length / 3) - 6, w1 = w0 + 3; for (let k = 0; k < 2; k++) wIdx.push(w0 + k, w1 + k, w0 + k + 1, w0 + k + 1, w1 + k, w1 + k + 1); }
       // collider segments of ~500 m (built lazily near the player)
       if (i - segStart >= (q.ring === 'mid' ? 50 : 17) || i === secs.length - 1) {
@@ -146,14 +168,16 @@ export function buildRivers(terrain: Terrain, rivers: RiverProfile[], canals: Ca
     const damp = float(1).sub(smoothstep(0.1, 0.5, aboveR)).mul(float(1).sub(wet));
     // the band between today's water and the spring high water: bare silt and mud (none in April, widest in September).
     // It was 'everything below 2.4 m above the bed', which took in the whole apron: the bare-sand banks of session 4
-    const band = step(0.14, above).mul(float(1).sub(smoothstep(flood.sub(0.05), flood.add(0.12), hrel)));
+    // D-670: the point bars (a.w: the inner bend's slope) gravel and sand in bars and ripples down to the water, few herbs
+    const bar = a.w.mul(smoothstep(-0.3, 0.2, mx_noise_float(positionWorld.xz.mul(0.16).add(vec2(1.3, 8.1)))));
+    const band = max(step(0.14, above).mul(float(1).sub(smoothstep(flood.sub(0.05), flood.add(0.12), hrel))), step(0.14, above).mul(smoothstep(0.2, 0.7, bar)));
     const mud = color(new THREE.Color().setRGB(0.25, 0.21, 0.16, THREE.SRGBColorSpace)), siltC = color(new THREE.Color().setRGB(0.5, 0.46, 0.39, THREE.SRGBColorSpace));
     const siltTone = mx_noise_float(positionWorld.mul(0.7)).mul(0.1).add(1).mul(float(1).sub(smoothstep(0.2, 0.9, mx_noise_float(positionWorld.xz.mul(3.1)).abs()).mul(0.12))); // drying cracks
     // D-302: each of the bank's covers with its ground scan (scans.ts GROUND): the apron's dust (wet: mud), the silt band's
     // dried cracked silt with river gravel in bars, the waterline's mud, the sward's herbs (identity in node)
     const G = { dust: groundScan('dust', 2.0, { scale2: 9.1 }), mud: groundScan('mud', 1.6), cracked: groundScan('cracked', 2.2), pebbles: groundScan('pebbles', 2.0), green: groundScan('green', 2.5), straw: groundScan('straw', 2.0) };
     const det = (g: any, w = 0.85): any => mix(vec3(1), g.c, w), on = groundLoaded();
-    const wetG = WEATHER.wetness.mul(0.9), gravel = smoothstep(0.1, 0.45, mx_noise_float(positionWorld.xz.mul(0.09).add(vec2(3.7, 1.1)))).mul(float(1).sub(smoothstep(0.3, 0.9, above)));
+    const wetG = WEATHER.wetness.mul(0.9), gravel = max(smoothstep(0.1, 0.45, mx_noise_float(positionWorld.xz.mul(0.09).add(vec2(3.7, 1.1)))).mul(float(1).sub(smoothstep(0.3, 0.9, above))), smoothstep(0.15, 0.6, bar));
     const base = on ? attribute('color', 'vec3').mul(det({ c: mix(G.dust.c, G.mud.c, wetG) })) : L.alb;
     const silt = siltC.mul(on ? siltTone.mul(0.5).add(0.5) : siltTone).mul(det({ c: mix(mix(G.cracked.c, G.mud.c, wetG), G.pebbles.c, gravel) }));
     let hS: any = mix(mix(G.dust.h, G.mud.h, wetG).mul(0.006), mix(G.cracked.h.mul(0.004), G.pebbles.h.mul(0.02), gravel), band);
@@ -180,7 +204,10 @@ export function buildRivers(terrain: Terrain, rivers: RiverProfile[], canals: Ca
   const wm = new THREE.MeshStandardNodeMaterial();
   const ac = attribute('across', 'vec4'), fl = attribute('flow', 'vec4'), riW = ac.w;
   const isCanal = step(1.5, riW), riR = riW.min(1); // 0 Pulvar, 1 Kur, 2 canal
-  const width = mix(pick(widthU, riR), fl.w.mul(2), isCanal), depth = mix(pick(depthU, riR), float(0), isCanal);
+  const bedHalf = pick(bedHalfU, riR);
+  // D-670: a river's water edge on each side where today's level meets that side's slope (the point bar's wider, the cut bank's narrower)
+  const halfSide = mix(bedHalf.add(fl.w.mul(pick(widthU, riR).mul(0.5).sub(bedHalf))), fl.w, isCanal);
+  const width = halfSide.mul(2), depth = mix(pick(depthU, riR), float(0), isCanal);
   const lateral = ac.z.mul(width.mul(0.5).add(mix(float(0.35), float(0.05), isCanal)));
   const basePos = positionLocal.add(vec3(ac.x.mul(lateral), depth, ac.y.mul(lateral)));
   wm.positionNode = basePos.add(vec3(0, liftNode(basePos).add(0.0), 0));
@@ -194,7 +221,7 @@ export function buildRivers(terrain: Terrain, rivers: RiverProfile[], canals: Ca
   wm.normalNode = normalize(cameraViewMatrix.mul(vec4(nW, 0)).xyz);
   // the local water depth across the trapezoid (bed half-width, then the side slopes to the edge; C): deep and dark in
   // mid-channel, the bed showing through in the shallows; canals 0.45 m at the middle (C)
-  const halfW = width.mul(0.5), bedHalf = pick(bedHalfU, riR);
+  const halfW = width.mul(0.5);
   const dRiver = depth.mul(clamp(halfW.sub(abs(across)).div(max(halfW.sub(bedHalf), 0.5)), 0, 1));
   const dLocal = mix(dRiver, float(1).sub(ac.z.mul(ac.z)).mul(0.45), isCanal);
   // body colour: turbid spring flood (silt brown) or clear low water (dark green over the bed)

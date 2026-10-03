@@ -48,9 +48,14 @@ describe('rivers (plain.json flow_by_month, channel; tools/build_terrain.py laye
   });
   it('the centreline follows the data course (joined OSM parts) and the bank level never rises downstream', () => {
     for (const r of R.rivers) {
-      const course = feature(r.id).polylines.flat();
-      let worst = 0; for (let i = 0; i < r.x.length - (r.id === 'river_pulvar' ? 20 : 0); i += 7) worst = Math.max(worst, distToPolyline(r.x[i], r.y[i], course)); // the Pulvar's last ~340 m join it to the Kur (C)
+      const course = feature(r.id).polylines.flat(), b = r.base!;
+      let worst = 0; for (let i = 0; i < b.x.length - (r.id === 'river_pulvar' ? 20 : 0); i += 7) worst = Math.max(worst, distToPolyline(b.x[i], b.y[i], course)); // the Pulvar's last ~340 m join it to the Kur (C)
       expect(worst, r.id).toBeLessThan(1);
+      // D-670: the river as drawn meanders in a belt centred on that course: never more than ~250 m off it, and longer
+      let off = 0; for (let i = 0; i < r.x.length - (r.id === 'river_pulvar' ? 60 : 0); i += 5) off = Math.max(off, distToPolyline(r.x[i], r.y[i], course));
+      expect(off, r.id).toBeLessThan(250);
+      const len = (x: ArrayLike<number>, y: ArrayLike<number>) => { let l = 0; for (let i = 1; i < x.length; i++) l += Math.hypot(x[i] - x[i - 1], y[i] - y[i - 1]); return l; };
+      expect(len(r.x, r.y) / len(b.x, b.y), r.id).toBeGreaterThan(1.03);
       for (let i = 1; i < r.bank.length; i++) expect(r.bank[i]).toBeLessThanOrEqual(r.bank[i - 1] + 1e-6);
       for (let i = 0; i < r.bank.length; i++) expect(r.bank[i]).toBeLessThanOrEqual(r.floodplain[i] + 0.02); // never above the local floodplain
     }

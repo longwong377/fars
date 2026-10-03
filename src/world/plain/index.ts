@@ -29,7 +29,7 @@ import { TreeKit, NearTreeSet, ImpostorSet, impostorPx, registerShadowLight, wid
 import { nearCrops } from './crops';
 import { buildNaqsh } from './naqsh';
 import { buildQuarries, quarrySites } from './quarries';
-import { buildCrossings, keepOffChannels, type FordDetailSites } from './crossings';
+import { buildCrossings, keepOffChannels, roadRiverCrossings, type FordDetailSites } from './crossings';
 import { doyOf, riverState, marginState } from './seasonal';
 import { riparianMargins } from './riparian';
 import { buildTownGround, desireLines } from './townGround';
@@ -99,15 +99,17 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   terrainGroup?.traverse(o => { if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).material = ground.material; });
   if (terrainGroup) terrainGroup.userData.note = `${terrainGroup.userData.note}; fields, crops, orchard floors and woodland canopy from plain.json zones (C)`;
   // water, banks, canals, tracks
-  const rv = buildRivers(terrain, rivers.rivers, canals); group.add(rv.group);
+  const vLines = keepOffChannels(trackLines(villages), rivers.rivers);
+  // s17 (D-560, C6's quarries): the quarrymen's worn path from each quarry down to the nearest track or road (ribbons.ts quarryPaths)
+  const qLines = keepOffChannels(quarryPaths(quarrySites(terrain), [...settlementRoads().map(r => r.pts), ...vLines], terrain), rivers.rivers);
+  const tLines = [...vLines, ...qLines], trackObjs = tLines.map((pts, i) => ({ id: `track_${i}`, pts, width: feature('villages_unlocated').tracks.width_m as number }));
+  // D-670: the banks keep the fords' trapezoid at every road and track crossing (the bends' asymmetry calmed there)
+  const rv = buildRivers(terrain, rivers.rivers, canals, roadRiverCrossings(rivers.rivers, settlementRoads(), trackObjs).map(c => [c.x, c.y] as [number, number])); group.add(rv.group);
   // reeds, rushes and grass at the water (riparian.ts, D-149): on the corridor as drawn, around the camera
   const floodDepth = rivers.rivers.map(r => (feature(r.id).flow_by_month as { month: string; depth_m: number }[]).reduce((m, q) => Math.max(m, q.depth_m), 0)) as [number, number];
   const margins = riparianMargins(rv.profiles, canals, terrain, opts.quality, floodDepth); group.add(margins.mesh);
   const cb = canalBanks(canals, terrain); group.add(cb);
-  const vLines = keepOffChannels(trackLines(villages), rivers.rivers);
-  // s17 (D-560, C6's quarries): the quarrymen's worn path from each quarry down to the nearest track or road (ribbons.ts quarryPaths)
-  const qLines = keepOffChannels(quarryPaths(quarrySites(terrain), [...settlementRoads().map(r => r.pts), ...vLines], terrain), rivers.rivers);
-  const tLines = [...vLines, ...qLines]; const tr = tracksMesh(tLines, terrain, undefined, undefined, new Set(qLines.map((_, i) => vLines.length + i))); group.add(tr);
+  const tr = tracksMesh(tLines, terrain, undefined, undefined, new Set(qLines.map((_, i) => vLines.length + i))); group.add(tr);
   // s17 (D-560): the paths' treads and verges for the cover, flora, rocks and crops (verge.ts)
   setVergePaths([...settlementRoads().map(r => ({ pts: r.pts, hw: r.width / 2, kind: 'road' as const })), ...tLines.map(pts => ({ pts, hw: (feature('villages_unlocated').tracks.width_m as number) / 2, kind: 'track' as const })),
     ...(opts.town ? desireLines(opts.town).map(l => ({ pts: [l.a, l.b] as [number, number][], hw: l.w / 2, kind: 'path' as const })) : [])]);
@@ -142,7 +144,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   const nr = buildNaqsh(terrain, rivers.nrAncientFootAsl); group.add(nr.group);
   const qb = buildQuarries(terrain, opts.seed); group.add(qb.group); scene.add(qb.extra); // (D-600: the quarries' drums and rock beside the plain's group)
   // the fords where the roads meet the Pulvar and the Kur (D-257, C)
-  const fords = buildCrossings(terrain, rivers.rivers, opts.seed, tLines.map((pts, i) => ({ id: `track_${i}`, pts, width: feature('villages_unlocated').tracks.width_m as number })), (qb.group.children.find(o => (o as THREE.Mesh).isMesh) as THREE.Mesh | undefined) ?? null); group.add(fords.group);
+  const fords = buildCrossings(terrain, rivers.rivers, opts.seed, trackObjs, (qb.group.children.find(o => (o as THREE.Mesh).isMesh) as THREE.Mesh | undefined) ?? null); group.add(fords.group);
   // Naqsh-e Rustam's meshes cast shadows near the cliff, except the relief sets', which manage their own (their shadow proxies are the only relief
   // draws in the shadow passes, D-048: switching every mesh under the group drew the carved figures into all 4 cascades, D-228)
   const nrCasters: THREE.Mesh[] = []; nr.group.traverse(o => { if ((o as THREE.Mesh).isMesh && !o.name.startsWith('relief:')) nrCasters.push(o as THREE.Mesh); });

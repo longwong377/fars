@@ -114,8 +114,8 @@ export function riparianMargins(profiles: CorridorSection[][], canals: Canal[], 
   /** smooth value noise along the bank (cells of c m): reed beds begin and end over a few metres, not at a cell edge */
   const vn = (s: number, c: number, k: number, salt: number) => { const x = s / c, i = Math.floor(x), f = x - i, w = f * f * (3 - 2 * f);
     return unit(hash2(cellU(i), k, salt)) * (1 - w) + unit(hash2(cellU(i + 1), k, salt)) * w; };
-  const put = (x: number, y: number, z: number, k: number, h: number) => {
-    if (n >= cap) return; posA.setXYZ(n, x, y, z); varA.setXYZW(n, k, unit(h), 0.8 + 0.4 * unit(hash2(h, 7, 3)), unit(hash2(h, 9, 5)) * 6.283); n++; };
+  const put = (x: number, y: number, z: number, k: number, h: number, sc = 1) => {
+    if (n >= cap) return; posA.setXYZ(n, x, y, z); varA.setXYZW(n, k, unit(h), (0.8 + 0.4 * unit(hash2(h, 7, 3))) * sc, unit(hash2(h, 9, 5)) * 6.283); n++; };
   // the camera moves up to stepR between placements: every radius is placed that much wider than the shader draws it
   const stepR = R * 0.1;
   const update = (cam: THREE.Vector3) => {
@@ -147,11 +147,17 @@ export function riparianMargins(profiles: CorridorSection[][], canals: Canal[], 
           // B83 (session 9): beyond the mid ring the corridor can stand above the far ring's coarse ground (up to 6.5 m); a tuft there
           // would hang in the air at a walker's eye, so none is placed where the corridor is more than 0.4 m over the ground drawn
           if ((Math.abs(x) > 10040 || Math.abs(y) > 10040) && hy - terrain.heightAt(x, -y) > 0.4) continue;
-          const bed = u < 0 ? bedA : bedB, inBed = r1 < 0.8 * Math.min(1, Math.max(0, (bed - 0.47) / 0.1)); // a bed thins out over a few metres at its ends
+          // D-670: beds in clumps (3-9 m) with gaps and ragged edges, not a band; few on a point bar's lower slope (bare gravel
+          // and sand: the bar side is the bend's, cs.bar) and on a cut bank's steep face; each clump its own height
+          const barSide = Math.sign(u) === Math.sign(q0.bar) ? Math.abs(q0.bar) : 0, cutSide = Math.sign(u) === -Math.sign(q0.bar) ? Math.abs(q0.bar) : 0;
+          const clump = vn(s + u * 0.7, 6, ri * 2 + (u < 0 ? 1 : 2), 214) * 0.6 + vn(s - u * 0.9, 2.6, ri * 2 + (u < 0 ? 1 : 2), 215) * 0.4;
+          const bed = (u < 0 ? bedA : bedB) - 0.22 * barSide * (1 - Math.min(1, hrel / aprilD)) - 0.12 * cutSide;
+          const inBed = r1 < 0.85 * Math.min(1, Math.max(0, (bed - 0.5) / 0.08)) * Math.min(1, Math.max(0, (clump - 0.36) / 0.12)); // a bed thins out over a few metres at its ends
+          const hScale = 0.62 + 0.55 * vn(s, 11, ri * 2 + (u < 0 ? 1 : 2), 216);
           const jx = (unit(hash2(h, 1, 2)) - 0.5) * 0.5, jy = (unit(hash2(h, 3, 4)) - 0.5) * 0.5;
           if (hrel > 0.18 && hrel < aprilD - 0.05 && t === 0) { // the channel slope between the low summer water and the spring flood level
-            if (inBed) put(x + jx, hy, -(y + jy), KIND.reed + ex, h);
-            else if (r1 < 0.12) put(x + jx, hy, -(y + jy), KIND.rush + ex, h);
+            if (inBed) put(x + jx, hy, -(y + jy), KIND.reed + ex, h, hScale);
+            else if (r1 < 0.12 * (1 - 0.7 * barSide)) put(x + jx, hy, -(y + jy), KIND.rush + ex, h);
           } else if (hrel >= aprilD - 0.05 && t < 0.75 && dc < Q.grass + stepR) { // the upper bank, the bank top and the apron: grass, rushes near the flood line
             const nearFlood = hrel < aprilD + 0.35;
             if (nearFlood && r1 < 0.18) put(x + jx, hy, -(y + jy), KIND.rush + ex, h);
