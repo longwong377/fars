@@ -220,6 +220,9 @@ export interface SurfaceDef {
    *  m over the floor in `dado.col`, edged above by bands (`bands`: colour and width, bottom up); a frieze band `frieze.h` m
    *  deep under the ceiling in `frieze.col`, edged below by `frieze.edge` */
   paint?: { ground: [number, number, number]; dado: { h: number; col: [number, number, number] }; bands: { col: [number, number, number]; w: number }[]; frieze: { h: number; col: [number, number, number]; edge: { col: [number, number, number]; w: number } } };
+  /** D-752: the outer faces painted too (the same scheme's form: a dado with bands over it, a ground, a frieze under the
+   *  wall's head), on the vertical faces that are not `inner` and stand on a floor (y0) */
+  outerPaint?: SurfaceDef['paint'];
   /** D-285: the plastering campaign and the weather on a mud-plastered wall (PlasterWeatherDef) */
   plasterWeather?: PlasterWeatherDef;
   /** D-477: the weathering of an earthen wall read at 5-30 m (EarthWeatherDef; arch meshes with y0/ytop) */
@@ -321,6 +324,17 @@ const SOIL_TERRACE: SoilDef = { drip: 0.12, share: 0.5, w: [0.03, 0.1], len: [0.
  *  the damp base to ~0.8 m, longer wash streaks from the high tops, a few recoated bays, the crest rounded, plaster lost from
  *  ~1.5 % of the outer faces */
 const PALACE_WEATHER: EarthWeatherDef = { base: { h: 0.8, dark: 0.12, dirt: 0.25 }, top: { h: 0.8, bleach: 0.05, round: 0.4 }, wash: { amp: 0.15, len: 4.5 }, coat: 0.04, loss: { cover: 0.015, depth: 0.012 } };
+/** D-752 (C; holes.md #6, UD-29): a royal palace in residence, re-plastered and repainted by the court's own workmen: no fallen
+ *  plaster, the wash and the foot's dirt at a third, the coats' patchwork faint (the V9 weathering is the ruin-bias's: the
+ *  working town and the fortification keep PALACE_WEATHER) */
+const PALACE_KEPT: EarthWeatherDef = { base: { h: 0.6, dark: 0.05, dirt: 0.1 }, top: { h: 0.6, bleach: 0.03, round: 0.4 }, wash: { amp: 0.05, len: 3 }, coat: 0.015, loss: { cover: 0, depth: 0 } };
+/** D-752 (C, after D-771's palette): the palaces' outer faces painted: a lime wash tinted with yellow ochre for the ground, a red
+ *  ochre dado 1.4 m high edged by white, Egyptian blue and white bands, and under the wall's head a red frieze 1.1 m deep with
+ *  a white edge: the interior scheme's form (global.r_interior_paint) read from the plain. Pigments B (RELIEFS_AND_COLOUR §3a:
+ *  red ochre, Egyptian blue, calcite white on the Terrace's plaster); the layout and tones C */
+export const PALACE_OUTER_PAINT: NonNullable<SurfaceDef['paint']> = { ground: [0.8, 0.71, 0.55], dado: { h: 1.4, col: [0.55, 0.25, 0.18] },
+  bands: [{ col: [0.88, 0.86, 0.8], w: 0.09 }, { col: [0.22, 0.38, 0.62], w: 0.12 }, { col: [0.88, 0.86, 0.8], w: 0.06 }],
+  frieze: { h: 1.1, col: [0.55, 0.25, 0.18], edge: { col: [0.88, 0.86, 0.8], w: 0.08 } } };
 const PLASTER_WEATHER: PlasterWeatherDef = { lift: [1.1, 1.7], bay: 3.0, sd: 0.09, chroma: 0.016, seam: 0, wash: 0.17, washH: 5, hand: { amp: 0.0025, len: 0.6, wid: 0.25, mottle: 0.045 } };
 /** stair blocks along the step (D-218, C): 1.9 m ± 30 %; the row's joint crosses the first tread of each row 6 cm in front of
  *  the next riser (the blocks' 4–5 steps per row: grand_stair.block_construction, B) */
@@ -352,6 +366,10 @@ export const SURFACES: Record<string, SurfaceDef> = {
   // D-218 (rubric s7 fix 2, 'the Tachara should be glossy near-black'): mirror-polished (roughness 0.18 → 0.10) and, as a
   // polish removes the surface scatter that lightens a honed face, the diffuse albedo N3 → N2.7 (6.4 → 5.2 %, C)
   limestone_dark: { albedo: grey(munsellY(2.7)), roughness: 0.1, porosity: 0.1, noiseScale: 2, noiseAmp: 0.05, tone: { sd: 0.05, chroma: 0.006 }, foot: 0.5, micro: { amp: 0.00003, freq: 160, alb: 0.02 }, tier: 'B/C', note: 'polished dark grey limestone (door/window frames): stone B (Majdabad dark grey, Iranica); D-218: mirror polish (the Tachara\'s "Hall of Mirrors" name, WP: C) as roughness 0.10 and the polished diffuse albedo N2.7 = 5.2 % (N3, the colour name, less the surface scatter a polish removes: C; Q-482); whitish finishing coat? (Q-072)' },
+  // D-752: the dark Majdabad stone of the 467 frames under its finishing coat: a thin fine whitish layer of fluorapatite (calcined
+  // bone) and calcite in a lime binder (Askari Chaverdi et al., Archaeometry 58, 2016: B; RELIEFS_AND_COLOUR §4), burnished (C).
+  // The polished black is the ruin's (limestone_dark: the Now view and the Ka'ba keep it)
+  frame_coat: { albedo: [0.8, 0.78, 0.72], roughness: 0.38, porosity: 0.15, noiseScale: 2, noiseAmp: 0.05, tone: { sd: 0.04, chroma: 0.006 }, foot: 0.5, micro: { amp: 0.00004, freq: 160, alb: 0.02 }, tier: 'B/C', note: 'D-752: the stone frames\' whitish finishing coat (fluorapatite and calcite in lime over the dark Majdabad limestone: Askari Chaverdi et al. 2016, B), burnished (C)' },
   // mud plaster on mud brick (D-188, Q-028): the evidenced default finish of the palace walls. Earthen plaster fragments
   // are reported from Persepolis and Pasargadae (Stein et al. 2016, npj Herit. Sci., search extract: B); the local loam
   // with straw, finished fine: a light buff (sRGB 0.64/0.55/0.43, L* 60, the town render's hue lightened as a fine clay
@@ -361,6 +379,8 @@ export const SURFACES: Record<string, SurfaceDef> = {
   // the Treasury's walls: mud plaster coated with a greyish yellow-green clay paint, attested at Pasargadae and, per
   // Schmidt, on the Treasury walls (Stein et al. 2016, npj Herit. Sci., search extract: B for the coating); tone C
   mudbrick_painted: { paint: PALACE_PAINT, albedo: [0.58, 0.57, 0.45], roughness: 0.9, porosity: 0.8, noiseScale: 0.6, noiseAmp: 0.09, tone: { sd: 0.1, chroma: 0.018, patch: -0.07 }, foot: 1, skirt: { h: 0.5, dark: 0.1, salt: 0.08 }, runoff: 0.1, plasterWork: { float: 1, cracks: 0.3 }, plasterWeather: PLASTER_WEATHER, earthWeather: PALACE_WEATHER, bump: { amp: 0.012, freq: 1.1 }, micro: { amp: 0.0006, freq: 55, alb: 0.05 }, tier: 'B/C', note: 'Treasury walls: mud plaster with a greyish yellow-green clay paint (Treasury walls per Schmidt; Pasargadae: via Stein et al. 2016, B); tone C; extent to other buildings open (Q-028)' },
+  // D-752: the palaces' walls and towers in residence (meshes.ts renderMaterial): the mud plaster painted inside and out, kept
+  palace_plaster: { paint: PALACE_PAINT, outerPaint: PALACE_OUTER_PAINT, albedo: [0.64, 0.55, 0.43], roughness: 0.9, porosity: 0.8, noiseScale: 0.6, noiseAmp: 0.07, tone: { sd: 0.06, chroma: 0.012, patch: -0.04 }, foot: 0.5, skirt: { h: 0.5, dark: 0.04, salt: 0.02 }, runoff: 0.04, plasterWork: { float: 1, cracks: 0.1 }, plasterWeather: PLASTER_WEATHER, earthWeather: PALACE_KEPT, bump: { amp: 0.008, freq: 1.1 }, micro: { amp: 0.0005, freq: 55, alb: 0.04 }, tier: 'B/C', note: 'D-752: the palaces\' mud plaster painted inside (global.r_interior_paint) and out (PALACE_OUTER_PAINT: a yellow-ochre lime ground, a red ochre dado with white and Egyptian blue bands, a red frieze under the head): pigments B (RELIEFS_AND_COLOUR §3a), layout C; kept by the court: no fallen plaster, faint wash and damp (C, holes.md #6)' },
   plaster: { albedo: [0.78, 0.74, 0.66], roughness: 0.85, porosity: 0.7, noiseScale: 0.8, noiseAmp: 0.08, roughVar: 0.1, tone: { sd: 0.09, chroma: 0.015, patch: 0.05 }, foot: 1, bump: { amp: 0.0022, freq: 2.4 }, micro: { amp: 0.00025, freq: 70, alb: 0.03 }, tier: 'C', note: 'lime/gypsum plaster' },
   // albedo (C, session 4): a hematite-like reflectance (~4–7 % below 580 nm rising to 30–50 % above 620 nm) integrated
   // with CIE 1931 / D65 gives linear ≈ (0.25–0.53, 0.034–0.085, 0.036–0.059), R/G 6–7.5; the old (0.48, 0.14, 0.10) sRGB
@@ -370,11 +390,11 @@ export const SURFACES: Record<string, SurfaceDef> = {
   // cedar (SITE_SPEC gate_nations.roof 'cedar beams', C; cedar from Lebanon for the Susa palace, DSf: A there): heartwood
   // light brown to reddish, darkened over 20–50 years under a roof: CIELAB L* 50, a* 9, b* 22 (C, D-188). Was sRGB
   // 0.32/0.23/0.15 (Y 5 %: a dark stained wood), under which the portico soffits rendered near-black
-  timber: { albedo: [0.57, 0.44, 0.32], roughness: 0.75, porosity: 0.5, noiseScale: 4, noiseAmp: 0.15, bump: { amp: 0.002, freq: 5 }, micro: { amp: 0.0003, freq: 60, alb: 0.06 }, tier: 'C', note: 'cedar beams (roof: SITE_SPEC, C); tone C (D-188)' },
+  timber: { albedo: [0.5, 0.27, 0.18], roughness: 0.6, porosity: 0.5, noiseScale: 4, noiseAmp: 0.15, bump: { amp: 0.002, freq: 5 }, micro: { amp: 0.0003, freq: 60, alb: 0.06 }, tier: 'C', note: 'cedar beams (roof: SITE_SPEC, C); tone C (D-188); D-752: planed and painted in red ochre (the royal joinery, not raw wood: holes.md #6; C)' },
   // the roofs: cedar (sides, top) with reed matting on the ceiling between the joists (D-188: cedar beams and an earth roof,
   // SITE_SPEC C; matting under the earth is the region's flat-roof build-up, RECOLLECTION, C). Reed, aged under the roof
   // and a little smoked: sRGB 0.55/0.47/0.33 (C)
-  roof_timber: { albedo: [0.57, 0.44, 0.32], roughness: 0.75, porosity: 0.5, noiseScale: 4, noiseAmp: 0.15, bump: { amp: 0.002, freq: 5 }, micro: { amp: 0.0003, freq: 60, alb: 0.06 }, under: 'matting', top: 'roof_earth', tier: 'C', note: 'roof: cedar beams (SITE_SPEC, C) with reed matting on the ceiling (C, D-188) and the earth on top (D-334: was drawn as cedar planks)' },
+  roof_timber: { albedo: [0.5, 0.27, 0.18], roughness: 0.6, porosity: 0.5, noiseScale: 4, noiseAmp: 0.15, bump: { amp: 0.002, freq: 5 }, micro: { amp: 0.0003, freq: 60, alb: 0.06 }, under: 'matting', top: 'roof_earth', tier: 'C', note: 'roof: cedar beams (SITE_SPEC, C) with reed matting on the ceiling (C, D-188) and the earth on top (D-334: was drawn as cedar planks); D-752: planed and painted in red ochre (the royal joinery, not raw wood: holes.md #6; C)' },
   // D-334: the bare courses of the walls still rising in 467 (the Hall of 100 Columns, the Tripylon; renderMaterial, meshes.ts):
   // square sun-dried bricks 33 cm, 13 cm a course with its mud mortar joint (bricks of the Terrace's walls: C here), laid in
   // running bond, each brick its own tone, the mortar darker and a little sunk; the straw-tempered earth of a clay block scan
@@ -1118,8 +1138,7 @@ function layer(d: SurfaceDef, base: any, arch = false, band = false): Layer {
     const salt = float(1).sub(smoothstep(float(0), aa.add(0.04), abs(h.sub(dampTop)))).mul(smoothstep(-0.2, 0.3, mx_noise_float(along.mul(0.9).add(vec3(4.4, 0, 9.2))))).mul(on);
     alb = mix(alb, vec3(0.78, 0.77, 0.74), salt.mul(K.salt));
   }
-  if (arch && d.paint) { // D-334: the painted interiors (inner faces only): the ground and the bands over the plaster's own grain
-    const PT = d.paint, inner = attribute('inner', 'float').mul(float(1).sub(smoothstep(0.3, 0.7, abs(n.y)))).mul(SURF_AB);
+  const paintScheme = (PT: NonNullable<SurfaceDef['paint']>, inner: any) => { // D-334 / D-752: a painted scheme over the plaster's own grain, where `inner` is 1
     const h = p.y.sub(attribute('y0', 'float')), ht = attribute('ytop', 'float').sub(p.y), aa = fwidth(p.y).max(1e-4);
     const L0 = new THREE.Color().setRGB(...d.albedo, THREE.SRGBColorSpace), rel = (c: [number, number, number]) => { const q = new THREE.Color().setRGB(...c, THREE.SRGBColorSpace); return vec3(q.r / L0.r, q.g / L0.g, q.b / L0.b); }; // paint over plaster: the plaster's grain stays, its mean becomes the paint's
     const inBand = (x: any, a: number, b: number) => smoothstep(float(a).sub(aa), float(a).add(aa), x).mul(float(1).sub(smoothstep(float(b).sub(aa), float(b).add(aa), x)));
@@ -1133,7 +1152,10 @@ function layer(d: SurfaceDef, base: any, arch = false, band = false): Layer {
     f = mix(f, rel(PT.frieze.edge.col), inBand(tt, PT.frieze.h, PT.frieze.h + PT.frieze.edge.w));
     alb = mix(alb, alb.mul(f), inner);
     rough = mix(rough, rough.mul(0.94), inner); // a paint film a little less matte than bare mud
-  }
+  };
+  if (arch && d.paint) paintScheme(d.paint, attribute('inner', 'float').mul(float(1).sub(smoothstep(0.3, 0.7, abs(n.y)))).mul(SURF_AB)); // D-334: the painted interiors (inner faces only)
+  if (arch && d.outerPaint) // D-752: the painted exteriors: the vertical faces that are not inner and stand on a floor (the fittings carry y0 = -1000)
+    paintScheme(d.outerPaint, float(1).sub(attribute('inner', 'float')).mul(float(1).sub(smoothstep(0.3, 0.7, abs(n.y)))).mul(step(-500, attribute('y0', 'float'))).mul(step(attribute('ytop', 'float').sub(attribute('y0', 'float')), 500)).mul(SURF_AB));
   if (arch && d.runoff) { // run-off below the tops of exposed stone (D-157, C): streaks fast across the face, slow down it
     const below = attribute('ytop', 'float').sub(p.y), vert = float(1).sub(smoothstep(0.3, 0.7, abs(n.y)));
     const q = vec3(p.x.mul(2.2), p.y.mul(0.2), p.z.mul(2.2));
