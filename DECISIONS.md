@@ -10546,3 +10546,4 @@ touched; the budget baseline is not re-accepted from such a head.
   ochre plaster (palace_crest); the roof-line merlons under the frames' whitish coat; the Apadana stair façades' relief ground
   Egyptian blue (relief_ground); faces with no floor in front (the towers over the podium's edge) painted too. All C (pigments B).
 - Probe frames (WebGL2 SwiftShader, no aerial perspective) at 700 m-1 km before/after: handoff/s18/c10/distance-*.jpg.
+- Addendum 3: q_w3 moved 20 m W (c −955, −95): on its E side it abutted q_b3 (gap ≤ 5 m) and its lanes' way out E led into a pocket (C5: 261 of 537 q_w3 lane cells could not reach the market at −773, −145; now 5 of 581; TownWalk.route). tools/dev/open_sky_census.ts: the cloud eyes' open-to-sky measure (render.mjs 31f0e69f) in node with the near ring: intro-town 0.052 (135 samples), town-20m 0 (6), town-200m-noon 0 (16).
