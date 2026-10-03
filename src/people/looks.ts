@@ -240,8 +240,8 @@ export function lookFor(A: HumanAssets, p: LookInput, worldSeed: number): Person
     case 'median': on.add('bun'); if (man) on.add(beardRoll < 0.8 ? 'beard_long' : 'beard_short'); on.add('cap_soft'); if (p.role === 'guard') { on.add('akinaka'); on.add('gorytos'); }
       else if (rng.chance(0.45)) on.add('kandys'); break;
     case 'worker': if (man) { const egyptian = p.origin === 'Egyptian'; if (!egyptian && beardRoll < 0.3) on.add('beard_long'); else if (!egyptian && beardRoll < 0.8) on.add('beard_short'); }
-      if (rng.chance(0.4)) on.add('work_trousers'); if (rng.chance(0.6)) on.add('shoes'); const h = rng.next(); if (h < 0.3) on.add('headband'); else if (h < 0.45) on.add('cap_soft'); break;
-    case 'woman': if (rng.chance(0.8)) { on.add('headcloth'); on.delete('hair'); /* hidden under it (it poked through) */ } else { on.delete('hair'); on.add('hair_bob'); } if (rng.chance(0.6)) on.add('shoes'); break;
+      if (rng.chance(0.4)) on.add('work_trousers'); if (rng.chance(0.4)) on.add('shoes'); // (D-780, holes u4: most working men barefoot: C) const h = rng.next(); if (h < 0.3) on.add('headband'); else if (h < 0.45) on.add('cap_soft'); break;
+    case 'woman': if (rng.chance(0.8)) { on.add('headcloth'); on.delete('hair'); /* hidden under it (it poked through) */ } else { on.delete('hair'); on.add('hair_bob'); } if (rng.chance(0.45)) on.add('shoes'); break;
     case 'child': if (rng.chance(0.3)) on.add('shoes'); break;
     // D-199: the king as the reliefs carve him: hair gathered at the nape, the long squared beard, the crown (always)
     case 'king': on.add('bun'); on.add('beard_long'); break;
