@@ -995,7 +995,7 @@ function headcloth(L: Lib, key: string, lod: number) {
 }
 /** torque: a ring around the base of the neck, fitted to the neck's support radius (per θ) plus 7 mm */
 function torqueGeo(L: Lib, key: string, lod: number, o: { dy?: number; r?: number; beads?: number; metal?: number } = {}) {
-  const thin = o.r !== undefined && lod === 2, T = TESS[lod], segs = thin ? 4 : Math.max(8, Math.round(T.hs * (o.beads ? 1.5 : 0.75))), tubeSeg = lod === 0 ? 6 : thin ? 3 : 4; // a 4.5 mm ring: 6 sides at LOD0 (D-155 budget); (D-780: the necklaces and the seal's cord at the farthest level: 24 triangles, the costume's LOD2 and LOD3 budgets)
+  const small = o.r !== undefined, thin = small && lod === 2, T = TESS[lod], segs = thin ? 4 : small ? (lod === 0 ? (o.beads ? 36 : 16) : 8) : Math.max(8, Math.round(T.hs * 0.75)), tubeSeg = small ? (lod === 0 ? 4 : 3) : lod === 0 ? 6 : 4; // a 4.5 mm ring: 6 sides at LOD0 (D-155 budget); (D-780: the necklaces and the seal's cord at the farthest level: 24 triangles, the costume's LOD2 and LOD3 budgets)
   const cache = { v: null as HumanVariant | null, r: [] as number[] };
   const ring = (c: Ctx) => { const n = c.J('neck_01'); return vertFrame([0, n[1] - (o.dy ?? 0.012), n[2] + 0.01]); };
   const sup = (c: Ctx) => { if (cache.v === c.v) return cache.r; const F = ring(c), r = new Array(64).fill(0.05);
@@ -1013,7 +1013,7 @@ function sealCordGeo(L: Lib, key: string, lod: number) {
   const front = (c: Ctx): V3 => { const n = c.J('neck_01'), y = n[1] - 0.075; let z = -1;
     for (const i of partVerts(c.A, [P.chest])) { const py = c.v.pos[i * 3 + 1]; if (Math.abs(py - y + 0.012) < 0.012 && Math.abs(c.v.pos[i * 3]) < 0.03) z = Math.max(z, c.v.pos[i * 3 + 2]); }
     return [0, y, (z > -1 ? z : c.J('spine_03')[2] + 0.09) + 0.016]; };
-  const seal = tubeGeo(L.A, `${key}_seal`, { segs: lod === 0 ? 8 : lod === 1 ? 5 : 3, rings: 2, capEnd: true, closeTop: true,
+  const seal = tubeGeo(L.A, `${key}_seal`, { segs: lod === 0 ? 6 : lod === 1 ? 4 : 3, rings: 2, capEnd: true, closeTop: true,
     frame: (c, t) => { const o = front(c); return { o: [o[0], o[1] - 0.024 * t, o[2]], u: [0, 0, 1], v: [-1, 0, 0], w: [0, -1, 0] }; },
     radius: () => 0.006, weights: () => [W('spine_03', 1)], mat: MAT.metal, col: COL.fixed, prm: METAL.bronze });
   return merge(key, [cord, seal]);
@@ -1304,10 +1304,10 @@ function buildPiece(L: Lib, id: string, lod: number): Geo {
     case 'crown': return crownGeo(L, `${id}@${lod}`, lod);
     case 'torque': return torqueGeo(L, `${id}@${lod}`, lod);
     // D-780 (C12 P2-7): a necklace of beads at the base of the neck: gold for the court's women, bronze for the town's (C)
-    case 'necklace': case 'necklace_b': return torqueGeo(L, `${id}@${lod}`, lod, { dy: 0.02, r: 0.0035, beads: 44, metal: id === 'necklace' ? METAL.gold : METAL.bronze });
+    case 'necklace': case 'necklace_b': if (lod >= 2) return merge(`${id}@${lod}`, []); return torqueGeo(L, `${id}@${lod}`, lod, { dy: 0.02, r: 0.0035, beads: 18, metal: id === 'necklace' ? METAL.gold : METAL.bronze });
     // D-780 (holes u3): an official's cylinder seal on a cord round the neck, hanging at the breast (the seals of the Persepolis
     // tablets' officials, worn: B for the practice; the cord and the place C)
-    case 'seal_cord': return sealCordGeo(L, `${id}@${lod}`, lod);
+    case 'seal_cord': return lod >= 2 ? merge(`${id}@${lod}`, []) : sealCordGeo(L, `${id}@${lod}`, lod); // (D-780: not at the farthest level: the costume's LOD2/LOD3 budgets)
     case 'quiver': return quiverGeo(L, `${id}@${lod}`, lod);
     case 'kandys': return kandysGeo(L, `${id}@${lod}`, lod);
     case 'bow': return bowGeo(L, `${id}@${lod}`, lod);
