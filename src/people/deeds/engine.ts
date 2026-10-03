@@ -13,7 +13,7 @@
 // Tier C throughout (DECISIONS D-459): the law's fines and the elder's hearing are reconstructed from the Achaemenid evidence of
 // royal judges and fines in silver (B for the institution, C for the amounts and the village elder's part).
 import type { Population, Seg, Where } from '../population';
-import { segAt, OPEN_PLACE, wetHours, coldWear, dustWear } from '../population';
+import { segAt, OPEN_PLACE, wetHours, coldWear, dustWear, FEED_SEG } from '../population';
 import type { Economy } from '../economy/world';
 import type { RumourNet } from '../asks/rumour';
 import type { ActivityId } from '../activities';
@@ -294,16 +294,39 @@ export class DeedWorld {
     if (seg.act !== 'lie_ill') { if (P.ageOn(pid, day) < 3 || (P.persons[pid].job === 'child' && P.hday(P.home(pid, day), day).minder === pid)) return false; // (the minder is a child of the house)
       const wx = P.cal?.ctx(day).wx, open = OPEN_PLACE.test(seg.place) || /^(offering_place|hills|river|mountain|road:)/.test(seg.place) || OUTDOOR_ACT.has(seg.act);
       if (wx && open && (wetHours(wx, seg.t0, seg.t1) > 0 || (wx.dustH && wx.dustH[0] < seg.t1 && wx.dustH[1] > seg.t0))) return false; }
-    // (D-720, C7's planCheck: a laid stretch is dressed against the cold and the dust as the day's own are: fishing at dawn in winter)
-    { const wx = P.cal?.ctx(day).wx; if (wx) { const run = [{ ...seg }]; coldWear(run, wx); dustWear(run, wx); seg = run[0]; } }
     const k = `${pid}:${day}`; const l = this.lays.get(k) ?? []; l.push(seg); this.lays.set(k, l); return true; }
   /** take back the segments laid from a day on whose reason matches (a hire ended: D-462) */
   private unlay(pid: number, from: number, why: RegExp) { for (const [k, l] of this.lays) { const [p, d] = k.split(':').map(Number); if (p !== pid || d < from) continue; const r = l.filter(s => !why.test(s.why)); if (r.length) this.lays.set(k, r); else this.lays.delete(k); } }
   private layDays(pid: number, day: number, n: number, act: ActivityId, why: string) { const P = this.w.pop; for (let d = day + 1; d <= day + n; d++) this.lay(pid, d, { t0: 0, t1: 24, place: `h:${P.home(pid, d)}`, act, why, where: P.households[P.home(pid, d)]?.zone === 'plain' ? 'plain' : 'town' }); }
+  /** a laid stretch cut into the day with the walks to it from where the day has the person before and back to where it goes
+   *  on after, taken out of its own hours (planCheck: nobody changes place without a walk); a walk of the day at either edge is
+   *  left to lead there; too short once walked: not laid (C7 D-710) */
+  private walkedIn(pid: number, day: number, base: Seg[], s: Seg): Seg[] {
+    if (s.t0 <= 1e-6 && s.t1 >= 24 - 1e-6) return cutIn(base, s);
+    const P = this.w.pop, bad = (x: Seg) => x.where === 'road' || x.place.startsWith('road:') || x.place.startsWith('@') || x.where === 'away';
+    const b = s.t0 > 1e-6 ? segAt(base, s.t0 - 1e-6) : null, a = s.t1 < 24 - 1e-6 ? segAt(base, s.t1 + 1e-6) : null;
+    const wh = (x: string) => this.whereOf(x, pid, day), walk = (x: string, y: string) => x === y ? 0 : P.walkH(x, y, day, wh(x), wh(y));
+    const w1 = b && !bad(b) ? walk(b.place, s.place) : 0, w2 = a && !bad(a) ? walk(s.place, a.place) : 0;
+    if (s.t1 - s.t0 - w1 - w2 < 0.1) return base;
+    const mid: Seg[] = [...(w1 > 0 ? [{ t0: s.t0, t1: s.t0 + w1, place: `road:${wh(s.place)}`, act: 'walk' as ActivityId, why: 'walking', where: 'road' as Where }] : []), { ...s, t0: s.t0 + w1, t1: s.t1 - w2 },
+      ...(w2 > 0 ? [{ t0: s.t1 - w2, t1: s.t1, place: `road:${wh(a!.place)}`, act: 'walk' as ActivityId, why: 'walking back', where: 'road' as Where }] : [])];
+    const wx = P.cal?.ctx(day).wx; if (wx) { dustWear(mid, wx); coldWear(mid, wx); } // (dressed for the cold and the dust by their own hours, as the living world's errands)
+    let out = base; for (const x of mid) out = cutIn(out, x);
+    // (D-720, C7's meal gaps: the day's meals are kept: one the stretch covers is eaten where the person is, bread and water at
+    // the work or the visit, for the meal's own length)
+    const body = mid.find(x => x.act !== 'walk');
+    // (and a mother keeps nursing her baby where she is, as her day had her nursing: planCheck's feeds)
+    if (body) for (const m of base) { if (!FEED_SEG.test(m.why) || m.t1 <= body.t0 || m.t0 >= body.t1) continue; const t0 = Math.max(m.t0, body.t0), t1 = Math.min(Math.max(m.t1, t0 + 0.25), body.t1);
+      if (t1 - t0 >= 0.1) out = cutIn(out, { ...body, t0, t1, act: 'rest', why: 'stopping to nurse the baby' }); }
+    // (a meal the walks there or back covered is eaten at the stretch's nearest end)
+    if (body) for (const m of base) { if (m.act !== 'eat' || m.t1 <= s.t0 || m.t0 >= s.t1) continue; const len = Math.max(0.3, Math.min(m.t1, s.t1) - Math.max(m.t0, s.t0)), t0 = Math.min(Math.max(m.t0, body.t0), body.t1 - len), t1 = Math.min(t0 + len, body.t1);
+      if (t1 - t0 >= 0.2) out = cutIn(out, { ...body, t0, t1, act: 'eat', why: /visit|guest|eating with|talk/.test(body.why) ? 'eating with them' : 'bread and water at the work' }); }
+    return relabelCuts(base, out);
+  }
   /** the deeds' overlay of the day plans (Population.deeds) */
   readonly overlay = {
     touches: (pid: number, day: number) => this.lays.has(`${pid}:${day}`),
-    overlay: (pid: number, day: number, base: Seg[]): Seg[] => { let out = base; for (const s of this.lays.get(`${pid}:${day}`) ?? []) out = cutIn(out, s); return out; },
+    overlay: (pid: number, day: number, base: Seg[]): Seg[] => { let out = base; for (const s of this.lays.get(`${pid}:${day}`) ?? []) out = this.walkedIn(pid, day, out, s); return out; },
   };
 
   // ---------------------------------------------------------------- the law, promises (day by day)
@@ -391,6 +414,14 @@ export class DeedWorld {
       this.old.set(id, { id, day: Math.floor(t / 24), t, deed: { verb, actor, ...(target !== -1 ? { target } : {}), ...(third !== -1 ? { third } : {}), ...(act ? { act } : {}) } as Deed, out: { ok: !!ok, why: '', effects: [] } }); } this.joint.load(s.joint); this.agency.load(s.agency); }
 }
 
+/** D-720 (planCheck labels): a stretch of the day cut short by one laid over it no longer is what its reason says ("sleeping
+ *  through the heat of the day" for a quarter of an hour): a piece of it is a short rest (the economy's overlay uses it too) */
+export function relabelCuts(base: Seg[], out: Seg[]): Seg[] {
+  const orig = new Set(base); let changed = false;
+  const res = out.map(s => { if (orig.has(s) || !/through the heat/.test(s.why)) return s; const b = base.find(x => x.why === s.why && x.t0 <= s.t0 + 1e-6 && x.t1 >= s.t1 - 1e-6);
+    if (!b || b.t1 - b.t0 - (s.t1 - s.t0) < 1e-6) return s; changed = true; return { ...s, act: 'rest' as ActivityId, why: s.act === 'sleep' ? 'a short rest out of the sun' : 'resting a while in the shade' }; });
+  return changed ? res : out;
+}
 /** a segment laid into a day: the base is cut around it (the overlays' shared rule) */
 export function cutIn(base: Seg[], s: Seg): Seg[] {
   const out: Seg[] = [];
