@@ -69,8 +69,11 @@ settlement/plan.ts (+ new settlement/estates.ts).
 - **The estates' roofs are drawn from below**, through C2's Prop.bottom.
 - **road_pasargadae:** nothing to change. D-730 already took it off Kuh-e Rahmat; measured, it stays between −14 and +9 m of
   its start over 12.8 km.
-- **Unseen:** a render of the halts, wells and shrines was stopped at the reset, so their placement has not been looked at in a
-  frame.
+- **Roadside placement, checked after the resume:** measured, every stop is 5, 7 or 12 m from the road edge on ground that
+  varies by at most 0.2 m. The stops doubled where the Pasargadae road shares the Naqsh road's stretch (50-70 m apart) were
+  removed (90f107c2). Crude frames are handoff/s18/c15/r2_*.jpg: the halt with its cart, the shrine at a field edge, the
+  Naqsh ground. Nothing floats or is buried. The halts read as boxes (the town kit, D-802, is the fix).
+- **The village gates are painted** by C2's towndoors change: no change from C15.
 
 ## Frames (crude, SwiftShader, `?webgl=1`, 1280 × 720, day 25 10:00 clear)
 

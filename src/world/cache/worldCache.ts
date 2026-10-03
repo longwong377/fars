@@ -155,6 +155,11 @@ export async function prefetchUnits(units: string[]): Promise<void> {
   // this browser's own copies of the keyed ones the site has not baked (D-392: a world of its own seed)
   await Promise.all(units.filter(u => u.includes('|') && !pre.has(u)).map(async k => { const unit = k.slice(0, k.indexOf('|')), b = await localGet(unit, k.slice(unit.length + 1), src[unit]); if (b) pre.set(k, b); }));
 }
+/** D-740 (s18, the JS heap at its cap): the units fetched ahead and never read (another variant's or world's entry, or a stage
+ *  that built live) are dropped once the world is up (main.ts, at ready); before, they were kept for the whole visit.
+ *  Returns what was dropped (key -> MB) */
+export function dropPrefetched(): Record<string, number> { const out: Record<string, number> = {};
+  for (const [k, b] of pre) out[k] = +((b.byteLength ?? 0) / 1048576).toFixed(1); pre.clear(); (cacheStats as any).droppedAtReady = out; return out; }
 /** the keys of a unit fetched ahead (prefetchUnits) and not yet read */
 export const prefetchedKeys = (unit: string) => [...pre.keys()].filter(k => k.startsWith(unit + '|')).map(k => k.slice(unit.length + 1));
 /** a prefetched unit's result, or null (then compute it and cachePutSync it) */

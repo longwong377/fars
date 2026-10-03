@@ -64,7 +64,7 @@ export class TownDoors {
     this.group.name = name;
     this.moving = new Uint8Array(doors.length); this.open = new Float32Array(doors.length).fill(-1); this.target = new Float32Array(doors.length); this.sched = new Float32Array(doors.length);
     const mat = surfaceMaterial(variants === 1 ? 'house_timber' : 'door_planks', { vertexColors: true }) as any; mat.aoNode = attribute('ao', 'float'); // (s17 C1: the town's leaves their own boarded surface)
-    for (let v = 0; v < variants; v++) { const m = new THREE.InstancedMesh(leafGeometry(variants === 1 ? 1 : v), mat, MAXI); m.name = `${name === 'settlement:doors' ? 'settlement-doors' : name}:${v}`; m.count = 0; m.frustumCulled = false; m.castShadow = true; m.receiveShadow = true; if (variants > 1) m.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(MAXI * 3).fill(1), 3);
+    for (let v = 0; v < variants; v++) { const m = new THREE.InstancedMesh(leafGeometry(variants === 1 ? 1 : v), mat, MAXI); m.name = `${name === 'settlement:doors' ? 'settlement-doors' : name}:${v}`; m.count = 0; m.frustumCulled = false; m.castShadow = true; m.receiveShadow = true; m.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(MAXI * 3).fill(1), 3);
       m.userData = { tier: 'C', src: 'MESO-HOUSE-SX;RECON', note: 'street door leaves (D-234)', describe: () => ({ tier: 'C', src: 'MESO-HOUSE-SX;RECON', note: 'street door: a leaf of poplar planks on battens, turning on a pivot post in a stone socket (B analogue: Babylonian doors on doorposts in sockets of brick or stone, search extract); shut and barred at night, open, ajar or shut by day by the household (C)' }) };
       this.meshes.push(m); this.group.add(m); }
   }
@@ -97,7 +97,7 @@ export class TownDoors {
             if (near && !this.moving[i]) this.onSound('door', { x: px, y: d.y + 1, z: pz }, false); // (it starts from rest)
             if (near && t < 0.02 && this.open[i] < 0.02) this.onSound('door_shut', { x: px, y: d.y + 1, z: pz }, this.night); }
           this.moving[i] = this.open[i] !== t ? 1 : 0; } else this.moving[i] = 0;
-        q.setFromAxisAngle(up, this.yaw(d, this.open[i])); pos.set(d.hinge[0], d.y, -d.hinge[1]); scl.set(1, Math.min(1.02, d.h / (DOOR_H - 0.05)), 1); M.compose(pos, q, scl); if (this.variants > 1) m.setColorAt(n, this.paint(d)); m.setMatrixAt(n++, M); // the leaf cut to its doorway's lintel (s18 C2, D-660: the draw had slid into this comment in s15: no leaf was drawn)
+        q.setFromAxisAngle(up, this.yaw(d, this.open[i])); pos.set(d.hinge[0], d.y, -d.hinge[1]); scl.set(1, Math.min(1.02, d.h / (DOOR_H - 0.05)), 1); M.compose(pos, q, scl); m.setColorAt(n, this.paint(d)); m.setMatrixAt(n++, M); // the leaf cut to its doorway's lintel (s18 C2, D-660: the draw had slid into this comment in s15: no leaf was drawn)
         if (this.open[i] < 0.02) shut++;
         this.collider(i, d, this.open[i] < 0.05 && nearTile(d.tile)); }
       m.count = n; m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; drawn += n; }

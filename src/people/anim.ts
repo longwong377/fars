@@ -10,7 +10,7 @@
 // The work cycles of the activities performed since D-142 (hoeing, reaping, weaving, …) are in workAnims.ts: they are
 // authored from hand and foot targets (poseKit.ts IK) and return prop hints (tip, at, show, ip) for the carried props.
 import { workPose, WORK_ANIMS, type WorkAnim } from './workAnims';
-import { gaitPose, loopAt, pickOf, devAt, blendInto, CLIPS, IDLES, TALKS, type GaitStyle } from './mocap';
+import { gaitPose, loopAt, pickOf, devAt, blendInto, CLIPS, IDLES, TALKS, IDLES_W, TALKS_W, IDLES_O, type GaitStyle } from './mocap';
 const TALK_DAMP = ['l_upper', 'l_fore', 'l_hand', 'r_upper', 'r_fore', 'r_hand'] as const;
 
 /** pose channels (the Phase 3 rig's bones); RETARGET in humanRig.ts maps each onto the 59-bone skeleton */
@@ -122,7 +122,7 @@ export function pose(id: AnimId, t: number, ph: number, k: number, g: Gait = GAI
   switch (id) {
     case 'idle': case 'inspect': {
       // standing (D-333): a motion-capture idle, one of five per person (weight shifts, the head turning, the hands at rest)
-      p = loopAt(IDLES[pickOf(k, IDLES.length, 5)], t, k, 0.9 + 0.2 * fr(k * 0.37)); r = p.rot;
+      { const I = g.style === 'woman' ? IDLES_W : g.style === 'old' ? IDLES_O : IDLES; p = loopAt(I[pickOf(k, I.length, 5)], t, k, 0.9 + 0.2 * fr(k * 0.37)); r = p.rot; } // (s18 C14: a woman's own stance)
       if (id === 'inspect') { r.l_upper = [0.25, 0, 0.12]; r.r_upper = [0.25, 0, -0.12]; r.l_fore = [-0.9, 0, -0.5]; r.r_fore = [-0.9, 0, 0.5]; } // hands clasped behind
       break;
     }
@@ -228,7 +228,7 @@ export function pose(id: AnimId, t: number, ph: number, k: number, g: Gait = GAI
     case 'sleep': { p.hips = [0, -0.83, 0]; r.hips = [-PI / 2, 0, 0]; r.l_upper = [0, 0, 0.1]; r.r_upper = [0, 0, -0.1]; r.head = [0.2, 0.2, 0]; r.chest = [breath * 0.6, 0, 0]; r.l_shin = [0.2, 0, 0]; r.r_shin = [0.1, 0, 0]; break; }
     case 'talk': {
       // in conversation (D-333): captures of people explaining with their hands, one of three per person
-      p = loopAt(TALKS[pickOf(k, TALKS.length, 7)], t, k, 0.9 + 0.2 * fr(k * 0.29));
+      { const TK = g.style === 'woman' ? TALKS_W : TALKS; p = loopAt(TK[pickOf(k, TK.length, 7)], t, k, 0.9 + 0.2 * fr(k * 0.29)); } // (s18 C14: a woman's own gestures)
       // (s17 V3, D-500: the captured speakers lecture, a hand flung to head height every few seconds; at 10 m a lane of talkers
       // read as waving robots: the arms are taken 60 % of the way back to a standing capture's, the gesture kept, smaller; C)
       blendInto(p, loopAt(IDLES[pickOf(k, IDLES.length, 5)], t, k, 0.9 + 0.2 * fr(k * 0.37)), 0.6, TALK_DAMP); break;

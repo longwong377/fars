@@ -195,6 +195,24 @@ See handoff/s18/c13_frames/ (if present): the forecourt and N stair at 09:12 on 
 - **people_belly times out alone here** (360 s against its 240 s). Like the sealed-letter test, it reads plans across the whole
   year, so the town's economy runs a year. Not my change; reported.
 
+## Reset (lead 3): the banquet hall
+- C6's frame showed "a standing queue in the hall, no tables or seats". I cannot render here. Node-side, on s17-int d8b00661
+  merged in, the hall at 20:00 on days 15 and 19 (seed 1) holds:
+  - 256 diners seated at the tables and 12 reclining on couches;
+  - 150 servers by the tables and about 30 lamp tenders by the walls;
+  - 217-249 more diners in the portico;
+  - no one queueing.
+  All 268 seats stay walkable after the laid tables are stamped into the walk grid (world.ts blockDisc), so none is snapped
+  into an aisle. The halls are laid ('use') whenever the court is in residence (courtCalendar 'seasonal'; cal.ctx(d).court
+  true on days 14-117). **If C6's frame still shows no tables, the cause is in the view or the render setup, not the plans:**
+  - `?test` without `&court=seasonal` gives courtCalendar 'evidence', which lays nothing;
+  - the palace groups are culled 90 m from the hall's centre.
+  Unseen.
+- Added: a flat madder cushion (the interiors' cushion model at 6 cm, one instanced work object, `feast_cushion`) under every
+  seated diner, so a seat has a visible form. The sitter's capture rests on the floor, so he sinks into the cushion's 6 cm.
+  The tables stay at the model's lowest level (237 triangles each; the next level would put the halls 21 k over their 450 k
+  budget).
+
 ## Tests
 - tests/court_ceremony.test.ts (new, 5 tests): the programme, the seats, the people on the programme's days, well-formed plans.
 - tests/palace_furnish.test.ts: updated for the stored state (hangings stay up).
