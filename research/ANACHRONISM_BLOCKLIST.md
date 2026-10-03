@@ -42,6 +42,6 @@ if any asset/tag/text in the world matches. Each asset carries `period`, `source
 | modern-dams | Doroodzan dam, Mulla Sadra dam, Sivand dam and reservoirs; modern canals and pumping | modern (KOR-HSJ2023) | Phase 7 research |
 | modern-plain | Marvdasht city, sugar factory, petrochemical complex, Shiraz–Isfahan highway and bridges, sugar-beet fields | modern (OVERTURE-2026) | Phase 7 research |
 | date-palms-plain | date palms growing on the Marvdasht plain | dates are imported from the lowlands; 44 frost days a year (C) | Phase 7 research |
-| qanat? | qanat shafts and galleries in the plain | not dated to the Achaemenid period (Q-052): **not placed**; unblock only with evidence | Phase 6 research |
+| ~~qanat?~~ | qanat shafts and galleries in the plain | **unblocked (D-670, s18):** not dated to the Achaemenid period (Q-052) but not ruled out; Polybius 10.28 has the Persian kings rewarding underground water works: placed by rule as the most probable reconstruction (D-207), tier C | Phase 6 research |
 | windcatcher | windcatchers (badgir) on town houses | oldest verified example 14th c. CE (Iranica 'Badgir', search extract): not attested in 467 BCE (D-234) | Phase 6 houses research |
 | fired-brick-house | fired-brick walls or brick vaults in ordinary houses | fired and glazed brick is monumental (Tol-e Ajori, Susa); houses are sun-dried brick (D-234, C) | Phase 6 houses research |

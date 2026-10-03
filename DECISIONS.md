@@ -9884,6 +9884,20 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   stacks, heaps and folds drawn to 2.2 km; crop guards' reed shelters at irrigated plot edges and herders' wattle pens with
   their huts on the fallow (the kit's models), to 2.2 km (fieldFill.ts LAND). Census (plain_census, 18 Apr): bare 3.0 % and
   repeats 0.0 % as in s17; field trees near paths 25 -> 77.
+- Qanats unblocked (the lead's ask from C12's holes audit): Q-052 says no qanat in Fars is dated to the Achaemenids, not that
+  there were none; Polybius 10.28 has the Persian kings rewarding underground water works. By D-207 they are drawn, tier C
+  (qanats.ts): 56 lines (~2,700 shaft mounds, 20-45 m apart, larger upslope) from the hill-foot fans down onto the plain,
+  clear of the zones, Terrace, rivers, roads and villages, in 3 km tiles shown within ~3.2 km. blocklist.json's qanat entry
+  removed, ANACHRONISM_BLOCKLIST.md row marked unblocked, plain.json not_placed line removed, the plain test's banned-name
+  list updated. settlement.json, lives.json (others' files) still say "no qanats" in their notes.
+- Trees (trees/render.ts setDay): every day change after the first bake re-bakes the impostors in the worker, jumps too (C1's
+  sliced day jump made the 1.7 s main-thread bake the worst frame); the far trees follow within a second or two.
+- crossings.ts: one ford per place across roads (D-730's two roads share a line and a ford). tools/plain/meander.ts re-runs
+  (it undoes the last meander from the base course and prior samples it kept); re-run after D-730's rerouted roads.
+- The plain's frame budget (D-040's 2 M at the village wells) after the s17-int merge (+80 k of village door leaves): the fords'
+  and quarries' shared stone mesh cast its 361 k shadow triangles in every frame (the castShadow line sat inside a comment);
+  now within 300 m of a ford or 450 m of a quarry. The river apron in two steps (11 vertices a section, was 13); canal banks
+  at the canals' 25 m trace step (was 12.5).
 
 ## D-720 Follow thirty: the people answer from their own lives without the model, and the town's deeds and yesterday reach their talk (session 18, cloud C8; UD-07, UD-08, UD-11, UD-21, UD-24, UD-32)
 - Measured (tools/dev/follow30.ts; REVIEWS/follow30.json): thirty people drawn by seed across the town, the villages, the Terrace's
