@@ -10249,6 +10249,14 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   four horses abreast, CHARIOT_YOKE 2.95 m, the car's floor 0.55 m); the royal women's curtained litter (workObjects 'litter',
   carry_bier on a why naming it; Plutarch Them. 26, HDT 7.83 claims B, the form C); household donkeys tied at lane doors by
   day and hens out at the door (fauna.json donkey 0.08 of lane-door houses; all C).
+- D-790 round 4: the toddler held where it plopped (crowd.ts hold, Gait.plop; a held hand keeps it up) and hurrying after;
+  carried biers and litters walk in formation with their crews (crowd.ts CREW: the anchor bearer's place the centre, the
+  bearers at 0.46 m / 1.0 m by their pole's shoulder; Q-196 closed for moving crews); the royal women's litter carried by
+  C13's bearers (C13's model). The face assets (branch s18-face-assets, Vagon): the Lee Perry-Smith scan's normal map (CC BY
+  3.0) integrated to height, fitted to hm08 by an affine and thin-plate warp on six landmarks, cast onto its UV and blended
+  over the procedural creases (tools/blender/face_scan.py; skin.ts applyFaceRelief); its albedo is not used (one man's
+  stubble and brows on every face). The hair atlas's curls loosened (curly, court and beard rows: more irregular radius,
+  pitch and phase, more strays and fray: the elder's "bubble wrap"), rebuilt in the cloud (ktx_cli.mjs takes given levels).
 
 ## D-691 Carried props sit on the body, seated poses clear their props (s18 cloud C5)
 - tools/dev/prop_clip.ts: every activity and variant that holds a prop, and the goods in the plan's words (basket, sack, jar,
