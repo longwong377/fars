@@ -52,10 +52,10 @@ None of it is verified in a render yet (pagecheck and C6 are the check).
 | 13 | plain work places, brick fields, houses being built | C3, C2 | DONE / DONE-b | 08243142 works; 5078eda1 a house being built in q_b1 |
 | 14 | halls stored, bare windows, hangings, ceilings, banners | C10, C13 | partly | hangings and standards (946ae757); **ceilings, shutters and grilles, banners in the wind, off-season hall dress: no commit, chased 07:05 and 07:55** |
 | 15 | speech in isolated words, hums, wordless songs | C8 | DONE-b (songs) | 859a28d5 work, reaping, well and market songs; crowd murmur and model-driven overheard talk not re-checked |
-| 16 | water (river, paradise feed, qanats, ferry, ditches) | C3, C2 | DONE-b / ? | 7d149e7e bridge of boats on the royal road over the Kur, shadufs; 50ae2b11 field ditches; paradise garden planted 527c9749 (its water feed not seen) |
+| 16 | water (river, paradise feed, qanats, ferry, ditches) | C3, C2 | DONE-b / later | 7d149e7e bridge of boats, shadufs; 50ae2b11 ditches; the paradise feed by sluice: C2 after the current items |
 | 17 | world does not notice the player | C5, C8 | WIP | cddd96c0 trespass (DONE-b); C5 visitor default listed |
 | 18 | horses, gallop, hunt | C13, C9 | partly | e9341d07 rides, hunts, couriers; b29e8735 asks C9 for the gallop |
-| 19 | shrines and household cult | C2, C1 | **SENT, no commit (chased 07:55)** | town shrine C2; figurines C1 |
+| 19 | shrines and household cult | C2, C1, C7 | WIP / **BLOCKED** | C2 (07:55): a lamp and an offering bowl in a niche of every living room, next push. The neighbourhood shrine is blocked by tests/religion.test.ts:47 (C7) banning "shrine" in the precinct; precinct.ts is in src/world/settlement/ (C2's tree). Figurines: C1 |
 | 20 | estates, pavilion, Naqsh painted | C15 | DONE-b | C15 D-800: Naqsh-e Rustam texts carved (a1364786); estates and villages in progress |
 | 21 | snow cap, comet, floods, dust storms, run-off, shimmer | C4 | WIP / **SENT, no commit (chased 07:55)** | floods, dust wall, run-off: C4 is on the T4 black screen |
 | 22 | broken-looking faults | C4, C6, C2, C10 | partly | the Treasury floor mirror (C10): **no commit, chased 07:55**; black-KTX2 cloud frames fixed c7dcb652 |
@@ -67,7 +67,7 @@ None of it is verified in a render yet (pagecheck and C6 are the check).
 | u3 | personal seals worn | C13 | DONE-b | 0af4d9a6 the officials' cylinder seals on cords |
 | u4 | toddlers walking, barefoot poor, stripping in heat | C13, C14 | DONE-b | 36be15e0 toddlers walk (C14); 8592fe19 labourers stripped to the waist (C13) |
 | u5 | cats, ducks, geese, bats, rats, storks, flies | C14, C9 | DONE | C14 cats, storks and bats by season; C9 7baa1f87 |
-| u6 | latrines, roof sleeping, fruit drying on roofs | C2 | **SENT 06:5x** |  |
+| u6 | latrines, roof sleeping, fruit drying on roofs | C2 | WIP | C2 (07:55): roof bedding in summer, fruit drying at harvest, next push |
 | u7 | Diodorus' triple wall and bronze gates | C10 | **SENT 06:5x** | low |
 | u8 | trees and planters on the Terrace; the "Penelope" statue | C10, C3 | partly | 93d82bfc plantedTrees() for the Terrace planters (C3); placing them is C10's |
 | u9 | portico floors and ceremonial courts paved or limed | C10 | **SENT 06:5x** |  |
@@ -99,20 +99,20 @@ None of it is verified in a render yet (pagecheck and C6 are the check).
 | 4-9 | night sky flat | C4 | WIP | the C4 list covers all four |
 | 4-10 | animals keep clock hours | C9, C4 | DONE-b / SENT | 2fa8251e; birdsong hours -> C4 (soundscape.ts now C4's) |
 | 4-11 | no footprints or dust | C5 | **SENT, no commit (chased 07:55)** |  |
-| 4-12 | season-blind market; can't buy food | C8, C2 | partly | buying food DONE-b (c6c2a110); seasonal goods and market squares -> C2 06:5x |
+| 4-12 | season-blind market; can't buy food | C8, C2 | partly / WIP | buying food DONE-b; seasonal stall goods next push (C2); fewer busier squares after |
 | W1, W2, W10 | names; month labels | C1 | DONE-b | 6371b169 the Six for the great houses, no mechanical women's names, all twelve Persian months, the chronicle |
 | W3, W4 | crown; guards' kit | C13 | DONE | 4b0b21b2 plain kidaris, gorytos |
 | W5, W6, W13, W14, W15, W17, W22 | dialogue fixes | C8 | DONE-b | 0c1b9d46 |
 | W7 | Pulvar/Medus | C3, C8, C1 | partly | 677621a9 data names; **history.ts:40 (C1) and life.ts:308 (C8): unverified** |
 | W8 | "tomb attributed to Xerxes" | C3 | DONE | 677621a9 "the second tomb being cut" |
 | W9 | 'Frataraka' in a 467 name | lead | DONE | "official hall north of the Terrace" |
-| W11 | washing lines across the lanes | C2 | SENT? | C2 "stiff laundry" open; the move to roofs not seen |
+| W11 | washing lines across the lanes | C2 | DONE | D-663 |
 | W12 | commoners' tables | C2 | DONE | D-664 |
 | W16 | talk download size in Settings | C11 | SENT? | unverified |
 | W18 | halmi used as a palace pass | C5 | **SENT, no commit (chased 07:55)** |  |
 | W19 | millet; nightingale | C3, C4 | **WIP / SENT** | millet C3; nightingale -> C4 06:5x |
 | W20 | delegation gifts as stand-ins | C13 | DONE-b | dee79fa5 the gifts drawn |
-| W21 | figurines; latrines and refuse pits | C1, C2 | **SENT, no commit (chased 07:55)** | figurines C1; latrines and pits C2 |
+| W21 | figurines; latrines and refuse pits | C1, C2 | WIP | C2: refuse heap and latrine screen in the courts, next push; figurines C1 |
 
 ## The pattern behind most of these holes
 
