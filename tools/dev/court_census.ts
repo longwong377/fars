@@ -29,7 +29,7 @@ const env = (t: number): Env => { const d = Math.floor(t / 24), c = W.conditions
 const nav = new NavGrid(new Int16Array(readFileSync('public/generated/nav.i16').buffer.slice(0)), new Uint8Array(readFileSync('public/generated/nav_edges.u8')));
 const t0 = Date.now(), sim = new PeopleSim(seed, nav, env, { court: true } as any), pop = (sim as any).pop, K = pop.court;
 out(`\n(population built in ${((Date.now() - t0) / 1000).toFixed(1)} s: ${K.end - K.first} people of the court, ${K.parties.length} parties, ${K.couriers.length} couriers)`);
-const ordinary = (() => { for (let d = Y.arrive + 2; d < Y.leave; d++) if (K.audienceDay(d) && !SD.gift.includes(d) && !SD.banquet.has(d)) return d; return -1; })();
+const ordinary = (() => { for (let d = Y.arrive + 20; d < Y.leave; d++) if (K.audienceDay(d) && !SD.gift.includes(d) && !SD.banquet.has(d)) return d; return -1; })();
 const ride = (() => { for (let d = Y.arrive + 2; d < Y.leave; d++) if (isRideDay(seed, d) && K.kingOut(d) === 'ride') return d; return -1; })();
 const samples: [string, number][] = [['the first day of the peoples’ gifts', SD.gift[0]], ['the king’s gifts (and a banquet)', SD.kingGifts], ['a hunt', SD.hunt[1] ?? SD.hunt[0]], ['a ride', ride], ['an ordinary audience', ordinary]];
 const RX: [string, RegExp][] = [

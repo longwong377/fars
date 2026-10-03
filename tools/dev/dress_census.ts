@@ -34,8 +34,17 @@ export function printCensus(c: Record<string, DressRow>): string {
     lines.push(`| ${k} | ${R.n} | ${pc(R.mainDyed, R.n)} | ${pc(R.anyDyed, R.n)} | ${pc(R.ornament, R.n)} | ${pc(R.gold, R.n)} | ${pc(R.rosette, R.n)} | ${R.chroma.toFixed(1)} | ${Object.entries(R.dyes).sort((a, b) => b[1] - a[1]).map(([d, x]) => `${d} ${pc(x, R.n)}`).join(', ')} |`);
   return lines.join('\n');
 }
+/** the court's people on a day of the residence (court setting), with the game's looks: every n-th person of the court */
+async function courtLooks(seed: number, n: number, day: number): Promise<PersonLook[]> {
+  const { readFileSync } = await import('node:fs'), { PeopleSim } = await import('../../src/people/sim'), { NavGrid } = await import('../../src/people/navgrid'), { PopView } = await import('../../src/people/popview'), { lookFor } = await import('../../src/people/looks');
+  const nav = new NavGrid(new Int16Array(readFileSync('public/generated/nav.i16').buffer.slice(0)), new Uint8Array(readFileSync('public/generated/nav_edges.u8')));
+  const sim = new PeopleSim(seed, nav, () => ({ rain: 0, lightning: 0, windMs: 2, tempC: 18, dust: 0 }), { court: true } as any), pop = (sim as any).pop, K = pop.court, A = loadA();
+  const view = Object.create(PopView.prototype) as any; Object.assign(view, { pop, sim: { t: day * 24 + 10, agents: [] }, seed });
+  const ids: number[] = []; for (let pid = K.first; pid < K.end; pid++) if (pop.present(pid, day) && K.member(pid)?.g !== 'retinue') ids.push(pid);
+  const step = Math.max(1, Math.floor(ids.length / n)); return ids.filter((_, i) => i % step === 0).map(pid => lookFor(A, view.lookInput(pid), seed));
+}
 if (process.argv[1]?.endsWith('dress_census.ts')) {
-  const seed = Number(process.argv[2] ?? 1), n = Number(process.argv[3] ?? 3000), day = process.argv[4] !== undefined ? Number(process.argv[4]) : undefined;
-  const A = loadA(), S = sample(seed, A, n, day);
-  console.log(`seed ${seed}, day ${S.day}, ${S.people.length} people\n`); console.log(printCensus(dressCensus(S.people.map(p => p.look))));
+  const args = process.argv.slice(2).filter(a => !a.startsWith('--')), seed = Number(args[0] ?? 1), n = Number(args[1] ?? 3000), day = args[2] !== undefined ? Number(args[2]) : undefined;
+  if (process.argv.includes('--court')) { const d = day ?? 40, L = await courtLooks(seed, n, d); console.log(`seed ${seed}, day ${d}, ${L.length} people of the court (not the retinue)\n`); console.log(printCensus(dressCensus(L))); }
+  else { const A = loadA(), S = sample(seed, A, n, day); console.log(`seed ${seed}, day ${S.day}, ${S.people.length} people\n`); console.log(printCensus(dressCensus(S.people.map(p => p.look)))); }
 }
