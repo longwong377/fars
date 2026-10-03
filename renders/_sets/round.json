@@ -1,0 +1,19 @@
+{ "extra": [
+ {"id":"town-20m","e":-320,"n":862,"eye":20,"az":135,"pitch":-11,"day":25,"hour":10,"w":"clear","why":"the town from 20 m over its roofs, looking SE to the Terrace","owner":"C2"},
+ {"id":"lane-q_s1","e":-478,"n":-881,"eye":1.6,"az":189,"pitch":-4,"day":25,"hour":10,"w":"clear","why":"a lane in q_s1 (C1-1 view)","owner":"C2"},
+ {"id":"lane-n","e":-484.18,"n":413.75,"eye":1.6,"az":125.2,"pitch":2.1,"day":25,"hour":10,"w":"clear","why":"a lane in the N town (cov-097)","owner":"C2"},
+ {"id":"market-q_s1","e":-444.3,"n":-990.7,"eye":1.6,"az":279,"pitch":-6,"day":25,"hour":10,"w":"clear","why":"a q_s1 market square","owner":"C2"},
+ {"id":"town-court","e":-535.43,"n":401.14,"eye":1.6,"az":29.5,"pitch":-3.8,"day":25,"hour":10,"w":"clear","why":"a house court (cov-037)","owner":"C2"},
+ {"id":"house-interior","e":-503.4,"n":-1028.7,"eye":1.6,"az":69,"pitch":-12,"day":25,"hour":10,"w":"clear","why":"a living room seen from its court (C7-1 view)","owner":"C2"},
+ {"id":"field-500m","e":-800,"n":200,"eye":1.6,"az":251,"pitch":-6,"day":25,"hour":10,"w":"clear","why":"a spring field on the plain 0.8 km W (small-spring-field)","owner":"C3"},
+ {"id":"plain-1.5km","e":-1500,"n":100,"eye":1.6,"az":251,"pitch":-2,"day":25,"hour":10,"w":"clear","why":"the open plain 1.5 km W, looking away from the Terrace","owner":"C3"},
+ {"id":"river-pulvar","e":859.1,"n":3775.1,"eye":1.6,"az":334.7,"pitch":-7,"day":25,"hour":10,"w":"clear","why":"the Pulvar at the ford","owner":"C3"},
+ {"id":"apadana-court","e":1.9,"n":75,"eye":1.6,"az":161,"pitch":2,"day":25,"hour":10,"w":"clear","why":"the Apadana from its N court","owner":"lead"},
+ {"id":"apadana-hall","e":1.9,"n":12,"eye":1.6,"az":161,"pitch":6,"day":25,"hour":10,"w":"clear","why":"inside the Apadana hall on its axis","owner":"lead"},
+ {"id":"terrace-court-people","e":-35,"n":85,"eye":1.6,"az":71,"pitch":-2,"day":32,"hour":9.5,"w":"clear","why":"a Terrace court with people (court-assembly)","owner":"C5"},
+ {"id":"terrace-from-plain-16h","e":-600,"n":60,"eye":1.6,"az":75,"pitch":4,"day":25,"hour":16,"w":"clear","why":"the Terrace from the plain 0.6 km W at 16 h","owner":"C3/C4"},
+ {"id":"terrace-from-2km-16h","e":-2000,"n":150,"eye":1.6,"az":86,"pitch":1,"day":25,"hour":16,"w":"clear","why":"the Terrace and Rahmat from the plain 2 km W at 16 h","owner":"C3/C4"},
+ {"id":"dawn-sunrise","e":-36.4,"n":135.5,"eye":1.6,"az":281,"pitch":-5,"day":0,"hour":5.85,"w":"clear","why":"dawn: sunrise over the W plain from the stair top","owner":"C4"},
+ {"id":"dusk-gate","e":-40,"n":124.6,"eye":1.6,"az":90,"pitch":15,"day":0,"hour":19.25,"w":"clear","why":"dusk: the Gate of All Nations as the fires are lit","owner":"C4"},
+ {"id":"night-terrace","e":0,"n":92,"eye":1.6,"az":161,"pitch":6,"day":5,"hour":22.5,"w":"clear","why":"night on the Terrace","owner":"C4"}
+] }

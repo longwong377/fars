@@ -29,9 +29,9 @@ for (const v of work) {
     const a = [v.e, v.n, v.eye, v.az, v.pitch, undefined, { cast: v.cast ?? null, rigClear: 0 }];
     await p.evaluate(a => window.__parsa.view(...a), a); await p.evaluate(() => window.__parsa.tick()); await p.evaluate(a => window.__parsa.view(...a), a);
     for (let i = 0; i < +(process.env.FRAMES ?? 3); i++) await p.evaluate(() => window.__parsa.renderOnce());
-    await p.screenshot({ path: `${outDir}/${v.id}.png`, timeout: 1800000 });
+    const tf = Date.now(); await p.screenshot({ path: `${outDir}/${v.id}.png`, timeout: 1800000 }); const tshot = ((Date.now() - tf) / 1000).toFixed(0);
     const st = await p.evaluate(() => { const s = window.__parsa.stats(); return { dc: s.drawCalls, tri: s.triangles, be: s.backend }; }).catch(() => ({}));
-    const line = `${v.id} ${((Date.now() - t1) / 1000).toFixed(0)}s ${JSON.stringify(st)}`; console.log(T(), line); appendFileSync(`${outDir}/log.txt`, line + '\n');
+    const line = `${v.id} ${((Date.now() - t1) / 1000).toFixed(0)}s (shot ${tshot}s) ${JSON.stringify(st)}`; console.log(T(), line); appendFileSync(`${outDir}/log.txt`, line + '\n');
   } catch (e) { console.log(T(), v.id, 'FAILED', String(e).slice(0, 300)); if (/closed|destroyed|crash/i.test(String(e))) break; }
 }
 console.log('page errors (unique):'); for (const [k, n] of errs) console.log(n, k);
