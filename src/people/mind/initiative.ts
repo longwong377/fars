@@ -66,7 +66,7 @@ export class Initiative implements GoalHost {
     const done = (rec: DeedRec, src: string) => { const v = rec.deed.verb; st.deeds[v] = (st.deeds[v] ?? 0) + 1; if (rec.out.ok) st.done[v] = (st.done[v] ?? 0) + 1; st.src[src] = (st.src[src] ?? 0) + 1;
       const g = rec.deed.goal !== undefined ? this.goals.depth.get(rec.deed.goal) : undefined; if (g && g > 1) this.deedDepth.set(rec.id, g); };
     // 1. feelings and needs
-    const own: Deed[] = []; for (const _ of W.minds.deedParts(day, own, 300, (a, b) => this.goals.holds(a, b))) { slice('feeling'); yield; resume(); }
+    const own: Deed[] = []; for (const _ of W.minds.deedParts(day, own, W.minds.daily.max, (a, b) => this.goals.holds(a, b))) { slice('feeling'); yield; resume(); }
     for (const d of own) { done(W.own(d, day, k++), 'feeling'); if (k % 4 === 0) { slice('feeling'); yield; resume(); } }
     // 2. the day's life: a new child's mother brought food by kin; the houses of the dead in grief
     if (day > 0) { const L = P.lifeOn(day - 1);
