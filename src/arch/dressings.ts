@@ -124,13 +124,13 @@ export function standardPlaces(parts: Part[]): StandardAt[] {
 function standard(pole: Soup, cloth: Soup, metal: Soup, at: StandardAt, rng: Rng) {
   const D = DRESS.standard, y1 = at.y + D.pole, wood = lin([0.36, 0.26, 0.17]), m = lin([0.66, 0.5, 0.26]);
   for (let k = 0; k < 8; k++) { const a0 = (k / 8) * 2 * Math.PI, a1 = ((k + 1) / 8) * 2 * Math.PI, c0 = Math.cos(a0) * D.poleR, s0 = Math.sin(a0) * D.poleR, c1 = Math.cos(a1) * D.poleR, s1 = Math.sin(a1) * D.poleR;
-    pole.quad(W(at.e + c0, at.y, at.n + s0), W(at.e + c1, at.y, at.n + s1), W(at.e + c1 * 0.7, y1, at.n + s1 * 0.7), W(at.e + c0 * 0.7, y1, at.n + s0 * 0.7), wood, false); }
+    pole.quad(W(at.e + c0, at.y, at.n + s0), W(at.e + c1, at.y, at.n + s1), W(at.e + c1 * 0.7, y1, at.n + s1 * 0.7), W(at.e + c0 * 0.7, y1, at.n + s0 * 0.7), wood); }
   // the finial: a ball and a disc above it (as a flat 10-gon, both faces)
   const F = D.finial, yc = y1 + F;
   for (let k = 0; k < 10; k++) { const a0 = (k / 10) * 2 * Math.PI, a1 = ((k + 1) / 10) * 2 * Math.PI;
     metal.tri(W(at.e, yc + F * 0.9, at.n), W(at.e + Math.cos(a0) * F * 1.4, yc + F * 0.9 + Math.sin(a0) * F * 1.4, at.n), W(at.e + Math.cos(a1) * F * 1.4, yc + F * 0.9 + Math.sin(a1) * F * 1.4, at.n), m);
     for (let j = 0; j < 4; j++) { const p0 = (j / 4) * Math.PI - Math.PI / 2, p1 = ((j + 1) / 4) * Math.PI - Math.PI / 2, B = (a: number, p: number) => W(at.e + Math.cos(a) * Math.cos(p) * F * 0.5, y1 + F * 0.5 + Math.sin(p) * F * 0.5, at.n + Math.sin(a) * Math.cos(p) * F * 0.5);
-      metal.quad(B(a0, p0), B(a1, p0), B(a1, p1), B(a0, p1), m, false); } }
+      metal.quad(B(a0, p0), B(a1, p0), B(a1, p1), B(a0, p1), m); } }
   // the banner: from the pole's top downwind, in waves along its length, its fly cut in a swallow tail
   const az = D.windAz + (rng.next() - 0.5) * 0.5, ue = Math.cos(az), un = Math.sin(az), NI = 10, NJ = 4, ph = rng.next() * 6.28, top = y1 - 0.25;
   const red = lin(D.cloth), hem = lin(D.hem);
@@ -140,6 +140,48 @@ function standard(pole: Soup, cloth: Soup, metal: Soup, at: StandardAt, rng: Rng
     return W(at.e + ue * x - un * wave, top - g * D.flagH - droop, at.n + un * x + ue * wave);
   };
   for (let j = 0; j < NJ; j++) for (let i = 0; i < NI; i++) cloth.quad(at2(i, j), at2(i + 1, j), at2(i + 1, j + 1), at2(i, j + 1), j === 0 || j === NJ - 1 ? hem : red);
+}
+
+/** D-750 (C): blind windows on the Apadana corner towers' free outer faces: the Tachara's and the Hadish's window frames
+ *  (dark polished limestone, a gorge cornice over the lintel: global.r_window, WP-EXT C) set as recesses in two rows, the
+ *  towers' 24 m of blank plaster broken as the reconstructions show them (C) */
+export const TOWER_WINDOWS = { w: 1.5, h: 3, frame: 0.32, depth: 0.35, cornice: { h: 0.45, over: 0.22, proj: 0.28 }, rows: [9.5, 16.5], pitch: 5.6, edge: 3.2,
+  stone: [0.27, 0.26, 0.25], recess: [0.1, 0.085, 0.07] };
+export function towerWindowFaces(parts: Part[]): { c: [number, number]; u: [number, number]; n: [number, number]; y0: number; len: number }[] {
+  const T = parts.filter(p => p.building === 'apadana' && p.kind === 'tower' && p.type === 'box' && !(p as Box).rot) as Box[]; if (!T.length) return [];
+  const boxes = parts.filter(p => p.type === 'box' && p.building === 'apadana' && !p.door) as Box[];
+  const cx = T.reduce((a, q) => a + q.c[0], 0) / T.length, cy = T.reduce((a, q) => a + q.c[1], 0) / T.length, out: ReturnType<typeof towerWindowFaces> = [];
+  const inside = (e: number, n: number, y: number, self: Box) => boxes.some(b => b !== self && y >= b.y0 && y <= b.y1 && Math.abs(e - b.c[0]) <= b.size[0] / 2 && Math.abs(n - b.c[1]) <= b.size[1] / 2);
+  for (const t of T) for (const [nx, ny] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as [number, number][]) {
+    if ((t.c[0] - cx) * nx + (t.c[1] - cy) * ny <= 0) continue; // the outer faces only
+    const c: [number, number] = [t.c[0] + nx * t.size[0] / 2, t.c[1] + ny * t.size[1] / 2], len = nx ? t.size[1] : t.size[0], u: [number, number] = [-ny, nx];
+    if (inside(c[0] + nx * 0.3, c[1] + ny * 0.3, t.y0 + 12, t)) continue; // something stands against it
+    out.push({ c, u, n: [nx, ny], y0: t.y0, len });
+  }
+  return out;
+}
+function towerWindows(S: Soup, parts: Part[]): number {
+  const TW = TOWER_WINDOWS, stone = lin(TW.stone), dark = lin(TW.recess); let n = 0;
+  for (const f of towerWindowFaces(parts)) {
+    const k = Math.floor((f.len - 2 * TW.edge - TW.w) / TW.pitch) + 1; if (k < 1) continue;
+    const a0 = -((k - 1) * TW.pitch) / 2;
+    // a point on the face: s along, y up, z out of the face
+    const P = (s: number, y: number, z: number) => W(f.c[0] + f.u[0] * s + f.n[0] * z, y, f.c[1] + f.u[1] * s + f.n[1] * z);
+    const box = (s0: number, s1: number, y0: number, y1: number, z0: number, z1: number, rgb: number[]) => { // a block's five visible faces (two-sided: no winding to get wrong)
+      S.quad(P(s0, y0, z1), P(s1, y0, z1), P(s1, y1, z1), P(s0, y1, z1), rgb);
+      S.quad(P(s0, y1, z0), P(s0, y1, z1), P(s1, y1, z1), P(s1, y1, z0), rgb); S.quad(P(s0, y0, z0), P(s1, y0, z0), P(s1, y0, z1), P(s0, y0, z1), rgb);
+      S.quad(P(s0, y0, z0), P(s0, y0, z1), P(s0, y1, z1), P(s0, y1, z0), rgb); S.quad(P(s1, y0, z0), P(s1, y1, z0), P(s1, y1, z1), P(s1, y0, z1), rgb); };
+    for (const row of TW.rows) for (let i = 0; i < k; i++) {
+      const s = a0 + i * TW.pitch, y0 = f.y0 + row, y1 = y0 + TW.h, hw = TW.w / 2, fr = TW.frame, C = TW.cornice;
+      S.quad(P(s - hw, y0, -TW.depth), P(s + hw, y0, -TW.depth), P(s + hw, y1, -TW.depth), P(s - hw, y1, -TW.depth), dark); // the recess's back
+      S.quad(P(s - hw, y0, -TW.depth), P(s - hw, y0, 0), P(s - hw, y1, 0), P(s - hw, y1, -TW.depth), dark); S.quad(P(s + hw, y0, -TW.depth), P(s + hw, y1, -TW.depth), P(s + hw, y1, 0), P(s + hw, y0, 0), dark); // its reveals
+      S.quad(P(s - hw, y1, -TW.depth), P(s - hw, y1, 0), P(s + hw, y1, 0), P(s + hw, y1, -TW.depth), dark); // its soffit
+      box(s - hw - fr, s - hw, y0 - fr, y1, 0, 0.06, stone); box(s + hw, s + hw + fr, y0 - fr, y1, 0, 0.06, stone); box(s - hw, s + hw, y0 - fr, y0, 0, 0.06, stone); // jambs and sill
+      box(s - hw - fr, s + hw + fr, y1, y1 + fr, 0, 0.06, stone); box(s - hw - fr - C.over, s + hw + fr + C.over, y1 + fr, y1 + fr + C.h, 0, C.proj, stone); // lintel and its gorge cornice
+      n++;
+    }
+  }
+  return n;
 }
 
 /** the dressings as a group of up to three merged meshes (textile, wood, bronze), named 'c10:dressings' */
@@ -154,13 +196,15 @@ export function buildDressings(parts: Part[]): THREE.Group | null {
     valance(cloth, bay, [purple, linen, c1]);
   });
   const st = standardPlaces(parts); for (const s of st) standard(wood, cloth, metal, s, rng);
+  const stone = new Soup(), nWin = towerWindows(stone, parts);
   if (!cloth.tris) return null;
   const g = new THREE.Group(); g.name = 'c10:dressings';
   const add = (S: Soup, mat: THREE.Material, name: string, note: string) => { if (!S.tris) return; const m = new THREE.Mesh(S.geometry(), mat); m.name = name; m.castShadow = true; m.receiveShadow = true;
     m.userData = { tier: D.tier, src: D.src, placeholder: false, tris: S.tris, note }; g.add(m); };
   add(cloth, propMaterial('textile', { vertexColors: true, rough: 0.95 }), 'c10:dressings:cloth', `the porticoes' hangings (${bays.length} bays: two tied-back curtains and a valance each; white, green, blue and purple after Esther 1:6, B for the practice, C for the form) and ${st.length} royal standards' banners (Xenophon Cyr. 7.1.4 for the standard, B; their places C) (D-750)`);
   add(wood, propMaterial('wood', { vertexColors: true, rough: 0.8 }), 'c10:dressings:poles', `the ${st.length} standards' cedar poles (D-750, C)`);
+  add(stone, propMaterial('stone', { vertexColors: true, rough: 0.95 }), 'c10:dressings:tower-windows', `${nWin} blind windows in dark stone frames on the Apadana towers' outer faces (the Tachara's frames, global.r_window; their places C) (D-750)`);
   add(metal, surfaceMaterial('bronze', { vertexColors: true }), 'c10:dressings:finials', `the ${st.length} standards' bronze finials (the eagle's seat; D-750, C)`);
-  g.userData = { tier: D.tier, src: D.src, placeholder: false, bays: bays.length, standards: st.length };
+  g.userData = { tier: D.tier, src: D.src, placeholder: false, bays: bays.length, standards: st.length, windows: nWin };
   return g;
 }
