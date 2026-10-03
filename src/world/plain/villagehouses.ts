@@ -50,20 +50,22 @@ const MUD: RGB = [0.56, 0.47, 0.36];
 const sh = (c: RGB, k: number): RGB => [c[0] * k, c[1] * k, c[2] * k];
 const mixc = (a: RGB, b: RGB, t: number): RGB => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
 /** s18 C15 (D-800): the household's wash on the far level, the same draw as the near level's (settlement/houses.ts washOf, C2's
- *  D-661: gypsum and lime whites, yellow and red ochre earths, most of the poor the bare mud; the lane face's thinner coat, fading
+ *  D-661/D-668: gypsum and lime whites, cream, yellow ochre, pink and red ochre earths, bare mud only for the poorest; the lane face's thinner coat, fading
  *  in the months since the house was last plastered), so a village reads from afar as the patchwork of white, ochre and mud it
  *  is near, not as one buff mass. The values are houses.ts's (kept equal by tests/villages_life.test.ts) */
-export const WASH_VILLAGE = { white: [[0.86, 0.83, 0.76], [0.82, 0.8, 0.74], [0.88, 0.84, 0.75]] as RGB[], ochre: [[0.78, 0.62, 0.38], [0.74, 0.6, 0.4], [0.8, 0.66, 0.44]] as RGB[], red: [[0.66, 0.4, 0.28], [0.6, 0.36, 0.26], [0.7, 0.46, 0.33]] as RGB[] };
+export const WASH_VILLAGE = { white: [[0.9, 0.88, 0.82], [0.86, 0.84, 0.78], [0.92, 0.89, 0.8]] as RGB[], ochre: [[0.82, 0.62, 0.32], [0.78, 0.58, 0.32], [0.84, 0.68, 0.4]] as RGB[], red: [[0.66, 0.4, 0.28], [0.6, 0.36, 0.26], [0.7, 0.46, 0.33]] as RGB[], cream: [[0.9, 0.82, 0.64], [0.87, 0.78, 0.58]] as RGB[], pink: [[0.86, 0.64, 0.56], [0.82, 0.58, 0.5]] as RGB[] };
+/** a house's wash (houses.ts washOf for the house kinds, D-668: white 34-58 % by standing, cream, yellow ochre, pink, red ochre;
+ *  bare mud only for the poorest) */
 export function villageWash(id: string, standing: number): { c: RGB; k: number } | null {
-  const h = (hashString(`${id}:wash`) % 100000) / 100000, h2 = (hashString(`${id}:wash2`) % 1000) / 1000, W = WASH_VILLAGE, st = standing;
-  const pW = 0.12 + 0.4 * st, pO = 0.1 + 0.08 * st, pR = 0.04 + 0.06 * st;
-  return h < pW ? { c: lin(W.white[Math.floor(h2 * W.white.length)]), k: 0.7 + 0.25 * h2 } : h < pW + pO ? { c: lin(W.ochre[Math.floor(h2 * W.ochre.length)]), k: 0.55 + 0.3 * h2 } : h < pW + pO + pR ? { c: lin(W.red[Math.floor(h2 * W.red.length)]), k: 0.45 + 0.3 * h2 } : null;
+  const h = (hashString(`${id}:wash`) % 100000) / 100000, h2 = (hashString(`${id}:wash2`) % 1000) / 1000, W = WASH_VILLAGE, st = standing, pick = (a: RGB[]) => lin(a[Math.floor(h2 * a.length)]);
+  const pW = 0.34 + 0.24 * st, pC = 0.16, pO = 0.14, pP = 0.07, pR = st < 0.2 ? 0.04 : 1;
+  return h < pW ? { c: pick(W.white), k: 0.9 + 0.1 * h2 } : h < pW + pC ? { c: pick(W.cream), k: 0.9 + 0.1 * h2 } : h < pW + pC + pO ? { c: pick(W.ochre), k: 0.88 + 0.1 * h2 } : h < pW + pC + pO + pP ? { c: pick(W.pink), k: 0.85 + 0.1 * h2 } : h < pW + pC + pO + pP + pR ? { c: pick(W.red), k: 0.85 + 0.1 * h2 } : null;
 }
-/** the lane face's tone of a compound on the far level (houses.ts tone(plot, 0, false)) */
+/** the lane face's tone of a compound on the far level (houses.ts tone(plot, 0, false) and washF) */
 function farTone(id: string, L: { standing: number; sincePlaster: number }, c: RGB): RGB {
   const fresh = Math.max(0, 1 - L.sincePlaster / 18), k = (0.96 + 0.05 * (1 - fresh)) * 0.99;
   const m: RGB = [c[0] * k * (1 + 0.02 * fresh), c[1] * k, c[2] * k * (1 - 0.03 * fresh)], W = villageWash(id, L.standing);
-  return W ? mixc(m, W.c, W.k * 0.62 * (0.55 + 0.45 * Math.max(0, 1 - L.sincePlaster / 30))) : m;
+  return W ? mixc(m, W.c, Math.min(1, W.k * 0.95 * (0.88 + 0.12 * Math.max(0, 1 - L.sincePlaster / 30)))) : m;
 }
 /** s18 C15 (D-800): the cloths a household lays to dry over its range's eave (dyes of the period: madder red, woad blue, weld
  *  yellow, undyed and brown wool: C); sRGB */
