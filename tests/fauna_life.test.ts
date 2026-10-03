@@ -31,4 +31,14 @@ describe('the town animals\' life', () => {
     for (const g of S.slice(0, 30)) { for (let k = 0; k < 40; k++) fauna.update(ctx(60000 + k * 0.5, 14, [g.spots[0][0] + 5, g.spots[0][1]], g.c)); }
     barks = fauna.stats.barks - b0; expect(barks).toBeGreaterThan(3);
   });
+  it('household donkeys stand tied in the lane at their doors by day (on open ground, alongside the wall), away on errands some hours, in at night', () => {
+    const D: any[] = (fauna as any).doorDonkeys; expect(D.length).toBeGreaterThan(40); expect(D.length).toBeLessThan(200);
+    const o: any = {}; let there = 0, N = 0;
+    for (const [i, d] of D.slice(0, 40).entries()) { expect(openGround(plan, d.lane[0], d.lane[1])).toBe(true); expect(Math.hypot(d.lane[0] - d.door[0], d.lane[1] - d.door[1])).toBeLessThan(2.6);
+      for (let h = 8; h < 17; h += 0.5) { N++; if (fauna.doorDonkeyAt(i, { ...ctx(40000 + h * 3600, h, null, d.lane), day: 3 }, o)) { there++; expect(o.sp).toBe('donkey');
+        // alongside the wall: the body's axis is across the door-to-lane line
+        const ax = d.lane[0] - d.door[0], an = d.lane[1] - d.door[1], L = Math.hypot(ax, an); expect(Math.abs(Math.sin(o.yaw) * ax + Math.cos(o.yaw) * an) / L).toBeLessThan(0.3); } }
+      expect(fauna.doorDonkeyAt(i, ctx(0, 23, null, d.lane), o)).toBe(false); }
+    expect(there / N).toBeGreaterThan(0.25); expect(there / N).toBeLessThan(0.8);
+  });
 });
