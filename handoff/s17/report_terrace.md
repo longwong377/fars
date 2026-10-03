@@ -43,3 +43,13 @@
 except "reproducible" on the two rebuilt assets. guards pass.
 
 **Hook for V2:** the paint's sun-fade (chroma toward the stone) belongs in materials.ts paintedStoneMaterial.
+
+## Relief task (D-513), at the 01:45 cut-off
+- **Not shipped.** The relief atlas re-bake with the deeper undercut and occlusion was not finished: 177 of 221 figures were
+  baked on T:. The rest, and the packing, sat in the slot queue for ~45 min. The game's atlas is unchanged (D-320), so nothing
+  looks worse.
+- Lost time: the 00:31 crash, a duplicate chain that survived it (killed), and the slot queue.
+- The scan route (the courtiers scan) was not attempted.
+- Finish command (one slot job of ~8-10 min) is in DECISIONS D-513. Then probe apa-n-2 / apa-n-5 / tach-s-5 with
+  tools/dev/v4_probe.mjs.
+- No Terrace parts were changed, so no build_fire_occ re-run is needed.
