@@ -18,11 +18,15 @@ const host = `http://127.0.0.2:${port}`;
 for (let i = 0; i < 50; i++) { try { if ((await fetch(`${host}/fars/`)).ok) break; } catch {} await new Promise(r => setTimeout(r, 200)); }
 await fetch(`${host}/__served`, { method: 'POST' });
 const prof = mkdtempSync(join(tmpdir(), 'parsa-census-')), tag = prof.split('/').pop();
-const memGB = () => { try { return +(execFileSync('ps', ['-eo', 'rss=,args='], { encoding: 'utf8', maxBuffer: 64 << 20 }).split('\n').filter(l => l.includes(tag)).reduce((x, l) => x + (parseInt(l, 10) || 0), 0) / 2 ** 20).toFixed(2); } catch { return NaN; } };
+const memGB = () => { try { // every process of the profile's browser: its own (named by the profile) and all their descendants
+  const rows = execFileSync('ps', ['-eo', 'pid=,ppid=,rss=,args='], { encoding: 'utf8', maxBuffer: 64 << 20 }).split('\n').map(l => l.trim().split(/\s+/)).filter(r => r.length > 3).map(r => ({ pid: r[0], ppid: r[1], rss: +r[2], args: r.slice(3).join(' ') }));
+  const mine = new Set(rows.filter(r => r.args.includes(tag)).map(r => r.pid)); let grew = true;
+  while (grew) { grew = false; for (const r of rows) if (!mine.has(r.pid) && mine.has(r.ppid)) { mine.add(r.pid); grew = true; } }
+  return +(rows.filter(r => mine.has(r.pid)).reduce((x, r) => x + r.rss, 0) / 2 ** 20).toFixed(2); } catch { return NaN; } };
 const ctx = await chromium.launchPersistentContext(prof, { headless: true, viewport: { width: 1920, height: 1080 },
   args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--enable-unsafe-webgpu', '--enable-features=Vulkan', '--use-vulkan=swiftshader', '--use-webgpu-adapter=swiftshader'] });
 const page = ctx.pages()[0] ?? await ctx.newPage(), errs = [];
-page.on('console', m => { if (m.type() === 'error') errs.push(m.text().slice(0, 200)); });
+const lowWarn = []; page.on('console', m => { const t = m.text(); if (m.type() === 'error') errs.push(t.slice(0, 200)); if (/\[lowfirst\]|\[scans\]/.test(t)) lowWarn.push(t.slice(0, 200)); });
 let peak = 0; const poll = setInterval(() => { const m = memGB(); if (m > peak) peak = m; }, 3000);
 const t0 = Date.now(), s = () => +((Date.now() - t0) / 1000).toFixed(1);
 await page.goto(`${host}/fars/?quality=high&norender&${extra}`);
@@ -36,6 +40,9 @@ r.beforeReadyByKind = Object.fromEntries(Object.entries(r.beforeReadyByKind).sor
 r.missing = served.filter(e => e.s === 404).map(e => e.p).slice(0, 20);
 console.log('ready', r.readyS, 's', r.backend, 'before ready', r.beforeReadyMB, 'MB', 'memory', r.memAtReadyGB, 'GB');
 r.census = await page.evaluate(() => window.__parsa.census?.() ?? null).catch(e => String(e).slice(0, 300));
+// the low-first upgrades (D-740: the UASTC mips into the ETC1S twins' textures) run after ready: wait for them (5 min at most)
+for (let i = 0; i < 100; i++) { const L = await page.evaluate(() => window.__parsa.lowFirst?.() ?? null); r.lowFirst = L; if (!L || L.pending === 0) break; await page.waitForTimeout(3000); }
+r.lowFirstWarnings = lowWarn.slice(0, 12); r.memAfterUpgradesGB = memGB();
 r.peakGB = Math.max(peak, memGB()); r.errors = errs.slice(0, 10);
 clearInterval(poll); writeFileSync(out, JSON.stringify(r, null, 1));
 console.log(JSON.stringify({ ...r, census: r.census && { ...r.census, byWhere: undefined, textures: r.census.textures && { ...r.census.textures, top: r.census.textures.top?.slice(0, 8) } } }, null, 1));

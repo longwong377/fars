@@ -37,7 +37,9 @@ function strHash(s: string) { let h = 2166136261 >>> 0; for (let i = 0; i < s.le
 
 // the cloths' colours (sRGB): undyed wool and linen most, then the period's dyes (madder red, woad/indigo blue, weld and
 // pomegranate-rind yellows, walnut browns; the dyes: PF and the Pazyryk textiles, B; the shares C)
-export const CLOTHS: RGB[] = [[0.8, 0.74, 0.62], [0.74, 0.68, 0.56], [0.86, 0.82, 0.72], [0.58, 0.22, 0.16], [0.5, 0.18, 0.14], [0.28, 0.32, 0.46], [0.72, 0.58, 0.3], [0.46, 0.36, 0.26], [0.66, 0.4, 0.26]];
+export const CLOTHS: RGB[] = [[0.8, 0.74, 0.62], [0.74, 0.68, 0.56], [0.86, 0.82, 0.72], [0.58, 0.22, 0.16], [0.5, 0.18, 0.14], [0.28, 0.32, 0.46], [0.72, 0.58, 0.3], [0.46, 0.36, 0.26], [0.66, 0.4, 0.26],
+  // s18 C2 (D-661: the town read all buff): weld over woad green, madder over woad purple, a strong weld yellow, a bright madder, deep woad (C)
+  [0.36, 0.44, 0.3], [0.42, 0.22, 0.3], [0.82, 0.66, 0.24], [0.68, 0.26, 0.18], [0.22, 0.3, 0.52]];
 const cloth = (u: number): RGB => pick(CLOTHS, u);
 const FRUIT: RGB[] = [[0.55, 0.13, 0.1], [0.62, 0.2, 0.12], [0.72, 0.62, 0.22], [0.6, 0.48, 0.16], [0.42, 0.28, 0.16]]; // pomegranates, quinces, apples, dates
 
@@ -80,13 +82,16 @@ export const rotFacing = (de: number, dn: number) => Math.atan2(de, -dn);
 
 export interface FillStats { market: number; stalls: number; lane: number; door: number; line: number; terrace: number; squares: number; /** s17 C1: the gap fill along the walls and the lanes' litter */ gap?: number; litter?: number; tethers?: number }
 
+/** s18 C2 (D-662): the town's things stand on its trodden ground, drawn 10 cm over the terrain (settlement/build.ts
+ *  GROUND_LIFT), not on the terrain's height the fill and the nav grid take: 1,959 of them lay wholly under it, the rest sunk */
+export const TOWN_LIFT = 0.1;
 /** the town's fill from its sites (every quarter; compounds have no lanes or squares) */
 export function townFill(sites: Site[], seed = 1, villages: Site[] = [], markets: [number, number][] = []): { items: FillItem[]; stats: FillStats } {
   const items: FillItem[] = [], st: FillStats = { market: 0, stalls: 0, lane: 0, door: 0, line: 0, terrace: 0, squares: 0, gap: 0, litter: 0, tethers: 0 };
   // s17 C1 (D-550): the simulation's market grounds (Population.quarters' points: where popgeo stands each selling household's
   // stall, market:<q>:<hid>, D-359), each to the site it lies in
   const mk = new Map<Site, [number, number][]>(); for (const xy of markets) { const s = sites.find(x => { const [u, v] = toLocal(x.frame, xy[0], xy[1]); return x.inb(x.ci(u), x.cj(v)); }); if (s) (mk.get(s) ?? mk.set(s, []).get(s)!).push(toLocal(s.frame, xy[0], xy[1])); else openMarket(xy, sites, seed, items, st); }
-  for (const s of sites) siteFill(s, seed, items, st, false, mk.get(s));
+  for (const s of sites) { const n0 = items.length; siteFill(s, seed, items, st, false, mk.get(s)); for (let k = n0; k < items.length; k++) items[k].dy += TOWN_LIFT; }
   for (const s of villages) siteFill(s, seed, items, st, true);
   // (s17 C1: the plan is cached as JSON in the baked world, 21-25 MB with the villages (C4): positions to the centimetre, turns
   // and sizes to the thousandth, the sale hour to the minute's hundredth; nothing the eye or the colliders can tell)

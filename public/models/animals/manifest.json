@@ -185,82 +185,294 @@
    "src": "LIBRARY"
   },
   "camel": {
-   "inHash": "db69303136a4bbc7c5754ffd283e29c34e7cdf16ef4b7adc5992b20b3188f1b6",
+   "inHash": "faf451be65e2676f34995fc646f54f0e55d895b658701c03c9554803692d9791",
    "class": "large",
+   "real": true,
    "files": {
     "camel.glb": {
-     "bytes": 75572,
-     "sha256": "bff060e35c693134c329cf58e490da971ae86e4f40856bf196c6dd598f47cae4"
+     "bytes": 112560,
+     "sha256": "1f412669b3b593fd633b539ecac9d674a252a7d13929838fbd663f852a1e813e"
     },
     "camel_albedo.ktx2": {
-     "bytes": 570143,
-     "sha256": "afcc91485c169c21daa647bcb04d4bec2d7e90c3a920e1829d444c0113289690"
+     "bytes": 1200024,
+     "sha256": "85dcf865ebac7d0d67936e2f365f08be23fa5ed579a398e87e2790a87f90cf99"
     },
     "camel_nrm.ktx2": {
-     "bytes": 778523,
-     "sha256": "6534fc64b1bf0dfe2244a554f2a367490734310166e4c7b85531ac03779b6308"
+     "bytes": 1142978,
+     "sha256": "1d7fdc9ab5752188b4ac078a6b2911b961de9148f3468ac4bc34e4478974b4ca"
     }
    },
    "tris": [
-    5598,
-    1096
+    6860,
+    1371
    ],
    "tex": 1024,
-   "lod1At": 49.9,
-   "source": {
-    "high": 1159572,
-    "base": 193756,
-    "cell": [
-     0.0045,
-     0.011
-    ]
+   "lod1At": 26.6,
+   "ao_mean": 0.754,
+   "mask_mean": 1,
+   "rig": {
+    "halfW": 0.4501,
+    "bodyY": 1.7403,
+    "bellyY": 1.1364,
+    "backY": 2.3443,
+    "hipY": 1.6014,
+    "kneeY": 0.7206,
+    "legs": [
+     {
+      "x": 0.2558,
+      "z": 0.6475,
+      "zk": 0.6314,
+      "xh": 0.228,
+      "phase": 1.5708,
+      "fore": 1,
+      "r": 0.0926,
+      "foot": [
+       0.2863,
+       0.0984,
+       0.7073
+      ]
+     },
+     {
+      "x": -0.2602,
+      "z": 0.6311,
+      "zk": 0.5624,
+      "xh": -0.2219,
+      "phase": 4.7124,
+      "fore": 1,
+      "r": 0.0952,
+      "foot": [
+       -0.2816,
+       0.1054,
+       0.5806
+      ]
+     },
+     {
+      "x": 0.3147,
+      "z": -1.0517,
+      "zk": -0.9582,
+      "xh": 0.1739,
+      "phase": 0,
+      "fore": -1,
+      "r": 0.1002,
+      "foot": [
+       0.374,
+       0.0859,
+       -0.8231
+      ]
+     },
+     {
+      "x": -0.319,
+      "z": -0.7579,
+      "zk": -0.7806,
+      "xh": -0.2467,
+      "phase": 3.1416,
+      "fore": -1,
+      "r": 0.0928,
+      "foot": [
+       -0.3813,
+       0.0812,
+       -0.5391
+      ]
+     }
+    ],
+    "base": [
+     0,
+     1.5591,
+     0.722
+    ],
+    "top": [
+     0,
+     2.1917,
+     2.0731
+    ],
+    "muzzle": [
+     0,
+     1.9185,
+     2.5239
+    ],
+    "tailRoot": [
+     0,
+     1.625,
+     -1.1862
+    ],
+    "tailTip": [
+     0,
+     0.9446,
+     -1.2262
+    ],
+    "tailR": 0.06,
+    "min": [
+     -0.5099,
+     0,
+     -1.3486
+    ],
+    "max": [
+     0.5958,
+     2.3443,
+     2.5239
+    ],
+    "scale": 1.0256,
+    "kz": 0.88,
+    "gearDy": null,
+    "gearKx": null,
+    "rot": 0
    },
-   "ao_mean": 0.563,
-   "mask_mean": 0.532,
-   "blender": "5.0.1",
+   "source": {
+    "uid": "3a62c9769cf84eef82560b64f87f829a",
+    "name": "Dromader",
+    "author": "hendrikReyneke",
+    "licence": "CC-BY-4.0",
+    "url": "https://sketchfab.com/3d-models/3a62c9769cf84eef82560b64f87f829a",
+    "derived": "bactrian from dromedary (modified: tools/blender/animals_derive.py)"
+   },
    "device": "CPU",
-   "ktx": "ktx version: v4.4.2",
    "tier": "C",
-   "src": "RECON"
+   "src": "LIBRARY"
   },
   "camel_pack": {
-   "inHash": "21772ac046df291aed3b1baa9103927177bb81666ae1681433dd14f5c450a403",
+   "inHash": "595176ba9f17236be603597f51f1ce0ba48841af93cdf21f4301336718956a7a",
    "class": "large",
+   "real": true,
    "files": {
     "camel_pack.glb": {
-     "bytes": 88608,
-     "sha256": "e78ae747ba883b8951059d1f6125e99a26f0de383dfbafa42cbc302ee684b8df"
+     "bytes": 133336,
+     "sha256": "6e7a9e482ec553d03fa865ec57de5a6ce8d0bc1a5e5c7cb1aaa0be13f2cb6436"
     },
     "camel_pack_albedo.ktx2": {
-     "bytes": 714956,
-     "sha256": "9a93dfafc79691ed6529517104d87b0a80fac9f0fb375a21810fa4968bb3cac5"
+     "bytes": 1087180,
+     "sha256": "91363e4770b04f78a99ca64e22a35435ddc5f0ec563957e50b07ff2457588d76"
     },
     "camel_pack_nrm.ktx2": {
-     "bytes": 989723,
-     "sha256": "4a68923d34f94fecfeab8a617f4ddd68281216c68cba674a3ff075ba91ac3289"
+     "bytes": 1066413,
+     "sha256": "6cedba74dd7ac25117a31dda90fcfc385eea6df0aa4bf8db0a6d488ef080a4b4"
     }
    },
    "tris": [
-    5598,
-    1096
+    6859,
+    1372
    ],
    "tex": 1024,
-   "lod1At": 49.9,
-   "source": {
-    "high": 1622284,
-    "base": 270364,
-    "cell": [
-     0.0045,
-     0.011
-    ]
+   "lod1At": 26.6,
+   "ao_mean": 0.676,
+   "mask_mean": 1,
+   "rig": {
+    "halfW": 0.5488,
+    "bodyY": 1.8463,
+    "bellyY": 1.1356,
+    "backY": 2.5571,
+    "hipY": 1.6829,
+    "kneeY": 0.7573,
+    "legs": [
+     {
+      "x": 0.2551,
+      "z": 0.6466,
+      "zk": 0.6305,
+      "xh": 0.2274,
+      "phase": 1.5708,
+      "fore": 1,
+      "r": 0.0925,
+      "foot": [
+       0.2857,
+       0.0983,
+       0.7064
+      ]
+     },
+     {
+      "x": -0.2495,
+      "z": 0.6302,
+      "zk": 0.5883,
+      "xh": -0.2222,
+      "phase": 4.7124,
+      "fore": 1,
+      "r": 0.0914,
+      "foot": [
+       -0.2819,
+       0.1053,
+       0.5797
+      ]
+     },
+     {
+      "x": 0.3018,
+      "z": -1.0515,
+      "zk": -0.9363,
+      "xh": 0.1733,
+      "phase": 0,
+      "fore": -1,
+      "r": 0.0871,
+      "foot": [
+       0.3733,
+       0.0858,
+       -0.823
+      ]
+     },
+     {
+      "x": -0.3165,
+      "z": -0.7579,
+      "zk": -0.7809,
+      "xh": -0.247,
+      "phase": 3.1416,
+      "fore": -1,
+      "r": 0.0845,
+      "foot": [
+       -0.3815,
+       0.0811,
+       -0.5392
+      ]
+     }
+    ],
+    "base": [
+     0,
+     1.6331,
+     0.722
+    ],
+    "top": [
+     0,
+     2.1901,
+     2.0713
+    ],
+    "muzzle": [
+     0,
+     1.9172,
+     2.5217
+    ],
+    "tailRoot": [
+     0,
+     1.7024,
+     -1.1474
+    ],
+    "tailTip": [
+     0,
+     0.9439,
+     -1.2258
+    ],
+    "tailR": 0.06,
+    "min": [
+     -0.8179,
+     0,
+     -1.3482
+    ],
+    "max": [
+     0.8179,
+     2.5571,
+     2.5217
+    ],
+    "scale": 1.0249,
+    "kz": 0.88,
+    "gearDy": 0.3651,
+    "gearKx": 1.1235,
+    "rot": 0
    },
-   "ao_mean": 0.569,
-   "mask_mean": 0.444,
-   "blender": "5.0.1",
+   "source": {
+    "uid": "3a62c9769cf84eef82560b64f87f829a",
+    "name": "Dromader",
+    "author": "hendrikReyneke",
+    "licence": "CC-BY-4.0",
+    "url": "https://sketchfab.com/3d-models/3a62c9769cf84eef82560b64f87f829a",
+    "derived": "bactrian_pack from dromedary (modified: tools/blender/animals_derive.py)"
+   },
    "device": "CPU",
-   "ktx": "ktx version: v4.4.2",
    "tier": "C",
-   "src": "RECON"
+   "src": "LIBRARY"
   },
   "cheetah": {
    "inHash": "dd88cb81dc78b623df703e62dc628c7c3f87354d4bc86e3470682f37bdd7c2df",
@@ -1243,7 +1455,7 @@
    "src": "LIBRARY"
   },
   "dromedary": {
-   "inHash": "86ed8b6b6271d44f1fac7a3898418518f7c261e35722ca215380eae9e93d995b",
+   "inHash": "31a5802be336710d1d359688c4f420e7db13d7893304bbd78fd042a6a373d0f1",
    "class": "large",
    "real": true,
    "files": {
@@ -1358,7 +1570,7 @@
      1.0461,
      -1.1813
     ],
-    "tailR": 0,
+    "tailR": 0.07,
     "min": [
      -0.4971,
      0,
@@ -4262,43 +4474,149 @@
    "src": "LIBRARY"
   },
   "zebu": {
-   "inHash": "86584dc719037072f4e5f1d329a6a98154848ae772361a28e0fdb6cf7fb9ed1e",
+   "inHash": "60603d50b8b8b573354aa3ce2e3cccf6040e896e6d664c5e4a80294dcf3b0e0a",
    "class": "large",
+   "real": true,
    "files": {
     "zebu.glb": {
-     "bytes": 85636,
-     "sha256": "f15a2f85d9ad79687b15b656fc590519b422b027f9dad856d38a0f6fe6777dd5"
+     "bytes": 97076,
+     "sha256": "acbed9173622921a6460c53fd965d5c95ba23284b395c9a34c3a16b1deedfa3e"
     },
     "zebu_albedo.ktx2": {
-     "bytes": 649396,
-     "sha256": "5c9e21b56f8177cee7091ec9373158997d72c2a241b1a71ff22c271a6a65d997"
+     "bytes": 1046111,
+     "sha256": "eebcf8ab2f9076eccbf71be4a4b40664797087aa04493306196ccb86fcf7323f"
     },
     "zebu_nrm.ktx2": {
-     "bytes": 926410,
-     "sha256": "fd9eae7d64010f0de017f1affe41960541a416a6ffd73ddcf9f92eb6927fea26"
+     "bytes": 1099866,
+     "sha256": "7171d3fb82c73d7d68e37d212e1999d7c99dc478c1db5b8e3e469b190c4f377b"
     }
    },
    "tris": [
-    5596,
-    1094
+    6120,
+    1372
    ],
    "tex": 1024,
-   "lod1At": 42.5,
-   "source": {
-    "high": 853068,
-    "base": 142340,
-    "cell": [
-     0.0045,
-     0.011
-    ]
+   "lod1At": 24.5,
+   "ao_mean": 0.724,
+   "mask_mean": 1,
+   "rig": {
+    "halfW": 0.3018,
+    "bodyY": 0.7671,
+    "bellyY": 0.4272,
+    "backY": 1.1069,
+    "hipY": 0.6889,
+    "kneeY": 0.31,
+    "legs": [
+     {
+      "x": 0.1415,
+      "z": 0.5974,
+      "zk": 0.5619,
+      "xh": 0.1051,
+      "phase": 1.5708,
+      "fore": 1,
+      "r": 0.0652,
+      "foot": [
+       0.1465,
+       0.079,
+       0.5808
+      ]
+     },
+     {
+      "x": -0.1413,
+      "z": 0.5898,
+      "zk": 0.5619,
+      "xh": -0.1073,
+      "phase": 4.7124,
+      "fore": 1,
+      "r": 0.0651,
+      "foot": [
+       -0.145,
+       0.079,
+       0.581
+      ]
+     },
+     {
+      "x": 0.3086,
+      "z": -0.5594,
+      "zk": -0.6794,
+      "xh": 0.1832,
+      "phase": 0,
+      "fore": -1,
+      "r": 0.0662,
+      "foot": [
+       0.354,
+       0.0738,
+       -0.6343
+      ]
+     },
+     {
+      "x": -0.3083,
+      "z": -0.566,
+      "zk": -0.6794,
+      "xh": -0.1844,
+      "phase": 3.1416,
+      "fore": -1,
+      "r": 0.0662,
+      "foot": [
+       -0.3559,
+       0.0741,
+       -0.6367
+      ]
+     }
+    ],
+    "base": [
+     0,
+     0.6651,
+     0.665
+    ],
+    "top": [
+     0,
+     1.1571,
+     1.343
+    ],
+    "muzzle": [
+     0,
+     0.8705,
+     1.6736
+    ],
+    "tailRoot": [
+     0,
+     0.7211,
+     -1.2053
+    ],
+    "tailTip": [
+     0,
+     0.5547,
+     -1.4766
+    ],
+    "tailR": null,
+    "min": [
+     -0.4272,
+     0,
+     -1.5506
+    ],
+    "max": [
+     0.4275,
+     1.2653,
+     1.6736
+    ],
+    "scale": 1.0645,
+    "kz": 0.9101,
+    "gearDy": null,
+    "gearKx": null,
+    "rot": 0
    },
-   "ao_mean": 0.709,
-   "mask_mean": 0.698,
-   "blender": "5.0.1",
+   "source": {
+    "uid": "dc8185e4e21747fb8b394e40d3ec125a",
+    "name": "Cow",
+    "author": "hendrikReyneke",
+    "licence": "CC-BY-4.0",
+    "url": "https://sketchfab.com/3d-models/dc8185e4e21747fb8b394e40d3ec125a",
+    "derived": "zebu from cow (modified: tools/blender/animals_derive.py)"
+   },
    "device": "CPU",
-   "ktx": "ktx version: v4.4.2",
    "tier": "C",
-   "src": "RECON"
+   "src": "LIBRARY"
   }
  }
 }

@@ -39,6 +39,8 @@ music tests, NEEDS_FROM_ME.md #14. Verify that no modern language is rendered or
 published text, and every translation shown in the layer is sourced (or flagged as blocked).
 
 ## §8.2 rubric — REVIEWS/rubric_phase9.md
+**BINDING OVERRIDE (s18, UD-29; supersedes everything below where they differ):** judge the living city of 467 BC, never the ruin. Photographs of the site today are for terrain, rock, the plain and the hills ONLY, never for the buildings' finish, colour, completeness or emptiness. Where the evidence is silent or survives only as traces (paint on walls, capitals, timber; textiles; furnishings), the colourful reconstructions (R, A) are the TARGET, not a disagreement the evidence wins: the old rule "the evidence wins on CONTENT (colours of shafts, glazed bands ...)" left the whole Terrace unpainted for 17 sessions and is void. First question of every review: what would a person standing here in 467 BC see that this frame lacks?
+
 A vision-capable reviewer scores camera-rig screenshots, 1–5 in seven categories: light, materials, scale cues, detail,
 people, weather, atmosphere. Pass: no category below 4; anything that "reads as CG" goes on the fix list. Reference
 photographs: none reachable (B6, logged exception); use references/ (catalogued in references/INDEX.md: reconstructions and

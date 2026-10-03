@@ -9,7 +9,8 @@
 // rewrites public/generated/rivers.json (centreline every 20 m; the bank and floodplain levels carried over from the
 // base course by its parameter, so the bed stays non-increasing downstream).
 //
-// Run once after `python tools/build_terrain.py` (it refuses a rivers.json already meandered):
+// Run after `python tools/build_terrain.py`, and again whenever the roads, canals or villages change (a re-run first undoes the
+// last meander from the base course and the prior samples it kept):
 //   npx tsx tools/plain/meander.ts
 import { readFileSync, writeFileSync } from 'node:fs';
 import { mxNoise2 } from '../../src/render/mx_noise_cpu';
@@ -22,8 +23,17 @@ import { WORLD_SEED_POOL } from '../../src/core/seed';
 
 const G = 'public/generated/';
 const riversJ = JSON.parse(readFileSync(G + 'rivers.json', 'utf8'));
-if (riversJ._meta.meander) { console.error('rivers.json is already meandered (D-670): run tools/build_terrain.py first'); process.exit(1); }
 const terrainJ = JSON.parse(readFileSync(G + 'terrain.json', 'utf8'));
+// re-run (the roads or the canals changed): undo the last meander first, from the course and the samples it kept
+if (riversJ._meta.meander) {
+  for (const k of ['mid', 'far']) { const m = terrainJ.rings[k], b = readFileSync('public/' + m.file), raw = new Uint16Array(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength));
+    const p = riversJ.prior[k], d = new Uint16Array(Buffer.from(p.d, 'base64').buffer.slice(0)), v = new Uint16Array(Buffer.from(p.v, 'base64').buffer.slice(0));
+    let i = 0, j = 0, at = 0; while (j < v.length) { let dl = d[i++]; if (dl === 0) { dl = d[i] * 65536 + d[i + 1]; i += 2; } at += dl; raw[at] = v[j++]; }
+    writeFileSync('public/' + m.file, Buffer.from(raw.buffer)); }
+  for (const r of Object.values<any>(riversJ.rivers)) { r.x = r.base_x; r.y = r.base_y; r.bank = r.base_bank;
+    r.floodplain = r.base_floodplain ?? r.base_bank; delete r.base_x; delete r.base_y; delete r.base_bank; delete r.base_floodplain; }
+  delete riversJ.prior; delete riversJ._meta.meander; console.log('undid the previous meander');
+}
 
 // ---------------------------------------------------------------- the heightfield rings (asl, row 0 = grid north)
 interface RingF { name: string; half: number; cell: number; n: number; asl_min: number; step: number; file: string; h: Float64Array }
@@ -177,7 +187,7 @@ for (const [rid, r] of Object.entries<any>(riversJ.rivers)) {
   }
   let Lold = 0, Lnew = 0; for (let i = 1; i < r.x.length; i++) Lold += Math.hypot(r.x[i] - r.x[i - 1], r.y[i] - r.y[i - 1]); for (let i = 1; i < c.x.length; i++) Lnew += Math.hypot(c.x[i] - c.x[i - 1], c.y[i] - c.y[i - 1]);
   stats[rid] = { points: [r.x.length, c.x.length], sinuosity_added: +(Lnew / Lold).toFixed(3) };
-  r.base_x = r.x; r.base_y = r.y; r.base_bank = r.bank; // the course as build_terrain.py left it (the canals and villages are placed on it: data.ts baseCourse)
+  r.base_x = r.x; r.base_y = r.y; r.base_bank = r.bank; r.base_floodplain = r.floodplain; // the course as build_terrain.py left it (the canals and villages are placed on it: data.ts baseCourse)
   r.x = c.x.map(v => Math.round(v * 10) / 10); r.y = c.y.map(v => Math.round(v * 10) / 10);
   r.bank = bank.map(v => Math.round(v * 100) / 100); r.floodplain = flood.map(v => Math.round(v * 100) / 100);
 }

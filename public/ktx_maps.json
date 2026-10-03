@@ -1,0 +1,11 @@
+{
+ "about": "D-740: images re-encoded as KTX2 (tools/bake_world/ktx_maps.ts); src/render/loaders.ts loadMap loads the .ktx2 (and its .thumb.jpg) for a listed path",
+ "maps": {
+  "models/land/cover_arm.jpg": "991257da9a04bccc",
+  "models/land/cover_diff.jpg": "3386ef0b4178a20a",
+  "models/land/cover_nor.jpg": "4e4879f0fad87577",
+  "models/land/ground_arm.jpg": "65c4e60f53155714",
+  "models/land/ground_diff.jpg": "dc33893dc4f72fb7",
+  "models/land/ground_nor.jpg": "89b8e56c875d48d6"
+ }
+}

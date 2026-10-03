@@ -120,21 +120,25 @@ export function buildStairCrenellations(parts: Part[]): THREE.InstancedMesh | nu
   mesh.userData = { tier: 'C', src: 'IR-PERS;SI-ARCH;RECON', note: `four-stepped merlons on the stair parapets of ${CR.buildings.join(', ')} (motif B on the Apadana stairs; here by the Persepolis stair convention, size C; D-065)${MM ? MERLON_NOTE : ''}` };
   // D-750: the roof lines and the Terrace's edge, crowned with the same merlon (same geometry and material: no new pipeline),
   // one instanced chunk per building so the far levels (render/far_terrace.ts) and the culling work per building
-  const byB = new Map<string, Crown[]>(); for (const q of crownPlan(parts)) (byB.get(q.building) ?? byB.set(q.building, []).get(q.building)!).push(q);
-  for (const [b, list] of byB) {
+  // (chunks of CROWN_CELL m per building (~16 draws): a chunk's box is what far_terrace measures its distance to, so the Terrace's edge
+  // and the Harem's long runs drop to their far levels where they are far, not where their nearest merlon is)
+  const byB = new Map<string, Crown[]>(); for (const q of crownPlan(parts)) { const k = `${q.building}|${Math.floor(q.e / CROWN_CELL)}|${Math.floor(q.n / CROWN_CELL)}`; (byB.get(k) ?? byB.set(k, []).get(k)!).push(q); }
+  for (const [key, list] of byB) { const b = key.split('|')[0];
     const im = new THREE.InstancedMesh(geo, mesh.material as THREE.Material, list.length), mats: THREE.Matrix4[] = [];
     list.forEach((q, i) => {
       const X = gw(Math.cos(q.az), Math.sin(q.az)), Z = new THREE.Vector3().crossVectors(X, up), mm = new THREE.Matrix4();
-      mm.makeTranslation(q.e, q.y, -q.n).multiply(t.makeBasis(X, up, Z)).multiply(t.makeScale(1, 1, q.depth / D)).multiply(t.makeTranslation(0, 0, -D / 2));
+      mm.makeTranslation(q.e, q.y, -q.n).multiply(t.makeBasis(X, up, Z)).multiply(t.makeScale(q.scale ?? 1, q.scale ?? 1, q.depth / D)).multiply(t.makeTranslation(0, 0, -D / 2));
       im.setMatrixAt(i, mm); mats.push(mm);
     });
-    im.castShadow = true; im.receiveShadow = true; im.name = `crown-merlons:${b}`; im.computeBoundingSphere();
+    im.castShadow = true; im.receiveShadow = true; im.name = `crown-merlons:${key}`; im.computeBoundingSphere();
     if (MM?.near) im.add(new MerlonNear(im, mats, MM.near));
     im.userData = { tier: 'C', src: 'IR-PERS;NR-ACHAEMENICA;RECON', placeholder: false, note: `${list.length} four-stepped stone merlons crowning the ${b === 'terrace' ? "Terrace's edge parapet (terrace.parapet_height: 'low crenellated parapet', C)" : 'roof parapets of ' + b} (D-750, C: the stair merlon, global.r_stair_crenellation)${MM ? MERLON_NOTE : ''}` };
     mesh.add(im);
   }
   return mesh;
 }
+/** D-750: the side (m) of the cells the crowning merlons are chunked by */
+export const CROWN_CELL = 128;
 /** D-750: every merlon of the roof lines (roofedge.ts crowns) and of the Terrace's edge parapet (the rotated 'parapet' boxes of
  *  the building 'terrace', spaced along each at the stair pitch, a parapet's thickness clear of its ends) */
 export function crownPlan(parts: Part[]): Crown[] {
@@ -151,7 +155,7 @@ export function crownPlan(parts: Part[]): Crown[] {
   for (const q of out) {
     const gx = Math.floor(q.e / C), gy = Math.floor(q.n / C); let clash = false;
     for (let dx = -2; dx <= 2 && !clash; dx++) for (let dy = -2; dy <= 2 && !clash; dy++) for (const o of cell.get(`${gx + dx},${gy + dy}`) ?? [])
-      if (Math.abs(o.y - q.y) < 0.5 && Math.hypot(o.e - q.e, o.n - q.n) < 0.85) { clash = true; break; }
+      if (Math.abs(o.y - q.y) < 0.5 && Math.hypot(o.e - q.e, o.n - q.n) < 0.85 * Math.max(o.scale ?? 1, q.scale ?? 1)) { clash = true; break; }
     if (clash) continue;
     kept.push(q); const k = `${gx},${gy}`; (cell.get(k) ?? cell.set(k, []).get(k)!).push(q);
   }

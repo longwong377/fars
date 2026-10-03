@@ -42,6 +42,8 @@ const VERB_TO: Partial<Record<string, string>> = { visit: 'a visit from', help: 
 /** the doer's side of a deed in a day plan's words (D-461) */
 const VERB_ING: Partial<Record<string, string>> = { visit: 'visiting', help: 'helping', hire: 'hiring', court: 'courting', teach: 'learning from', learn: 'teaching', heal: 'tending', intercede: 'pleading with', reconcile: 'making peace with', share_food: 'eating with', introduce: 'introducing', come_with: 'going with', repair: 'mending for', build: 'building with', carry: 'carrying for', guard: 'keeping watch for', join: 'together with', meet: 'meeting', fetch: 'fetching for', pray: 'praying with', offer: 'offering with' };
 const cl = (x: number, lo = -1, hi = 1) => x < lo ? lo : x > hi ? hi : x;
+/** D-720: the deeds a save keeps ten days of (wrongs, courting, peace, care): what a person would still tell of */
+const KEPT = new Set(['attack', 'steal', 'break', 'curse', 'accuse', 'threaten', 'insult', 'mock', 'push', 'court', 'reconcile', 'heal', 'forgive', 'apologize', 'intercede', 'comfort']);
 const CHILD_HARM = new Set(['attack', 'push', 'steal', 'threaten', 'curse', 'break']);
 const ROMANCE = new Set(['flirt', 'court', 'embrace']);
 /** deeds the people near take note of and tell (a wrong, and words or touches that make talk); the rest need no witnesses
@@ -57,7 +59,7 @@ export class DeedWorld {
   /** the id the next deed will have */
   get next() { return this.base + this.log.length; }
   /** a deed by its id, while it is in the window */
-  rec(id: number): DeedRec | undefined { return this.log[id - this.base]; }
+  rec(id: number): DeedRec | undefined { return id >= this.base ? this.log[id - this.base] : this.old.get(id); }
   readonly minds: Minds;
   /** D-461: what the minds set out to do of their own accord (goals over days and months, moods, the talk of deeds) */
   readonly agency: Initiative;
@@ -355,13 +357,22 @@ export class DeedWorld {
       // D-720: the deeds of the last ten days and the count of all (a save loaded began the ids again at 0: the memories' ids then
       // read other deeds, the town's talk of deeds (initiative.ts, from its last id seen) stopped until the count caught up, and
       // what a person had lately done or suffered was gone); kept lean: the outcome's effects and witnesses are spent
-      next: this.next, recent: this.recentSave(d0 - 9) }; }
-  private recentSave(from: number) { let i = this.log.length; while (i > 0 && this.log[i - 1].day >= from) i--;
-    return this.log.slice(i).map(r => ({ id: r.id, day: r.day, t: r.t, deed: r.deed, out: { ok: r.out.ok, why: r.out.why, ...(r.out.refused ? { refused: true } : {}) } })); }
+      next: this.next, recent: this.recentSave(d0) }; }
+  /** the deeds kept over a save (D-720): the last day's (but the tellings) and ten days of the weighty ones, as tuples
+   *  [id, t×10, verb, actor, target, third, ok, act] (the save's 600 KB: ~2,900 deeds a day would be ~85 KB a day whole) */
+  private recentSave(d0: number) { const out: unknown[][] = [];
+    for (let i = this.log.length - 1; i >= 0; i--) { const r = this.log[i]; if (r.day < d0 - 9) break; const v = r.deed.verb;
+      if (!((r.day >= d0 - 1 && v !== 'tell' && v !== 'lie') || KEPT.has(v))) continue;
+      out.push([r.id, Math.round(r.t * 10), v, r.deed.actor, r.deed.target ?? -1, r.deed.third ?? -1, r.out.ok ? 1 : 0, r.deed.act ?? 0]); }
+    return out.reverse(); }
+  /** D-720: deeds from before a load, by id (the log's window begins again empty after it) */
+  private old = new Map<number, DeedRec>();
   load(s: ReturnType<DeedWorld['save']> | undefined) { if (!s) return; this.mine = s.mine; this.minds.load(s.minds); this.injuries.clear(); for (const [k, v] of s.inj) this.injuries.set(k, v);
     this.law.load((s as any).law ?? { cases: (s as any).cases }); this.promises.splice(0, this.promises.length, ...s.promises); this.skills.clear(); for (const [k, v] of s.skills) this.skills.set(k, v);
     this.lays = new Map(s.lays); this.dayDone = s.dayDone; this.evSeen = 0;
-    const rs = ((s as any).recent ?? []) as DeedRec[]; this.log.splice(0, this.log.length, ...rs); this.base = ((s as any).next ?? s.n ?? 0) - rs.length; this.joint.load(s.joint); this.agency.load(s.agency); }
+    this.log.splice(0); this.base = (s as any).next ?? s.n ?? 0; this.old.clear();
+    for (const [id, t10, verb, actor, target, third, ok, act] of ((s as any).recent ?? []) as any[][]) { const t = t10 / 10;
+      this.old.set(id, { id, day: Math.floor(t / 24), t, deed: { verb, actor, ...(target !== -1 ? { target } : {}), ...(third !== -1 ? { third } : {}), ...(act ? { act } : {}) } as Deed, out: { ok: !!ok, why: '', effects: [] } }); } this.joint.load(s.joint); this.agency.load(s.agency); }
 }
 
 /** a segment laid into a day: the base is cut around it (the overlays' shared rule) */

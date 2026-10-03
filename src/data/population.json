@@ -6,7 +6,7 @@
     "tiers": "A attested / B inferred (includes every search-extract value: capped at B) / C reconstructed. Every population value is a C derivation from B inputs; see 'derivation'.",
     "access": "FT = read in full this session; SX = web-search extract of a named page (capped at B); NS = not seen (model recollection, capped at C, verify)",
     "ranges": "value ranges are [min, max]; 'w' is the working value the simulation should use unless a setting overrides it",
-    "default_court_state": "court_absent (DECISIONS D-003; OPEN_QUESTIONS Q-005). court_resident is the out-of-world setting 'Court calendar = seasonal pattern' (resident months 1-4), tier C.",
+    "default_court_state": "court_resident in its season (UD-10, D-236: the court comes in Nisannu on the seed's day and leaves on E-26; tier C); court_absent the rest of the year, and all year only with the out-of-world setting 'evidence' (D-003, Q-005).",
     "src_keys": "all keys resolve in src/data/sources.json"
   },
   "units": {
