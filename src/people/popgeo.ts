@@ -416,7 +416,10 @@ export class PopGeo {
     const clear = K ? (e: number, n: number) => !this.nearPost(e, n) && (place !== 'forecourt' || !courtKeepClear(e, n)) : null;
     let s: P2 | null = null, face: P2 | null = null;
     for (let t = 0; t < (clear && P?.kind !== 'post' ? 24 : 8) && !s; t++) { let e: number, n: number;
-      if (A) { e = A.c[0] + (this.hash(pid, place, 13 + 50 * t) * 2 - 1) * A.h[0]; n = A.c[1] + (this.hash(pid, place, 14 + 50 * t) * 2 - 1) * A.h[1]; }
+      // (D-651, C5's count: uniform points in a court bunched people under a metre apart, and the crowd leaves those undrawn:
+      // the court's slots 1.2 m apart, one drawn per person)
+      if (A) { const sl = this.slotsOf(anchor, A); if (sl.length) { const q = sl[Math.floor(this.hash(pid, place, 13 + 50 * t) * sl.length)]; e = q[0]; n = q[1]; }
+        else { e = A.c[0] + (this.hash(pid, place, 13 + 50 * t) * 2 - 1) * A.h[0]; n = A.c[1] + (this.hash(pid, place, 14 + 50 * t) * 2 - 1) * A.h[1]; } }
       else if (P.kind === 'post') { e = P.at[0]; n = P.at[1]; }
       else if (P.span) { const [[x0, y0], [x1, y1]] = P.span; e = x0 + (x1 - x0) * this.hash(pid, place, 13 + 50 * t); n = y0 + (y1 - y0) * this.hash(pid, place, 14 + 50 * t); }
       // round a hearth, where a whole work gang or watch eats, up to 8 m out (evenly by area; C); an oven's bakers and
@@ -435,6 +438,15 @@ export class PopGeo {
     const fo = K && FACING_ACTS.test(act) ? focusOf(place, s[0], s[1]) : null;
     const hd = face ? headingOf(face[0] - s[0], face[1] - s[1]) : fo ? headingOf(fo[0] - s[0], fo[1] - s[1]) + (this.hash(pid, place, 16) - 0.5) * 30 /* (±15°: looking about, C) */ : P?.heading ?? this.hash(pid, place, 15) * 360;
     return this.sp(s[0], s[1], !(P as { hidden?: boolean } | undefined)?.hidden /* D-199: the king's rooms are not drawn */, hd, 'nav', `Terrace: ${place}${fo ? ', facing what is waited on (C: D-221)' : ''}${inRoof ? ', gone in under the nearest roof (C: D-244)' : ''}`, { anchor, ...(K && P?.kind === 'post' ? { fixed: true } : {}) });
+  }
+  /** D-651: the standing places of an open court or hall (an anchor box): its walkable points 1.2 m apart, off the aisles,
+   *  each seeing the anchor in a straight line; cached per anchor */
+  private slots = new Map<string, P2[]>();
+  private slotsOf(anchor: string, A: { c: P2; h: P2 }): P2[] {
+    const c = this.slots.get(anchor); if (c) return c; const out: P2[] = [], ap = this.anchorPt(anchor), PITCH = 1.2;
+    for (let x = A.c[0] - A.h[0] + PITCH / 2; x < A.c[0] + A.h[0]; x += PITCH) for (let y = A.c[1] - A.h[1] + PITCH / 2; y < A.c[1] + A.h[1]; y += PITCH)
+      if (this.nav.walkable(x, y) && !inAisle(x, y) && (!ap || this.nav.lineClear([x, y], ap))) out.push([x, y]);
+    this.slots.set(anchor, out); return out;
   }
   /** D-276: the room ranges' places for people (terrace_rooms.ts, rooms.ts roomFittings), laid out once. Each room gets an
    *  anchor of its own (`room:<id>`, a pace inside its first doorway, or inside its open front): the cached routes reach it,
@@ -506,7 +518,9 @@ export class PopGeo {
     else if (place === 'court_kitchen' && indoor) {
       const K = RR.rooms.filter(q => q.room.range === 'royal_kitchens');
       if (K.length) gen = k => { const x = K[Math.floor(this.hash(pid, place, 36 + k) * K.length)], W = x.fit.work;
-        if (W.length && this.hash(pid, place, 37 + k) < 0.5) { const w = W[Math.floor(this.hash(pid, place, 38 + k) * W.length)]; return { p: [w[0], w[1]], heading: deg(w[2]), what: 'at work in the royal kitchens' }; }
+        // (D-651, C5's count: on the station's point every cook of it stood on one spot and was not drawn: round it, 0.9-2.2 m)
+        if (W.length && this.hash(pid, place, 37 + k) < 0.5) { const w = W[Math.floor(this.hash(pid, place, 38 + k) * W.length)], a = w[2] + Math.PI + (this.hash(pid, place, 39 + k) - 0.5) * 2.4, r = 0.9 + 1.3 * this.hash(pid, place, 40 + k);
+          const p: P2 = [w[0] + Math.sin(a) * r, w[1] + Math.cos(a) * r]; return { p, heading: headingOf(w[0] - p[0], w[1] - p[1]), what: 'at work in the royal kitchens' }; }
         return inRoom(x, k, 'in the royal kitchens'); }; }
     // the Treasury's staff at the benches: anywhere in its rooms (treasury_inside), or at the benches of the Hall of 99
     // Columns near the store's anchor (treasury_store); never in a doorway's approach or between the benches' rows
