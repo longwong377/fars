@@ -73,11 +73,11 @@ import { snowLineASL } from '../../weather/climate';
     const cu = d.out[0] - nu * back, cv = d.out[1] - nv * back, g = s.grid(cu, cv), dg = s.grid(cu + nu, cv + nv), gb = (Math.atan2(dg[0] - g[0], dg[1] - g[1]) * 180) / Math.PI;
     return [g[0], -g[1], H(g[0], -g[1]) + (a[0] === 'door' ? 1.6 : 7), ((gb % 360) + 360) % 360 + (+(a[4] ?? 0)), a[0] === 'door' ? 4 : -35];
   };
-  let meterTex: Float32Array | null = null, exposure = 1, curPost = '', hemiMul = 1, xpOver = 0;
+  let meterTex: Float32Array | null = null, exposure = 1, curPost = '', hemiMul = 1, xpOver = 0; let postUpd: ((s: any) => void) | null = null;
   const viewDir = new THREE.Vector3();
   const frame = async (vis: number, cond: any) => {
     sky.update(clock.jdUT, cam.position, cond.cloud, cond.haze, { ms: cond.windMs, fromDeg: cond.windDirDeg, tSeconds: 3600 }, viewDir.set(0, 0, -1).applyEuler(cam.rotation));
-    sky.hemi.intensity *= hemiMul;
+    sky.hemi.intensity *= hemiMul; if (postUpd) postUpd(sky);
     (scene.fog as THREE.FogExp2).color.copy(sky.horizon);
     sky.air.setWeather({ haze: cond.haze, dust: cond.dust, mist: cond.mist, rain: cond.rain, snow: cond.snowFall });
     sky.air.setInterior(1, 0);
@@ -100,7 +100,7 @@ import { snowLineASL } from '../../weather/climate';
   (window as any).__shot = async (v: { cam: any; fov?: number; day?: number; hour?: number; weather?: WeatherOverride; vis?: number; frames?: number; tone?: Record<string, number>; ab?: Record<string, number>; post?: string; hemi?: number }) => {
     const S = (globalThis as any).__parsaSurf; for (const k in (v.ab ?? {})) S[k].value = v.ab![k];
     if ((v.post ?? '') !== curPost) { curPost = v.post ?? ''; pipeline.setDebugView(curPost); }
-    hemiMul = v.hemi ?? 1; xpOver = (v as any).xp ?? 0;
+    hemiMul = v.hemi ?? 1; xpOver = (v as any).xp ?? 0; postUpd = (v as any).js ? new Function('sky', (v as any).js) as any : null; // dev: a statement run after each sky.update (A/B of sky uniforms)
     const [x, z, y, gb, pitch] = camOf(v.cam);
     cam.position.set(x, y, z); cam.rotation.set((pitch * Math.PI) / 180, -(gb * Math.PI) / 180, 0, 'YXZ'); cam.fov = v.fov ?? 60; cam.updateProjectionMatrix(); cam.updateMatrixWorld();
     clock.set(v.day ?? 20, v.hour ?? 12); weather.override = v.weather ?? 'clear';

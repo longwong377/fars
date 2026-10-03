@@ -16,7 +16,7 @@
      "bytes": 1092862
     }
    },
-   "inHash": "649c9f65d043e046ce146ff90e7fe3e140109adb458be17b79388040b52fc7a1",
+   "inHash": "6be9f019f715abf9cf7922fa091610e8a197a3b204bb27b64b92dcb2844004eb",
    "bytes": 1713716,
    "gpuBytes": 0,
    "stats": {
@@ -1139,7 +1139,7 @@
    "src": "IR-CAND;IR-WOMEN;RELIEF-R",
    "blender": "5.0.1",
    "ktx": "ktx version: v4.4.2",
-   "build_s": 405,
+   "build_s": 389,
    "reproduced": {
     "files": {
      "people_cloth.json": "5ae821080e064a0f6740f07853b6829cb457e8ce9984b0839b63621dd03d5217",
@@ -1168,7 +1168,7 @@
      "bytes": 1815142
     }
    },
-   "inHash": "bd1fa086fe61d40da9dfd7387b6d03529a5b201b1ae22f85e291077429815c68",
+   "inHash": "a28e812e6bbf2bb2e133979c9e254b61038f66653f79e642e40157b66e03dfa3",
    "bytes": 9242532,
    "gpuBytes": 13981014,
    "stats": {
@@ -1238,7 +1238,7 @@
    "src": "RELIEF-R;IR-WOMEN;MH-CC0",
    "blender": "5.0.1",
    "ktx": "ktx version: v4.4.2",
-   "build_s": 295,
+   "build_s": 171,
    "reproduced": {
     "files": {
      "people_hair.json": "452908a9c04dd4fcfd9561c07420da024379dfdba837b37c8103cf59e64034fd",
