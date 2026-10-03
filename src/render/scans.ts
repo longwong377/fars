@@ -67,14 +67,14 @@ export const SCAN_USE: Record<string, ScanUse> = {
   // straw, the roller's lines)
   mud_plaster: { scan: 'dirt_floor', scale: 2.07, scale2: 9.1, alb: 0.75, chroma: 0.45, height: 0.003, rough: 0.4 },
   house_plaster: { scan: 'dirt_floor', scale: 2.07, scale2: 9.1, alb: 0.75, chroma: 0.45, height: 0.003, rough: 0.4 },
-  house_socle: { scan: 'stone_wall', scale: 2.0, alb: 1.0, hue: 0.45, height: 0.01, rough: 0.6, nor: 1.4 },
+  house_socle: { scan: 'stone_wall', scale: 2.0, alb: 1.0, hue: 0.75, chroma: 0.8, height: 0.01, rough: 0.6, nor: 1.4 },
   house_roof: { scan: 'raked_dirt', scale: 1.1, scale2: 6.3, alb: 0.85, chroma: 0.6, height: 0.004, rough: 0.4 },
   mud_roof: { scan: 'raked_dirt', scale: 1.1, scale2: 6.3, alb: 0.85, chroma: 0.6, height: 0.004, rough: 0.4 },
   plaster: { scan: 'clay_plaster', scale: 2.0, alb: 0.35, height: 0.002, rough: 0.3 },
   // D-302: the terrain, the rivers' banks, the tracks and the canal banks lay their own ground layers (GROUND below, groundScan);
   // this entry is the 'earth' of other meshes (the Now view's stumps, the lab ground): dust, not the cracked earth of D-295
   earth: { scan: 'dirt', scale: 2.0, scale2: 9, alb: 0.8, height: 0.008, rough: 0.5 },
-  court_fill: { scan: 'gravelly_sand', scale: 2.0, scale2: 9, alb: 0.7, height: 0.006, rough: 0.5 },
+  court_fill: { scan: 'gravelly_sand', scale: 2.0, scale2: 9, alb: 0.7, hue: 0.3, /* D-490: a share of the sand's buff (flat grey under the probe) */ height: 0.006, rough: 0.5 },
   // D-490: the town's lanes, courts and tracks take Dirt Floor (trodden and swept packed earth: pores, grit, chaff), half its own
   // buff laid over the ground's vertex colour (the court floors read as pale concrete under light v1 with Rocky Trail 02's fine grit)
   road: { scan: 'dirt_floor', scale: 1.9, scale2: 8.3, alb: 0.9, chroma: 0.6, hue: 0.35, height: 0.008, rough: 0.5 }, // D-302: trodden earth and fine gravel (was sandy_gravel_02: too fine to read)

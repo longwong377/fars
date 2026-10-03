@@ -9570,6 +9570,8 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   probe); every second tile turned 35° and offset (detile); the block faces' claw hatching fades to a third past ~4 m (a
   regular diagonal hatching over every block at 5-30 m); the houses' foot damp 0.1 -> 0.2 and run-off 0.12 -> 0.2; the water's
   far-bank reflection follows SEASON (was a hard-coded green).
+- Third pass: the footings take 75 % of the scan's buff (sunlit they read cold white-grey); the palaces' plaster bays 1σ 0.07 -> 0.09
+  and rain wash 0.13 -> 0.17 (the Gate's 20 m wall read as one flat plane). Frames: shots/a4, t4.
 
 ## D-480 (s17, V1 light): light v1, the art direction's light and tone
 - Tone (toneLook.ts): the fitted AgX look re-graded for the art direction (AC Origins / RDR2: rich, warm, controlled highlights,
@@ -9590,6 +9592,19 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   lane door 16:30 0/14/136 → 1/46/164 (photos of Fars mud-brick villages: ~30/110/190).
 - Tests: tone_look (the deepest darks within 14 levels of plain AgX, was 8: the toe lift is intended), exposure (a moonless
   night's displayed grey < 0.08, was 0.03: the night fill is intended).
+- light v2 (night, D-480 cont.): (1) the night dome (skySystem NIGHT_SKY_ZENITH/HORIZON): a deep-blue zenith over a paler
+  blue-grey horizon replaces the Preetham dome's night tail (the baseline train's cov-000: a brown-grey sky brighter than the
+  land); moonlight brightens it ×(1 + 2.5·up·phase); the fog's horizon colour and the air's in-scatter take the same night sky;
+  the airglow layer's green-grey veil cut to (0.00022, 0.00028, 0.00034). (2) The night fill is now a floor (NIGHT_GREY 0.05 of
+  the daylight grey, at most 10x, taken on the moonless sky so moonlight still adds): the evening falls monotonically from civil
+  twilight. (3) The grade's toe lift rises by NIGHT_LIFT 1.2 at night (pipeline.ts), the dark-adapted eye's reading of shapes.
+  (4) Night clouds (clouds.ts): opacity 1 − T^(1+3·night) so a deck that dims the sky also hides its stars, and a night glow
+  (the night dome at 35° × 1.1) so starlit cloud is soft grey-blue, not black holes. Lab, moonless court 22:30: p50 sRGB 1 → 15,
+  the open plain at 01:30 (cov-000's camera) 0 → 20. All C (UD-29: the night must read). Not fixed: the fan of light at the
+  horizon in cov-000 is the clear sky between cloud streets in perspective (gone with the clouds off); softened, not removed.
+- The outdoor field re-bake (node tools/blender/lightmaps.mjs, 192 s on 6 workers) is byte-identical on this tree: it bakes the
+  geometry (relative sky and sun), which the light changes do not touch. It must re-run after the town/Terrace geometry merges
+  (C1's fill, V4), before the final train.
 - (D-500, step 3) The sim's hooks on the body (handoff/briefs/s16/deeds_render.md): a wound of the deeds (DeedWorld.injuryOf)
   drawn as a linen bandage round the head or the left forearm (a cut) or a splinted right forearm, or a broken leg's limp with
   a staff (seeded per person); a healed wound or scald of the past (marks.ts war_scar, burn_arm, crooked_arm) as paler,
@@ -9698,3 +9713,6 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   courses fitted to each part's height (10 courses, 5 rosettes a face), a child mesh of the Apadana frieze (one draw; the
   Apadana frieze's own test unchanged). Colours, layout C as D-214.
 - (D-500, close) Cycles impostors re-rendered after the last cloth change; report handoff/s17/report_people.md.
+- light v2b (D-480 cont.): the cloud deck fades out between 30 and 60 km (the march at grazing angles smeared the noise into
+  streets converging on the vanishing point: cov-000's horizon fan; gone in the lab), and the night toe lift eases by up to
+  75 % under a bright moon (GRADE.nightLift from the SkySystem): the moonlit plain p50 73 → 52, the moonless one unchanged (17).
