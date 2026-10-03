@@ -9745,12 +9745,12 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
 ## D-530 (s17, V6 interior light and fire): daylight through the town's doorways, night spill, flames, coals, fire shadows, camp hearths
 - Daylight ports (fire.ts lightPorts, firePlaces.ts townPorts; world.ts one-line hook fire.setPorts): the town's ~9,100 doorways
   between a roofed room and the open each become a daylight source standing 1 m outside the opening, lit only on the room's side
-  (a half-space mask added to the composite's deferred term, fireGlow.ts D.w), of intensity daylight x 0.55 (sunlit ground and
-  walls with the sky) x 3 m2 / pi, cut off at 9 m; the nearest ports within 30 m take the deferred slots the fires leave free
+  (a half-space mask added to the composite's deferred term, fireGlow.ts D.w), of intensity daylight x 0.8 (sunlit ground and
+  walls with the sky) x 4 m2 / pi, cut off at 9 m; the nearest ports within 30 m take the deferred slots the fires leave free
   (by day all twelve). The light-probe field has no town room interiors, so a doorway into a house read as a black hole by day
   (fire-lab frames house-day-b vs lanedoor-day-d). At night a port whose room has its lamp or hearth lit spills that light out
-  onto the lane or court before the door (x 3 the plain estimate, C). Specular and SSGI bounce of these lights: none (C).
-- House lamps 0.08 -> 0.22 power, range 3.5 -> 5 m (one saucer lamp left the living rooms black at night; C, UD-29).
+  onto the lane or court before the door (x 0.8 the plain estimate, C; x 3 washed the facade). Specular and SSGI bounce of these lights: none (C).
+- House lamps: a brighter lamp (0.22, 5 m) was tried and reverted: unshadowed, it lit the street facade behind its ledge (fire-lab lanedoor-night-e).
 - Flames of tongues (two octaves of rising turbulence, narrowing column, blackbody ramp from a yellow-white core to deep red
   tips) replace the soft noise blob; a glowing coal bed (breathing ember patches) under every hearth, brazier and altar within 60 m.
 - Fire shadows: at high/ultra the 2 nearest fire lights cast soft cube-map shadows (radius 6 texels, 30 m reach), drawn when a
