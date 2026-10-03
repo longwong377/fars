@@ -9936,6 +9936,13 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   a_wo_shaduf, a_wo_pontoon); waterworks.ts places ~127 shadufs on the river and canal banks within 12 km (every ~420 m /
   ~330 m, sides alternating, none near a ford or on a road) with a 'lift' spot each for C1, and a bridge of boats on the
   royal road over the Kur whose deck rides on the river's level of the day.
+- Real plants (Vagon's 26 Poly Haven downloads, the lead's ask): 23 scans built (ph_props.mjs; region-wrong ones rejected:
+  moss, a succulent, the fruit model, a garden tree), 11 MB. groundFlora.ts gains four kinds drawn only from scans: wild shrubs
+  (Searsia, a broom-like bush), bunch grasses (straw by summer; also at the water), dead wood (rare) and the spring flowers
+  (March-May); the old kinds prefer the scans over the modelled cards (the T4's pale floating blobs). Memo keys widened (x8).
+- The fishermen's shore (the water look's life): two more kit models (a_wo_skiff, a_wo_net_poles); every ~1.1 km of river
+  within 10 km a fish trap in the shallows, a skiff drawn up on the bank and a net drying on poles, with 'fish' and 'mend'
+  spots for C1 (waterworksLayout().spots).
 
 ## D-720 Follow thirty: the people answer from their own lives without the model, and the town's deeds and yesterday reach their talk (session 18, cloud C8; UD-07, UD-08, UD-11, UD-21, UD-24, UD-32)
 - Measured (tools/dev/follow30.ts; REVIEWS/follow30.json): thirty people drawn by seed across the town, the villages, the Terrace's
@@ -10025,6 +10032,16 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   after (tests/cloud_slits_d680.test.ts; fails unwarped). The cover calibration tests pass unchanged. C.
 - Kuh-e Rahmat's bright streak: road_pasargadae's first segment (settlement.json [250,250] -> [2600,1900]) runs ruler-straight
   from 2 m up to ~290 m over the mountain behind the Terrace; a data fix (reroute round the north end) asked of the lead.
+- The live page's black frames (s18, the lead's urgent ask; the T4 and the cloud alike): (1) progressive.ts deferred, once the
+  frame's 40 ms build budget was spent, every draw never built before, and the full-screen quads are drawn last: the post
+  pipeline's (composite, TRAA, bloom, the meter's render-to-texture) at high, the renderer's own output quad (tone mapping
+  and sRGB to the canvas) at low; while the world streamed in they were deferred every frame, so the canvas stayed black and
+  the meter read an unwritten target (meterLn 0, EV -1 on the T4). A QuadMesh is never deferred now. Cloud live probe
+  (?webgl=1, low, Enter and the film skipped, no ?test): black at 54-93 draws before, the sky, clouds and ground from the
+  first sampled frame after. (2) pipeline.ts pins the renderer's tone mapping and colour space before three's RenderPipeline
+  pass and restores them in a finally (a throw inside it left NoToneMapping, and the next frame rebuilt the output without
+  AgX: toneMapping 0 on the live T4 page); a throwing pass is logged (window.__frameFaults) and the frame goes on. (3) main.ts:
+  a meter readback pending over 2 s is abandoned and an all-zero or non-finite one rejected; both fall back to the lux law.
 - Unseen: the cloud cannot draw Q=high (WebGL2: program validation failures and a lost device with the cascade on AND off;
   WebGPU: SwiftShader's 16-texture cap), so the far cascade is verified node-side only; it needs a T4 frame.
 
@@ -10242,6 +10259,14 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   four horses abreast, CHARIOT_YOKE 2.95 m, the car's floor 0.55 m); the royal women's curtained litter (workObjects 'litter',
   carry_bier on a why naming it; Plutarch Them. 26, HDT 7.83 claims B, the form C); household donkeys tied at lane doors by
   day and hens out at the door (fauna.json donkey 0.08 of lane-door houses; all C).
+- D-790 round 4: the toddler held where it plopped (crowd.ts hold, Gait.plop; a held hand keeps it up) and hurrying after;
+  carried biers and litters walk in formation with their crews (crowd.ts CREW: the anchor bearer's place the centre, the
+  bearers at 0.46 m / 1.0 m by their pole's shoulder; Q-196 closed for moving crews); the royal women's litter carried by
+  C13's bearers (C13's model). The face assets (branch s18-face-assets, Vagon): the Lee Perry-Smith scan's normal map (CC BY
+  3.0) integrated to height, fitted to hm08 by an affine and thin-plate warp on six landmarks, cast onto its UV and blended
+  over the procedural creases (tools/blender/face_scan.py; skin.ts applyFaceRelief); its albedo is not used (one man's
+  stubble and brows on every face). The hair atlas's curls loosened (curly, court and beard rows: more irregular radius,
+  pitch and phase, more strays and fray: the elder's "bubble wrap"), rebuilt in the cloud (ktx_cli.mjs takes given levels).
 
 ## D-691 Carried props sit on the body, seated poses clear their props (s18 cloud C5)
 - tools/dev/prop_clip.ts: every activity and variant that holds a prop, and the goods in the plan's words (basket, sack, jar,
@@ -10356,3 +10381,5 @@ touched; the budget baseline is not re-accepted from such a head.
 - Every house (houses.ts roofFill, drawn instanced by fill.ts, its seasons as bits): in the warm months the household's mats and bedding rolls on its largest roof (60 % of houses, 1-3 sleepers' places), at the harvest fruit drying on a mat there (apricots, grapes, pomegranates; 50 %); in the court's corner farthest from the street door a heap of ash and sweepings (every house with a court of 6+ cells) and a reed-mat screen leaned across the corner over the latrine pit (70 %). C.
 - Every living room's niche with a saucer lamp and a little of the meal set out (interiors/plan.ts; C: household offerings in wall niches; no words or images of a named god). The neighbourhood shrine waits on precinct.ts's lock (tests/religion.test.ts).
 - The stalls by season (fillPlan.ts): fresh fruit at the harvest only; in the warm and cold months the same spreads sell dried fruit and nuts (C; the PF rations' dried fruit, B).
+- (D-671, s18 C2, C12 row 16) The paradise garden fed: a stone-lined inlet from the plain's side (NNE) through the wall into the first cross channel, 48 m, and a sluice where it enters (two dressed stone cheeks, a timber board in their slots, its lifting bar; build.ts 'sluice'). C: the Pasargadae garden's channels fed by an inlet, B by analogy; the source beyond the inlet's end is not drawn.
+- The villages (plain/villagehouses.ts): the far level takes each household's wash by C2's draw (D-661), so villages read from afar as they do near; 38 % of households a cloth or two drying over the eave, 45 % a straw and fodder stack on the roof, 30 % of wings brushwood (C); the estates' porches with pile carpets, cushions and a brazier, jars by the pool, benches. The dung cakes on the lane walls were cut again: s17-int already stood at 2.01 M plain triangles (cap 2.0 M), and this branch brings it back under.

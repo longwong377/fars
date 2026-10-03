@@ -17,11 +17,11 @@ import { curvatureDrop } from '../../terrain/heightfield';
 export const WATERWORKS = { riverEvery: 420, canalEvery: 330, reach: 12000, calm: 150, bay: 6 } as const;
 export const WATERWORKS_TAG = { tier: 'C', src: 'RECON;HDT;XEN-ANAB', note: 'shadufs on the river and canal banks and a bridge of boats on the royal road over the Kur (D-670): the devices by analogy (Assyrian reliefs, Egyptian tombs; Herodotus 7.36, Xenophon Anabasis 2.4), their places by rule (C)' };
 
-export interface WaterworksLayout { shadufs: (WorkItem & { y: number })[]; bays: { e: number; n: number; rot: number; bankAsl: number; bedDepth: number }[]; spots: WorkSpot[] }
+export interface WaterworksLayout { shadufs: (WorkItem & { y: number })[]; shore: (WorkItem & { y: number })[]; bays: { e: number; n: number; rot: number; bankAsl: number; bedDepth: number }[]; spots: WorkSpot[] }
 
 /** where the works stand (pure): rivers as drawn (their corridor sections), canals, crossings */
 export function waterworksLayout(profiles: CorridorSection[][], rivers: RiverProfile[], canals: Canal[], crossings: Crossing[], ground: (e: number, n: number) => number): WaterworksLayout {
-  const zones = settlementZones(), out: WaterworksLayout = { shadufs: [], bays: [], spots: [] };
+  const zones = settlementZones(), out: WaterworksLayout = { shadufs: [], shore: [], bays: [], spots: [] };
   const ok = (e: number, n: number) => !vergeZone(e, n) && !zones.some(z => pointInPolygon(e, n, z)) && !crossings.some(c => Math.hypot(c.x - e, c.y - n) < WATERWORKS.calm);
   const add = (e: number, n: number, y: number, toE: number, toN: number, id: string) => {
     const rot = Math.atan2(toE, -toN); out.shadufs.push({ m: 'wo_shaduf', e, n, rot, s: [1, 1, 1], y });
@@ -32,6 +32,18 @@ export function waterworksLayout(profiles: CorridorSection[][], rivers: RiverPro
     for (const q of prof) { if (q.s < next) continue; next = q.s + WATERWORKS.riverEvery; if (Math.hypot(q.x, q.y) > WATERWORKS.reach) continue;
       const side = k++ % 2 ? 1 : -1, idx = side > 0 ? 8 : 3, u = q.off[idx] + side * 1.6, e = q.x + q.nx * u, n = q.y + q.ny * u;
       if (!ok(e, n)) continue; add(e, n, q.hy[idx] - 0.05, -side * q.nx, -side * q.ny, `shaduf:${rivers[ri]?.id ?? ri}:${Math.round(q.s)}`); } });
+  // the fishermen's shore (D-670): every ~1.1 km of river within 10 km, on the side away from that reach's shaduf: a willow
+  // fish trap set in the shallows at the margin, a plank skiff drawn up on the bank and a net drying on poles (C)
+  profiles.forEach((prof, ri) => { let next = 650, k = 0;
+    for (const q of prof) { if (q.s < next) continue; next = q.s + 1100; if (Math.hypot(q.x, q.y) > 10000) continue;
+      const side = k++ % 2 ? -1 : 1, top = side > 0 ? 8 : 3, slope = side > 0 ? 7 : 2, tx = q.tx, ty = q.ty, along = Math.atan2(tx, -ty);
+      const at = (u: number): [number, number] => [q.x + q.nx * u, q.y + q.ny * u], [te, tn] = at(q.off[slope]), [be, bn] = at(q.off[top] + side * 2.6);
+      if (!ok(be, bn)) continue;
+      out.shore.push({ m: 'wo_fish_trap', e: te, n: tn, rot: along + 0.4, s: [1.2, 1.2, 1.2], y: q.hy[slope] - 0.25 });
+      out.shore.push({ m: 'wo_skiff', e: be, n: bn, rot: along + side * 0.35, s: [1, 1, 1], y: q.hy[top] - 0.05 });
+      const ne = be + tx * 7, nn = bn + ty * 7; out.shore.push({ m: 'wo_net_poles', e: ne, n: nn, rot: along, s: [1, 1, 1], y: q.hy[top] });
+      const id = `shore:${rivers[ri]?.id ?? ri}:${Math.round(q.s)}`;
+      out.spots.push({ facility: id, act: 'fish', e: be - q.nx * side * 1.5, n: bn - q.ny * side * 1.5, yaw: Math.atan2(-q.nx * side, q.ny * side) }, { facility: id, act: 'mend', e: ne + q.nx * side * 1.2, n: nn + q.ny * side * 1.2, yaw: along }); } });
   // canals: every ~330 m on alternate banks, beyond their first 100 m
   for (const c of canals) { let s = 0, next = 100, k = 0;
     for (let i = 1; i < c.pts.length; i++) { const [ax, ay] = c.pts[i - 1], [bx, by] = c.pts[i], L = Math.hypot(bx - ax, by - ay); s += L; if (s < next) continue; next = s + WATERWORKS.canalEvery;
@@ -52,6 +64,8 @@ export class Waterworks {
   constructor(layout: WaterworksLayout, ground: (e: number, n: number) => number, courtAsl: number) {
     this.layout = layout; this.court = courtAsl; this.group.name = 'plain-waterworks'; this.group.userData = { ...WATERWORKS_TAG };
     const sh = kitMesh('wo_shaduf', layout.shadufs, ground, 2); if (sh) { sh.castShadow = true; sh.userData = this.group.userData; this.group.add(sh); }
+    for (const mName of ['wo_fish_trap', 'wo_skiff', 'wo_net_poles']) { const list = layout.shore.filter(i => i.m === mName); if (!list.length) continue;
+      const m = kitMesh(mName, list, ground, 2); if (m) { m.castShadow = mName !== 'wo_fish_trap'; m.userData = this.group.userData; this.group.add(m); } }
     if (layout.bays.length) { this.bridge = kitMesh('wo_pontoon', layout.bays.map(b => ({ m: 'wo_pontoon', e: b.e, n: b.n, rot: b.rot, s: [1, 1, 1] as [number, number, number], y: 0 })), ground, 2);
       if (this.bridge) { this.bridge.castShadow = true; this.bridge.userData = this.group.userData; this.group.add(this.bridge); } }
   }
@@ -63,5 +77,5 @@ export class Waterworks {
       q.setFromAxisAngle(up, b.rot); m4.compose(p.set(b.e, y, -b.n), q, one); this.bridge!.setMatrixAt(i, m4); });
     this.bridge.instanceMatrix.needsUpdate = true; this.bridge.computeBoundingSphere(); void doyOf;
   }
-  stats() { return { shadufs: this.layout.shadufs.length, bays: this.layout.bays.length, spots: this.layout.spots.length }; }
+  stats() { return { shadufs: this.layout.shadufs.length, shore: this.layout.shore.length, bays: this.layout.bays.length, spots: this.layout.spots.length }; }
 }

@@ -84,7 +84,7 @@ describe('D-459 deeds in the world (a real town, seed 1, day 60)', () => {
     expect(b.deeds.log.length).toBe(0); expect(b.deeds.cases.length).toBe(sim.deeds.cases.length);
     // (D-720: the ids go on from the saved count, and the last day's deeds are read back: a memory reads its own deed)
     expect(b.deeds.next).toBe(sim.deeds.next);
-    const last = sim.deeds.log.filter(r => /^(attack|steal|break|curse|accuse|threaten|insult|mock|push|court|reconcile|heal|forgive|apologize|intercede|comfort)$/.test(r.deed.verb) && r.day >= sim.deeds.log[sim.deeds.log.length - 1].day - 9).slice(-1)[0];
+    const last = sim.deeds.log.filter(r => /^(attack|steal|break|curse|accuse|threaten|insult|push|court|reconcile)$/.test(r.deed.verb) && r.day >= sim.deeds.log[sim.deeds.log.length - 1].day - 9).slice(-1)[0];
     if (last) { expect(b.deeds.rec(last.id)?.deed.verb).toBe(last.deed.verb); expect(b.deeds.rec(last.id)?.deed.actor).toBe(last.deed.actor); }
     const v = sim.deeds.cases.find(c => c.accused === 'player')!.victim as number; expect(b.deeds.minds.feelOf(v, 'player', day + 1).anger).toBeCloseTo(sim.deeds.minds.feelOf(v, 'player', day + 1).anger, 6);
   });

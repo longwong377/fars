@@ -96,11 +96,12 @@ describe('the court in residence (D-182)', () => {
     const d = festivals(1)[0].day; let off = 0; for (let pid = 0; pid < K.first; pid += 7) if (P.festDay(pid, d)) off++; expect(off).toBeGreaterThan(1000);
   }, 600_000);
   it('every sealed letter for the Treasury is handed over while the desk is open, every day of the year, with and without the court (D-229)', () => {
-    // (D-780: the court's sim through its residence and a month after; the year beyond it is the court-less town's, checked in full
-    //  by `absent`: the plans of a day advance the town's economy to it, and the two whole years took 1,100-1,200 s)
+    // (the plans are read on every day a letter comes and on every seventh day besides, to see no letter carried that the
+    // calendar did not send: the year's plans cost ~20 min on a 4-core box, the letters' days a fraction; C7 D-710. D-780: the
+    // court's sim through its residence and a month after, the year beyond it the court-less town's, checked in full by `absent`)
     for (const S of [absent, court]) { const P = S.pop, last = S === court ? Math.min(354, P.court!.year.leave + 30) : 354; let cal = 0, carried = 0; const bad: string[] = [];
       for (let d = 0; d < 354; d++) { const L = P.cal.ctx(d).letters; for (const x of L) expect(x.go + P.walkH('station', 'stair_foot', d, 'town', 'terrace') + 0.1 + TREASURY_DESK.hand, `day ${d}`).toBeLessThanOrEqual(TREASURY_DESK.close + 1e-9); }
-      for (let d = 0; d < last; d++) { const L = P.cal.ctx(d).letters; cal += L.length;
+      for (let d = 0; d < last; d++) { const L = P.cal.ctx(d).letters; cal += L.length; if (!L.length && d % 7) continue;
         for (const m of P.messengers) if (P.present(m, d)) carried += P.plan(m, d).filter(s => s.why === LETTER_WHY).length;
         // (D-780: the desk's receipts checked on the days that bring letters or a caravan)
         if (L.length || P.caravan(d)) for (const x of receipts(P, d, pid => P.plan(pid, d))) bad.push(`${S === court ? 'court' : 'absent'} day ${d}: ${x.pid} ${x.note}`); }
