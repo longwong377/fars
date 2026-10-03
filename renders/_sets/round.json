@@ -1,21 +1,6 @@
 {
 "extra": [
 {
-"id": "intro-town-a",
-"e": -215,
-"n": 745,
-"eye": 17,
-"az": 150,
-"pitch": -13,
-"fov": 45,
-"day": 0,
-"hour": 5.97,
-"w": "clear",
-"why": "C11 opening shot 'town', first key",
-"owner": "C11",
-"prio": 5
-},
-{
 "id": "town-20m",
 "e": -320,
 "n": 862,
@@ -26,7 +11,8 @@
 "hour": 10,
 "w": "clear",
 "why": "the town from 20 m over its roofs, looking SE to the Terrace",
-"owner": "C2"
+"owner": "C2",
+"town": true
 },
 {
 "id": "lane-q_s1",
@@ -95,7 +81,8 @@
 "w": "clear",
 "why": "inside a town room (cov-204, town:rooms)",
 "owner": "C2",
-"open": true
+"open": true,
+"prio": 1
 },
 {
 "id": "field-500m",
@@ -253,7 +240,8 @@
 "hour": 10,
 "w": "clear",
 "why": "a face at 0.5 m: the nearest still simulated person to the q_s1 market (a talker first), camera at face height",
-"owner": "C14"
+"owner": "C14",
+"prio": 1
 },
 {
 "id": "terrace-gift-day",
@@ -283,21 +271,6 @@
 "prio": 0
 },
 {
-"id": "intro-town",
-"e": -250,
-"n": 728,
-"eye": 15,
-"az": 154,
-"pitch": -12,
-"fov": 45,
-"day": 0,
-"hour": 5.97,
-"w": "clear",
-"why": "C11 opening shot 'town' (moved ~150 m S over the lanes, 1babe236), middle key: sunrise+0.35 h",
-"owner": "C11",
-"prio": 5
-},
-{
 "id": "banquet-throne",
 "e": 1.9,
 "n": 0,
@@ -323,7 +296,8 @@
 "w": "clear",
 "why": "the town from 20 m at noon (C2's plaster and roofs)",
 "owner": "C2",
-"prio": 2
+"prio": 2,
+"town": true
 },
 {
 "id": "town-200m-noon",
@@ -337,7 +311,8 @@
 "w": "clear",
 "why": "the N town from 200 m up at noon, looking down over its roofs (C2)",
 "owner": "C2",
-"prio": 2
+"prio": 2,
+"town": true
 },
 {
 "id": "terrace-100m",
@@ -380,6 +355,34 @@
 "why": "C3's ground before the Terrace: the approach 80 m W of the stair, looking E at the stair over the ground",
 "owner": "C3",
 "prio": 4
+},
+{
+"id": "interior-2",
+"e": -858.01,
+"n": -56.55,
+"eye": 1.6,
+"az": 342.4,
+"pitch": -1.2,
+"day": 25,
+"hour": 10,
+"w": "clear",
+"why": "a town room (cov-070) at 10 h: interior brightness",
+"owner": "C4/C2",
+"prio": 1
+},
+{
+"id": "interior-1-again",
+"e": -532.06,
+"n": 410.4,
+"eye": 1.6,
+"az": 299.4,
+"pitch": 0,
+"day": 25,
+"hour": 10,
+"w": "clear",
+"why": "cov-204 room turned to face its door side",
+"owner": "C4/C2",
+"prio": 1
 }
 ]
 }

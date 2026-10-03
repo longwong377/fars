@@ -1,5 +1,6 @@
 // cloud eyes: one page load, every view of a SET file, full frames as PNG (same __parsa calls as tests/e2e/coverage.spec.ts)
 import { chromium } from '/home/user/fars/node_modules/playwright/index.mjs';
+import { createRequire } from 'node:module'; const sharp = createRequire('/home/user/fars/package.json')('sharp');
 import { readFileSync, mkdirSync, existsSync, appendFileSync } from 'node:fs';
 const [setFile, outDir] = process.argv.slice(2); mkdirSync(outDir, { recursive: true });
 const S = JSON.parse(readFileSync(setFile, 'utf8')); const P = JSON.parse(readFileSync('/home/user/fars/tests/data/coverage_points.json', 'utf8')).points;
@@ -55,10 +56,20 @@ for (const v of work) {
     // kept/visible/pending, the detailed sim's agents within 60 m and 150 m
     const life = await p.evaluate(([e, n]) => { const a = window.__parsa, H = a.humans?.(), P = a.people?.(); if (!H) return null;
       const near = r => (P?.agents ?? []).filter(g => !g.offmap && Math.hypot(g.e - e, g.n - n) < r).length;
-      const rf = window.__renderFaults, ff = window.__frameFaults; return { renderFaults: rf ?? null, frameFaults: ff ?? null, skinned: (H.perf?.drawn ?? []).reduce((x, y) => x + y, 0), imp: H.impPerf?.drawn ?? H.impostors ?? null, popKept: H.view?.candidates ?? null, popVisible: H.view?.visible ?? null, popPending: H.view?.pending ?? null, pv: H.view ? Object.fromEntries(Object.entries(H.view).filter(([k, x]) => typeof x === "number" && x)) : null, agents60: near(60), agents150: near(150), simT: P?.t != null ? +P.t.toFixed(3) : null }; }, [v.e, v.n]).catch(e => ({ err: String(e).slice(0, 80) }));
+      const W = a.world?.people, C = W?.crowd; let drawn60 = null, planned60 = null;
+      try { drawn60 = C.nearPeople({ x: e, y: 0, z: -n }, 60).length; planned60 = (C.view?.query([e, n], 60)?.length ?? 0) + near(60); } catch (err) { drawn60 = 'err ' + String(err).slice(0, 60); }
+      const rf = window.__renderFaults, ff = window.__frameFaults; return { drawn60, planned60, renderFaults: rf ?? null, frameFaults: ff ?? null, skinned: (H.perf?.drawn ?? []).reduce((x, y) => x + y, 0), imp: H.impPerf?.drawn ?? H.impostors ?? null, popKept: H.view?.candidates ?? null, popVisible: H.view?.visible ?? null, popPending: H.view?.pending ?? null, pv: H.view ? Object.fromEntries(Object.entries(H.view).filter(([k, x]) => typeof x === "number" && x)) : null, agents60: near(60), agents150: near(150), simT: P?.t != null ? +P.t.toFixed(3) : null }; }, [a[0], a[1]]).catch(e => ({ err: String(e).slice(0, 80) }));
     life.waitS = +((Date.now() - tw) / 1000).toFixed(0); life.catchingUp = await p.evaluate(() => window.__parsa.world?.people?.sim?.catchingUp ?? null).catch(() => 'err'); life.target = +target.toFixed(3);
-    appendFileSync(`${outDir}/life.jsonl`, JSON.stringify({ id: v.id, who: v.who, reheaded: v.reheaded, ...life }) + '\n');
     const tf = Date.now(); await p.screenshot({ path: `${outDir}/${v.id}.png`, timeout: 1800000 }); const tshot = ((Date.now() - tf) / 1000).toFixed(0);
+    try { const st2 = await sharp(`${outDir}/${v.id}.png`).greyscale().stats(); life.meanLuma = +st2.channels[0].mean.toFixed(1); } catch (e) { life.meanLuma = 'err'; }
+    if (v.town) { // the share of the town's upward faces seen that are open floors (a floor more than 1.5 m below the roofs round it)
+      const t3 = Date.now(), N = [24, 14], hits = [], names = {};
+      for (let j = 0; j < N[1]; j++) for (let i = 0; i < N[0]; i++) { const h = await p.evaluate(([x, y]) => window.__parsa.pickW(x, y), [-1 + (2 * i + 1) / N[0], -1 + (2 * j + 1) / N[1]]).catch(() => null);
+        if (h) { const k = `${h.name}|${h.parent}`; names[k] = (names[k] ?? 0) + 1; }
+        if (h && h.ny > 0.7 && /^settlement|^house|^town|^q_/i.test(String(h.name || h.parent)) && !/ground|road|water|refuse|tree|haze|smoke|canal|channel|bank/i.test(String(h.name))) hits.push(h.p); }
+      let open = 0; for (const q of hits) { const top = Math.max(...hits.filter(r => Math.hypot(r[0] - q[0], r[2] - q[2]) < 15).map(r => r[1])); if (top - q[1] > 1.5) open++; }
+      life.openToSky = hits.length ? +(open / hits.length).toFixed(3) : null; life.openSamples = hits.length; life.openNames = Object.entries(names).sort((x, y) => y[1] - x[1]).slice(0, 8); life.openS = +((Date.now() - t3) / 1000).toFixed(0); }
+    appendFileSync(`${outDir}/life.jsonl`, JSON.stringify({ id: v.id, who: v.who, reheaded: v.reheaded, ...life }) + '\n');
     const st = await p.evaluate(() => { const s = window.__parsa.stats(); return { dc: s.drawCalls, tri: s.triangles, be: s.backend }; }).catch(() => ({}));
     const line = `${v.id} ${((Date.now() - t1) / 1000).toFixed(0)}s (shot ${tshot}s) ${JSON.stringify(st)} life ${JSON.stringify(life)}`; console.log(T(), line); appendFileSync(`${outDir}/log.txt`, line + '\n');
   } catch (e) { console.log(T(), v.id, 'FAILED', String(e).slice(0, 300)); if (/closed|destroyed|crash/i.test(String(e))) break; }
