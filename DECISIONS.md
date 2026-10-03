@@ -9851,3 +9851,6 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
 - D-474 correction: re-measured on the tip with the ground fix (de0c067a, built, cold, T4, a train sharing the GPU): page ready
   41.6 s (morning ~42), first frames seen 58.9 s (45.5), shaders settled 931 s (753), memory 10.57 GB (10.48), frame 170 ms
   (117), validation errors 1 (15). The "181 s settled" above was the bugged build that drew no ground. Decision unchanged.
+
+## D-477 (s17, V9 wall faces): earthen walls weathered in the shader for 5-30 m
+- The s17 final scoreboard (cov-042, cov-084, ...) showed mud walls as smooth plaster boxes. New `EarthWeatherDef` (materials.ts `earthWeather`, arch meshes with y0/ytop, vertical outer faces): a ragged damp and splashed base (to ~1.3 m houses, ~0.8 m palaces), mud wash streaks of uneven length from the tops, patchy recoats (~3 m, ±10 % houses / ±4 % palaces, a 2 mm proud edge), a bleached crest with its last 12 cm rounded (normal tilt), and fallen plaster (7 % of house faces, 1.5 % palace) showing 33 x 13 cm mud-brick courses in half bond, band-limited. No new samplers (procedural noise only; ~7 noise calls). A/B: window.__parsaSurf.v9. Tier C. Houses: HOUSE_WEATHER (settlement/surfaces.ts); palaces: PALACE_WEATHER (mudbrick, mudbrick_painted).
