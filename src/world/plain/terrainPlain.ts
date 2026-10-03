@@ -281,17 +281,21 @@ export class PlainGround {
       const zb = texture(zoneTex, p.add(H).div(2 * H));
       const bI = zb.x.mul(float(1).sub(zb.z)), bR = zb.y.mul(float(1).sub(zb.x)).mul(float(1).sub(zb.z)), bO = zb.z;
       const bSum = bI.add(bR).add(bO).max(1e-4);
-      const meanRain = mix(meanRainF, meanRainC, cropYear);
-      const irrFar = mix(this.meanIrrFallow, this.meanIrrCrop, irrSc.mul(IRR_CROP)); // the district's own mix (D-223)
+      // D-670 (blind review s18, plain at 1.5 km: "flat colour bands with ruler edges"): a district's year and its irrigated share
+      // fade into its neighbour's over ~180 m either side of the district edge, so the far blocks meet softly, not on a ruled line (C)
+      const dB = smoothstep(0.0, 180.0, dEdge);
+      const meanRain = mix(meanRainF, meanRainC, mix(float(0.5), cropYear, dB));
+      const irrFar = mix(this.meanIrrFallow, this.meanIrrCrop, mix(float(IRR_CROP), irrSc.mul(IRR_CROP), dB)); // the district's own mix (D-223), blended at its edges
       const stFar = irrFar.mul(bI).add(meanRain.mul(bR)).add(meanOrch.mul(bO)).div(bSum);
       // D-670 (the plain from the Terrace "a flat sheet"): past the plots' own fade, the holdings (~180-340 m, wandering edges)
       // still read apart: one family's strips sown thicker or thinner, watered more or less, greener or paler than the
       // neighbour's (+-40 % green cover, -25 % straw, +-14 % shade), kept while a holding spans pixels (C; colour only: the
       // plot hashes, crops and the CPU mirror unchanged)
-      const hq = p.add(vec2(mx_noise_float(vec3(p.x.mul(0.004), 5.1, p.y.mul(0.004))), mx_noise_float(vec3(p.x.mul(0.004), 8.7, p.y.mul(0.004)))).mul(90)).div(260).floor();
-      const hv = unitN(hash2N(cellUN(hq.x), cellUN(hq.y), 48)).mul(2).sub(1), hs = unitN(hash2N(cellUN(hq.x), cellUN(hq.y), 49)).mul(2).sub(1);
+      const hqR = p.add(vec2(mx_noise_float(vec3(p.x.mul(0.004), 5.1, p.y.mul(0.004))), mx_noise_float(vec3(p.x.mul(0.004), 8.7, p.y.mul(0.004)))).mul(90)).div(260), hq = hqR.floor();
+      const hf = hqR.fract(), hEdge = smoothstep(0.0, 0.22, min(min(hf.x, hf.y), min(float(1).sub(hf.x), float(1).sub(hf.y)))); // soft holding edges (~60 m)
+      const hv = unitN(hash2N(cellUN(hq.x), cellUN(hq.y), 48)).mul(2).sub(1).mul(hEdge), hs = unitN(hash2N(cellUN(hq.x), cellUN(hq.y), 49)).mul(2).sub(1).mul(hEdge);
       const hKeep = float(1).sub(plotKeep).mul(float(1).sub(smoothstep(60.0, 200.0, minor))).mul(clamp(sqrt(float(500).div(major)), 0, 1));
-      const sF: any = stFar, stFarH = vec4(sF.x, sF.y.mul(hv.mul(0.4).mul(hKeep).add(1)).clamp(0, 1), sF.z.mul(hv.mul(-0.25).mul(hKeep).add(1)), sF.w);
+      const sF: any = stFar, stFarH = vec4(sF.x, sF.y.mul(hv.mul(0.3).mul(hKeep).add(1)).clamp(0, 1), sF.z.mul(hv.mul(-0.25).mul(hKeep).add(1)), sF.w);
       const S = mix(stFarH, st, plotKeep), M =mix(bI.add(bR).add(bO).min(1).mul(allowed), mask, plotKeep);
       // --- colour of the plot from its state
       // D-670 (holes P2-10, Q-603): the soil's moisture by season: the loam dark and damp in spring (the winter rains and the
