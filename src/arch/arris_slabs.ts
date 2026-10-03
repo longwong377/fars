@@ -9,7 +9,7 @@
 // Tier C.
 import * as THREE from 'three/webgpu';
 import { SURFACES, STAIR_BLOCK } from '../render/materials';
-import { ARRIS_W, type ArrisEdge } from './arris';
+import { ARRIS_W, JOINT_W, type ArrisEdge } from './arris';
 import { ADIST_OFF } from '../render/blockface';
 import { hash12f } from './arris_joints';
 
@@ -105,6 +105,10 @@ export function planarJoints(pf: PlanarFace, surf: string, stair: [number, numbe
   for (let j = Math.floor((u0 - off) / L) - 1; j <= Math.floor((u1 - off) / L) + 1; j++) {
     const x = (j + (hash12f(c, j) - 0.5) * jit * 0.5) * L + off;
     if (x >= u0 && x <= u1) segs.push([x, v0, x, v1]);
+    // (D-753: a joint just past the face's end, under the parapet it abuts, still draws its line's near half on the tread: its
+    // groove at the face's end, within JOINT_W of the line)
+    else if (x >= u0 - JOINT_W && x < u0) segs.push([u0 + 1e-4, v0, u0 + 1e-4, v1]);
+    else if (x > u1 && x <= u1 + JOINT_W) segs.push([u1 - 1e-4, v0, u1 - 1e-4, v1]);
   }
   // the row's joint across the first tread of each row: along = tHalf − rowJoint from the box centre (V = the rising direction)
   if (pf.kind === 'tread' && stair[1] <= -0.05) {
@@ -157,7 +161,7 @@ export function planarJointEdges(pf: PlanarFace, surf: string, attrs: { y0: numb
   for (const s of planarJoints(pf, surf, attrs.stair, attrs.pbox)) {
     const len = Math.hypot(s[2] - s[0], s[3] - s[1]); if (len < 1e-6) continue;
     for (const [lo, hi] of clipToFace(pf, s)) {
-      if ((hi - lo) * len < 0.02) continue;
+      if ((hi - lo) * len < 0.004) continue; // (D-753: was 2 cm: a joint clipped short beside a parapet kept its shader line with no groove)
       const a = planarWorld(pf, s[0] + (s[2] - s[0]) * lo, s[1] + (s[3] - s[1]) * lo), b = planarWorld(pf, s[0] + (s[2] - s[0]) * hi, s[1] + (s[3] - s[1]) * hi);
       const across = pf.N.clone().cross(b.clone().sub(a)).normalize();
       out.push({ mat: surf, a, b, na: pf.N.clone(), nb: across, r: 0, seed: 0, joint: true, planes: [], y0a: attrs.y0, y0b: attrs.y0, pbox: attrs.pbox, ytop: attrs.ytop, stair: attrs.stair });

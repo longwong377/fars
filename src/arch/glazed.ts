@@ -15,7 +15,7 @@ export interface FriezeFace { tower: string; c: [number, number]; n: [number, nu
 /** the outer faces of the Apadana's corner towers that carry the frieze, and the band's heights */
 export function friezeFaces(parts: Part[]): FriezeFace[] {
   const F = v<any>('apadana', 'r_glazed_frieze'), out: FriezeFace[] = [];
-  const towers = parts.filter(p => p.building === 'apadana' && p.kind === 'tower' && p.type === 'box' && !(p as Box).rot) as Box[];
+  const towers = towerEnvelopes(parts);
   if (!present('apadana')) return [];
   for (const t of towers) {
     const y1 = t.y1 - F.top_below, y0 = y1 - F.courses * F.course, tag = `${t.c[1] > 0 ? 'N' : 'S'}${t.c[0] > 0 ? 'E' : 'W'}`;
@@ -44,6 +44,15 @@ export const PALACE_BAND_H = 1.62;
 /** D-750: the palaces' wall runs under their string courses (roofedge.ts bands), the Apadana frieze's courses down from there */
 export function palaceBandFaces(parts: Part[]): FriezeFace[] {
   return roofEdges(parts).bands.map(b => ({ tower: b.building, c: b.c, n: b.n, length: b.length, y0: b.y1 - PALACE_BAND_H, y1: b.y1, own: true }));
+}
+/** D-753: the Apadana's corner towers as one box each: a hollow tower's walls carry its envelope (`env`), a solid tower is itself */
+export function towerEnvelopes(parts: Part[]): Box[] {
+  const out = new Map<string, Box>();
+  for (const p of parts) { if (p.building !== 'apadana' || p.kind !== 'tower' || p.type !== 'box' || (p as Box).rot) continue;
+    const b = p as Box, e = b.env; if (!e) { out.set(`${b.c}`, b); continue; }
+    const k = e.join(','), q = out.get(k);
+    if (!q) out.set(k, { ...b, c: [(e[0] + e[2]) / 2, (e[1] + e[3]) / 2], size: [e[2] - e[0], e[3] - e[1]], env: undefined }); }
+  return [...out.values()];
 }
 /** linear-light RGB of an sRGB triple */
 const linRGB = (s: number[]) => { const c = new THREE.Color().setRGB(s[0], s[1], s[2], THREE.SRGBColorSpace); return [c.r, c.g, c.b]; };

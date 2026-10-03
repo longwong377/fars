@@ -1,6 +1,7 @@
 // Parametric Terrace generator. Every dimension comes from SITE_SPEC (src/data/site_spec.json): attested/inferred rows,
 // DERIVED rows, or `r_*` reconstruction rows (tier C, with a note each) — no literals (brief §3.1, §7; review MJ-1).
 // Positions come from the georeferenced OSM footprints. Output: parts + a manifest of measured features.
+import { hollowTower, roofFlight } from './tower_stairs';
 import { row, v, tierOf, srcOf, present, footprint, SPEC } from './spec';
 import { Part, Pt, Box, Prism, Column, ColumnOrder, Manifest, wallRing, grid, BuildResult, Material, doorFrames, frameTop, FrameDims, cutWall, Doorway, DoorState } from './parts';
 import { ringSide, ringDoorway, openingParts, leafParts } from './openings';
@@ -273,13 +274,22 @@ export function buildTerrace(): BuildResult {
     const [px0, py0, px1] = f.bounds; const nEdge = cy + wo + pdN;
     const tE = v(b, 'r_tower_extra');
     const towers: [number, number, number, number][] = [[px0, cy + wo, cx - wo, nEdge], [cx + wo, cy + wo, px1, nEdge], [px0, py0, cx - wo, cy - wo], [cx + wo, py0, px1, cy - wo]];
-    for (const [a0, b0, a1, b1] of towers) parts.push(box(b, 'tower', 'mudbrick', 'C', srcOf(row(b, 'corner_towers'), row(b, 'r_tower_extra')), [(a0 + a1) / 2, (b0 + b1) / 2], [a1 - a0, b1 - b0], pod, pod + bh + tE, { solid: true, note: 'corner tower (count B; size and height C)' }));
+    // D-753 (Q-630, D-771): the corner towers hollow, a stair in each from a door on its portico to its top, and a short flight
+    // from the hall roof up to the top (tower_stairs.ts); the roofs solid (walkable where the stairs reach them)
+    const towerDoor: ('N' | 'S' | 'E' | 'W')[] = ['E', 'W', 'N', 'N'], roofSide: ('N' | 'S' | 'E' | 'W')[] = ['E', 'W', 'N', 'N'];
+    towers.forEach(([a0, b0, a1, b1], i) => {
+      const env: [number, number, number, number] = [a0, b0, a1, b1], T = hollowTower(b, env, pod, pod + bh + tE, towerDoor[i]);
+      for (const q of T.parts) parts.push({ ...q, tier: 'C', src: srcOf(row(b, 'corner_towers'), row(b, 'r_tower_extra')) + ';RECON' } as Box);
+      const at = roofSide[i] === 'N' ? (a0 + a1) / 2 : (b0 + b1) / 2;
+      parts.push(...roofFlight(b, env, roofSide[i], at, pod + bh, pod + bh + tE));
+    });
+    (manifest as any).apadanaTowers = towers;
     parts.push(box(b, 'storerooms', 'mudbrick', 'C', S_(b, 'south_side'), [cx, (py0 + cy - wo) / 2], [2 * wo, cy - wo - py0], pod, pod + v(b, 'r_storeroom_height'), { solid: true }));
     const rs = S_(b, 'building_height');
-    parts.push(box(b, 'roof', 'timber', 'C', rs, [cx, cy], [2 * wo, 2 * wo], pod + H, pod + bh));
-    parts.push(box(b, 'roof', 'timber', 'C', rs, [cx, cy + wo + pdN / 2], [2 * wo, pdN], pod + H, pod + bh));
-    parts.push(box(b, 'roof', 'timber', 'C', rs, [(px0 + cx - wo) / 2, cy], [cx - wo - px0, 2 * wo], pod + H, pod + bh));
-    parts.push(box(b, 'roof', 'timber', 'C', rs, [(px1 + cx + wo) / 2, cy], [px1 - cx - wo, 2 * wo], pod + H, pod + bh));
+    parts.push(box(b, 'roof', 'timber', 'C', rs, [cx, cy], [2 * wo, 2 * wo], pod + H, pod + bh, { solid: true })); // (D-753: walkable)
+    parts.push(box(b, 'roof', 'timber', 'C', rs, [cx, cy + wo + pdN / 2], [2 * wo, pdN], pod + H, pod + bh, { solid: true })); // (D-753: walkable)
+    parts.push(box(b, 'roof', 'timber', 'C', rs, [(px0 + cx - wo) / 2, cy], [cx - wo - px0, 2 * wo], pod + H, pod + bh, { solid: true })); // (D-753: walkable)
+    parts.push(box(b, 'roof', 'timber', 'C', rs, [(px1 + cx + wo) / 2, cy], [px1 - cx - wo, 2 * wo], pod + H, pod + bh, { solid: true })); // (D-753: walkable)
     // N and E stairways, attached to the podium's true edge at the stair (review MJ-2)
     const sl = (row(b, 'stairs').v as any).N.length as number, sr = v(b, 'stair_riser'), nSt = Math.round(pod / sr), stTr = v(b, 'r_stair_tread'), stW = v(b, 'r_stair_width');
     const run = nSt * stTr, third = sl / 3;
