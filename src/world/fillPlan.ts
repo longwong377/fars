@@ -93,6 +93,12 @@ export function townFill(sites: Site[], seed = 1, villages: Site[] = [], markets
   const mk = new Map<Site, [number, number][]>(); for (const xy of markets) { const s = sites.find(x => { const [u, v] = toLocal(x.frame, xy[0], xy[1]); return x.inb(x.ci(u), x.cj(v)); }); if (s) (mk.get(s) ?? mk.set(s, []).get(s)!).push(toLocal(s.frame, xy[0], xy[1])); else openMarket(xy, sites, seed, items, st); }
   for (const s of sites) { const n0 = items.length; siteFill(s, seed, items, st, false, mk.get(s)); for (let k = n0; k < items.length; k++) items[k].dy += TOWN_LIFT; }
   for (const s of villages) siteFill(s, seed, items, st, true);
+  // s18 C2 (D-670, C12 4-12): the fruit on the stalls by the season (no fresh pomegranates in spring): the fresh fruit at the
+  // harvest only, and in the warm and the cold months the same spreads sell dried fruit and nuts (raisins, dried apricots,
+  // dates, walnuts: C, the PF rations' dried fruit, B)
+  const DRIED: RGB[] = [[0.3, 0.16, 0.12], [0.66, 0.38, 0.14], [0.45, 0.3, 0.18], [0.52, 0.4, 0.26]];
+  for (let k = items.length - 1; k >= 0; k--) { const it = items[k]; if (it.m !== 'fill_produce' || it.at !== 'market' || it.seas !== undefined) continue;
+    it.seas = 1; items.push({ ...it, seas: 6, col: { ...(it.col ?? {}), fruit: DRIED[strHash(`${it.e},${it.n}`) % DRIED.length] } }); }
   // (s17 C1: the plan is cached as JSON in the baked world, 21-25 MB with the villages (C4): positions to the centimetre, turns
   // and sizes to the thousandth, the sale hour to the minute's hundredth; nothing the eye or the colliders can tell)
   const r2 = (x: number) => Math.round(x * 100) / 100, r3 = (x: number) => Math.round(x * 1000) / 1000;

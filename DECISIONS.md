@@ -10348,3 +10348,8 @@ touched; the budget baseline is not re-accepted from such a head.
 - 4-3: a stranger stopped at a post is walked back 0.8 m from its line at about 1.2 m/s (controller.ts PUSH_M, PUSH_STEP),
   not held at an invisible line; main.ts still applies the position (a teleport each frame of 4 cm).
 - settings.ts: playerMode defaults to 'visitor'. Ask (main.ts, not mine): keep ?test pages observer unless &visitor.
+
+## D-670 The houses lived in through the year (s18 cloud C2, C12's u6, W21, 19, 4-12)
+- Every house (houses.ts roofFill, drawn instanced by fill.ts, its seasons as bits): in the warm months the household's mats and bedding rolls on its largest roof (60 % of houses, 1-3 sleepers' places), at the harvest fruit drying on a mat there (apricots, grapes, pomegranates; 50 %); in the court's corner farthest from the street door a heap of ash and sweepings (every house with a court of 6+ cells) and a reed-mat screen leaned across the corner over the latrine pit (70 %). C.
+- Every living room's niche with a saucer lamp and a little of the meal set out (interiors/plan.ts; C: household offerings in wall niches; no words or images of a named god). The neighbourhood shrine waits on precinct.ts's lock (tests/religion.test.ts).
+- The stalls by season (fillPlan.ts): fresh fruit at the harvest only; in the warm and cold months the same spreads sell dried fruit and nuts (C; the PF rations' dried fruit, B).
