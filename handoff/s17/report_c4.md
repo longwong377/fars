@@ -1,5 +1,7 @@
 # C4 load keeper (cloud, s17) — report
 
+**Final (merged tip b9c44423, all of Vagon + cloud, fresh bake, seed 1, ?norender, 100 Mbit/s, headless, talk model excluded):** cold ready 59.8 / 52.5 s (harness), 50.6 / 43.2 s (page clock); 347 MB before ready; page memory 5.88-5.92 GB (over the 5 GB target); site 660 MB (~705 MB with 8 seeds baked); no 404s.
+
 **Not met / broken first.** Cold ready < 60 s is now met on the latest tip (9e2f5201 + C4): harness 60.1 / 53.2 s, page 50.0 / 43.9 s (n=2, after a
 container restart onto a new host, so part may be the machine; the tip before: harness 70-74 s). The ~8 s first-frame people plans (C10) remain. The work is CPU in other owners' builders (plain fields + tree atlas C2 ~6 s,
 first-frame people plans C10 ~6 s, ground packing V2 ~7 s, settlement ~4.5 s); the table is in bench-reports/load_s17.md and
