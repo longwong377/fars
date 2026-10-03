@@ -61,7 +61,7 @@ export function census(traffic: Traffic, pop: { cal: { ctx(d: number): { sun: { 
       // (the done line counts dry daylight: in the rain the roads empty but for a few hurrying, and the wet hours are left out;
       // their spells are reported apart)
       if (wet(t - d * 24)) { wetT += step; for (const s of S) last.set(s, t); continue; }
-      traffic.at(t, movers, { e: PARSA[0], n: PARSA[1], r: near + 300 }); const occ = new Set<Stretch>(); const h = Math.floor(t - d * 24);
+      traffic.at(t, movers, { e: PARSA[0], n: PARSA[1], r: near + 300 }); { const k = movers.length; traffic.folk.at(t, movers, { e: PARSA[0], n: PARSA[1], r: near + 300 }, true); movers.splice(k, movers.length - k, ...movers.slice(k).filter(m => (m.pid ?? -1) >= 0)); } /* (the road folk the population draws, D-640) */ const occ = new Set<Stretch>(); const h = Math.floor(t - d * 24);
       for (const m of movers) { if (!m.why) noWhy++;
         for (const [road, L] of byRoad) { const w = roadW[road]; let hit = false;
           for (const s of L) { if (m.e < s.box[0] - w || m.e > s.box[2] + w || m.n < s.box[1] - w || m.n > s.box[3] + w) continue; for (let q = 1; q < s.pts.length; q++) if (segD([m.e, m.n], s.pts[q - 1], s.pts[q]) < w) { occ.add(s); hit = true; break; } }
