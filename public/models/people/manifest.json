@@ -4,20 +4,20 @@
   "people_cloth": {
    "files": {
     "people_cloth.json": {
-     "sha256": "fe5bb2bea415cb5b94675ab92a85465423a4eca3091b5348fa716442c9f43a31",
+     "sha256": "6029db181659d9b99bfd7cc8e9acbdd9b518a686af08eff26bc8b16af20d8af7",
      "bytes": 36166
     },
     "people_cloth.bin": {
-     "sha256": "1f12de33b8692053c72cc3f418a82858753152b67c6ecc9ab90432ebf706ba99",
+     "sha256": "6146cafc47f05f4c613e92bf83ca68096c9c2d201477a46c279fa03f656b7e9f",
      "bytes": 593168
     },
     "people_cloth_folds.png": {
-     "sha256": "9b2219326bdbe1cee28dd2eb0880599e63245862df39c7127a6af8bea1292c34",
-     "bytes": 1077548
+     "sha256": "50e87d94918e060a3f89cb432bca7d9fd15a5dac8bd771f06925f5b71ca8bb46",
+     "bytes": 1069306
     }
    },
-   "inHash": "b2abe452828d66d48933bc6bb391a0c391781d46a7346e2b723a9978f8cde31f",
-   "bytes": 1706882,
+   "inHash": "68eb47c7a74915ab855fda97b78dd87feb81e5724b6d86fc2535ac06445cab0f",
+   "bytes": 1698640,
    "gpuBytes": 0,
    "stats": {
     "robe_skirt_men": {
@@ -206,7 +206,7 @@
      "levels": 1,
      "edge0_cm": 3.55,
      "edge_cm": 1.78,
-     "pinned": 0.533,
+     "pinned": 0.532,
      "over": []
     },
     "dress_upper_women_s1": {
@@ -215,7 +215,7 @@
      "levels": 1,
      "edge0_cm": 3.55,
      "edge_cm": 1.78,
-     "pinned": 0.533,
+     "pinned": 0.532,
      "over": []
     },
     "dress_skirt_women": {
@@ -432,13 +432,13 @@
    "post": {
     "child_skirt@0|children": {
      "rms_mm": 19.9,
-     "max_mm": 50.2,
+     "max_mm": 50.3,
      "sampled": 1056,
      "pushed": 0
     },
     "child_skirt@1|children": {
-     "rms_mm": 19.2,
-     "max_mm": 46.6,
+     "rms_mm": 19.1,
+     "max_mm": 46.7,
      "sampled": 126,
      "pushed": 0
     },
@@ -467,128 +467,128 @@
      "pushed": 0
     },
     "child_upper@0|children": {
-     "rms_mm": 14.4,
-     "max_mm": 75.8,
+     "rms_mm": 12.4,
+     "max_mm": 56.7,
      "sampled": 987,
      "pushed": 0
     },
     "child_upper@1|children": {
-     "rms_mm": 13.2,
-     "max_mm": 74.6,
+     "rms_mm": 11.8,
+     "max_mm": 67.9,
      "sampled": 321,
      "pushed": 0
     },
     "child_upper@0|children#1": {
-     "rms_mm": 15.2,
-     "max_mm": 71.3,
+     "rms_mm": 16.5,
+     "max_mm": 72.5,
      "sampled": 987,
      "pushed": 0
     },
     "child_upper@1|children#1": {
-     "rms_mm": 13.4,
-     "max_mm": 73.3,
+     "rms_mm": 14.5,
+     "max_mm": 71.8,
      "sampled": 321,
      "pushed": 0
     },
     "dress_skirt@0|men": {
-     "rms_mm": 37.3,
-     "max_mm": 100.6,
+     "rms_mm": 37.8,
+     "max_mm": 100.3,
      "sampled": 1232,
      "pushed": 0
     },
     "dress_skirt@1|men": {
-     "rms_mm": 34.6,
-     "max_mm": 81.7,
+     "rms_mm": 35,
+     "max_mm": 81.6,
      "sampled": 154,
      "pushed": 0
     },
     "dress_skirt@2|men": {
-     "rms_mm": 30.9,
-     "max_mm": 70,
+     "rms_mm": 31.3,
+     "max_mm": 70.2,
      "sampled": 50,
      "pushed": 0
     },
     "dress_skirt@0|men#1": {
-     "rms_mm": 37.5,
-     "max_mm": 111.6,
+     "rms_mm": 37.6,
+     "max_mm": 111.3,
      "sampled": 1232,
      "pushed": 0
     },
     "dress_skirt@1|men#1": {
-     "rms_mm": 35,
-     "max_mm": 88,
+     "rms_mm": 35.1,
+     "max_mm": 89,
      "sampled": 154,
      "pushed": 0
     },
     "dress_skirt@2|men#1": {
-     "rms_mm": 31.4,
-     "max_mm": 71.9,
+     "rms_mm": 31.5,
+     "max_mm": 72.6,
      "sampled": 50,
      "pushed": 0
     },
     "dress_skirt@0|women": {
      "rms_mm": 35.2,
-     "max_mm": 102.6,
+     "max_mm": 100.7,
      "sampled": 1232,
      "pushed": 0
     },
     "dress_skirt@1|women": {
      "rms_mm": 32.8,
-     "max_mm": 78.9,
+     "max_mm": 79,
      "sampled": 154,
      "pushed": 0
     },
     "dress_skirt@2|women": {
      "rms_mm": 28.5,
-     "max_mm": 64.7,
+     "max_mm": 64.6,
      "sampled": 50,
      "pushed": 0
     },
     "dress_skirt@0|women#1": {
-     "rms_mm": 38.1,
-     "max_mm": 99,
+     "rms_mm": 37.7,
+     "max_mm": 100.7,
      "sampled": 1232,
      "pushed": 0
     },
     "dress_skirt@1|women#1": {
-     "rms_mm": 35.6,
-     "max_mm": 85.6,
+     "rms_mm": 35.2,
+     "max_mm": 84.7,
      "sampled": 154,
      "pushed": 0
     },
     "dress_skirt@2|women#1": {
-     "rms_mm": 31.5,
+     "rms_mm": 31.1,
      "max_mm": 68.3,
      "sampled": 50,
      "pushed": 0
     },
     "dress_upper@0|women": {
-     "rms_mm": 11.1,
-     "max_mm": 53,
+     "rms_mm": 9.9,
+     "max_mm": 43.8,
      "sampled": 1078,
      "pushed": 0
     },
     "dress_upper@1|women": {
-     "rms_mm": 9.7,
-     "max_mm": 36.4,
+     "rms_mm": 8.9,
+     "max_mm": 35.8,
      "sampled": 314,
      "pushed": 0
     },
     "dress_upper@0|women#1": {
-     "rms_mm": 13.3,
-     "max_mm": 68.5,
+     "rms_mm": 13.4,
+     "max_mm": 62.1,
      "sampled": 1078,
      "pushed": 0
     },
     "dress_upper@1|women#1": {
-     "rms_mm": 11.3,
-     "max_mm": 48.1,
+     "rms_mm": 12,
+     "max_mm": 48.2,
      "sampled": 314,
      "pushed": 0
     },
     "robe_skirt@0|men": {
      "rms_mm": 37.9,
-     "max_mm": 129.8,
+     "max_mm": 129.7,
      "sampled": 1320,
      "pushed": 0
     },
@@ -605,20 +605,20 @@
      "pushed": 0
     },
     "robe_skirt@0|men#1": {
-     "rms_mm": 36.9,
-     "max_mm": 129.6,
+     "rms_mm": 36.8,
+     "max_mm": 128.9,
      "sampled": 1320,
      "pushed": 0
     },
     "robe_skirt@1|men#1": {
-     "rms_mm": 36,
-     "max_mm": 107.9,
+     "rms_mm": 35.9,
+     "max_mm": 107.4,
      "sampled": 252,
      "pushed": 0
     },
     "robe_skirt@2|men#1": {
-     "rms_mm": 31.5,
-     "max_mm": 76.9,
+     "rms_mm": 31.4,
+     "max_mm": 76.7,
      "sampled": 50,
      "pushed": 0
     },
@@ -659,68 +659,68 @@
      "pushed": 0
     },
     "robe_upper@0|men": {
-     "rms_mm": 8.8,
-     "max_mm": 31.1,
+     "rms_mm": 10.7,
+     "max_mm": 38,
      "sampled": 1024,
      "pushed": 0
     },
     "robe_upper@1|men": {
-     "rms_mm": 9.9,
-     "max_mm": 41,
+     "rms_mm": 11.8,
+     "max_mm": 51.9,
      "sampled": 317,
      "pushed": 0
     },
     "robe_upper@0|men#1": {
-     "rms_mm": 11.1,
-     "max_mm": 43.4,
+     "rms_mm": 10.3,
+     "max_mm": 42.8,
      "sampled": 1024,
      "pushed": 0
     },
     "robe_upper@1|men#1": {
-     "rms_mm": 11.9,
-     "max_mm": 55.7,
+     "rms_mm": 10.5,
+     "max_mm": 38.8,
      "sampled": 317,
      "pushed": 0
     },
     "robe_upper@0|women": {
-     "rms_mm": 10.9,
-     "max_mm": 68.8,
+     "rms_mm": 11.5,
+     "max_mm": 53.6,
      "sampled": 1024,
      "pushed": 0
     },
     "robe_upper@1|women": {
-     "rms_mm": 11.8,
-     "max_mm": 70.1,
+     "rms_mm": 12.5,
+     "max_mm": 62.4,
      "sampled": 317,
      "pushed": 0
     },
     "robe_upper@0|women#1": {
-     "rms_mm": 13.7,
-     "max_mm": 72.3,
+     "rms_mm": 13.5,
+     "max_mm": 61,
      "sampled": 1024,
      "pushed": 0
     },
     "robe_upper@1|women#1": {
-     "rms_mm": 13.1,
-     "max_mm": 57,
+     "rms_mm": 13.9,
+     "max_mm": 62.5,
      "sampled": 317,
      "pushed": 0
     },
     "trousers@0|men": {
-     "rms_mm": 5,
-     "max_mm": 13.9,
+     "rms_mm": 4.7,
+     "max_mm": 11.1,
      "sampled": 661,
      "pushed": 0
     },
     "trousers@1|men": {
-     "rms_mm": 4.8,
+     "rms_mm": 4.7,
      "max_mm": 12.8,
      "sampled": 185,
      "pushed": 0
     },
     "trousers@0|men#1": {
-     "rms_mm": 6,
-     "max_mm": 17,
+     "rms_mm": 6.1,
+     "max_mm": 15.5,
      "sampled": 661,
      "pushed": 0
     },
@@ -749,50 +749,50 @@
      "pushed": 0
     },
     "tunic_skirt@0|men#1": {
-     "rms_mm": 24.4,
-     "max_mm": 60.2,
+     "rms_mm": 24.2,
+     "max_mm": 60.4,
      "sampled": 880,
      "pushed": 0
     },
     "tunic_skirt@1|men#1": {
-     "rms_mm": 23.1,
-     "max_mm": 53,
+     "rms_mm": 22.9,
+     "max_mm": 53.4,
      "sampled": 126,
      "pushed": 0
     },
     "tunic_skirt@2|men#1": {
-     "rms_mm": 21.6,
-     "max_mm": 44.9,
+     "rms_mm": 21.4,
+     "max_mm": 44.8,
      "sampled": 40,
      "pushed": 0
     },
     "tunic_upper@0|men": {
-     "rms_mm": 11.3,
-     "max_mm": 65.4,
+     "rms_mm": 11.2,
+     "max_mm": 50.2,
      "sampled": 1066,
      "pushed": 0
     },
     "tunic_upper@1|men": {
-     "rms_mm": 9.8,
-     "max_mm": 35.9,
+     "rms_mm": 9.6,
+     "max_mm": 31.3,
      "sampled": 299,
      "pushed": 0
     },
     "tunic_upper@0|men#1": {
-     "rms_mm": 12.7,
-     "max_mm": 62.9,
+     "rms_mm": 11.8,
+     "max_mm": 53.9,
      "sampled": 1066,
      "pushed": 0
     },
     "tunic_upper@1|men#1": {
-     "rms_mm": 11.5,
-     "max_mm": 34.1,
+     "rms_mm": 11.2,
+     "max_mm": 32.1,
      "sampled": 299,
      "pushed": 0
     },
     "work_skirt@0|men": {
      "rms_mm": 24.9,
-     "max_mm": 62.6,
+     "max_mm": 62.7,
      "sampled": 880,
      "pushed": 0
     },
@@ -809,142 +809,142 @@
      "pushed": 0
     },
     "work_skirt@0|men#1": {
-     "rms_mm": 25.2,
-     "max_mm": 62.5,
+     "rms_mm": 25.1,
+     "max_mm": 62.4,
      "sampled": 880,
      "pushed": 0
     },
     "work_skirt@1|men#1": {
      "rms_mm": 24.1,
-     "max_mm": 53.6,
+     "max_mm": 53.5,
      "sampled": 126,
      "pushed": 0
     },
     "work_skirt@2|men#1": {
-     "rms_mm": 23.5,
-     "max_mm": 47.5,
+     "rms_mm": 23.4,
+     "max_mm": 47.4,
      "sampled": 40,
      "pushed": 0
     },
     "work_trousers@0|men": {
      "rms_mm": 6.3,
-     "max_mm": 18.8,
+     "max_mm": 19,
      "sampled": 661,
      "pushed": 0
     },
     "work_trousers@1|men": {
-     "rms_mm": 5.7,
-     "max_mm": 13.8,
+     "rms_mm": 5.6,
+     "max_mm": 13.2,
      "sampled": 185,
      "pushed": 0
     },
     "work_trousers@0|men#1": {
-     "rms_mm": 7.8,
-     "max_mm": 22.5,
+     "rms_mm": 7.6,
+     "max_mm": 20.6,
      "sampled": 661,
      "pushed": 0
     },
     "work_trousers@1|men#1": {
      "rms_mm": 6.6,
-     "max_mm": 14.4,
+     "max_mm": 14.2,
      "sampled": 185,
      "pushed": 0
     },
     "work_upper@0|men": {
-     "rms_mm": 10.5,
-     "max_mm": 29.9,
+     "rms_mm": 10.7,
+     "max_mm": 30.2,
      "sampled": 987,
      "pushed": 0
     },
     "work_upper@1|men": {
-     "rms_mm": 11.2,
-     "max_mm": 42.2,
+     "rms_mm": 11.8,
+     "max_mm": 47.6,
      "sampled": 321,
      "pushed": 0
     },
     "work_upper@0|men#1": {
-     "rms_mm": 12.8,
-     "max_mm": 42,
+     "rms_mm": 12.3,
+     "max_mm": 40.5,
      "sampled": 987,
      "pushed": 0
     },
     "work_upper@1|men#1": {
-     "rms_mm": 13.3,
-     "max_mm": 49.8,
+     "rms_mm": 12.8,
+     "max_mm": 52.9,
      "sampled": 321,
      "pushed": 0
     },
     "robe_sleeves@0|men": {
-     "rms_mm": 40.3,
-     "max_mm": 121.6,
+     "rms_mm": 41.1,
+     "max_mm": 130.8,
      "sampled": 936,
-     "pushed": 284
+     "pushed": 330
     },
     "robe_sleeves@1|men": {
-     "rms_mm": 37.7,
-     "max_mm": 93.6,
+     "rms_mm": 39,
+     "max_mm": 100.1,
      "sampled": 120,
      "pushed": 26
     },
     "robe_sleeves@2|men": {
-     "rms_mm": 33.2,
-     "max_mm": 79.8,
+     "rms_mm": 34.3,
+     "max_mm": 82.2,
      "sampled": 80,
-     "pushed": 17
+     "pushed": 24
     },
     "robe_sleeves@0|men#1": {
-     "rms_mm": 41.3,
-     "max_mm": 110.5,
+     "rms_mm": 41.2,
+     "max_mm": 111.3,
      "sampled": 936,
-     "pushed": 306
+     "pushed": 267
     },
     "robe_sleeves@1|men#1": {
-     "rms_mm": 38.2,
-     "max_mm": 87.3,
+     "rms_mm": 38,
+     "max_mm": 89.7,
      "sampled": 120,
-     "pushed": 22
+     "pushed": 21
     },
     "robe_sleeves@2|men#1": {
-     "rms_mm": 34.5,
-     "max_mm": 82.7,
+     "rms_mm": 33.6,
+     "max_mm": 80.3,
      "sampled": 80,
-     "pushed": 20
+     "pushed": 18
     },
     "robe_sleeves@0|women": {
-     "rms_mm": 45.7,
-     "max_mm": 143.9,
+     "rms_mm": 48.9,
+     "max_mm": 165.8,
      "sampled": 936,
-     "pushed": 394
+     "pushed": 417
     },
     "robe_sleeves@1|women": {
-     "rms_mm": 44.1,
-     "max_mm": 125.8,
+     "rms_mm": 48,
+     "max_mm": 139.2,
      "sampled": 120,
-     "pushed": 41
+     "pushed": 39
     },
     "robe_sleeves@2|women": {
-     "rms_mm": 40.8,
-     "max_mm": 109.5,
+     "rms_mm": 44,
+     "max_mm": 119.1,
      "sampled": 80,
-     "pushed": 36
+     "pushed": 34
     },
     "robe_sleeves@0|women#1": {
-     "rms_mm": 48.9,
-     "max_mm": 162.4,
+     "rms_mm": 50.9,
+     "max_mm": 181.2,
      "sampled": 936,
-     "pushed": 442
+     "pushed": 434
     },
     "robe_sleeves@1|women#1": {
-     "rms_mm": 47.5,
-     "max_mm": 131.6,
+     "rms_mm": 49.4,
+     "max_mm": 151.8,
      "sampled": 120,
-     "pushed": 47
+     "pushed": 45
     },
     "robe_sleeves@2|women#1": {
-     "rms_mm": 43,
-     "max_mm": 115.2,
+     "rms_mm": 45.5,
+     "max_mm": 134.6,
      "sampled": 80,
-     "pushed": 41
+     "pushed": 40
     },
     "belt@0|men": {
      "rms_mm": 5.4,
@@ -984,19 +984,19 @@
     },
     "belt@0|women": {
      "rms_mm": 6.1,
-     "max_mm": 28.1,
+     "max_mm": 28.2,
      "sampled": 176,
      "pushed": 0
     },
     "belt@1|women": {
      "rms_mm": 4.9,
-     "max_mm": 18.7,
+     "max_mm": 18.9,
      "sampled": 70,
      "pushed": 0
     },
     "belt@2|women": {
      "rms_mm": 5.9,
-     "max_mm": 22.8,
+     "max_mm": 23,
      "sampled": 44,
      "pushed": 0
     },
@@ -1008,7 +1008,7 @@
     },
     "belt@1|women#1": {
      "rms_mm": 4.8,
-     "max_mm": 18.8,
+     "max_mm": 18.7,
      "sampled": 70,
      "pushed": 0
     },
@@ -1019,76 +1019,76 @@
      "pushed": 0
     },
     "headcloth@0|women": {
-     "rms_mm": 34.9,
-     "max_mm": 145.5,
+     "rms_mm": 10.6,
+     "max_mm": 39.8,
      "sampled": 772,
      "pushed": 1
     },
     "headcloth@1|women": {
-     "rms_mm": 32.1,
-     "max_mm": 127.9,
+     "rms_mm": 11.2,
+     "max_mm": 35.1,
      "sampled": 221,
      "pushed": 2
     },
     "headcloth@0|women#1": {
-     "rms_mm": 12.2,
-     "max_mm": 57.8,
+     "rms_mm": 12.6,
+     "max_mm": 56.3,
      "sampled": 772,
      "pushed": 1
     },
     "headcloth@1|women#1": {
      "rms_mm": 13,
-     "max_mm": 58.1,
+     "max_mm": 54.9,
      "sampled": 221,
      "pushed": 2
     },
     "kandys@0|men": {
-     "rms_mm": 15.1,
-     "max_mm": 108.3,
-     "sampled": 1300,
-     "pushed": 128
-    },
-    "kandys@1|men": {
-     "rms_mm": 16.8,
-     "max_mm": 77.4,
-     "sampled": 270,
-     "pushed": 21
-    },
-    "kandys@2|men": {
-     "rms_mm": 19.2,
-     "max_mm": 77.4,
-     "sampled": 193,
-     "pushed": 19
-    },
-    "kandys@0|men#1": {
-     "rms_mm": 14.2,
+     "rms_mm": 14.5,
      "max_mm": 68.7,
      "sampled": 1300,
-     "pushed": 143
+     "pushed": 122
+    },
+    "kandys@1|men": {
+     "rms_mm": 18.7,
+     "max_mm": 65.6,
+     "sampled": 270,
+     "pushed": 13
+    },
+    "kandys@2|men": {
+     "rms_mm": 21.8,
+     "max_mm": 65.6,
+     "sampled": 193,
+     "pushed": 12
+    },
+    "kandys@0|men#1": {
+     "rms_mm": 15,
+     "max_mm": 62.6,
+     "sampled": 1300,
+     "pushed": 130
     },
     "kandys@1|men#1": {
-     "rms_mm": 17.3,
-     "max_mm": 57.6,
+     "rms_mm": 18.5,
+     "max_mm": 65.2,
      "sampled": 270,
-     "pushed": 24
+     "pushed": 23
     },
     "kandys@2|men#1": {
-     "rms_mm": 19.4,
-     "max_mm": 57.1,
+     "rms_mm": 21.1,
+     "max_mm": 65.2,
      "sampled": 193,
-     "pushed": 22
+     "pushed": 20
     },
     "veil@0|women": {
-     "rms_mm": 52,
-     "max_mm": 145.1,
+     "rms_mm": 51.8,
+     "max_mm": 141.7,
      "sampled": 621,
-     "pushed": 26
+     "pushed": 31
     },
     "veil@1|women": {
-     "rms_mm": 46.6,
+     "rms_mm": 46.5,
      "max_mm": 107.5,
      "sampled": 117,
-     "pushed": 1
+     "pushed": 3
     },
     "veil@2|women": {
      "rms_mm": 32.3,
@@ -1100,19 +1100,19 @@
      "scale_mm": 12,
      "texelsPerMetre": 163.2,
      "charts": 25,
-     "samples": 360152
+     "samples": 360156
     }
    },
    "tier": "C",
    "src": "IR-CAND;IR-WOMEN;RELIEF-R",
    "blender": "5.0.1",
-   "ktx": "ktx version: v4.4.2",
-   "build_s": 373,
+   "ktx": "ktx version: v4.4.2-compatible (ktx2-encoder, Basis Universal WASM)",
+   "build_s": 370,
    "reproduced": {
     "files": {
-     "people_cloth.json": "fe5bb2bea415cb5b94675ab92a85465423a4eca3091b5348fa716442c9f43a31",
-     "people_cloth.bin": "1f12de33b8692053c72cc3f418a82858753152b67c6ecc9ab90432ebf706ba99",
-     "people_cloth_folds.png": "9b2219326bdbe1cee28dd2eb0880599e63245862df39c7127a6af8bea1292c34"
+     "people_cloth.json": "6029db181659d9b99bfd7cc8e9acbdd9b518a686af08eff26bc8b16af20d8af7",
+     "people_cloth.bin": "6146cafc47f05f4c613e92bf83ca68096c9c2d201477a46c279fa03f656b7e9f",
+     "people_cloth_folds.png": "50e87d94918e060a3f89cb432bca7d9fd15a5dac8bd771f06925f5b71ca8bb46"
     },
     "blender": "5.0.1"
    }
@@ -1124,20 +1124,20 @@
      "bytes": 4377
     },
     "people_hair.bin": {
-     "sha256": "c698b0b679487dbfd1b1286ed62490d08281c465c5177322fa06c647493f647b",
+     "sha256": "dae93d990f2303fb236c107c598d3d0166dcaf44ecc94dc53848c842355f9eb6",
      "bytes": 380200
     },
     "people_hair_atlas.ktx2": {
-     "sha256": "14362e7b04c1832fb9a616643059b98ed6317a6d071dde5aebbb86e82772ed0e",
-     "bytes": 7707339
+     "sha256": "451b980c70172dffc8aa2472e7dba17e186bd117a87778fcf9192f1c6fb3fef2",
+     "bytes": 7364035
     },
     "people_hair_normal.ktx2": {
-     "sha256": "51136f053715db2824354f26a30615d1d57ee0a6b07201057aceadab12c52663",
-     "bytes": 2035606
+     "sha256": "092ea58817d2220df73849c4468aaa128a31dc63164564cab81b5d58311cd694",
+     "bytes": 1930800
     }
    },
-   "inHash": "8aa1caed40ce14577301f6f064ff391949dae590bcecdbc81424006ff62b4315",
-   "bytes": 10127522,
+   "inHash": "25e637fe3a397034ad533e6aabfbf4bbae69d35190fe0e0bc266b8a0de362503",
+   "bytes": 9679412,
    "gpuBytes": 13981014,
    "stats": {
     "head": {
@@ -1190,13 +1190,13 @@
    "src": "RELIEF-R;IR-WOMEN;MH-CC0",
    "blender": "5.0.1",
    "ktx": "ktx version: v4.4.2-compatible (ktx2-encoder, Basis Universal WASM)",
-   "build_s": 227,
+   "build_s": 213,
    "reproduced": {
     "files": {
      "people_hair.json": "5436abedd6dae45921763a6bf3ee50db969d419beb1c3a8d8bdd549bbde2ea40",
-     "people_hair.bin": "c698b0b679487dbfd1b1286ed62490d08281c465c5177322fa06c647493f647b",
-     "people_hair_atlas.ktx2": "14362e7b04c1832fb9a616643059b98ed6317a6d071dde5aebbb86e82772ed0e",
-     "people_hair_normal.ktx2": "51136f053715db2824354f26a30615d1d57ee0a6b07201057aceadab12c52663"
+     "people_hair.bin": "dae93d990f2303fb236c107c598d3d0166dcaf44ecc94dc53848c842355f9eb6",
+     "people_hair_atlas.ktx2": "451b980c70172dffc8aa2472e7dba17e186bd117a87778fcf9192f1c6fb3fef2",
+     "people_hair_normal.ktx2": "092ea58817d2220df73849c4468aaa128a31dc63164564cab81b5d58311cd694"
     },
     "blender": "5.0.1"
    }
