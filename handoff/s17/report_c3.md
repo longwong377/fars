@@ -2,9 +2,9 @@
 
 **Broken / placeholder / unseen first**
 - Unseen: no C3 view rendered (s17-renders holds one night baseline frame). Starling fix unconfirmed on the T4.
-- Road folk can't be talked to: C10 hasn't wired the register (hinterlandRegister/planOf/spotOf/bindPids, ready in roadFolk.ts) into the population.
+- Road folk are now population persons (C10's WIP D-640: pids, plans; popview places them by spotOf). Talk through them unverified in a render.
 - Travellers appear/vanish at the stair foot; ~150–210 alive, ~70–100 within 750 m: check frame budget.
-- Moving flocks, stone carts, loads by trade wait on V3/V5 variants (asked).
+- Herders now drive flocks to the exchange, and 3–6 stone carts a working day run quarry → site (V3's variants). Loads by trade still wait on V3.
 - Errands come from the calendar, not the economy.
 - tests/land_work fails on clean int (pre-existing).
 

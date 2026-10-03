@@ -703,7 +703,18 @@ export class SiteHouses {
     if (d.kind === 'streak') return;
     const mx = (d.s0 + d.s1) / 2, my = (d.y0 + d.y1) / 2, rx = (d.s1 - d.s0) / 2, ry = (d.y1 - d.y0) / 2;
     if (d.kind === 'patch' || d.kind === 'bare') { const n = 11, pts: number[][] = [], cols: RGB[] = [];
-      for (let k = 0; k < n; k++) { const a = (k / n) * Math.PI * 2, r = 0.72 + 0.28 * hi(d.seed, k); pts.push(p(mx + Math.cos(a) * rx * r, my + Math.sin(a) * ry * r, d.kind === 'patch' ? 0.004 : 0)); cols.push(d.kind === 'patch' ? sh(mixc(col, [col[0] * 1.08, col[1] * 1.06, col[2] * 0.98], 1), 1.03 + 0.03 * hi(d.seed, k, 1)) : sh(lin([0.62, 0.53, 0.41]), 0.9 + 0.15 * hi(d.seed, k, 2))); }
+      // s17 C1 (Vagon's probe frames: hard-edged stickers under the scanned walls): an irregular outline, and a feathered rim
+      // 10-18 cm wide round it in the plaster batch, its inner edge the patch's (or the broken plaster's) colour, its outer edge
+      // the wall's own, so the patch fades into the wall instead of ending at a line
+      const rimW = 0.1 + 0.08 * hi(d.seed, 77), ring: { a: number; r: number }[] = [];
+      for (let k = 0; k < n; k++) { const a = (k / n) * Math.PI * 2 + 0.25 * (hi(d.seed, k, 3) - 0.5), r = 0.62 + 0.38 * hi(d.seed, k); ring.push({ a, r }); }
+      { const rb = B.plaster; rb.set('y0', -1000).set('ytop', 1e4).set('ao', 1);
+        const at = (k: number, out: number) => { const { a, r } = ring[k % n], ex = Math.cos(a) * (rx * r + out), ey = Math.sin(a) * (ry * r + out); return [mx + ex, my + ey] as [number, number]; };
+        const wallC = (x: number, y: number): RGB => colAt ? colAt(x, y) : col, inner: RGB = d.kind === 'patch' ? sh(mixc(col, [col[0] * 1.08, col[1] * 1.06, col[2] * 0.98], 1), 1.03) : sh(col, 0.82);
+        for (let k = 0; k < n; k++) { const [x0, y0] = at(k, 0), [x1, y1] = at(k + 1, 0), [x2, y2] = at(k + 1, rimW), [x3, y3] = at(k, rimW);
+          const ci0 = colAt ? mixc(wallC(x0, y0), inner, 0.85) : inner, ci1 = colAt ? mixc(wallC(x1, y1), inner, 0.85) : inner;
+          rb.quad(p(x0, y0, 0.003), p(x1, y1, 0.003), p(x2, y2, 0.0025), p(x3, y3, 0.0025), N, ci0, ci1, wallC(x2, y2), wallC(x3, y3), this.owner(plot, P.repair)); } }
+      for (let k = 0; k < n; k++) { const { a, r } = ring[k]; pts.push(p(mx + Math.cos(a) * rx * r, my + Math.sin(a) * ry * r, d.kind === 'patch' ? 0.004 : 0)); cols.push(d.kind === 'patch' ? sh(mixc(col, [col[0] * 1.08, col[1] * 1.06, col[2] * 0.98], 1), 1.03 + 0.03 * hi(d.seed, k, 1)) : sh(lin([0.62, 0.53, 0.41]), 0.9 + 0.15 * hi(d.seed, k, 2))); }
       const b = d.kind === 'patch' ? B.plaster : B.brick; if (d.kind === 'patch') b.set('y0', -1000).set('ytop', 1e4); b.set('ao', 0.95); b.poly(pts, N, cols, this.owner(plot, P.repair)); b.set('ao', 1); return; }
     if (d.kind === 'soot') { const b = B.plaster; b.set('y0', -1000).set('ytop', 1e4).set('ao', 1); const k = d.k ?? 0.6; const nx = 4, ny = 4;
       const cAt = (i: number, j: number): RGB => { const fx = Math.abs(i / nx - 0.5) * 2, fy = j / ny; const dark = (1 - fx * fx) * (fy < 0.25 ? 0.6 + fy * 1.6 : 1 - (fy - 0.25) / 0.75) * (1 - k); return sh(col, 1 - Math.max(0, dark) * 1.0); };

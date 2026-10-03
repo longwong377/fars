@@ -60,7 +60,7 @@ if (process.argv[1]?.replace(/\\/g, '/').endsWith('tools/dev/life_census.ts')) {
   // (--cache file: each moment's counts are appended as they come and reused on a rerun of the same code: a long run survives a restart)
   const cached = new Map<string, PointCount[]>(); if (cache && existsSync(cache)) for (const l of readFileSync(cache, 'utf8').split('\n')) if (l) { const o = JSON.parse(l); cached.set(o.k, o.cs); }
   const t0 = performance.now(), P = (JSON.parse(readFileSync('tests/data/coverage_points.json', 'utf8')).points as CovPoint[]);
-  const W = buildTraceWorld(seed); void W.pop.folk; /* (as world.ts does through the traffic: the road folk handed to the population view, D-640) */ console.log(`world ${((performance.now() - t0) / 1000).toFixed(0)} s, ${P.length} points`);
+  const W = buildTraceWorld(seed); W.pop.shareFolk(); /* (as world.ts does before it builds the traffic: the road folk handed to the population view, D-640) */ console.log(`world ${((performance.now() - t0) / 1000).toFixed(0)} s, ${P.length} points`);
   // per point: moments by day, moments empty, work/idle/moving sums, the acts seen
   const per = P.map(p => ({ id: p.id, area: p.area, sub: p.sub, e: p.e, n: p.n, moments: 0, empty: 0, sightEmpty: 0, work: 0, idle: 0, moving: 0, workMoments: 0, nearestEmpty: [] as number[], acts: {} as Record<string, number>, byBand: {} as Record<string, [number, number]> }));
   const moments: { day: number; hour: number; drawn: number; s: number }[] = [];
