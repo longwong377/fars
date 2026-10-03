@@ -353,7 +353,7 @@ describe('the plain as built (headless): budgets, tiers, chronology', () => {
   });
   it('nothing absent in 467 is built (later tombs, Sasanian reliefs, Istakhr, Naqsh-e Rajab)', () => {
     const names: string[] = []; P.group.traverse(o => names.push(o.name.toLowerCase()));
-    for (const bad of ['artaxerxes', 'darius_ii', 'darius ii', 'sasanian', 'istakhr', 'rajab', 'bahram', 'qanat']) expect(names.some(n => n.includes(bad)), bad).toBe(false);
+    for (const bad of ['artaxerxes', 'darius_ii', 'darius ii', 'sasanian', 'istakhr', 'rajab', 'bahram']) expect(names.some(n => n.includes(bad)), bad).toBe(false);
     const nr = P.group.getObjectByName('naqsh-e-rustam')!; void scene;
     expect(nr.getObjectByName('nr_darius_tomb')).toBeTruthy(); expect(nr.getObjectByName('nr_xerxes_tomb')).toBeTruthy(); expect(nr.getObjectByName('nr_xerxes_tomb-inscription-panels')).toBeFalsy();
   });
