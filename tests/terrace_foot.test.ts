@@ -14,13 +14,14 @@ import { Animals, type AnimalInst } from '../src/people/animals';
 import { APPROACH_W } from '../src/world/settlement/water';
 import { inFrustum, type Cam } from './lib/townLos';
 import { loadTerrain } from './plainLib';
+import { openGround } from '../src/world/fauna';
 
 const T = loadTerrain(), H = (e: number, n: number) => T.heightAt(e, -n);
 const CAM: Cam = { n: 'stair-noon-plain', e: -36.4, n_: 122.45, eye: 1.6, absY: 1.6, az: 251, pitch: -3, fov: 40, hour: 11, aspect: 16 / 9 };
 const eye = new THREE.Vector3(CAM.e, CAM.absY!, -CAM.n_);
-let G0: GroundMap, G: GroundMap, drains: { at: [number, number]; n: [number, number] }[];
+let G0: GroundMap, G: GroundMap, plan: ReturnType<typeof buildTownPlan>, drains: { at: [number, number]; n: [number, number] }[];
 beforeAll(() => {
-  const B = buildTerrace(), plan = buildTownPlan();
+  const B = buildTerrace(); plan = buildTownPlan();
   drains = waterPlan(B.parts, H).drains.map(d => ({ at: d.at as [number, number], n: d.n as [number, number] }));
   G0 = buildTownGround(plan, [], [], false); G = buildTownGround(plan, [], drains);
 }, 240_000);
@@ -29,7 +30,7 @@ describe('herbs at the foot: patches between the paths and fans below the drains
   it('about a third of the foot keeps herb in patches tens of metres across; the approach itself stays trodden', () => {
     let n = 0, patch = 0, cut = 0; const runs: number[] = []; let run = 0;
     for (let e = -560; e <= -80; e += 4) { const p = herbPatch(e, 60), t0 = groundAt(G0, e, 60)[1], t1 = groundAt(G, e, 60)[1]; void t0; if (p > 0.5) run += 4; else if (run) { runs.push(run); run = 0; } void t1; }
-    for (let e = -600; e <= TERRACE_BOX.e0; e += 4) for (let nn = -150; nn <= 300; nn += 4) { const a = groundAt(G0, e, nn)[1]; if (a < 0.2) continue; n++; const b = groundAt(G, e, nn)[1];
+    for (let e = -600; e <= TERRACE_BOX.e0; e += 4) for (let nn = -150; nn <= 300; nn += 4) { const a = groundAt(G0, e, nn)[1]; if (a < 0.2 || !openGround(plan, e, nn)) continue; n++; /* (s18 lead 3: the foot's ground outside the town's plots) */ const b = groundAt(G, e, nn)[1];
       if (herbPatch(e, nn) > 0.5) patch++; if (b < a * 0.7) cut++; }
     const mean = runs.reduce((s, r) => s + r, 0) / Math.max(1, runs.length);
     console.log(`foot W of the Terrace: ${n} trodden samples, in a patch ${(100 * patch / n).toFixed(1)} %, herb back (trodden share cut ≥ 30 %) ${(100 * cut / n).toFixed(1)} %; patch runs along n = 60: ${runs.length}, mean ${mean.toFixed(0)} m`);
