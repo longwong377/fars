@@ -2263,6 +2263,82 @@ def a_basket_cradle():
     solidify(cl, 0.004, 0)
     return dict(wicker=join([b, rim], 'wicker'), cloth=cl)
 
+# ======================================================================================================== the delegations' gifts
+# D-780 (s18 C13): the gifts the delegations carry up the Apadana's stair, as the reliefs carve them (APA-RELIEF: B for the kinds;
+# every form, size and proportion C). Carried in both hands before the chest unless the builder's rule says otherwise.
+
+@asset(ground=False)
+def a_gift_amphora():
+    """a silver amphora with two handles in the form of rearing winged ibexes (the Armenian and Lydian gifts on the Apadana
+    reliefs; the Achaemenid ibex-handled vessels of the Louvre and Berlin: B type), 0.42 m: an ovoid body on a ring foot, a
+    tall neck, the handles springing from the shoulder to the lip, each an arched body with the head and horns at the lip"""
+    o = [(0.045, 0.0), (0.05, 0.012), (0.04, 0.03), (0.09, 0.09), (0.12, 0.17), (0.115, 0.24), (0.07, 0.3), (0.045, 0.34), (0.042, 0.39), (0.055, 0.42)]
+    body = vessel(o, 0.004, 40, 'body', 0.0, seed=31)
+    hs = []
+    for sx in (-1, 1):
+        pts = [(sx * (0.105 + 0.07 * math.sin(math.pi * t) ** 0.8), 0, 0.2 + 0.2 * t) for t in [i / 10 for i in range(11)]]
+        h = sweep(pts, lambda t: 0.011 + 0.006 * math.sin(math.pi * t), 8, 'handle', caps=True, scale=(1, 0.75))
+        head = sweep([(sx * 0.07, 0, 0.395), (sx * 0.05, 0, 0.42)], [0.012, 0.007], 8, 'head')
+        horn = sweep([(sx * 0.055, 0, 0.42), (sx * 0.075, 0, 0.455), (sx * 0.1, 0, 0.45)], [0.004, 0.003, 0.002], 6, 'horn')
+        wing = sweep([(sx * 0.16, 0, 0.29), (sx * 0.2, 0, 0.33), (sx * 0.17, 0, 0.36)], [0.007, 0.012, 0.004], 6, 'wing', scale=(1, 0.3))
+        hs += [h, head, horn, wing]
+    return dict(metal=join([body] + hs, 'metal'))
+
+@asset(ground=False)
+def a_gift_armlets():
+    """a pair of gold armlets with griffin-head terminals (the Oxus armlets; the Scythian and Sogdian gifts on the reliefs: B
+    type), each an open ring 0.11 m across, the terminals facing, laid one on the other"""
+    rs = []
+    for k, z in enumerate((0.0, 0.016)):
+        pts = [(0.055 * math.cos(a), 0.055 * math.sin(a), z) for a in [0.35 + (TAU - 0.7) * i / 28 for i in range(29)]]
+        rs.append(sweep(pts, lambda t: 0.006 + 0.003 * (1 - abs(2 * t - 1)), 8, 'ring', caps=True))
+        for a in (0.35, TAU - 0.35):
+            c = (0.055 * math.cos(a), 0.055 * math.sin(a), z); rs.append(sweep([c, (c[0] * 1.08, c[1] * 1.02 + (0.012 if a < 1 else -0.012), z + 0.004)], [0.011, 0.006], 8, 'head'))
+    return dict(gold=join(rs, 'gold'))
+
+@asset(ground=False)
+def a_gift_tusk():
+    """an elephant tusk (the Kushite and Indian gifts on the reliefs: B), 0.9 m along its curve, carried on the shoulder"""
+    pts = [(0.0, 0.0, 0.0)]
+    for i in range(1, 16): t = i / 15; pts.append((0.0, 0.18 * t * t, 0.86 * t))
+    return dict(ivory=sweep(pts, lambda t: 0.05 * (1 - t) ** 0.7 + 0.004, 12, 'tusk', caps=True))
+
+@asset(ground=False)
+def a_gift_daggers():
+    """two short swords (akinakes) in their sheaths with the lobed side-flap and the chape (the Median and Scythian gifts on the
+    reliefs: B type), 0.42 m, laid side by side"""
+    out = []
+    for sx in (-0.035, 0.035):
+        sheath = sweep([(sx, 0, 0.0), (sx, 0, 0.3)], [0.008, 0.024], 8, 'sheath', scale=(1, 0.35))
+        flap = sweep([(sx + 0.03, 0, 0.27), (sx + 0.05, 0, 0.3)], [0.018, 0.012], 8, 'flap', scale=(1, 0.25))
+        chape = sweep([(sx, 0, -0.012), (sx, 0, 0.012)], [0.014, 0.01], 8, 'chape')
+        hilt = sweep([(sx, 0, 0.3), (sx, 0, 0.4)], [0.013, 0.011], 8, 'hilt')
+        guard = sweep([(sx - 0.03, 0, 0.305), (sx + 0.03, 0, 0.305)], 0.008, 6, 'guard', scale=(1, 0.5))
+        pommel = sweep([(sx - 0.022, 0, 0.405), (sx + 0.022, 0, 0.405)], 0.009, 6, 'pommel')
+        out += [sheath, flap, chape, hilt, guard, pommel]
+    lea = [o for o in out if o.name.startswith(('sheath', 'flap'))]; met = [o for o in out if not o.name.startswith(('sheath', 'flap'))]
+    return dict(leather=join(lea, 'leather'), metal=join(met, 'metal'))
+
+@asset(ground=False)
+def a_gift_bows():
+    """two composite bows, unstrung and reflexed, the ends curling back (the Scythian and Bactrian gifts: B type), 0.85 m"""
+    out = []
+    for k, z in enumerate((0.0, 0.03)):
+        pts = []
+        for i in range(25):
+            t = i / 24 - 0.5; pts.append((0.85 * t, 0.06 * math.cos(math.pi * t) - 0.05 * math.sin(math.pi * 2 * t) ** 2 * (1 if abs(t) > 0.3 else 0), z))
+        out.append(sweep(pts, lambda t: 0.012 * (1 - 0.5 * abs(2 * t - 1)), 6, 'bow', caps=True))
+    return dict(wood=join(out, 'wood'))
+
+@asset(ground=False)
+def a_gift_cloth():
+    """garments folded and stacked, a coloured woven border along the front edges (the coats and trousers of the Median,
+    Armenian and Cappadocian gifts on the reliefs: B; the folds C), 0.42 x 0.12 x 0.3 m"""
+    c = box(0.42, 0.3, 0.12, (0, 0, 0), 'cloth', bevel=0.025, segs=3); subdiv(c, 1)
+    for v in c.data.vertices: v.co.z += 0.004 * math.sin(v.co.x * 30) * math.cos(v.co.y * 22)
+    band = box(0.43, 0.035, 0.125, (0, -0.135, -0.002), 'band', bevel=0.012, segs=2)
+    return dict(cloth=c, band=band)
+
 # ======================================================================================================== driver
 if __name__ == '__main__':
     job = json.load(open(sys.argv[sys.argv.index('--') + 1]))

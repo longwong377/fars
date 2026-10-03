@@ -22,7 +22,11 @@ import { SURFACES, surfaceMaterial, incisedMaterial } from '../../render/materia
 import { PLAIN, feature, tag } from './data';
 import type { Physics } from '../../player/physics';
 import { fitBlocks, carvedBlockGeometry, inscriptionAtlas, opSignsNote, INSCRIPTION_PICK_LAYER, type Block } from '../../arch/decor';
-import { panelText } from '../../arch/inscription_text';
+import { panelText, type PanelText } from '../../arch/inscription_text';
+import { carvedLines } from '../../lang/oldPersian';
+import CAPTIONS from './naqsh_captions.json';
+import { paintFacadeGeometry, paintedFacadeMaterial, type FacadeFrame } from './naqsh_paint';
+import { buildNaqshLife } from './naqsh_life';
 import { ReliefSet, type ReliefItem } from '../../arch/reliefs';
 import { texture, uv, vec2, normalMap, normalView } from 'three/tsl';
 import { monument } from '../../render/monuments';
@@ -43,7 +47,7 @@ const NR_GLYPH_MAX = 0.08;
 
 SURFACES.nr_rock = { albedo: [0.56, 0.52, 0.46], roughness: 0.9, porosity: 0.3, noiseScale: 0.35, noiseAmp: 0.09, bump: { amp: 0.03, freq: 0.6 }, streaks: { amp: 0.12, freq: 0.5, stretch: 0.3 }, rockBlocks: { size: [6.5, 3.1, 40], tone: 0.07, bed: 0.03 }, tier: 'C', note: 'Naqsh-e Rustam cliff: buff-grey limestone, jointed blocks each with its own tone, bedding, run-off streaks 3× longer than wide (albedo, blocks and streaks C, D-144, D-217; was streaks stretched 12× down the face: a curtain)' };
 SURFACES.nr_dressed = { blockFace: 'dressed', albedo: [0.55, 0.52, 0.47], roughness: 0.75, porosity: 0.3, noiseScale: 1.1, noiseAmp: 0.07, bump: { amp: 0.002, freq: 4 }, tier: 'C', note: 'dressed limestone of the rock-cut façades (albedo C)' };
-SURFACES.kaba_white = { blockFace: 'dressed', albedo: [0.7, 0.68, 0.62], roughness: 0.6, porosity: 0.3, noiseScale: 1.2, noiseAmp: 0.06, joints: { course: 0.95, block: 1.9, width: 0.001, dark: 0.5 }, bump: { amp: 0.0015, freq: 5 }, tier: 'B/C', note: "Ka'ba-ye Zardosht: white limestone with dovetail-clamped blocks (B, search extract); tone C" };
+SURFACES.kaba_white = { blockFace: 'dressed', albedo: [0.79, 0.77, 0.71], roughness: 0.5, porosity: 0.3, noiseScale: 1.2, noiseAmp: 0.045, joints: { course: 0.95, block: 1.9, width: 0.001, dark: 0.5 }, bump: { amp: 0.0015, freq: 5 }, tier: 'B/C', note: "Ka'ba-ye Zardosht: white limestone with dovetail-clamped blocks (B, search extract); tone C; s18 C15 (D-800): fresh-cut and clean in 467 (it stood a generation at most), a brighter, closer-grained white than the weathered tower of today" };
 
 const NR = () => PLAIN.naqsh_e_rustam;
 const F_BEARERS = () => NR().facade.throne_bearers as number;
@@ -75,7 +79,12 @@ export function facadeHoles(cx: number): Hole[] {
 
 // ---------------------------------------------------------------- one tomb façade
 /** a text area on a dressed panel: left edge x0, top yTop (face coordinates), size w × h, panel front at depth d */
-interface TextArea { id: 'DNa' | 'DNb'; x0: number; yTop: number; w: number; h: number; d: number }
+interface TextArea { id: string; x0: number; yTop: number; w: number; h: number; d: number; /** the carved text (DNa/DNb: inscriptions.json) */ text: PanelText; glyph?: number }
+/** s18 C15 (D-800): an Old Persian caption of the published edition (naqsh_captions.json, tools/build_naqsh_captions.ts) */
+const caption = (signs: string[]): PanelText => ({ font: 'op', lines: carvedLines(signs), lined: true });
+const CAP = CAPTIONS as any;
+/** the keepers' house (grid e, n): population.ts NAQSH.house (D-640), repeated here so the plain does not import the people (tests/naqsh_life.test.ts checks they agree) */
+export const KEEPERS_HOUSE: [number, number] = [722, 6086];
 function tombFacade(f: Face, cx: number, inscribed: boolean, id: string): { stone: THREE.BufferGeometry[]; items: ReliefItem[]; panels: THREE.BufferGeometry[]; front: THREE.BufferGeometry; texts: TextArea[] } {
   const texts: TextArea[] = [];
   const F = NR().facade, stone: THREE.BufferGeometry[] = [], items: ReliefItem[] = [], panels: THREE.BufferGeometry[] = [];
@@ -126,7 +135,7 @@ function tombFacade(f: Face, cx: number, inscribed: boolean, id: string): { ston
   stone.push(onFace(f, box(dw, dh, 0.08), cx - dw / 2, hMid + 0.2, R + 0.05 - 0.08)); // the sealing slab, set back in the frame
   if (inscribed) { // DNb between the columns (left of the door): dressed panel, Old Persian text inset 0.1 m
     panels.push(onFace(f, box(2.4, 2.8, 0.02), cx - 3.95 - 1.2 + 0.05, hMid + 1.2, R));
-    texts.push({ id: 'DNb', x0: cx - 5.1 - 1.1, yTop: hMid + 1.2 + 2.7, w: 2.2, h: 2.6, d: R - 0.02 });
+    texts.push({ id: 'DNb', x0: cx - 5.1 - 1.1, yTop: hMid + 1.2 + 2.7, w: 2.2, h: 2.6, d: R - 0.02, text: panelText('DNb', 'op')! });
   }
   // --- upper register: two tiers of 14 throne-bearers under the dais, the king on a three-stepped podium before the fire altar,
   // the winged figure and the moon above; attendants in three tiers on the side panels (programme B, drawing C)
@@ -147,7 +156,16 @@ function tombFacade(f: Face, cx: number, inscribed: boolean, id: string): { ston
   for (const s of [-1, 1]) for (let t = 0; t < 3; t++) rfig('guard', 11 + t + (s > 0 ? 3 : 0), s * 4.6, u0 + 0.35 + t * 2.6, 1.8, (s < 0 ? 1 : -1) as 1 | -1, 'attendants and guards in three tiers on the side panels (B); which is which C', 'B');
   if (inscribed) { // DNa panel behind the king, Old Persian text inset 0.1 m
     panels.push(onFace(f, box(1.6, 2.2, 0.02), cx - 4.9 + 0.1, top + 0.9, R));
-    texts.push({ id: 'DNa', x0: cx - 4.8 - 0.7, yTop: top + 0.9 + 2.1, w: 1.4, h: 2.0, d: R - 0.02 });
+    texts.push({ id: 'DNa', x0: cx - 4.8 - 0.7, yTop: top + 0.9 + 2.1, w: 1.4, h: 2.0, d: R - 0.02, text: panelText('DNa', 'op')! });
+    // s18 C15 (D-800): the captions of the edition (ARIo, CC0): DNc over Gobryas, the king's spear-bearer, the top attendant of
+    // the left side panel; DNd over Aspathines, his bow-bearer, below him; DNe, the name of each people beside its throne-bearer
+    // (the edition's 30 lines on the façade's 28 drawn bearers, in order: the first 28 carved where the edition keeps them, the
+    // lost lines left uncut; lines 29-30 have no bearer drawn, PLACEHOLDER)
+    texts.push({ id: 'DNc', x0: cx - 4.6 - 0.55, yTop: u0 + 0.35 + 2 * 2.6 + 1.85 + 0.42, w: 1.1, h: 0.38, d: R - 0.02, text: caption(CAP.DNc.op_signs), glyph: 0.045 });
+    texts.push({ id: 'DNd', x0: cx - 4.6 - 0.55, yTop: u0 + 0.35 + 2.6 + 1.85 + 0.2, w: 1.1, h: 0.2, d: R - 0.02, text: caption(CAP.DNd.op_signs), glyph: 0.045 });
+    const n = F.throne_bearers / F.throne_bearer_tiers;
+    (CAP.DNe.lines as (string[] | null)[]).slice(0, F.throne_bearers).forEach((l, k) => { if (!l) return; const t = Math.floor(k / n), i = k % n, x = -span / 2 + 0.35 + i * (span - 0.7) / (n - 1);
+      texts.push({ id: `DNe${k + 1}`, x0: cx + x + 0.05, yTop: u0 + 0.35 + t * (bearerH + 0.3) + 0.75, w: 0.52, h: 0.2, d: R - 0.02, text: caption(l), glyph: 0.03 }); });
   }
   return { stone, items, panels, front: frontG, texts };
 }
@@ -318,7 +336,10 @@ export function buildNaqsh(terrain: Terrain, ancientFootAsl: number): NaqshBuild
   const holes = tombs.flatMap(t => facadeHoles(t.x));
   const NM = monument('naqsh');
   const rock = NM ? withBake(surfaceMaterial('nr_rock', { variant: 'monument:naqsh' }), NM.maps.cliff_n, NM.maps.cliff_a, true) : surfaceMaterial('nr_rock'), dressed = surfaceMaterial('nr_dressed');
-  const facadeMat = NM ? withBake(surfaceMaterial('nr_dressed', { variant: 'monument:facade' }), NM.maps.facade_n, NM.maps.facade_a, false) : null;
+  // s18 C15 (D-800): the façades painted and gilded (naqsh_paint.ts), over the Blender model's baked maps where it is loaded
+  const facadeMat = NM ? withBake(paintedFacadeMaterial('nr_dressed', 'monument:facade'), NM.maps.facade_n, NM.maps.facade_a, false) : paintedFacadeMaterial('nr_dressed', 'boxes');
+  const FF: FacadeFrame = { hMid: NR().facade.foot_above_ground_m + NR().facade.lower_arm_h_m, hTop: NR().facade.foot_above_ground_m + NR().facade.lower_arm_h_m + NR().facade.median_register_h_m, ch: NR().facade.column_h_m, colX: [-5.6, -2.1, 2.1, 5.6], doorW: NR().facade.door_w_m, doorH: NR().facade.door_h_m, span: 8.6, bearerH: 1.35 };
+  const paintInfo: string[] = [];
   rock.side = THREE.DoubleSide; // the cliff's top and end returns are seen from both sides
   // D-223 (rubric s7 pass 2 R9, the fine wavy moiré): a DoubleSide material is drawn DoubleSide into the shadow maps
   // (three r186 Renderer: shadowSide ?? side for DoubleSide), so the lit face wrote its own depth and shadowed itself:
@@ -338,41 +359,44 @@ export function buildNaqsh(terrain: Terrain, ancientFootAsl: number): NaqshBuild
   cliff.userData = { tier: 'C', src: cl.src, note: `cliff ${H} m high (B, SX); face line and rock surface reconstructed (C)` + (NM ? '; its surface baked in Blender (D-329, tools/blender/naqsh.py): open joints along the blocks, bedding joints and laminations, fracture traces, solution flutes under the crest, spall scars, pitting; run-off varnish below the ledges (all C)' : ''), placeholder: false };
   group.add(cliff);
   let tris = cliff.geometry.getAttribute('position').count / 3;
+  const panelGeos: THREE.BufferGeometry[] = [];
   for (const { t, fc } of facades) {
     const ft = feature(t.id);
     const fg = NM ? NM.meshes.facade.clone().translate(t.x, f.groundAsl - f.court - curvatureDrop(t.x, -fy), -fy - NR().facade.recess_m) : mergeGeometries(fc.stone.map(g => g.index ? g.toNonIndexed() : g))!;
-    const st = new THREE.Mesh(fg, NM ? facadeMat! : dressed); st.name = t.id; st.castShadow = st.receiveShadow = true;
-    st.userData = tag(ft, `${ft.name}: façade 22.93 m, median register 14 x 7.60 m, upper arm 8.50 m (B, SX); arm width 10.9 m, recess, columns and door C${t.inscribed ? '' : '; uninscribed (D-033)'}` + (NM ? '; ' + MODEL_FACADE_NOTE : ''));
+    const pi = paintFacadeGeometry(fg, FF, (wx, wy, wz) => [wx - t.x, faceH(f, wx, wy), NR().facade.recess_m + wz + fy]); paintInfo.push(`${t.id}: ${pi.painted} vertices painted, ${pi.gilt} gilded`);
+    const st = new THREE.Mesh(fg, facadeMat); st.name = t.id; st.castShadow = st.receiveShadow = true;
+    st.userData = tag(ft, `${ft.name}: façade 22.93 m, median register 14 x 7.60 m, upper arm 8.50 m (B, SX); arm width 10.9 m, recess, columns and door C${t.inscribed ? '' : '; uninscribed (D-033)'}` + (NM ? '; ' + MODEL_FACADE_NOTE : '') + '; s18 C15 (D-800): painted and gilded (naqsh_paint.ts: the column bases, astragals and bull capitals, the fasciae, dentils and cornice, the doorway\'s bands, the throne\'s beams, slab and gilded legs; pigments B, zones C)');
     if (!NM) Object.assign(st.userData, { placeholder: true, placeholder_why: 'the façade’s architecture as boxes (the Blender model, D-329, not loaded)' });
     // the upper register and side panels carved by the relief system (D-069; per-figure LOD, far chunks): programme B, carving C
     const fig = new ReliefSet(fc.items, [], t.id + '-reliefs', NR_RELIEF_HIDE); // beyond 1.5 km every figure is under ~1 px
     fig.userData = { ...fig.userData, tier: 'C', src: 'NR-ACHAEMENICA;NR-IRANICA;WP-NR', note: `upper register: ${F_BEARERS()} throne-bearers in two tiers, the king on a three-stepped podium before the fire altar, the winged figure and the moon; guards and attendants on the side panels (programme B); carved relief figures, drawing and paint C (NOT SEEN)`, placeholder: false };
     group.add(st, fig); tris += (st.geometry.index ? st.geometry.index.count : st.geometry.getAttribute('position').count) / 3;
-    if (fc.panels.length) { const pm = new THREE.Mesh(mergeGeometries(fc.panels)!, dressed); pm.name = t.id + '-inscription-panels'; pm.userData = { tier: 'C', src: 'LIVIUS-NR', note: 'DNa/DNb inscription panels: dressed fields (position and size C)', placeholder: false }; group.add(pm); }
+    panelGeos.push(...fc.panels); // (s18 C15: drawn with the Neo-Elamite relief's dressed panel, one mesh: the plain's draw budget)
     // the carved Old Persian text of DNa and DNb (one mesh), with pick rectangles for the translation layer
     for (const a of fc.texts) {
-      const block: Block = { id: a.id, ver: 'op', text: panelText(a.id, 'op')! }, fit = fitBlocks([block], 'stack', a.w, a.h, NR_GLYPH_MAX), L = fit.parts[0].layout;
+      const block: Block = { id: a.id, ver: 'op', text: a.text }, fit = fitBlocks([block], 'stack', a.w, a.h, a.glyph ?? NR_GLYPH_MAX, a.glyph ? Math.min(0.02, a.glyph) : undefined), L = fit.parts[0].layout;
       // text geometry: x 0…w along the face, the block's top at y 0, lines going down, z out of the panel (the signs' quads
       // lie on the dressed face; the shader cuts them in)
       const cg = carvedBlockGeometry(block, L); carvedSigns.push({ id: a.id, ver: 'op', signs: cg.userData.signs });
       carved.push(onFace(f, cg, a.x0, a.yTop, a.d));
+      if (a.glyph) { textInfo.push(`${a.id}: ${L.signs.length} signs, glyph ${(fit.glyph * 100).toFixed(1)} cm${fit.fits ? '' : ' (DOES NOT FIT the field at the smallest glyph)'}`); continue; } // the captions: no translation-layer entry yet (translations.json), so no pick rectangle
       const quad = box(a.w + 0.1, a.h + 0.1, 0.001); onFace(f, quad, a.x0 + a.w / 2, a.yTop - a.h - 0.05, a.d - 0.01);
       const pick = new THREE.Mesh(quad, pickMat); pick.layers.set(INSCRIPTION_PICK_LAYER); pick.name = `inscription:${a.id}:op:pick`;
-      pick.userData = { tier: 'C', inscription: a.id, version: 'op', pickFar: 80 }; texts.add(pick);
+      pick.userData = { tier: 'C', inscription: a.id.replace(/^DNe\d+$/, 'DNe'), version: 'op', pickFar: 80 }; texts.add(pick);
       textInfo.push(`${a.id}: ${L.signs.length} signs, glyph ${(fit.glyph * 100).toFixed(1)} cm, ${L.lines} lines${fit.fits ? '' : ' (DOES NOT FIT the field at the smallest glyph)'}`);
     }
   }
   if (carved.length) {
     const tm = new THREE.Mesh(mergeGeometries(carved.map(g => g.index ? g.toNonIndexed() : g))!, inscMat); tm.name = 'nr-inscriptions-carved'; tm.receiveShadow = true;
-    tm.userData = { carved: carvedSigns, tier: 'B/C', src: 'ARIO-CATF;ARIO;NOTO;LIVIUS-NR', placeholder: true, note: `DNa, DNb Old Persian (text A: ARIo Q007152/Q007153, CC0). DNa ${opSignsNote('DNa')}. DNb ${opSignsNote('DNb')}. Incised in the dressed field, V-section at 45° (C, D-177); panel position C. NOT carved [PLACEHOLDER, Q-290]: the Elamite and Babylonian versions of DNa and DNb (not in the corpus read) and the captions DNc, DNd, DNe — ${textInfo.join('; ')}` };
+    tm.userData = { carved: carvedSigns, tier: 'B/C', src: 'ARIO-CATF;ARIO;NOTO;LIVIUS-NR', placeholder: true, note: `DNa, DNb Old Persian (text A: ARIo Q007152/Q007153, CC0). DNa ${opSignsNote('DNa')}. DNb ${opSignsNote('DNb')}. Incised in the dressed field, V-section at 45° (C, D-177); panel position C. The captions DNc, DNd and DNe carved in Old Persian from the edition (ARIo Q007154-Q007156, CC0; s18 C15, D-800; places C). NOT carved [PLACEHOLDER, Q-290, Q-1730]: the Elamite and Babylonian versions of DNa and DNb: no licensed digital edition exists (ARIo, CDLI and every open mirror carry the Old Persian only; the El/Bab are edited in print alone), so nothing is cut rather than anything invented — ${textInfo.join('; ')}` };
     texts.add(tm); tris += tm.geometry.getAttribute('position').count / 3;
   }
   group.add(texts);
   // Neo-Elamite relief: a panel at the nearest point of the face to its xy; its five figures carved by the relief system
   // (D-320: the relief atlas's carved figures, kind 'elamite', drawing by analogy C; was five extruded silhouettes)
   const ER = NR().elamite_relief, ex = feature('nr_elamite_relief').xy[0] as number;
-  const relief = new THREE.Mesh(onFace(f, box(ER.w_m + 0.3, ER.h_m + 0.3, 0.05), ex - ER.w_m / 2 - 0.15, ER.base_above_ground_m - 0.15, 0.12), dressed); relief.name = 'nr-elamite-relief'; relief.castShadow = relief.receiveShadow = true;
-  relief.userData = { tier: 'B/C', src: ER.src, note: 'Neo-Elamite relief 7 x 2.5 m, intact in 467 (B): the dressed panel', placeholder: false };
+  const relief = new THREE.Mesh(mergeGeometries([onFace(f, box(ER.w_m + 0.3, ER.h_m + 0.3, 0.05), ex - ER.w_m / 2 - 0.15, ER.base_above_ground_m - 0.15, 0.12), ...panelGeos])!, dressed); relief.name = 'nr-elamite-relief'; relief.castShadow = relief.receiveShadow = true;
+  relief.userData = { tier: 'B/C', src: ER.src + ';LIVIUS-NR', note: 'Neo-Elamite relief 7 x 2.5 m, intact in 467 (B): the dressed panel; with the DNa/DNb inscription panels of the tomb of Darius: dressed fields (position and size C)', placeholder: false };
   const elam: ReliefItem[] = [];
   for (let i = 0; i < 5; i++) elam.push({ kind: 'elamite', seed: i, o: toWorld(f, ex - ER.w_m / 2 + 0.95 + i * 1.35, ER.base_above_ground_m + 0.2, 0.07), X: new THREE.Vector3(1, 0, 0), Y: new THREE.Vector3(0, 1, 0), Z: new THREE.Vector3(0, 0, 1), S: 1.9, D: 0.06, mirror: i >= 3, meta: { programme: 'Neo-Elamite relief (B); figures by analogy with Kurangun and Kul-e Farah (C)', tier: 'C', where: 'nr_elamite_relief' } });
   const elamSet = new ReliefSet(elam, [], 'nr-elamite-relief:figures', NR_RELIEF_HIDE);
@@ -387,10 +411,16 @@ export function buildNaqsh(terrain: Terrain, ancientFootAsl: number): NaqshBuild
   kw.userData = kd.userData = tag(feature('nr_kaba'), `Ka'ba-ye Zardosht: 12 m tower on a triple-stepped base (14.12 m), base side 7.30 m, 30-step stair, door 1.7 x 0.87 m (C, WP-NR search extract); window layout and stair orientation C; date disputed (Q-006)` + (NM ? '; ' + MODEL_KABA_NOTE : ''));
   const ntri = (g: THREE.BufferGeometry) => (g.index ? g.index.count : g.getAttribute('position').count) / 3;
   group.add(kw, kd); tris += ntri(kw.geometry) + ntri(kd.geometry);
+  // s18 C15 (D-800): the ground in use: the second tomb's scaffold, spoil and the cutters' lean-to, the keepers' house, the offering table
+  const life = buildNaqshLife({ terrain, toWorld: (x, h, d) => toWorld(f, x, h, d), rockD: (x, h) => faceDepth(x, Math.min(h, crestH(x, H)), H, holes), cut: tombs[1].x, darius: tombs[0].x,
+    top: NR().facade.foot_above_ground_m + NR().facade.height_m, house: KEEPERS_HOUSE });
+  group.add(life.mesh); tris += life.info.tris;
+  group.userData.paint = paintInfo; group.userData.life = life.info;
   return { group, tris, texts,
     colliders(phys: Physics) {
       const g = cliff.geometry, p = g.getAttribute('position') as THREE.BufferAttribute, idx = new Uint32Array(p.count); for (let i = 0; i < p.count; i++) idx[i] = i;
       phys.addTrimesh(new Float32Array(p.array as ArrayLike<number>), idx, { tier: 'C', what: 'naqsh-e-rustam cliff' });
       for (const b of kb.boxes) phys.addBox(b.c, b.h);
+      life.colliders(phys);
     } };
 }

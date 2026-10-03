@@ -41,7 +41,7 @@ describe('modelled props (D-325): palace furnishings', () => {
     const { PalaceFurnishings, itemGeometry } = await import('../src/world/furnish_palaces');
     const { parts, manifest, doorways } = buildTerrace();
     const pf = new PalaceFurnishings(parts, manifest, doorways, { court: true });
-    const kinds = new Map<string, any>(); for (const it of pf.plan) if (!kinds.has(it.kind)) kinds.set(it.kind, it);
+    const kinds = new Map<string, any>(); for (const it of pf.plan) if (!kinds.has(it.kind) && it.lod === undefined) kinds.set(it.kind, it); // (D-780: not the banquet's tables, drawn at the lowest level)
     const of: Record<string, string> = { couch: 'couch', couch_covered: 'couch_covered', table: 'table', stool: 'stool', stool_stack: 'stool', footstool: 'footstool', incense_burner: 'burner', lamp_stand: 'lamp_stand', chest: 'chest', carpet: 'carpet', carpet_rolls: 'roll', hanging_rolls: 'roll', hanging: 'hanging', canopy: 'canopy', mat: 'mat' };
     for (const [k, it] of kinds) {
       if (k === 'jar') continue; // (the jar: a CC0 scan's shape, D-310)

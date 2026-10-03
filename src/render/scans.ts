@@ -327,7 +327,9 @@ async function loadGround(base: string, anisotropy: number, K: any = null): Prom
     if (!diff) throw new Error(`ground scan ${id}: no diff.jpg`);
     const disp = await pixels(fh.res), o = k * R * R * 4;
     if (fd.lo || fh.lo) addUpgrade(async () => { const d2 = await pixels(url(id, 'diff')), h2 = disp ? await pixels(url(id, 'disp')) : null; if (!d2 || !groundArr) return;
-      fill(k, d2, h2); (groundArr as THREE.DataArrayTexture).addLayerUpdate(k); groundArr.needsUpdate = true; });
+      // (D-740: the array's page copy was dropped once uploaded (release.ts): give it back before the re-upload, or three
+      // uploads null and the frame aborts (s18's black screen); release.ts drops it again after this upload)
+      fill(k, d2, h2); const G = groundArr as THREE.DataArrayTexture; (G.image as any).data = data; G.userData.released = false; G.addLayerUpdate(k); G.needsUpdate = true; });
     let s = 0, s2 = 0, n = 0;
     for (let i = 0; i < R * R * 4; i += 4) {
       // the height: the displacement map, or (no map: the aerial rock) the colour's luminance

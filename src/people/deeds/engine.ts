@@ -373,11 +373,11 @@ export class DeedWorld {
       // read other deeds, the town's talk of deeds (initiative.ts, from its last id seen) stopped until the count caught up, and
       // what a person had lately done or suffered was gone); kept lean: the outcome's effects and witnesses are spent
       next: this.next, recent: this.recentSave(d0) }; }
-  /** the deeds kept over a save (D-720): the last day's (but the tellings) and ten days of the weighty ones, as tuples
+  /** the deeds kept over a save (D-720): ten days of the weighty ones (wrongs, courting, peace, care), as tuples
    *  [id, t×10, verb, actor, target, third, ok, act] (the save's 600 KB: ~2,900 deeds a day would be ~85 KB a day whole) */
   private recentSave(d0: number) { const out: unknown[][] = [];
     for (let i = this.log.length - 1; i >= 0; i--) { const r = this.log[i]; if (r.day < d0 - 9) break; const v = r.deed.verb;
-      if (!((r.day >= d0 - 1 && v !== 'tell' && v !== 'lie') || KEPT.has(v))) continue;
+      if (!KEPT.has(v)) continue; // (D-720: the weighty deeds only: the everyday help and visits of a day are the minds' feelings, kept)
       out.push([r.id, Math.round(r.t * 10), v, r.deed.actor, r.deed.target ?? -1, r.deed.third ?? -1, r.out.ok ? 1 : 0, r.deed.act ?? 0]); }
     return out.reverse(); }
   /** D-720: deeds from before a load, by id (the log's window begins again empty after it) */

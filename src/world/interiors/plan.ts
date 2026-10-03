@@ -21,7 +21,8 @@ export interface Door { side: Side; at: number; w: number }
 /** a room: its cell rectangle in its site's local frame (metres), the doorways, the wall away from the court */
 export interface RoomIn { id: string; u0: number; u1: number; v0: number; v1: number; doors: Door[]; back: Side; use: Use;
   /** the inner face of the walls from the cell bounds (m; the walls stand on the raster edges) */ inset?: number;
-  /** the ceiling above the floor (m) */ ceil?: number }
+  /** the ceiling above the floor (m) */ ceil?: number;
+  /** s18 C2 (D-664): the household's indoor hearth is in this room (its kitchen, else its living room) */ hearth?: boolean }
 /** the household of a room (all C where the population is silent) */
 export interface Profile {
   /** 0 the poorest .. 1 the richest (houseplan.ts standingOf) */ standing: number;
@@ -42,7 +43,7 @@ export type Kind =
   | 'loom_ground' | 'loom_upright' | 'spinning' | 'bolts' | 'wool'
   | 'tool_lean' | 'anvil' | 'bellows' | 'timber' | 'vat' | 'pots' | 'wheel' | 'pigments' | 'mould' | 'seal_bench' | 'weigh_table' | 'tablets'
   | 'cradle' | 'toys' | 'peg_cloth' | 'herbs' | 'onions' | 'broom' | 'lamp'
-  | 'shield' | 'arrows' | 'vessels';
+  | 'shield' | 'arrows' | 'vessels' | 'hearth';
 /** a placed thing: centre (u, v) in the site frame, turn (radians CCW from +u: the thing's x along it), footprint (w along
  *  its x, d across), height h, base y above the floor, a variant 0..1, the wall it stands against (−1: free) */
 export interface Item { k: Kind; u: number; v: number; rot: number; w: number; d: number; h: number; y: number; vr: number; wall: number; note?: string; sub?: string; n?: number }
@@ -56,7 +57,7 @@ export const TRIS: Record<Kind, number> = {
   loom_ground: 714, loom_upright: 145, spinning: 140, bolts: 212, wool: 302,
   tool_lean: 60, anvil: 294, bellows: 130, timber: 100, vat: 300, pots: 412, wheel: 230, pigments: 712, mould: 60, seal_bench: 158, weigh_table: 428, tablets: 96,
   cradle: 180, toys: 204, peg_cloth: 62, herbs: 114, onions: 178, broom: 63, lamp: 40,
-  shield: 438, arrows: 300, vessels: 340,
+  shield: 438, arrows: 300, vessels: 340, hearth: 420,
 };
 /** things that lie flat on the floor: they may lie in a walking line (not in a door's leaf sweep) */
 export const FLAT = new Set<Kind>(['mat', 'carpet', 'fleece', 'hide', 'grass_bed']);
@@ -205,6 +206,9 @@ function recipe(c: Ctx) {
       if (p.season === 'harvest' && h('grain') < 0.5) onWall(c, 'grain', 0.5, 0.5, 0.65, 0.6, { note: 'the new grain in a sack, still open (C)' });
       break; }
     case 'kitchen': {
+      // s18 C2 (D-664, C12 4-4: no indoor hearth anywhere): the hearth against the back wall, a ring of field stones round
+      // the ash bed, the smoke out through a hole in the roof (C: the region's house hearth; the court keeps the summer one)
+      onWall(c, 'hearth', 0.9, 0.85, 0.18, 0.5, { note: 'the household\'s hearth: field stones round the ash bed, the cooking pot on it, the smoke out through the roof (C)' });
       onWall(c, 'quern', 0.6, 0.42, 0.27, 0.3, { note: 'a saddle quern and its rubbing stone: the day\'s flour (PF flour rations, B; C)' });
       onWall(c, 'kneading', 0.9, 0.48, 0.2, 0.7, { note: 'a wooden kneading trough (C)' });
       onWall(c, 'cookpot', 0.36, 0.34, 0.25, 0.9); onWall(c, 'bowls', 0.3, 0.3, 0.12, 0.85); onWall(c, 'jar_neck', 0.32, 0.32, 0.45, 0.2);
@@ -234,6 +238,9 @@ function recipe(c: Ctx) {
       break; }
     case 'living': case 'sleeping': {
       const living = r.use === 'living';
+      // s18 C2 (D-664): a house without a kitchen keeps its hearth in the living room, against the back wall (the walk through the room kept)
+      if (r.hearth) onWall(c, 'hearth', 0.85, 0.8, 0.18, 0.5, { note: 'the hearth against the living room\'s back wall, the household sitting round it to eat and in the cold (C)' }, [r.back, ...wallOrder(c).slice(1)]);
+      if (r.hearth) { onWall(c, 'quern', 0.6, 0.42, 0.27, 0.25, { note: 'a saddle quern and its rubbing stone by the hearth: the day\'s flour (C)' }); onWall(c, 'kneading', 0.9, 0.48, 0.2, 0.75, { note: 'a wooden kneading trough (C)' }); onWall(c, 'cookpot', 0.36, 0.34, 0.25, 0.9); }
       // 1. the floor: a reed mat over the beaten earth (in nearly every house), a pile carpet in the richer ones, a fleece or
       //    a hide where the household keeps sheep or goats and in the cold months
       const mw = clamp(W - 1.5, 0.9, 2.6), md = clamp(D - 1.5, 0.8, 2.0);
@@ -262,8 +269,9 @@ function recipe(c: Ctx) {
       if (living) lean(farmer || herder ? 1 + (h('l2') < 0.5 ? 1 : 0) : (h('l1') < 0.4 ? 1 : 0));
       const cush = poor ? 0 : Math.round((living ? 1 : 0) + 3 * st * (0.6 + 0.4 * h('cu'))); for (let i = 0; i < cush; i++) onWall(c, 'cushion', 0.5, 0.42, 0.14, 0.35 + 0.15 * i, { note: 'a cushion of wool stuffed in a woven cover (C)' });
       if (living) {
-        if (st > 0.4 || h('lt') < 0.2) onWall(c, 'low_table', 0.72, 0.5, 0.28, 0.5, { note: 'a low wooden tray-table for the meal, the bowls on it (C)' });
-        else onWall(c, 'bowls', 0.3, 0.3, 0.12, 0.6, { note: 'the household\'s bowls stacked (C)' });
+        // (s18 C2, D-664, C12 W12: a table only in the better-off houses; the rest eat from a tray of bread set on the mat, C)
+        if (st > 0.6) onWall(c, 'low_table', 0.72, 0.5, 0.28, 0.5, { note: 'a low wooden tray-table for the meal, the bowls on it (C)' });
+        else { onWall(c, 'bread', 0.46, 0.46, 0.08, 0.5, { note: 'a round tray of flat bread under a cloth, set down on the mat for the meal (C)' }); onWall(c, 'bowls', 0.3, 0.3, 0.12, 0.6, { note: 'the household\'s bowls stacked (C)' }); }
         if (st > 0.6) for (let i = 0; i < 1 + Math.round(st * 2 * h('stools')); i++) onWall(c, 'stool', 0.42, 0.42, 0.42, 0.3 + 0.3 * i, { note: 'a low wooden stool (C)' });
         if (h('bread') < 0.5) onWall(c, 'basket', 0.4, 0.34, 0.14, 0.65, { note: 'a basket of flat bread under a cloth (C)' });
         if (h('wj') < 0.55) onWall(c, 'jar_water', 0.36, 0.36, 0.46, 0.05, { note: 'a water jar (C)' });

@@ -9924,6 +9924,12 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   kit, walls of mud brick with colliders; 55 work spots (worksLayout(plan).spots: facility, act, e, n, yaw) for C1's people.
 - Soil moisture by season (holes P2-10, Q-603): the plain's loam dark and damp in spring, pale dust in late summer, damper in
   patches (terrainPlain.ts soil0: fields, tracks and open ground alike); the rain's wetness on top as before.
+- The ring seam (C7: terrain.test 53 m step, terrain_walk 0.54 m gap after ef9df75f): the far ring's carve changed what the
+  mid ring's outer 12-cell band is blended into (build_terrain.py's seam blending); meander.ts now re-blends that band
+  (each sample's own height recovered from the old blend or taken from the carve, mixed with the far ring as it is now). The
+  horizon map rebuilt (tools/build_horizon.ts). terrain, terrain_walk, horizon and plain tests green; villages unchanged.
+- The T4's black screen (Vagon's culprit probe: plain-stone's shadow pass bound a released buffer): the fords' merged stone
+  mesh casts no shadow from birth and is never re-flagged at run time; the shared quarry mesh is hidden, never disposed.
 
 ## D-720 Follow thirty: the people answer from their own lives without the model, and the town's deeds and yesterday reach their talk (session 18, cloud C8; UD-07, UD-08, UD-11, UD-21, UD-24, UD-32)
 - Measured (tools/dev/follow30.ts; REVIEWS/follow30.json): thirty people drawn by seed across the town, the villages, the Terrace's
@@ -10009,6 +10015,35 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
 - Unseen: the cloud cannot draw Q=high (WebGL2: program validation failures and a lost device with the cascade on AND off;
   WebGPU: SwiftShader's 16-texture cap), so the far cascade is verified node-side only; it needs a T4 frame.
 
+## D-750 The Terrace at 100-300 m: crowned, banded, hung and flagged (s18 cloud C10; UD-19, UD-29, UD-35, UD-36)
+- **Why:** Vagon's final train (s17-renders final2) showed the Gate, the palaces and the Terrace's edge as plain boxes from the
+  stair, the town and the plain: flat roof lines, blank walls, open stone porticoes, nothing moving in the wind.
+- **What (render geometry only; no parts, colliders, grid or plan changed; every class C, tiered in F3):**
+  1. Stepped stone merlons on every palace roof line (roofedge.ts `crowns`: Gate, Apadana, Tachara, Hadish, Harem; not the
+     fortification, which keeps its mud merlons, nor the garrison and Treasury) at 1.35x the stair merlon (UD-29: 0.9 m is a
+     hairline at 300 m), and on the Terrace's edge parapet at the stair size (terrace.parapet_height: "low crenellated parapet").
+     The Blender merlon's own geometry and material (no new pipeline), instanced in 23 chunks of 128 m per building so the far
+     levels (far_terrace.ts) apply per chunk; MerlonNear inside 16 m. ~2,900 merlons; duplicates where two parapet lines
+     coincide (a wall top flush with a roof edge) dropped.
+  2. Glazed-brick bands (the Apadana frieze's rosettes, 1.62 m, 18 courses) under the string course of the Gate's, the
+     Tachara's and the Hadish's outer wall runs (glazed.ts `palaceBandFaces`).
+  3. The porticoes' hangings (dressings.ts; Esther 1:6 for the practice, B): two tied-back curtains per front-row bay and a
+     scalloped valance under the capitals, white, green, blue and purple; 30 bays (Apadana 15, Tachara 3, Hadish 7, Harem 5).
+  4. Royal standards (Xenophon Cyr. 7.1.4 for the standard, B): 12 poles with bronze finials and swallow-tailed purple-red
+     banners over the Gate's corners, the Apadana towers, the Tachara and the Hadish (static cloth: no wind shader).
+  5. Blind windows in dark stone frames with gorge cornices on the Apadana towers' free outer faces (52; global.r_window's
+     frame by analogy).
+  Materials are ones the world already compiles (the merlon, the torches' textile/wood, the brazier stone, bronze, glazed):
+  no new shader, no new sampler. Dressings ride under the glazed-frieze mesh (world.ts adds it); ~30 k triangles.
+- **Measured (cloud, SwiftShader WebGL2, Q=test, one page, each view with the additions hidden then shown; handoff/s18/c10):**
+  stair foot +0.65 M triangles / +39 draws (11.83 -> 12.48 M; +0.95 M before the 128 m chunks), approach 700 m +0.35 M / +27,
+  plain 930 m +0.27 M / +27, Rahmat 350 m +0.41 M / +30, on the Terrace (inside the Apadana stair) +0.81 M / +41. Upper bounds:
+  the far levels are built in a worker and a 3-frame test render may draw before they land. Frame time and memory unmeasured
+  (the T4's budget run decides; the merge budget binds).
+- **Unseen:** the tower windows (committed after the last render); any frame at Q=high; the cloth and merlons under the T4's
+  shadows and lighting; whether the banners' static droop reads as cloth at 20 m.
+
+
 ## D-790 People up close: faces that speak, listen and look; the Bactrian camel and the zebu from library bodies; library ears that flick (session 18, cloud C14; UD-18, UD-21, UD-19)
 - The face while speaking (src/people/face.ts, new): mouth shapes from a phone stream (the spoken line's transliteration
   when the voice hands it over, FaceState.say; else a seeded babble in the shape of the period's speech, consonant-vowel and
@@ -10046,6 +10081,7 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   left out; animalModels passes the normals): they flick now (1.5-2.4 cm on donkeys, horses, sheep, dogs, camels). The
   camels' and the dromedary's tails swing (tail_r 0.06 / 0.07; a library tail's lever capped at 0.42 m so the hair against
   the hocks is not torn: TAIL_LEVER_REAL); the camel_pack's lying tear (lod1, 4 cm) gone with it.
+
 
 
 ## D-740 The budget: every scan in KTX2 with low-first twins, one shader for the birds, the T4's pipeline limits counted on real WGSL (s18 cloud C9; UD-31)
@@ -10092,6 +10128,7 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   people_look's rank test: court chroma > 1.5x the working dress's (was 2x; rank still shows).
 - Furnishings (furnish_palaces.ts): the Apadana laid for the banquets (a carpet and a table in each seated bay, lamp stands,
   hangings on the W, E and N walls); with the court away the halls keep their hangings, and the Apadana a keeper's corner and lamps.
+
 
 ## D-760 An original score, out of world: recorded orchestra, a main theme, an hour for the world, and a director that leaves silence (session 18, cloud C11; UD-38, UD-39)
 - The user's words (UD-38, UD-39) add non-diegetic music to the out-of-world layer, at a Hollywood bar and never recognisable as AI: the brief's "no background score" (§11) gives way to them; its ban on the "ancient Persia" cliché stands and binds the score (blocklist 'music-cliche': no duduk, oud or santur, no augmented-second "exotic" modes, no bent ethnic solo as the theme's identity; after C12's fourth pass the first draft's cor-anglais "duduk", alto-flute "ney" and Phrygian/Hijaz cues were rewritten for solo cello, horn, clarinet and flute in minor, Dorian and Aeolian). Majesty comes from harmony, brass, choir and rhythm; the period's colour (harp, frame drum) is used lightly. Equal temperament is the orchestra's own: the brief's tuning rule governs the world's players (src/audio/music.ts), not the out-of-world score. C.
@@ -10166,3 +10203,32 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   tabby), in about a sixth of the town's house yards (fauna.json cat; lying by day, about the yard at dusk and dawn, off
   over the yard when someone comes within 4 m); the anatomy's boar and hare rebuilt for the species list; the mother's
   held hand 7 cm back to the child's under the skirted gait (people_children's palms within 12 cm again).
+
+## D-691 Carried props sit on the body, seated poses clear their props (s18 cloud C5)
+- tools/dev/prop_clip.ts: every activity and variant that holds a prop, and the goods in the plan's words (basket, sack, jar,
+  head jar, tablet) under walking, standing, talking, sitting, eating and resting, over a man's and a woman's body at 8 phases:
+  the prop's surface sampled, a sample inside the body when under the skin along the nearest body vertex's normal (the
+  holding hands excepted). Deeper than 3 cm 10 -> 0, deeper than 6 cm 7 -> 0 (the worst left: the hoe's handle 2.5 cm at the
+  chest, the shoulder jar 2.2 cm at the upper arm: the grip and the seat).
+- props.ts: goods held in a pose not made for them (GOODS_POSES) are set down on the ground beside the right hip (setDown;
+  seated: farther out and behind, clear of the legs); a population walker with goods walks in the carrying pose (CARRY_POSE:
+  the basket before the body, the sack and jar on the shoulder, the head jar on the head; crowd.ts resolve). The lap basket is
+  set down beside the seated (it sank into the chest and calves); the hip basket rides outside the hip at the hand's height
+  (6.6 cm into the pelvis before); the sack sits out over the shoulder's point; the hauling rope ends in the rear hand and
+  bows round the body between the hands (8 cm into the belly before); the towel hangs on the hand's outer side. All C.
+  hangings on the W, E and N walls: dropped in the second pass for the 450 k budget, the tables then drawn at the model's lowest
+  level); with the court away the halls keep their hangings, and the Apadana a keeper's corner and lamps.
+- Second pass (the lead's go-ahead and C12's passes 2-4): the asks applied in activities.ts, calendar.ts (E-28, E-29) and
+  performers.ts (the banquet's music); the proskynesis pose; the crown prince and the weapon-bearer behind the throne, the parasol
+  furled indoors; the plain kidaris; guards in the court robe; head pieces fitted by the head's radius, not its support function;
+  the delegations' gifts modelled (tools/blender/model_props.py gift_*); the stale 'court absent by default' texts rewritten.
+
+## D-663 A kept town, washing in the courts (s18 cloud C2: the lead's V9 note and C12's W11)
+- The town's plaster loss (V9's EarthWeatherDef on house_plaster) 7 % → 1.5 % of the face: the houses are re-plastered each spring; the bricks show where houses.ts's own losses put them (by the household's upkeep and the wall's age), the splash and streaks kept (surfaces.ts).
+- No washing lines across the public lanes (C12 W11): each line now hangs across the household's own court, wall to wall over a straight run of 2-7 court cells, for six houses in ten (fillPlan.ts; C); the roofs keep theirs.
+- tests/plain.test.ts's village_p22 frame (C7: 2.04 M > 2.0 M on D-660) passes on this head: D-662's far-level trims (roofs a top, door infills, the crests) won it back.
+
+## D-664 Every house its hearth, quern and oven; the work objects for the people (s18 cloud C2: C12's 4-4 "the house is mimed", W12)
+- A hearth indoors (interiors/plan.ts, drawn with the court hearth's model and its cooking pot): against the back wall of the kitchen, or of the living room where a house has no kitchen, with a quern, a kneading trough and a cooking pot beside it (C: the region's house hearth, the smoke out through the roof; the court keeps the summer hearth). Census (node, 1,931 town houses): a hearth 1,711 (1,259 indoors, 1,251 courts), a quern 1,889, an oven 1,929 (440 their own in the court; the rest the nearest court oven within 40 m of the door, shared with the neighbours: C), rooms walkable as before (interiors.test).
+- interiors/ring.ts houseWorkObjects(plotId, day): a house's work objects in world terms (kind, e, n, y, rot, room or −1 for the court, inside, shared, note) from the same room plans the ring draws and the court's fittings, for C1 to put people at real work objects.
+- C12 W12: a tray-table only in the better-off houses (standing > 0.6); the rest eat from a tray of flat bread on the mat.
