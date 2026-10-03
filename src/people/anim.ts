@@ -237,10 +237,10 @@ export function pose(id: AnimId, t: number, ph: number, k: number, g: Gait = GAI
       p = loopAt(IDLES[pickOf(k, IDLES.length, 5)], t, k, 0.9); r = p.rot; const q = fr(t / (7 + 2 * fr(k * 2.3)) + k), down = q > 0.45 && q < 0.75 ? Math.sin(Math.PI * (q - 0.45) / 0.3) : 0;
       r.l_upper = [-0.6 + 0.25 * down, 0, 0.12]; r.r_upper = [-0.6 + 0.25 * down, 0, -0.12]; r.l_fore = [-1.1 + 0.5 * down, 0, -0.35]; r.r_fore = [-1.1 + 0.5 * down, 0, 0.35];
       r.spine = [0.05 + 0.45 * down, 0, 0]; r.chest = [0.1 * down, 0, 0]; r.head = [0.15 + 0.1 * down, 0, 0]; const h = p.hips; p.hips = [h[0], h[1] - 0.05 * down, h[2]]; p.grip = [0.5, 0.5]; break; }
-    case 'fan': { // a fly-whisk swept over the king's head and shoulders from behind the throne, a towel over the other arm (the Treasury audience relief: B; the rhythm C)
-      p = loopAt(IDLES[pickOf(k, IDLES.length, 5)], t, k, 0.8); r = p.rot; const w = Math.sin(t * 2.6 + k * 6);
-      r.r_upper = [-1.9, 0.25 * w, -0.25 + 0.15 * w]; r.r_fore = [-0.7, 0, 0.15 * w]; r.r_hand = [0.2 * w, 0, 0.4 * w]; r.l_upper = [-0.35, 0, 0.12]; r.l_fore = [-1.35, 0, -0.5];
-      r.head = [0.1, 0.1 * w, 0]; p.grip = [0.3, 1]; break; }
+    case 'fan': { // a fly-whisk swept over the king's head and shoulders from behind the throne, the towel in the other hand at the side (the Treasury audience relief: B; the rhythm C)
+      p = loopAt(['idle_a', 'idle_c'][pickOf(k, 2, 6)], t, k, 0.8); r = p.rot; const w = Math.sin(t * 2.6 + k * 6);
+      r.r_upper = [-1.45, 0.2 * w, -0.25 + 0.12 * w]; r.r_fore = [-0.9, 0, 0.12 * w]; r.r_hand = [0, 0, 0]; r.l_hand = [0, 0, 0]; r.l_upper = [0.04, 0, 0.1]; r.l_fore = [-0.35, 0, 0];
+      r.head = [0.1, 0.1 * w, 0]; p.grip = [0.5, 1]; break; }
     case 'play': { // running about in place (children; D-333: a running capture)
       p = gaitPose('run', t * 7 + k, k, 2.8); break;
     }

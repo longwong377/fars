@@ -402,7 +402,7 @@ export class Crowd {
     const inp = this.view!.lookInput(pid), look = lookFor(this.humans.A, inp, this.seed), h = this.view!.childStature(pid);
     if (h) { const v = this.humans.A.variants[look.variant]; look.scale = h / v.height; look.stature = h; } // a child's size by age (C)
     const p = this.newPerson(`p${pid}`, null, look, inp.seed); p.pid = pid; this.byPid.set(pid, p);
-    { const age = this.view!.pop.ageOn(pid, Math.floor((this.sim?.t ?? 0) / 24)); if (age < 4) p.gait.toddler = age <= 2 ? 1 : 3.5 - age; } // (s18 C14 D-790: a toddler's walk, anim.ts toddle)
+    { const age = (this.view!.pop as any).ageOn?.(pid, Math.floor((this.sim?.t ?? 0) / 24)) ?? 99; if (age < 4) p.gait.toddler = age <= 2 ? 1 : 3.5 - age; } // (s18 C14 D-790: a toddler's walk, anim.ts toddle)
     const day = Math.floor((this.sim?.t ?? 0) / 24); this.setBelly(p, this.view!.pop.gravid?.(pid, day) ?? 0); this.setMarks(p, pid, day); return p; // (gravid?.: a view built on a partial population, as the tests' stand-ins, draws no belly)
   }
   /** an extra person not driven by the simulation (test lineups, the performance sheet): fixed place, yaw and animation,
