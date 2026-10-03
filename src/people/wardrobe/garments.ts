@@ -30,4 +30,5 @@ export const WEAR_DAY = 0.0015, WEAR_WASH = 0.004;
 export const HEAVY = new Set(['reap', 'thresh', 'field_work', 'dig_canal', 'mould_brick', 'lay_brick', 'haul', 'plough', 'quarry', 'tan', 'slaughter', 'irrigate', 'carry_sack', 'herd', 'dress_stone', 'bury', 'smith', 'shear']);
 export const MEDIUM = new Set(['craft', 'grind', 'knead', 'bake', 'cook', 'weave', 'spin', 'draw_water', 'tend_animals', 'garden_work', 'work_wood', 'clean', 'gather', 'brew', 'pick_fruit', 'press_oil', 'milk', 'fish', 'carry_jar', 'carry_jar_head', 'tend_fire', 'wash', 'play']);
 /** dyes by wealth (keys of looks.ts DYES where they exist; C) */
-export const DYE_BY_WEALTH: Record<Wealth, string[]> = { poor: ['wool', 'wool', 'brown', 'grey', 'linen'], middle: ['wool', 'linen', 'madder', 'weld', 'woad', 'ochre'], rich: ['madder', 'kermes', 'woad', 'weld', 'purple', 'turquoise'] };
+// (D-780: madder, woad and weld were cheap; the poor wear them too, as the hems and some whole garments: C)
+export const DYE_BY_WEALTH: Record<Wealth, string[]> = { poor: ['wool', 'madder', 'brown', 'woad', 'linen', 'wool', 'weld'], middle: ['madder', 'woad', 'weld', 'linen', 'madder', 'green', 'wool'], rich: ['madder', 'kermes', 'woad', 'weld', 'purple', 'turquoise', 'kermes', 'ochre'] };

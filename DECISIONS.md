@@ -9954,3 +9954,20 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   owner. The nine tests and rules that enforce an absence (polychromy faces/background, Treasury-only clay paint, no shrine,
   no qanat, the king never staged, delegations/feasts `never`, words never joined) are listed so the fixes change them too.
   No src edits (an audit).
+
+## D-780 The court as a living spectacle, its dress dyed, its halls laid (s18 cloud C13; holes #10, #11, #14, #18; UD-09, UD-10, UD-29)
+- UD-09, UD-10 and UD-29 overrule "no procession is staged" (court.ts, court.json, COURT.md) and the `never` rules of E-24 and
+  E-35. src/people/ceremony.ts: the court's programme, a pure function of (seed, day): audiences (0.55 of mornings), the days of
+  the peoples' gifts (every delegation then at Persepolis goes up in the reliefs' order behind its usher, the leader bowing with
+  his hand before his mouth; the first a few days after the king comes, then every 10-16 days), the king's gifts and his dawn at
+  the magi's fire the morning after he comes, the tukta on a seeded day, great banquets in the Apadana (seats round low tables in
+  the bays; servers crossing the Terrace; lamps), rides and hunts with the king, escort, nobles, grooms and beaters on the plain,
+  royal-road couriers every day, grooms exercising the horses. court.ts reads it into each person's day (new: the chiliarch).
+  Every day, hour, count and place is C (sources in court.json `ceremony`). The king still never speaks to or reacts to the
+  visitor (brief 1.1).
+- Dress (looks.ts, garments.ts, delegations.json): madder, woad and weld were cheap: working dress dyed about 3 in 5, women 4 in
+  5, children's hems dyed; guards in the Susa archers' yellow, white and purple; torques on 60 % of Persians (40 % guards); bronze
+  rings for a share of working men; gold plaques on a third of the court robes (drawn as the rosette motif in gold-yellow).
+  people_look's rank test: court chroma > 1.5x the working dress's (was 2x; rank still shows).
+- Furnishings (furnish_palaces.ts): the Apadana laid for the banquets (a carpet and a table in each seated bay, lamp stands,
+  hangings on the W, E and N walls); with the court away the halls keep their hangings, and the Apadana a keeper's corner and lamps.
