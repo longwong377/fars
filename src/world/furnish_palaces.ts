@@ -32,7 +32,9 @@ import { texture, positionWorld, vec3, normalWorld, smoothstep } from 'three/tsl
 type RGB = [number, number, number];
 export type FurnState = 'stored' | 'use';
 export type FurnKind = 'carpet' | 'carpet_rolls' | 'mat' | 'hanging' | 'hanging_rolls' | 'couch' | 'couch_covered' | 'table' | 'stool' | 'stool_stack' | 'footstool'
-  | 'incense_burner' | 'lamp_stand' | 'chest' | 'jar' | 'canopy';
+  | 'incense_burner' | 'lamp_stand' | 'chest' | 'jar' | 'canopy'
+  // D-780: the banquet's service set on a table: a lobed phiale and a jug
+  | 'table_set';
 /** one piece: grid position of its floor centre (e, n), floor y, heading theta (its length axis, CCW from grid east),
  *  footprint half sizes along / across that axis, height; `metal` for the gilded or silvered pieces */
 export interface FurnItem { kind: FurnKind; building: string; room: string; state: FurnState; e: number; n: number; y: number; theta: number; hu: number; hv: number; h: number; solid: boolean; metal?: 'gilt' | 'silver'; count?: number; variant: number; note: string;
@@ -182,11 +184,21 @@ export function itemGeometry(it: FurnItem): Parts {
     case 'lamp_stand': lampGeo(P); break;
     case 'chest': chestGeo(P); break;
     case 'jar': jarGeo(P); break;
+    case 'table_set': tableSetGeo(P, it.h); break;
     case 'canopy': canopyGeo(P); break;
   }
   return P;
 }
+/** D-780: the banquet's service on a table top (at height h): a silver phiale and a narrow-necked jug (two bowls more were over the court's triangle budget), the
+ *  models at the level the piece asks (the banquet's: the lowest), a plain stand-in when the models are not loaded (C) */
+function tableSetGeo(P: Parts, h: number) {
+  const L = FURNISH_LOD.lod, at = (x: number, z: number) => new THREE.Matrix4().makeTranslation(x, h, z);
+  const ph = modelParts('phiale', L, at(-0.22, 0.05)), jg = modelParts('jar_neck', L, at(0.25, -0.05).multiply(new THREE.Matrix4().makeScale(0.6, 0.6, 0.6)));
+  if (ph) put(P, 'furn_silver', ph.metal); else put(P, 'furn_silver', lathe([[0, 0], [0.1, 0.03], [0.1, 0.04]], 10).translate(-0.22, h, 0.05));
+  if (jg) put(P, 'furn_clay', jg.clay); else put(P, 'furn_clay', lathe([[0.04, 0], [0.08, 0.1], [0.03, 0.22], [0.035, 0.26]], 8).translate(0.25, h, -0.05));
+}
 const KIND_NOTE: Record<FurnKind, string> = {
+  table_set: 'the service on a banquet table: a silver phiale and a narrow-necked jug (phialai: B type; the set C: D-780)',
   carpet: 'knotted-pile carpet, 2.00 × 1.83 m, a red field of squares in a blue border (after the Pazyryk carpet, c. 400 BCE, Achaemenid style: B for the craft and the size; pattern and colours C)',
   carpet_rolls: 'carpets rolled and piled for store, some wrapped in undyed cloth (C)',
   mat: 'a reed mat (C)', hanging: 'a woven wall hanging on a gilded rod ("gaily coloured hangings", Herodotus 9.82: B claim; hangings on rings, Esther 1:6: C; size, colours and bands C)',
@@ -324,7 +336,8 @@ export function palaceFurnishingPlan(parts: Part[], manifest: Manifest, doorways
       // the columns where the diners sit (people/ceremony.ts FEAST_TABLES: the seats round them) (Herodotus 9.80, 9.82: B claim; Heracleides: B claim; C)
       // (each table at the model's lowest level, and no carpet or lamp stand of its own: with them the court's state was 600 k
       // triangles against its 450 k budget; the lamp stands at the hall's corners and the torches on its walls light it)
-      FEAST_TABLES.forEach(([e, n], k) => { place(A, 'use', 'table', e, n, 0, R.table.len / 2, R.table.w / 2, R.table.h, { metal: k % 3 ? 'gilt' : 'silver', lod: 2 }, false); });
+      FEAST_TABLES.forEach(([e, n], k) => { place(A, 'use', 'table', e, n, 0, R.table.len / 2, R.table.w / 2, R.table.h, { metal: k % 3 ? 'gilt' : 'silver', lod: 2 }, false);
+        const set = place(A, 'use', 'table_set', e, n, 0, R.table.len / 2 - 0.05, R.table.w / 2 - 0.05, R.table.h, { lod: 2 }, false); if (set) set.solid = false; }); // (D-780: the food and the vessels)
       // (no hangings on the W, E and N walls: at ~4.7 k triangles each the 72 of them took the court's state over its 450 k budget)
       // D-780 (holes #14): with the court away the hall is not bare: the hangings behind the throne's place stay up, the keeper's
       // corner inside the N door and lamp stands at the corners (C)
