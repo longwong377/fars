@@ -54,6 +54,7 @@ function shaftPaint(o: ColumnOrder): THREE.Material {
   return paintedShaftMaterial({ ground: pig(R.ground), line: pig(R.line), band: pig(R.band), around: R.around, lozenge_h: R.lozenge_h, line_w: R.line_w, band_h: R.band_h, edge_w: R.edge_w, y0: o.baseH, y1: o.height - o.capitalH, D: o.shaftD });
 }
 import { ceilingTimbers } from './ceilings';
+import { buildSiteKit } from './site_kit';
 import { roofEdges, wallFeet, KIT_CORNICE_H, type RoofEdges, type KitRun } from './roofedge';
 import { buildTerraceKit } from './terracekit';
 import { buildPieces } from './palacekit';
@@ -543,7 +544,7 @@ export function shaftLOD(o: ColumnOrder, built: number, st: { fluted?: boolean }
     registerSwap(im, [stand(k as Lod), painted ? shaftPaint(o) : carvedMaterial(mat)]); });
   return { lod, tris: (geos[0].index!.count / 3) * grid.length };
 }
-export interface BuiltArch { /** D-803: the Terrace kit's drawn-triangle bound (terracekit.ts) */ kitTriangles?: number; /** D-330: the carved stone frames (frames.ts; null: drawn as boxes: flat mode or no trim) */ frames: FrameGeoStats | null; group: THREE.Group; triangles: number; colliders: number; bevel: BevelStats; /** D-321 rev 2: the dressed stone's free arrises (arris.ts ArrisField) */ arris: ArrisEdge[]; /** rev 4: their walls' faces, whose joints the near field grooves */ jointFaces: JointFace[]; /** D-334: the wall heads and roof edges (render geometry) */ roofEdges?: RoofEdges & { pieceTriangles: number } }
+export interface BuiltArch { /** D-803: the Terrace kit's drawn-triangle bound (terracekit.ts) */ kitTriangles?: number; /** D-803 batch 5: the building sites' kit (site_kit.ts) */ siteTriangles?: number; /** D-330: the carved stone frames (frames.ts; null: drawn as boxes: flat mode or no trim) */ frames: FrameGeoStats | null; group: THREE.Group; triangles: number; colliders: number; bevel: BevelStats; /** D-321 rev 2: the dressed stone's free arrises (arris.ts ArrisField) */ arris: ArrisEdge[]; /** rev 4: their walls' faces, whose joints the near field grooves */ jointFaces: JointFace[]; /** D-334: the wall heads and roof edges (render geometry) */ roofEdges?: RoofEdges & { pieceTriangles: number } }
 /** opts.dynamicDoors: door leaves (parts with `door`, D-051) get no static collider, because the world's door system
  *  (doors.ts) gives each a kinematic one that follows its swing. Without it (walkable-grid build, offline bots) a leaf is a
  *  static collider in its walkable-grid pose. Leaves are never drawn here: the door system draws them. */
@@ -717,6 +718,7 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
   }
   let roofEdgesOut: BuiltArch['roofEdges'];
   if (RE) { const P = buildPieces(RE.pieces, flatMode); group.add(P.group); tris += P.triangles; roofEdgesOut = { ...RE, pieceTriangles: P.triangles }; }
-  let kitTris = 0; if (RE && !flatMode) { const K = buildTerraceKit(RE.heads, footRuns, KIT_CORNICE_H); group.add(K.group); tris += K.triangles; kitTris = K.triangles; } // D-803: the Terrace kit (cornices, plinths)
-  return { group, triangles: tris, kitTriangles: kitTris, colliders, bevel: bstats, arris, jointFaces, roofEdges: roofEdgesOut, frames: baked ? baked.frames : frames?.stats ?? null };
+  let kitTris = 0, siteTris = 0; if (RE && !flatMode) { const K = buildTerraceKit(RE.heads, footRuns, KIT_CORNICE_H); group.add(K.group); tris += K.triangles; kitTris = K.triangles;
+    const S = buildSiteKit(parts); group.add(S.group); tris += S.triangles; siteTris = S.triangles; } // D-803: the Terrace kit (cornices, plinths; batch 5 the building sites)
+  return { group, triangles: tris, kitTriangles: kitTris, siteTriangles: siteTris, colliders, bevel: bstats, arris, jointFaces, roofEdges: roofEdgesOut, frames: baked ? baked.frames : frames?.stats ?? null };
 }

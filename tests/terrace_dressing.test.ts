@@ -6,6 +6,7 @@ import { roofEdges, CROWN_SKIP, KIT_BUILDINGS } from '../src/arch/roofedge';
 import { buildMeshes } from '../src/arch/meshes';
 import { crownPlan } from '../src/arch/decor';
 import { palaceBandFaces, buildGlazedFrieze } from '../src/arch/glazed';
+import { sitePlan, buildSiteKit } from '../src/arch/site_kit';
 import { buildDressings, porchBays, standardPlaces } from '../src/arch/dressings';
 
 const { parts } = buildTerrace();
@@ -45,4 +46,11 @@ describe('D-750 the Terrace dressed for distance', () => {
     for (const h of R.heads) { expect(KIT_BUILDINGS.has(h.building)).toBe(true); expect(Math.hypot(...h.u)).toBeCloseTo(1, 6); }
     expect(new Set(R.heads.map(h => h.building))).toEqual(new Set(['gate_nations', 'apadana', 'tachara', 'hadish', 'harem']));
   }, 600000);
+  it('D-803 batch 5: the building sites racked, scaffolded and beamed, within their own bound', () => {
+    const P = sitePlan(parts), n = (k: string) => P.pieces.get(k)?.length ?? 0;
+    expect(P.courses).toBeGreaterThan(500); expect(n('scaffold0')).toBeGreaterThan(20); expect(n('ladder0')).toBeGreaterThan(10); expect(n('stack0')).toBeGreaterThan(10);
+    expect(P.beams).toBeGreaterThan(4); // (the raised capitals of the Hall of 100 Columns carry their first beams)
+    for (const ms of P.pieces.values()) for (const m of ms) expect(m.determinant()).toBeGreaterThan(0); // (no mirrored piece: its faces would turn inside out)
+    const S = buildSiteKit(parts); expect(S.triangles).toBeGreaterThan(50000); expect(S.triangles).toBeLessThan(160000);
+  });
 });

@@ -10568,3 +10568,17 @@ touched; the budget baseline is not re-accepted from such a head.
   approach cells fewer walkable (the quarters). Bots: approach 40/40 (0.53 % stuck), Terrace 39/40 (the miss: people at the
   Tachara's door; stuck time at the Hall of 100's masons, sim.ts). terrace_walk's "every road block ... decides to an on-Terrace
   task" fails identically on the old grid (not this rebuild).
+- Addendum 3: q_w3 moved 20 m W (c −955, −95): on its E side it abutted q_b3 (gap ≤ 5 m) and its lanes' way out E led into a pocket (C5: 261 of 537 q_w3 lane cells could not reach the market at −773, −145; now 5 of 581; TownWalk.route). tools/dev/open_sky_census.ts: the cloud eyes' open-to-sky measure (render.mjs 31f0e69f) in node with the near ring: intro-town 0.052 (135 samples), town-20m 0 (6), town-200m-noon 0 (16).
+## D-803 The Terrace kit (s18 cloud C10, lead 3; tools/blender/terracekit.py -> src/arch/terracekit.json)
+- Modelled and AO-baked in Blender (bpy), instanced near/far:
+  - Batches 1-2: the palaces' wall-head cornice (Egyptian gorge) and wall-foot plinth along every palace wall run, and the
+    Apadana towers' stone window frames.
+  - Batch 3: drafted margins on the retaining walls (materials.ts); the palace lime coat smooth (the review's "hatched decals").
+  - Batch 4: the cornice scales with its wall, 0.72 m up to 12 m, then in proportion. Only the Gate's grows (1.64x); the
+    Apadana towers keep the 0.78 m their glazed frieze leaves.
+  - Batch 5 (src/arch/site_kit.ts), the sites under construction (Hall of 100 Columns, Tripylon), for cov-252's flat slab and
+    "capitals floating on sticks":
+    - mud-brick courses racked up in stretches over the flat wall tops, the bricks modelled;
+    - brick stacks on the tops, putlog scaffolds against the faces, pole ladders;
+    - cedar main beams in the saddles of the raised capitals (ceilings.ts sizes).
+  - All C (D-022: method unknown). Render only: no colliders, parts unchanged.
