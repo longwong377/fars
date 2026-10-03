@@ -219,6 +219,12 @@ export class VillageHouses {
     if (id && hi(c.seed, 11) < 0.38) { const nC = 1 + (hi(c.seed, 12) < 0.35 ? 1 : 0);
       for (let k = 0; k < nC; k++) { const w = 0.9 + 0.9 * hi(c.seed, 13 + k), uc = -W + 1.5 + (2 * W - 3) * hi(c.seed, 15 + k), cc = lin(CLOTH[Math.floor(hi(c.seed, 17 + k) * CLOTH.length)]), drop = 0.6 + 0.5 * hi(c.seed, 19 + k);
         b.set('y0', -1000).set('ytop', 1e4); const p = L(uc, rv0 - 0.36, 0); b.box(p[0], -p[2], c.angle, w / 2, 0.015, roof - drop, roof + 0.03, sh(cc, 0.85), cc, pd * 32 + 5); } }
+    // s18 C15 (D-800): the roofs in use: a stack of straw and fodder on the main range (45 %), brushwood for the oven on the
+    // wing (30 %), as the region's flat roofs are used (C)
+    if (id && hi(c.seed, 31) < 0.45) { const st = lin([0.78, 0.68, 0.45]), w = 1.2 + 0.8 * hi(c.seed, 32), uc = -W + 1.5 + w / 2 + (2 * W - 3 - w) * hi(c.seed, 33), vc = (rv0 + D) / 2;
+      b.set('y0', -1000).set('ytop', 1e4); const p = L(uc, vc, 0); b.box(p[0], -p[2], c.angle, w / 2, 0.6, roof, roof + 0.55 + 0.4 * hi(c.seed, 34), sh(st, 0.8), st, ownR, false, 31); }
+    if (id && wing.length && hi(c.seed, 35) < 0.3) { const bw = lin([0.42, 0.36, 0.26]), r0 = wing[0], p = L((r0.u0 + r0.u1) / 2, (r0.v0 + r0.v1) / 2, 0);
+      b.set('y0', -1000).set('ytop', 1e4); b.box(p[0], -p[2], c.angle + 0.3, 0.7, 0.5, roof, roof + 0.45, sh(bw, 0.8), bw, ownR, false, 31); }
     if (id && hi(c.seed, 21) < 0.3) { const dk = lin([0.3, 0.25, 0.19]), n0 = 4 + Math.floor(hi(c.seed, 22) * 6), us = penW ? g1 + 0.6 : -W + 0.6;
       b.set('y0', -1000).set('ytop', 1e4);
       for (let r = 0; r < 3; r++) for (let k = 0; k < n0; k++) { const u = us + k * 0.36 + (r % 2) * 0.18, y = base + 0.6 + r * 0.38; if (u > (penW ? W - 0.4 : g0 - 0.4)) continue;
