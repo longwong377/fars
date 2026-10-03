@@ -9707,3 +9707,6 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   (glazed.ts doorFriezeFaces + the shared band builder): both broad faces, border courses and ground with rosettes, the
   courses fitted to each part's height (10 courses, 5 rosettes a face), a child mesh of the Apadana frieze (one draw; the
   Apadana frieze's own test unchanged). Colours, layout C as D-214.
+- light v2b (D-480 cont.): the cloud deck fades out between 30 and 60 km (the march at grazing angles smeared the noise into
+  streets converging on the vanishing point: cov-000's horizon fan; gone in the lab), and the night toe lift eases by up to
+  75 % under a bright moon (GRADE.nightLift from the SkySystem): the moonlit plain p50 73 → 52, the moonless one unchanged (17).
