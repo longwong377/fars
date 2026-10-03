@@ -539,6 +539,7 @@ otherwise only threshold ids or existing files, and never loses a reference (`te
 | UD-35 | the bar is a top modern AAA open-world game's look, not "reads as a photograph" | sessions/s17-vagon.md |
 | UD-36 | by the end of the day: every inch AAA and every inch filled in, a beautiful lived-in world; the lead decides what to adjust | sessions/s17-vagon.md |
 | UD-37 | a 13th agent: the out-of-world screens to the AAA standard and a gorgeous intro cinematic; libraries only for culture-neutral materials and nature, every culturally shaped thing built by the project to its period kit | sessions/s17-vagon.md |
+| UD-38 | the opening cinematic directed to the AAA bar (skippable, may cover the load) with an original non-diegetic score (Vangelis/Zimmer-like), which may also play in the game without repeating | src/shell/intro.ts, handoff/s18/sessions.md |
 
 ## 13. Revision log
 
