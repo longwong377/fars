@@ -247,6 +247,19 @@
 "w": "clear",
 "why": "the Terrace on the first gift day (C13 D-780: day 19, procession Gate -> forecourt -> N stair) at 8.5 h, from the Apadana's N court",
 "owner": "C13"
+},
+{
+"id": "banquet-night",
+"e": 1.9,
+"n": 12,
+"eye": 1.6,
+"az": 161,
+"pitch": 6,
+"day": 19,
+"hour": 21,
+"w": "clear",
+"why": "a great banquet night in the Apadana hall (C13 D-780: seed 1 banquet nights include day 19, from 18.6-19.1 h for 3-4 h)",
+"owner": "C13"
 }
 ]
 }
