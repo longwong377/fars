@@ -889,5 +889,25 @@
    "diff.jpg (sRGB)",
    "arm.jpg (R ao, G roughness, B metal)"
   ]
+ },
+ "plaster001": {
+  "meanLinear": [
+   0.68048,
+   0.6525,
+   0.63044
+  ],
+  "meanAO": 0.9981,
+  "meanRough": 0.7896,
+  "name": "Plaster 001",
+  "authors": [
+   "ambientCG (Lennart Demes)"
+  ],
+  "licence": "CC0",
+  "source": "https://ambientcg.com/view?id=Plaster001",
+  "res": "2k",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao (none: 1), G roughness, B metal 0)"
+  ]
  }
 }
