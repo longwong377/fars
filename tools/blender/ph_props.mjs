@@ -31,6 +31,23 @@ export const PROPS = {
   weed_plant_02: { split: true, role: 'thistle', lod0: 1500, lod1: 300, tex: 512 },
   nettle_plant: { split: true, role: 'thistle', lod0: 1500, lod1: 300, tex: 512 },
   dry_branches_medium_01: { split: true, role: 'deadwood', lod0: 1200, lod1: 250, tex: 512 },
+  // D-670 (s18: Vagon's downloads, branch s18-face-assets assets-raw/plants): the steppe's shrubs (Searsia: the sumac genus of
+  // Iran's Rhus coriaria's kin; a needle-leaved bush), dry grasses (Bermuda grass: Cynodon, native to Iran), a spiny daisy bush
+  // for the thorny scrub, spring flowers (dandelion, celandine: both genera in Iran) and dead wood (trunks, a stump, roots)
+  searsia_burchellii: { split: true, role: 'shrub', lod0: 3000, lod1: 600, tex: 1024 },
+  searsia_lucida: { split: true, role: 'shrub', lod0: 2500, lod1: 500, tex: 1024 },
+  shrub_01: { role: 'shrub', lod0: 2500, lod1: 500, tex: 1024 },
+  wild_rooibos_bush: { split: true, role: 'shrub', lod0: 2000, lod1: 400, tex: 1024 },
+  didelta_spinosa: { split: true, role: 'camelthorn', lod0: 2000, lod1: 400, tex: 1024 },
+  grass_medium_01: { split: true, role: 'grass', lod0: 900, lod1: 180, tex: 512 },
+  grass_medium_02: { split: true, role: 'grass', lod0: 900, lod1: 180, tex: 512 },
+  grass_bermuda_01: { split: true, role: 'grass', lod0: 400, lod1: 100, tex: 512 },
+  dandelion_01: { split: true, role: 'flower', lod0: 800, lod1: 160, tex: 512 },
+  celandine_01: { split: true, role: 'flower', lod0: 800, lod1: 160, tex: 512 },
+  dead_tree_trunk: { role: 'deadwood', lod0: 2500, lod1: 500, tex: 1024 },
+  dead_tree_trunk_02: { role: 'deadwood', lod0: 2500, lod1: 500, tex: 1024 },
+  tree_stump_01: { role: 'deadwood', lod0: 1500, lod1: 300, tex: 1024 },
+  root_cluster_01: { role: 'deadwood', lod0: 1500, lod1: 300, tex: 1024 },
   // vessels and containers
   ceramic_vase_01: { weld: true, role: 'jar', lod0: 1500, lod1: 400, tex: 1024 },
   ceramic_vase_04: { weld: true, role: 'jar', lod0: 1500, lod1: 400, tex: 1024 },
