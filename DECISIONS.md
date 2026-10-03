@@ -9930,6 +9930,12 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   horizon map rebuilt (tools/build_horizon.ts). terrain, terrain_walk, horizon and plain tests green; villages unchanged.
 - The T4's black screen (Vagon's culprit probe: plain-stone's shadow pass bound a released buffer): the fords' merged stone
   mesh casts no shadow from birth and is never re-flagged at run time; the shared quarry mesh is hidden, never disposed.
+- Far flora no longer black (the flora atlas's transparent texels are black, so its coarser mips darkened the far cards:
+  groundFlora.ts un-premultiplies the colour by the mip's coverage). plantedTrees() (src/world/trees/planted.ts) for C10's
+  Terrace planters. The river works (ledger row 16): two kit models built in the cloud's pip bpy (model_props.py
+  a_wo_shaduf, a_wo_pontoon); waterworks.ts places ~127 shadufs on the river and canal banks within 12 km (every ~420 m /
+  ~330 m, sides alternating, none near a ford or on a road) with a 'lift' spot each for C1, and a bridge of boats on the
+  royal road over the Kur whose deck rides on the river's level of the day.
 
 ## D-720 Follow thirty: the people answer from their own lives without the model, and the town's deeds and yesterday reach their talk (session 18, cloud C8; UD-07, UD-08, UD-11, UD-21, UD-24, UD-32)
 - Measured (tools/dev/follow30.ts; REVIEWS/follow30.json): thirty people drawn by seed across the town, the villages, the Terrace's
@@ -10010,6 +10016,13 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   (its depth texture has no compare function and nearest filtering), so it adds NO sampler to any material (the T4's 16 per
   fragment stage, D-300); tests/far_cascade_d680.test.ts builds a lit surface with the cascades on and off: same sampler
   count, the far map read by textureLoad. ?farcsm=0 (load) or __parsaFarCascade.value = 0 (run time) for the A/B. C.
+- The night's "fan of light streaks from one horizon point" (cov-000; still one streak on this tree after light v2b): found by
+  elimination (hidden Milky Way: still there; hidden clouds: gone; world-fixed at 1024 px and turned 20 deg) and reproduced in a
+  CPU replica of the march: the cloud noise tiles every 7 km, so a ray running along a lattice axis (world x or z) samples one
+  periodic column again and again, and an empty column draws a clear slit to the horizon; all such slits converge on the
+  axis's horizon point. clouds.ts (and the CPU mirror cloudCover.ts) warp the base shapes' lookup by the weather field's G, B
+  (CLOUD.warp 12 km; no extra fetch): near-horizon rays along the axes clear 5.4 % vs 1.9 % off them before, 3.3 % vs 2.7 %
+  after (tests/cloud_slits_d680.test.ts; fails unwarped). The cover calibration tests pass unchanged. C.
 - Kuh-e Rahmat's bright streak: road_pasargadae's first segment (settlement.json [250,250] -> [2600,1900]) runs ruler-straight
   from 2 m up to ~290 m over the mountain behind the Terrace; a data fix (reroute round the north end) asked of the lead.
 - Unseen: the cloud cannot draw Q=high (WebGL2: program validation failures and a lost device with the cascade on AND off;
@@ -10093,6 +10106,9 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
 - Starling: D-570's fix holds on the real WGSL: 14 inputs now (6 geometry + 4 matrix + 4 previous matrix). D-570's geometry count had missed TRAA's previous matrix; on the pre-D-570 file the new test reads exactly the T4's 17. Doves: 9-16 inputs, <= 8 buffers, 3 node samplers in every level. The node census finds no fault; the T4's own log is asked for.
 - Tests: tests/pipeline_limits.test.ts (three's WGSLNodeBuilder, velocity MRT on, share-instancing on, 64 KiB uniform limit: every bird level, the jackals and the small life within 16 / 8 / 5 node samplers; the flying birds <= 2 programs); shader_share's buffer case follows the exact rule. In-page census: `__parsa.census()` (src/dev/pipelineCensus.ts).
 - Not done / not mine: the dist grew 704 -> 934 MB (Pages limit 1 GB). build_site.mjs should leave out the jpgs whose KTX2 is listed (77 MB) and the ground-only layer jpgs (84 MB): ~773 MB (asked of the lead). RGBA8 textures left in other owners' files: models/land cover/ground (6 x 21 MB), people_cloth_folds (21 MB), humans scans array (107 MB), tree leaf atlases (2 x 32 MB), bark array (45 MB) (asked).
+- Round 2 (the lead's asks): (1) build_site.mjs (now C9's) leaves out every image whose KTX2 the page loads (the listed scan maps, the ground layers, ktx_maps.json's, the people's scan layers and folds png, the bark jpgs) and fails the deploy above 950 MB (SITE_MAX_MB); off-BC7 GPUs load the full KTX2. (2) Format-only KTX2 for other owners' RGBA8 textures: the people's 20-layer scan array (tools/bake_world/ktx_humans.ts, 107 -> ~28 MB GPU), the land's rock and cover atlases (ktx_maps.ts + loaders.ts loadMap with a 128-px thumbnail for the mean colours; 128 -> 32 MB), the bark array (ktx_bark.ts via assets.ts barkTexels; ~45 -> 12 MB). The leaf atlases are not done (computed on the page with coverage-preserving mips: an ask). tests/ktx_fresh checks every KTX2 against its sources. (3) The T4's black screen: scans.ts's jpg ground array was released after upload and the low-first upgrade re-flagged it with image.data null (writeTexture threw, every frame aborted); fixed, release.ts never re-uploads a released texture without data, and progressive.ts installRenderSafetyNet (main.ts, ?nosafetynet) skips a bad writeBuffer/writeTexture or a throwing object draw, logged once (window.__renderFaults). (4) ?shaderlog records every rejected pipeline's targets, write masks and fragment outputs (the T4's 'writeMask' on three's post quad, renderPipeline_RenderPipeline_61x: not reproducible here, SwiftShader rejects that pipeline earlier at 18 sampled textures of 16). (5) pipeline_census.mjs --check: the built site's pipelines at noon and at night against 16 inputs / 8 buffers / 16 samplers, exit 1 (for CI). (6) Birds and jackals keep the sun's hours (solarHour; tests/wildlife_sun). (7) build_fire_occ.ts bakes firePlaces.ts banquetFireLights when C4 adds it. (8) Mules and camels back at the stair foot (D-227's cut): donkeys plus the day's second kind, within tests/terrace_foot's 10 calls.
+- Not done: the frame-time cut (the cloud's SwiftShader took > 40 min to compile one view's pipelines at quality high; no profile rows), the leaf atlases' KTX2, the writeMask fix itself (diagnostics shipped).
+
 ## D-771 The ruin rules rewritten in research/ and the blocklist (s18 cloud C12; UD-02, UD-14, UD-29)
 - Every absence rule that only recorded the evidence's silence now says what 467 most probably had (tier C, each change
   marked "s18 D-771" in place with its reason and the old wording). In COURT, EVENTS, PEOPLE and CHRONOLOGY (and Q-005), the
@@ -10155,6 +10171,8 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
 - "Still roofless" (C6 round 1, town-20m): the page draws the roofs (C6's own frame and C2's at the same view show a pale earth slab over every room, the open courts the dark holes), but each roof sat in a tray of parapets 0.22-0.62 m high and from 20 m up or the Terrace the town read as open-topped boxes. Parapets now a lip, 0.05-0.39 m by standing (houseplan.ts parapetOf; C: most of the region's flat roofs have a lip, the better-off a low wall).
 - The pale green hard-edged strip across the q_s1 market (C6, new on the D-660 head) was D-660's lowered lane ground: at 1 cm the terrain's finer mesh rose through the 4 m quads. The ground is back at 10 cm over the terrain; the town's fill items are lifted 10 cm instead (fillPlan.ts TOWN_LIFT; villages, which have no lane ground, are not). The lanes' things stay above ground (the D-660 census holds).
 - Cost kept: the far level's full-room roofs draw their top only (their sides lie in the walls), a door's infill its long faces and top, the roofs' flat things a top; the wall crests' stations ~6 m apart (were ~3) and each deep notch its centre: the town is 1.02 M triangles if all drawn (cap 1.2 M) and the far level under 800 k (houses.test) with the belt's ~680 more plots. q_b1 shrunk off the stair-foot-to-q_w1 walk (settlement_build), q_b4 re-sized so no house there is landlocked; the corner-cut search capped at 40 floods a house (each re-derives the site's walls): the plan 19 s → ~37 s in node (baked in the browser).
+
+
 ## D-651 The working Terrace and the court at the start (s18 cloud C1; C12's holes #1, #2)
 - Hole #1 measured first (tools/dev/terrace_count.ts and the life census's reading at the s17 final frames' own seed and moments): the sim had 118-271 people within 60 m of the "empty" T4 frames (cov-252, cov-112, cov-037, cov-142, cov-266), so those frames are a drawing failure (popview/crowd or the people's assets on the T4), reported to the lead. On top of it, six more building gangs of 100 (nine: three each of stone, labour, brick), made last from their own stream (nobody earlier changes), housed in the four villages nearest the Terrace (the town's plots are full; the kurtaš of the tablets at Matezziš and the settlements around Pārsa, B; 900 builders on the one great hall C). Seed 1, day 200, court away: ~870 -> ~1,150 awake on the Terrace by day; population.json's Terrace court-absent day figures follow (spring w 575 -> 1175).
 - Hole #2: a new game begins at dawn the day after the court's arrival (in residence), not 1-3 days before it (newGame.ts; tests/defaults). The king's daily presence is C13's (court.ts): asked through the lead.
@@ -10246,3 +10264,23 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
 ## D-665 A house being built (s18 cloud C2, the lead's ask)
 - q_b1-0015 (105 m², centre grid -511.9, 227.9; on the walk from the Grand Stair's foot): its smallest room finished and roofed, the household living in it; the other rooms' walls at 1.5 m and open to the sky; scaffold poles along its long walls, three brick stacks, the mud-mixing heap, a brick mould, a water jar, the footing's spoil, a sack and a hoe in its open rooms (houseplan.ts buildingPlot, houses.ts: drawn through roofFill's instanced things, `at: 'site'`; C). C1 puts a household and a brick squad there.
 - The belt's quarters (D-661) drawn in the far meshes of the quarters beside them: settlement_build's mesh count back to the base's 51 (its ≤ 45 already failed before s18).
+
+## D-772 The in-page truth check: tools/dev/pagecheck.mjs (s18 cloud C12)
+- The built site (dist at /fars/, its own static server with COOP/COEP) is loaded headless with ?norender at the coverage
+  views. The world is stepped, and the scene graph is read per view: what is effectively visible and in the frustum (meshes,
+  instances, triangles, per object key); the crowd's own drawn counts against the out-of-doors people the page's simulation
+  holds within 60 and 250 m (split by open ground, walled court and walking); a roof-area probe for the town; the
+  shadow-casting light's reach.
+- Run on every s17-int head the lead names; results go to handoff/s18/pagecheck.md and to each owner.
+- First run (92d6a6bf): the town lanes are empty in the simulation (everyone at home in the courts at 13:48); people in
+  courts are not drawn from an eye above the walls; the Terrace draws what the simulation holds; the roofs exist in the
+  geometry; the far shadow reaches 2,000 m.
+
+## D-810 The deploy rule while the live site is black (s18 cloud lead, 2026-10-03 07:4x UTC)
+The deployed c3bde8ab shows players a black screen on a real GPU (Vagon, asks_cloud 06:2x-07:0x), so any head that draws is
+better for every player than what is live. Rule for today: a head that (1) draws on the T4 in the live path (title, Enter,
+60 s walk, no frameFaults/renderFaults that blank the frame) and (2) is not worse than c3bde8ab on first frames, page memory
+and frame time is deployed at once; settle time and download-before-ready (worse on 9700b06d: 1266 vs 611 s, 413 vs 372 MB)
+become C9's next fix and the next deploy must recover them. No threshold in gates/thresholds.json or gates/budgets.json is
+touched; the budget baseline is not re-accepted from such a head.
+- Then the in-engine opening (src/shell/intro.ts, D-590's shots; a night 'stars' shot was tried and cut after C6's frame) plays to "First Light", each cut on a bar, its clock following the music, landing on the player's eye as the horn closes the theme's first half; the music rings on into the walk and the director takes over.

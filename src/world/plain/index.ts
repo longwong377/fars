@@ -31,6 +31,7 @@ import { buildNaqsh } from './naqsh';
 import { buildQuarries, quarrySites } from './quarries';
 import { Qanats } from './qanats';
 import { Works } from './works';
+import { Waterworks, waterworksLayout } from './waterworks';
 import { setWindField } from './windField';
 import { buildCrossings, keepOffChannels, roadRiverCrossings, type FordDetailSites } from './crossings';
 import { doyOf, riverState, marginState } from './seasonal';
@@ -157,6 +158,8 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   const qb = buildQuarries(terrain, opts.seed); group.add(qb.group); scene.add(qb.extra); // (D-600: the quarries' drums and rock beside the plain's group)
   // the fords where the roads meet the Pulvar and the Kur (D-257, C)
   const fords = buildCrossings(terrain, rivers.rivers, opts.seed, trackObjs, (qb.group.children.find(o => (o as THREE.Mesh).isMesh) as THREE.Mesh | undefined) ?? null); group.add(fords.group);
+  // D-670: shadufs on the river and canal banks, the bridge of boats on the royal road over the Kur (waterworks.ts)
+  const waterworks = new Waterworks(waterworksLayout(rv.profiles, rivers.rivers, canals, fords.crossings, (e, n) => terrain.surfaceAt(e, -n)), (e, n) => terrain.surfaceAt(e, -n), terrain.meta.court_asl); scene.add(waterworks.group);
   // Naqsh-e Rustam's meshes cast shadows near the cliff, except the relief sets', which manage their own (their shadow proxies are the only relief
   // draws in the shadow passes, D-048: switching every mesh under the group drew the carved figures into all 4 cascades, D-228)
   const nrCasters: THREE.Mesh[] = []; nr.group.traverse(o => { if ((o as THREE.Mesh).isMesh && !o.name.startsWith('relief:')) nrCasters.push(o as THREE.Mesh); });
@@ -249,7 +252,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     if (Math.hypot(cam.x - lastMid.x, cam.z - lastMid.z) > (Q.rMid - Q.r3) * 0.25) { lastMid = cam.clone(); rebuildMid(cam); }
     if (Math.hypot(cam.x - lastNear.x, cam.z - lastNear.z) > Q.r3 * 0.08) { lastNear = cam.clone(); rebuildNear(cam); }
     cullNear(ctx.camera);
-    fieldFill.update([cam.x, -cam.z], doyOf(day)); qanats.update(cam.x, -cam.z); crops.update(cam, terrain); margins.update(cam); (margins as any).wind.value = kit.wind.value;
+    fieldFill.update([cam.x, -cam.z], doyOf(day)); qanats.update(cam.x, -cam.z); waterworks.update(day); crops.update(cam, terrain); margins.update(cam); (margins as any).wind.value = kit.wind.value;
     // shadow casting only near the camera (the CSM cascades end at 600 m; a far caster would still be drawn into every
     // cascade its bounding sphere touches): village cells, Naqsh-e Rustam and the quarries
     for (const c of vb.cells) c.mesh.castShadow = c.centres.some(([x, z]) => Math.hypot(x - cam.x, z - cam.z) < 900);

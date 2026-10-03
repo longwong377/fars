@@ -688,7 +688,7 @@ export class PopView {
       ...(cl ? { delegation: cl.delegation, pieces: cl.pieces, beardless: cl.beardless, stature: cl.stature } : {}) }; // (D-199: the court setting's delegations, king and attendants)
   }
   /** a child's standing height by age (m; C: a modern growth-chart median, the body is the child variant scaled) */
-  childStature(pid: number): number | null { const age = this.pop.ageOn(pid, Math.floor(this.sim.t / 24)); if (age >= 12) return null; return CHILD_H[Math.max(0, Math.min(11, age))]; }
+  childStature(pid: number): number | null { const age = this.pop.ageOn(pid, Math.floor(this.sim.t / 24)); if (age >= 12) return null; return CHILD_H[Math.max(0, Math.min(11, age))] * (1 + 0.06 * (h32(this.seed, salt('child-h'), pid) / 4294967296 - 0.5)); } // (s18 C14 D-790: +-3 % per child: no two of an age alike)
   /** D-244: the view's state of a person (the renderless trace, tools/dev/people_trace.ts): 0 not drawn, 1 at a spot, 2
    *  walking; the spot (on a walk, where it goes) and its description; null when the person is not a candidate */
   stateOf(pid: number): { mode: 0 | 1 | 2 | 3 | 4; spot: Spot | null; what: string } | null { const s = this.ps.get(pid); return s ? { mode: s.mode, spot: s.spot, what: s.what } : null; }

@@ -70,6 +70,9 @@ export const FRAMES: Frame[] = [
   // time's gait phase, 2π t / 1.1, as the tool poses it)
   { id: 'sit@43.7', anim: 'sit', ph: 0, t: 43.7 }, { id: 'bier_l@20.7', anim: 'bier_l', ph: 5.1408, t: 20.7 }, { id: 'bier_r@20.7', anim: 'bier_r', ph: 5.1408, t: 20.7 },
   { id: 'write@52.1', anim: 'write', ph: 0, t: 52.1 }, { id: 'fodder@4.3', anim: 'fodder', ph: 0, t: 4.3 }, { id: 'talk@5.4', anim: 'talk', ph: 0, t: 5.4 },
+  // s18 C14 (D-790): the court's service (their medoids by tools/dev/imp_keys.ts; the Cycles atlas needs the rebake to carry them:
+  // until then the CPU bake stands in)
+  { id: 'pour@34.7', anim: 'pour', ph: 0, t: 34.7 }, { id: 'serve@50.5', anim: 'serve', ph: 0, t: 50.5 }, { id: 'fan@15.9', anim: 'fan', ph: 0, t: 15.9 },
 ];
 export const ROWS = IMP_DRESSES.length * FRAMES.length;
 /** rows per column of blocks */
@@ -100,7 +103,7 @@ export const IMP_MAP: Partial<Record<AnimId, [string] | [string, string, string]
   smith: ['smith@28.5'], bellows: ['pat@52.2'], chasing: ['chasing@54.2'], weigh: ['harp_h@30.9'], seal: ['reed_pipe@16.5'], seal_jar: ['seal_jar@41.6'],
   drill: ['chasing@54.2'], scrape: ['scrape@31.3'], pound: ['pound@41.8'],
   // D-292 (the nearest frames by tools/dev/imp_keys.ts)
-  wash_face: ['wash_face@13.1'], delouse: ['delouse@6.6'], shave: ['shave@30.9'], sling: ['sling@27'], proskynesis: ['harp_h@30.9'],
+  wash_face: ['wash_face@13.1'], delouse: ['delouse@6.6'], shave: ['shave@30.9'], sling: ['sling@27'], proskynesis: ['harp_h@30.9'], pour: ['pour@34.7'], serve: ['serve@50.5'], fan: ['fan@15.9'], charioteer: ['pour@34.7'],
   hoe: ['hoe@44.5', 'hoe@5.8', '3e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f'],
   winnow: ['winnow@36.4', 'winnow@16.4', '000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fff'],
   plough: ['plough@6.4', 'plough@31', 'ff803fe00ff807fc01ff007fc01fe00ff803fe00ff807fc01ff007fc01ff000007fffff000003ff803fe00ff803fe01ff007fc01ff007f803fe00ff803fe01ff007fc01ff007fc0000ffff'],

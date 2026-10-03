@@ -348,6 +348,15 @@ export function deformAnimal(sp: Species, p: ArrayLike<number>, leg: ArrayLike<n
   out[0] = x; out[1] = y; out[2] = z; return out;
 }
 
+/** s18 C14 (D-790): where an animal's bit is at time t (the mouth's corner, a little behind the muzzle tip), in the
+ *  performer's frame as `a` is placed (x, z, yaw, y): the reins' and the lead rope's far end (crowd draws the line from the
+ *  hand). Follows the head's carriage, grazing and the walk's nod, as the vertex shader moves it */
+export function bitAt(a: AnimalInst, time: number, out: number[] = [0, 0, 0]): number[] {
+  const F = animalFrame(a.sp), m = F.muzzle, back = F.hd.clone().multiplyScalar(-0.06 * ANIMAL_BUILD[a.sp].head / 0.5);
+  deformAnimal(a.sp, [m.x, m.y + back.y, m.z + back.z], [0, 0, 0, 0], [0, 0, 0, 0], [1, -1, F.base.y, F.base.z], { phase: a.phase, walk: a.walk, graze: a.graze, lie: a.lie, gait: a.gait }, time, out);
+  const c = Math.cos(a.yaw), sn = Math.sin(a.yaw), x = out[0], z = out[2];
+  out[0] = a.x + c * x + sn * z; out[1] = out[1] + (a.y ?? 0); out[2] = a.z - sn * x + c * z; return out;
+}
 /** an animal to draw: species, place in the performer's frame (x, z, yaw; y offset), state; roll: lying on its side */
 export interface AnimalInst { sp: Species; x: number; z: number; yaw: number; y?: number; roll?: number; phase: number; walk: number; graze: number; lie: number; coat: number;
   /** placed relative to the performer's own path (the plough team) instead of the simulation's spot */ follow?: boolean;
@@ -377,6 +386,11 @@ export function animalsFor(spec: AnimalSpec, t: number, seed: number, path?: { s
         out.push({ sp: s, x, z, yaw: 0.25 * Math.sin(t * 0.13 + i * 2.1), phase: (TWO_PI * t * pace) / B.stride + TWO_PI * u, walk: bite ? 0.35 : 1, graze: bite ? 1 : 0, lie: 0, coat: h1(seed + i, 7) }); }
       if (spec.dogs) for (let i = 0; i < spec.dogs; i++) { const B = ANIMAL_BUILD.dog, side = i % 2 ? -1 : 1, z = 3.5 + 3 * Math.sin(t * 0.21 + i * 2.4 + seed), x = side * (3.4 + 0.6 * Math.sin(t * 0.37 + i));
         out.push({ sp: 'dog', x, z, yaw: 0.5 * Math.cos(t * 0.21 + i * 2.4 + seed) * side, phase: (TWO_PI * t * pace * 1.3) / B.stride + i, walk: 1, graze: 0, lie: 0, coat: h1(seed + i, 11) }); }
+      break; }
+    // s18 C14 (D-790): the royal chariot's team: four horses abreast, their necks at the yoke 2.9 m ahead of the car's axle
+    // (workObjects 'chariot'), trotting or galloping by the pace
+    case 'chariot': { const pace = spec.pace ?? 2.2, Gp = gaitOfPace(pace); for (let i = 0; i < 4; i++) { const s = sp(i), B = ANIMAL_BUILD[s];
+      out.push({ sp: s, x: (i - 1.5) * 0.72, z: CHARIOT_YOKE - 0.4 * B.len, yaw: 0, phase: (TWO_PI * t * Math.max(pace, 0.5)) / (B.stride * Gp.stride) + i * 0.7, walk: pace > 0 ? 1 : 0, graze: 0, lie: 0, coat: h1(seed + i, 5), gait: Gp.gait, follow: true }); }
       break; }
     case 'team': { const s = path?.s ?? 0; for (let i = 0; i < 2; i++) out.push({ sp: sp(i), x: i ? -0.55 : 0.55, z: 3.35, yaw: 0, phase: (TWO_PI * s) / ANIMAL_BUILD[sp(i)].stride + i * 0.9, walk: 1, graze: 0, lie: 0, coat: h1(seed + i, 5), follow: true }); break; }
     case 'circle': { const a = path?.yaw ?? 0, n = spec.n ?? 2;
@@ -438,6 +452,8 @@ export function animalsFor(spec: AnimalSpec, t: number, seed: number, path?: { s
 /** D-256: a fold's radius (m) and how far ahead of the performer its centre is (work object 'fold' at [0, 0, FOLD_AT]) */
 export const FOLD_R = 6, FOLD_AT = 7.5;
 /** where the cart stands behind its draught pair (the performer's frame: the axle, m; workObjects 'cart') */
+/** s18 C14: the chariot's yoke ahead of its axle (m; workObjects 'chariot': the pole ends at z 2.9), and the car's floor (m) */
+export const CHARIOT_YOKE = 2.95, CHARIOT_FLOOR = 0.55;
 export const CART_AT: [number, number, number] = [0, 0, -(1.2 + 1.85 + 0.45 + 1.2)];
 
 /** the animals: one instanced mesh per species and level, filled every frame by the crowd and the fauna (begin / push /

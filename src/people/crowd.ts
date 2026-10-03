@@ -48,8 +48,11 @@ import { PLAYING, singFace, type PlayKind } from './playing';
 import { PIECES, pieceBit, COSTUME_OF, weatherMask, type Dress } from './outfits';
 import { WORK_META, workRoot, ploughPath, THRESH_TURN_S, type WorkAnim, CAPTURED_WORK } from './workAnims';
 import { IK_Q } from './poseKit';
-import { WorkObjects, WORK_NOTES, type WorkKind } from './workObjects';
-import { Animals, animalsFor, ANIMAL_BUILD, grazeReach, riderLift, type Species } from './animals';
+import { WorkObjects, WORK_NOTES, WHEELS, type WorkKind } from './workObjects';
+import { Reins } from './reins';
+import { Animals, animalsFor, ANIMAL_BUILD, grazeReach, riderLift, bitAt, CHARIOT_FLOOR, type Species } from './animals';
+/** s18 C14 (D-790): the animal kinds led by reins or a rope */
+const REINED = new Set(['mount', 'team', 'string', 'lead', 'chariot']); const _bit = [0, 0, 0];
 import type { PopView, ViewPerson } from './popview';
 import { CrowdImpostors, rowOf, frameOf, impFallback, IMP_GAITS } from './impostors';
 import type { AnimId } from './anim';
@@ -141,6 +144,7 @@ const LOW_S = 25;
 const BRAY_S = 75, BARK_S = 45, BRAYERS = new Set<Species>(['donkey', 'donkey_pack', 'mule', 'mule_pack']);
 
 export interface Person {
+  /** s18 C14 (D-790): the hands (left, right) in character space x the look's scale, after the last solve: the reins */ handC?: number[];
   key: string; agent: Agent | null; look: PersonLook; slot: number; rig: RigInput; face: FaceState;
   root: [number, number, number, number]; prevRoot: [number, number, number, number];
   shown: boolean; drawnFrame: number; poseFrame: number; frameMod: number; lastHit: boolean;
@@ -211,7 +215,7 @@ export class Crowd {
    *  class's union geometry; 'ik' picks the kind per instance, 'ip' is the kind's parameter (bow draw, spindle drop) */
   private carried: { mesh: THREE.InstancedMesh; data: THREE.InterleavedBuffer; kind: THREE.InterleavedBufferAttribute; param: THREE.InterleavedBufferAttribute; axes: THREE.InterleavedBufferAttribute[] }[] = [];
   /** the things at the place of work and the animals the work needs (D-142), placed from the performers every frame */
-  readonly things: WorkObjects; readonly animals: Animals;
+  readonly things: WorkObjects; readonly animals: Animals; /** s18 C14 (D-790) */ readonly reins = new Reins();
   private frustum = new THREE.Frustum(); private wide = new THREE.Frustum(); private pm = new THREE.Matrix4();
   private lastStock = { depot: -1, store: -1 };
   /** last frame's CPU cost (ms) of pooling, posing and instance filling; people drawn per LOD */
@@ -252,7 +256,7 @@ export class Crowd {
     this.buildPropMeshes();
     if (sim) this.buildWorkObjects(); else this.autoPool = false;
     const wm = this.propMaterial().clone(); wm.side = THREE.DoubleSide; // open baskets and tubs are seen from above
-    this.things = new WorkObjects(wm); this.group.add(this.things.group);
+    this.things = new WorkObjects(wm); this.group.add(this.things.group); this.group.add(this.reins.mesh); // (s18 C14: the reins)
     this.animals = new Animals(); this.group.add(this.animals.group);
     // both sack piles (depot, store) are one instanced mesh: one draw
     const sk = new THREE.InstancedMesh(propGeometry('sack')!, this.propMaterial(), 600); sk.castShadow = true; sk.receiveShadow = true; sk.count = 0; sk.visible = false; sk.frustumCulled = false;
@@ -402,6 +406,7 @@ export class Crowd {
     const inp = this.view!.lookInput(pid), look = lookFor(this.humans.A, inp, this.seed), h = this.view!.childStature(pid);
     if (h) { const v = this.humans.A.variants[look.variant]; look.scale = h / v.height; look.stature = h; } // a child's size by age (C)
     const p = this.newPerson(`p${pid}`, null, look, inp.seed); p.pid = pid; this.byPid.set(pid, p);
+    { const age = (this.view!.pop as any).ageOn?.(pid, Math.floor((this.sim?.t ?? 0) / 24)) ?? 99; if (age < 4) p.gait.toddler = age <= 2 ? 1 : 3.5 - age; } // (s18 C14 D-790: a toddler's walk, anim.ts toddle)
     const day = Math.floor((this.sim?.t ?? 0) / 24); this.setBelly(p, this.view!.pop.gravid?.(pid, day) ?? 0); this.setMarks(p, pid, day); return p; // (gravid?.: a view built on a partial population, as the tests' stand-ins, draws no belly)
   }
   /** an extra person not driven by the simulation (test lineups, the performance sheet): fixed place, yaw and animation,
@@ -656,7 +661,7 @@ export class Crowd {
     const gpu = this.humans.gpu; gpu.begin();
     for (const c of this.carried) c.mesh.count = 0; this.propsDropped = 0;
     if ((this.frame & 63) === 0) for (const [k, pl] of this.plays) if (time > pl.until + 5) this.plays.delete(k);
-    this.things.begin(); this.animals.begin(time, cam); this.shared.clear();
+    this.things.begin(); this.animals.begin(time, cam); this.shared.clear(); this.reins.begin();
     // order by distance for the full-detail cap
     const list = this.list; list.length = 0;
     for (const p of this.persons.values()) {
@@ -679,6 +684,7 @@ export class Crowd {
       if (p.path) { const c = Math.cos(yaw), sn = Math.sin(yaw), o = p.path; x += c * o[0] + sn * o[1]; z += -sn * o[0] + c * o[1]; yaw += o[2]; }
       // D-210: a rider sits on the mount's back (the mount stands on the ground at the base)
       if (p.perf?.animals?.kind === 'mount') y += riderLift(p.perf.animals.species[0], p.look.stature || 1.65);
+      else if (p.perf?.animals?.kind === 'chariot') y += CHARIOT_FLOOR; // (s18 C14: standing in the car)
       const pr = p.prevRoot, r = p.root;
       if (p.drawnFrame === this.frame - 1) { pr[0] = r[0]; pr[1] = r[1]; pr[2] = r[2]; pr[3] = r[3]; } else { pr[0] = x; pr[1] = y; pr[2] = z; pr[3] = yaw; }
       r[0] = x; r[1] = y; r[2] = z; r[3] = yaw;
@@ -713,7 +719,7 @@ export class Crowd {
     { const ti = performance.now(); this.drawImpostors(time); this.impPerf.impMs = performance.now() - ti; }
     for (const [, g] of this.shared) { if (g.n > 1) { _q.setFromAxisAngle(_up, g.yaw); _m.compose(_v.set(g.x / g.n, g.y / g.n, g.z / g.n), _q, _one); this.things.push(g.kind as any, _m); } else this.things.push(g.kind as any, g.one); }
     for (const g of this.anchors.values()) if (g.drawn) this.things.push(g.kind, this.placeAt(g.b, g.at[0], g.at[1], g.at[2], 0, _m));
-    this.things.end(); this.animals.end();
+    this.things.end(); this.animals.end(); this.reins.end();
     for (const c of this.carried) { const im = c.mesh; im.visible = im.count > 0; if (!im.count) continue;
       im.instanceMatrix.needsUpdate = true; im.instanceMatrix.clearUpdateRanges(); im.instanceMatrix.addUpdateRange(0, im.count * 16);
       c.data.needsUpdate = true; c.data.clearUpdateRanges(); c.data.addUpdateRange(0, im.count * c.data.stride); }
@@ -871,6 +877,8 @@ export class Crowd {
     // (D-691: goods held in a pose not made for them are set down beside the body: a basket between hanging hands sank
     // into the hips, a seated woman's into her lap)
     const down = !!prop1 && !!GOODS_POSES[prop1] && !GOODS_POSES[prop1].includes(anim);
+    { const L = this.rigS.bonePos(p.rig, HB.hand_l), R = this.rigS.bonePos(p.rig, HB.hand_r), sc = p.look.scale, H = p.handC ?? (p.handC = [0, 0, 0, 0, 0, 0]); // (s18 C14: the hands, for the reins: character space x scale)
+      H[0] = L[0] * sc; H[1] = L[1] * sc; H[2] = L[2] * sc; H[3] = R[0] * sc; H[4] = R[1] * sc; H[5] = R[2] * sc; }
     p.prop = prop1 && (down ? setDown(PROPS[prop1]?.geom ?? prop1, this.rigS, sc, p.propM) : placeProp(prop1, this.rigS, po, sc, time, 0, p.propM, par)) ? prop1 : null; p.ip[0] = down ? 0 : par.v;
     p.prop2 = prop2 && placeProp(prop2, this.rigS, po, sc, time, 1, p.propM2, par) ? prop2 : null; p.ip[1] = par.v;
     // D-215: the children held or put down beside (babes.ts: their kind by age and way of holding, their size by age)
@@ -959,7 +967,10 @@ export class Crowd {
         // a group object (the bier) at the centre of its bearers
         if (g) { g.x += fr[0]; g.y += fr[1]; g.z += fr[2]; g.n++; } else this.shared.set(key, { kind: w.kind, x: fr[0], y: fr[1], z: fr[2], yaw: fr[3], n: 1, rank: -1, one: place(fr, w.at[0], w.at[1], w.at[2], 0, new THREE.Matrix4()) });
         continue; }
-      this.things.push(w.kind, place(fr, w.at[0], w.at[1], w.at[2], 0, _m));
+      // (s18 C14 D-790: a vehicle that follows its performer turns its wheels by the distance it has come: workObjects WHEELS)
+      const WH = WHEELS[w.kind]; let roll = 0;
+      if (WH) { const q = p as Person & { wheelS?: number; wheelAt?: number[] }, a = q.wheelAt ?? (q.wheelAt = [fr[0], fr[2]]), dd = Math.hypot(fr[0] - a[0], fr[2] - a[1]); if (dd < 5) q.wheelS = (q.wheelS ?? 0) + dd; a[0] = fr[0]; a[1] = fr[2]; roll = (q.wheelS ?? 0) / WH.R; }
+      this.things.push(w.kind, place(fr, w.at[0], w.at[1], w.at[2], 0, _m), roll);
     }
     // (D-256: the bees about the hives buzz within 25 m, now and then)
     if (d < 25 && this.onHit && (P.work ?? []).some(w => w.kind === 'hives') && this.snd.next() < dt / 3) { const c = Math.cos(b[3]), s = Math.sin(b[3]); this.onHit('buzz', new THREE.Vector3(b[0] + s * 0.9, b[1] + 0.5, b[2] + c * 0.9)); }
@@ -975,6 +986,11 @@ export class Crowd {
         _m.multiply(_m2.makeRotationZ(an.roll)).multiply(_m3.makeTranslation(0, -bodyY, 0));
       } else place(fr, an.x, an.y ?? 0, an.z, an.yaw, _m);
       this.animals.push(an, _m);
+      // (s18 C14 D-790: the reins and lead ropes, from the hand to the bit: a rider, a driver, a leader of a string or a lead)
+      if (REINED.has(A.kind) && p.handC && d < 60) { const H = p.handC, c = Math.cos(r[3]), s = Math.sin(r[3]), bc = Math.cos(fr[3]), bs = Math.sin(fr[3]), bt = bitAt(an, time, _bit);
+        const hw = (o: number) => [r[0] + c * H[o] + s * H[o + 2], r[1] + H[o + 1], r[2] - s * H[o] + c * H[o + 2]];
+        const bw = [fr[0] + bc * bt[0] + bs * bt[2], fr[1] + bt[1], fr[2] - bs * bt[0] + bc * bt[2]];
+        if (A.kind === 'mount') { this.reins.push(hw(0), bw); this.reins.push(hw(3), bw); } else if (A.kind === 'chariot') this.reins.push(hw(an.x < 0 ? 0 : 3), bw); else if (an === list[0] || A.kind === 'team') this.reins.push(hw(A.kind === 'string' || A.kind === 'lead' ? 3 : 0), bw); }
     }
     // (D-256: a herd of cows lows, less often and heard further, LOW_S; a penned flock or herd calls too)
     const cattle = A.species.includes('cow');

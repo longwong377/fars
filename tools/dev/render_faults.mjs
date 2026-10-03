@@ -17,7 +17,7 @@ await p.goto(`http://127.0.0.2:${port}/fars/?quality=high&${extra}`);
 await p.waitForFunction(() => window.__parsa?.ready === true || window.__parsa?.error, null, { timeout: 1_800_000, polling: 1000 });
 console.log('ready', s());
 const rows = [];
-for (let i = 0; i < 8; i++) { await p.waitForTimeout(5000); rows.push(await p.evaluate(() => { const st = window.__parsa.stats(); return { draws: st.drawCalls, lowFirst: window.__parsa.lowFirst?.(), faults: Object.keys(window.__renderFaults ?? {}).length }; })); console.log(s(), JSON.stringify(rows[rows.length - 1])); }
+for (let i = 0; i < 8; i++) { await p.waitForTimeout(5000); rows.push(await p.evaluate(() => { const st = window.__parsa.stats(); return { draws: st.drawCalls, lowFirst: window.__parsa.lowFirst?.(), faults: Object.keys(window.__renderFaults ?? {}).length, liveDisposals: window.__liveDisposals, disposeChecks: window.__disposeChecks }; })); console.log(s(), JSON.stringify(rows[rows.length - 1])); }
 console.log('faults', JSON.stringify(await p.evaluate(() => window.__renderFaults ?? null), null, 1));
 console.log('page errors', errs.length, JSON.stringify(errs.slice(0, 10), null, 1)); console.log('warnings', JSON.stringify(warns.slice(0, 12), null, 1));
 await b.close(); srv.kill(); process.exit(0);
