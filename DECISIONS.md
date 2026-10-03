@@ -9915,3 +9915,8 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
 - Not fixed (other owners or by design): the court's retinue servants can spend a whole day at the camp at rest and knucklebones
   (court.ts: asked of the lead); the minds' deeds touch ~600 people a day of 81,000 (initiative.ts caps feeling-driven deeds at 300
   a day, D-462's cost): most people have no deed of the townsfolk to tell in a given week; aims.ts "a trade for X" reads oddly.
+
+## D-475 (s17, V8 ground): the ledge treads' streaks and the ground's macro variation
+- The grey streaked "ridge" of sb-town-from-rahmat (and every Rahmat view standing near a ledge) was not the terrain's planar UVs: it was the ledge strips' lip and tread (src/world/hills/ledges.ts), mapped to the face image's top 7 % (v 0.93..1, wrapT clamped) and stretched over up to 12 m of tread. The tread now takes the scree and stony ground scans (world triplanar, the terrain's own array texture: +1 sampler, 3 in all) and the geometric normal; the face keeps its baked map. Probe ground_probe ?bedrock view tfr (380,-60, az 228): before/after handoff/s17/ground_tfr_{before,after}.png. C.
+- The uncultivated and trodden ground (terrainPlain.ts) gets a macro tone variation at 23/37/61 m (+-11 % brightness, +-3.5 % warm/cool), plots excluded: the 20-60 m ground was one flat ochre field. C.
+- Not done (deadline moved to 04:40): denser micro scatter, height-blended pebbles/cracks near the walker, and slope-aware mapping for the dust/herb layers on steep terrain (only rock is triplanar; stony/scree stay planar on the terrain).

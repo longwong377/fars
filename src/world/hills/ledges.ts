@@ -10,7 +10,8 @@
 // Every tile's strips are built once (cached); the drawn geometry is the tiles within reach merged into two meshes (near:
 // fine and displaced; far: coarse), rebuilt as the viewer moves. Tiers: the bedding B (KR-BEDROCK), each ledge's place C.
 import * as THREE from 'three/webgpu';
-import { texture, uv, vec3, dot, attribute, float, uniform, positionLocal, smoothstep, distance } from 'three/tsl';
+import { texture, uv, vec3, dot, attribute, float, uniform, positionLocal, smoothstep, distance, mix, normalMap, normalView } from 'three/tsl';
+import { groundScan } from '../../render/scans';
 import { HILL } from '../plain/terrainPlain';
 import { stratY, cliffPkg, riserBreak, type BedrockEnv } from './bedrock';
 import { TERRACE_BOX } from '../plain/townGround';
@@ -164,6 +165,7 @@ export const LEDGE_VIEWER = uniform(new THREE.Vector3(1e7, 0, 1e7));
 export const LEDGE_FADE = { relief: [0.37, 0.72] as [number, number], far: [0.85, 1] as [number, number], sink: 7 } as const;
 export const reliefShare = (d: number) => 1 - smooth(LEDGES.NEAR * LEDGE_FADE.relief[0], LEDGES.NEAR * LEDGE_FADE.relief[1], d);
 export const farSink = (d: number) => LEDGE_FADE.sink * smooth(LEDGES.R * LEDGE_FADE.far[0], LEDGES.R * LEDGE_FADE.far[1], d);
+const F_V = LEDGE_FORM.faceV;
 function ledgeMaterial(face: LedgeFace | null): THREE.MeshStandardNodeMaterial {
   const m = new THREE.MeshStandardNodeMaterial({ roughness: 0.9, metalness: 0, side: THREE.DoubleSide });
   const d = distance(positionLocal.xz, LEDGE_VIEWER.xz);
@@ -171,7 +173,13 @@ function ledgeMaterial(face: LedgeFace | null): THREE.MeshStandardNodeMaterial {
   const sink = smoothstep(float(LEDGES.R * LEDGE_FADE.far[0]), float(LEDGES.R * LEDGE_FADE.far[1]), d).mul(LEDGE_FADE.sink);
   m.positionNode = positionLocal.add(attribute('disp', 'vec3').mul(rel)).sub(vec3(0, sink, 0)); // (no vertexColors: colorNode reads the colour itself; with the flag three multiplies it in twice)
   if (face) { const t = texture(face.map, uv()).rgb, meanY = Math.max(0.02, 0.2126 * face.mean[0] + 0.7152 * face.mean[1] + 0.0722 * face.mean[2]);
-    m.colorNode = attribute('color', 'vec3').mul(dot(t, vec3(0.2126, 0.7152, 0.0722)).div(meanY).clamp(0, 1.7)); m.normalMap = face.normal; } // (clamped: the lit bed tops read as white patches at 2.2)
+    // D-475 (s17 V8): the lip and the tread (v over faceV) took the image's top rows, clamped and stretched over up to 12 m of
+    // tread: the grey streaks of sb-town-from-rahmat. There the scree scan (world triplanar, the terrain's own layer) and the
+    // geometric normal; the face keeps its baked image and normal map
+    const tread = smoothstep(float(F_V), float(F_V + 0.05), uv().y), sc = groundScan('scree', 2.4, { tri: true }), st = groundScan('stony', 3.0, { tri: true });
+    const faceK = dot(t, vec3(0.2126, 0.7152, 0.0722)).div(meanY).clamp(0, 1.7), treadK = sc.c.mul(st.c).clamp(0, 1.8);
+    m.colorNode = attribute('color', 'vec3').mul(mix(vec3(faceK), treadK, tread));
+    m.normalNode = (mix(normalMap(texture(face.normal, uv())) as any, normalView, tread) as any).normalize(); } // (clamped: the lit bed tops read as white patches at 2.2)
   else m.colorNode = attribute('color', 'vec3').mul(float(1));
   m.name = 'ledges'; return m;
 }
