@@ -34,3 +34,5 @@ Re-run on a build_site dist (23:55; bake fresh, cloud-s17-int merged): 19/19; re
 files: 404 textures/ktx.json and textures/ground/ground.json (each load; to C4/V2 via the lead) and one page error on Enter,
 "NotAllowedError: A user gesture is required to request Pointer Lock": src/core/input.ts lock()'s fallback
 `c.requestPointerLock()` (in the catch of the unadjustedMovement try) returns a promise nobody catches (to its owner via the lead).
+Re-run at 00:10 on a build_site dist of cloud-s17-int 71d598ee (C4's c8fde1c9 in): 19/19, ready 50 s, reload 38 s, **zero console
+errors**. (The pointer-lock rejection did not fire this run; it is intermittent, C9's fix still pending.)
