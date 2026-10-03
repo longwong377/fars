@@ -444,9 +444,11 @@ export class Population {
   /** D-640: set by world.ts when it hands the traffic this population's roadFolk: from then on the population view draws the
    *  road folk (popview folkView) and the traffic leaves them (bindPids); until then they are planned but drawn as extras */
   folkShared = false;
-  shareFolk(): RoadFolk { this.folkShared = true; return this.roadFolk; }
-  /** (Traffic reads `src.folk` from the population it is given, world.ts: the hand-over itself; traffic.ts TrafficSource.folk) */
-  get folk(): RoadFolk { return this.shareFolk(); }
+  /** the hand-over: world.ts calls it before it builds the traffic, which reads `folk` from the population it is given
+   *  (traffic.ts TrafficSource.folk: one instance, so the plans here and the places there agree) */
+  shareFolk(): RoadFolk { this.folkShared = true; return this.folk = this.roadFolk; }
+  /** set by shareFolk (read by the traffic) */
+  folk: RoadFolk | undefined = undefined;
   /** a road-folk person at time t (h) on the road, at the stair foot or by the flock: grid point, heading (deg), act, words */
   folkAt(pid: number, t: number): { e: number; n: number; heading: number; act: ActivityId; why: string; moving: boolean } | null {
     const f = this.persons[pid]?.folk; if (!f) return null; const m = this.roadFolk.spotOf(f.road, f.hh, f.m, t); if (!m) return null;
