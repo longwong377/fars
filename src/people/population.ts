@@ -834,10 +834,10 @@ export class Population {
     }
     for (const q of Object.values(this.quarters)) if (!q.farmers.length) q.farmers = [];
     // D-640 (s17 C10): the walled gardens beside the estates of Bagh-e Firuzi (the paradise behind the Tol-e Ajori gate) and
-    // Dasht-e Gohar had no one working them: half the estates' gardeners there work the garden next door (partetaš workers
+    // Dasht-e Gohar had no one working them: most of the estates' gardeners there work the garden next door (three in four at Firuzi, half at Gohar) (partetaš workers
     // on the Fortification tablets: B for paradises and their workers, C for these men and this share). A hash, not the
     // generator's stream: nobody else's life changes
-    for (const p of this.persons) if (p.job === 'gardener' && p.work.startsWith('estate:') && u01(this.seed, salt('paradise-hands'), p.id) < 0.5) { const q = this.households[p.hh].q; if (q === 'q_firuzi' || q === 'q_gohar') p.work = `garden:${q}`; }
+    for (const p of this.persons) if (p.job === 'gardener' && p.work.startsWith('estate:')) { const q = this.households[p.hh].q, u = u01(this.seed, salt('paradise-hands'), p.id); if ((q === 'q_firuzi' && u < 0.75) || (q === 'q_gohar' && u < 0.5)) p.work = `garden:${q}`; } // (the king's paradise is the larger ground: three in four of Firuzi's)
   }
   private townCount() { let n = 0; for (const h of this.households) if (h.zone === 'town') n += h.members.length; return n; }
 
