@@ -9751,3 +9751,9 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   again and stopped every agent. Fix: boxguard.freeGB = min(free RAM, free commit) from perf counters; gpu slots start only
   with >= 12 GB and end their job under 6 GB; scoreboard refuses under 24 GB. No full test suite on the Vagon box while
   agents build (the cloud CI runs npm test on every s17-int push); targeted vitest files only.
+
+## D-473 (s17, V7): no shader compiles at a change of hour or weather
+- The sun stays in the scene below the horizon at intensity 0 (was visible = false: in every lit shader's key, so dusk and dawn
+  recompiled every lit pipeline); its shadows drawn once at load, not redrawn at night. Share-instancing on by default (D-250/
+  D-290; ?shareinst=0 opts out). Measured (tools/dev/state_compile.mjs, T4): 0-12 pipelines per day/hour/weather change, none
+  rebuilt; the ~12 min of a day jump is the world tick (723 s CPU), not compiles. Report: handoff/s17/report_compile.md.
