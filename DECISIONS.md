@@ -9956,6 +9956,8 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   0.05) and the spring river's ripple scale 1.15 -> 0.85, so the far bank's reflection breaks in streaks, not patches (C).
 - The shallows one even tint (riv-a): the bed under them silt or pale gravel in 10-30 m patches, the riffles the river's own water
   whitened, and a patchy drift line of foam and chaff at the water's edge (rivers.ts; C).
+- Triangle margin (lead 3: <= 1.9 M): far orchard plots (> 10 km) keep only the tree lines facing the plain's middle (every tree
+  still drawn once), the static field-tree set to 6.5 km (was 8), near river sections 9-24 m (were 8-20): 1.99 -> 1.88 M (C).
 - The plain's static triangles went over 2 M (2.009 M: the merged Naqsh relief figures, 0.5 M): the rivers' sections beyond 12 km
   from the Apadana every 20-45 m (were 12-45 m), 1.99 M (C).
 - Millet (W19): a summer crop row after flax, 3 % of the irrigated plots taken from the fallow (17 %), sown June, cut mid-September
