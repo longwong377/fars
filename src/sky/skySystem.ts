@@ -65,6 +65,7 @@ if (typeof window !== 'undefined') (window as any).__parsaSunKept = SUN_KEPT;
 export class SkySystem {
   readonly sky = new SkyMesh();
   readonly sun = new THREE.DirectionalLight(0xffffff, 3);
+  private sunShadowOnce = false;
   readonly moonLight = new THREE.DirectionalLight(0x9fb4ff, 0);
   readonly hemi = new THREE.HemisphereLight(0xbfd6ff, 0x6b5a45, 0.6);
   /** the weather's snow cover on the ground (0..1; main.ts each frame): the ground's reflectance for the skylight from below (D-219) */
@@ -441,7 +442,7 @@ export class SkySystem {
     this.sun.intensity = sunUp || !SUN_KEPT.on ? G * sunI : 0;
     this.sun.position.copy(camPos).addScaledVector(this.state.sunDir, 800);
     this.sun.target.position.copy(camPos);
-    this.sun.visible = SUN_KEPT.on || sunUp; this.sun.shadow.autoUpdate = sunUp;
+    this.sun.visible = SUN_KEPT.on || sunUp; this.sun.shadow.autoUpdate = sunUp || !this.sunShadowOnce; this.sunShadowOnce = true; // (drawn once: its pipelines compile at load)
     this.moonLight.intensity = G * moonI; // colour: a perceptual blue (Purkinje shift, C)
     this.moonLight.position.copy(camPos).addScaledVector(this.state.moonDir, 800); this.moonLight.target.position.copy(camPos);
     this.twilight = smoothstepJS(-14, 4, alt);

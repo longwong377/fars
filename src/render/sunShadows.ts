@@ -76,6 +76,7 @@ class SunCSM extends (CSMShadowNode as any) {
     this.biasFromTexels();
   }
   updateFrustums() { super.updateFrustums(); if (this.prof.breaks.length) this.biasFromTexels(); }
+  private drawn = false;
   private last: { pos: THREE.Vector3; dir: THREE.Vector3; sun: THREE.Vector3; frame: number }[] = [];
   /** D-337: the far cascades re-rendered every CASCADE_PERIOD[i] frames (staggered), unless the camera has moved or turned,
    *  or the sun has moved, enough since that cascade was drawn: its map and its matrix stay the pair drawn together, so a
@@ -85,8 +86,10 @@ class SunCSM extends (CSMShadowNode as any) {
     super.updateBefore(frame);
     const P = CASCADE_PERIOD, cam = (this as any).camera as THREE.Camera | null; if (!cam) return;
     // D-473: the sun below the horizon stays in the scene at intensity 0 (skySystem): its cascades are not redrawn; at sunrise
-    // the sun's move (CASCADE_SUN_COS) or the period redraws them
-    if (!((this as any).light as THREE.DirectionalLight).intensity) { for (const lw of (this as any).lights) { lw.shadow.autoUpdate = false; lw.shadow.needsUpdate = false; } return; }
+    // the sun's move (CASCADE_SUN_COS) or the period redraws them. Drawn once even so (a page loaded at night compiles the shadow
+    // pipelines behind the loading screen, not at the first sunrise: 199 pipelines, measured)
+    if (!((this as any).light as THREE.DirectionalLight).intensity && this.drawn) { for (const lw of (this as any).lights) { lw.shadow.autoUpdate = false; lw.shadow.needsUpdate = false; } return; }
+    this.drawn = true;
     if (!CASCADE_AMORTISE.on) { for (const lw of (this as any).lights) lw.shadow.autoUpdate = true; return; }
     const f = frame?.frameId ?? 0, pos = cam.getWorldPosition(_cp), dir = cam.getWorldDirection(_cd), L = (this as any).light as THREE.DirectionalLight;
     const sun = _sd.subVectors(L.position, L.target.position).normalize();
