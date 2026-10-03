@@ -9516,6 +9516,7 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
 - The court's baggage train (traffic.ts trainMovers; UD-09/UD-10): a string per tented household (camels for a pavilion's) along the royal road to its camp's edge, reaching it half an hour before its tent is pitched (court.ts's arrival hours: days 10-15, up to ~650 households in six hours), and out along the road on the leave day after the tents are struck; the southern camps by the south road where a straight leg would cross the town's plots. C (HDT 7.40-41's train a claim, B).
 - Road folk as population people (the lead, after the merge: talk to anyone, UD-08/UD-31): roadFolk.ts made pure and given hinterlandRegister / planOf / spotOf / bindPids (600 households a road, reused only time-disjoint); the persons, their plans and their placement by popview are C10's (asked).
 - Life on the land (the lead's second list): herder households of the register take their flocks out for 12 days in 36 (stubble June-October, slopes in spring and autumn, a few on the steppe in winter; folded at night, watched by turns; place graze:<kind>), drawn near as the herd performance and far (380 m-2.4 km) by fauna.ts from grazingSites; dogs at the camps' lines; bird counts raised within the worst-case triangle gate. All C.
+- The starlings drew nothing on the T4 (Vagon's first train: 17 vertex inputs; their 1,500 instances put the matrix in four inputs past the 64 KiB uniform limit): wildlife.ts packs each bird's 12 instance floats in three vec4s (birdIn); tests/vertex_inputs.test.ts keeps every life pipeline (birds with their models, jackals, small life, the fauna's Animals) <= 16 inputs, the birds four spare.
 - Hooks in world.ts (lead's file): no hoof sounds for walkers; fauna.addCampLines; physics to ConstructionView. Later: the grazing sites and the far flocks (one line).
 
 - Hooks in world.ts (lead's file): no hoof sounds for walkers; fauna.addCampLines; physics to ConstructionView.
@@ -9720,6 +9721,10 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
 - light v2b (D-480 cont.): the cloud deck fades out between 30 and 60 km (the march at grazing angles smeared the noise into
   streets converging on the vanishing point: cov-000's horizon fan; gone in the lab), and the night toe lift eases by up to
   75 % under a bright moon (GRADE.nightLift from the SkySystem): the moonlit plain p50 73 → 52, the moonless one unchanged (17).
+- contact (D-480 cont., the art direction: nothing floats): the lab's debug views showed the sun contact shadows all but dead
+  (sss view uniform 1 beside sunlit plinths and jambs: 0.6 m rays with 6 cm samples stepped through vertical occluders) and the
+  contact AO near white (0.9). Now SSS_MAX_DISTANCE 1.0 m, SSS_THICKNESS 0.12 m, and the contact AO sharpened by CONTACT_AO_POW
+  1.8 in the composite (pipeline.ts). C; lab-verified only.
 - (D-500, mocap) CMU takes re-fetched (T:/fars-assets-s12/mocap/cmu) and baked through tools/mocap/bake.ts (the old clips
   reproduce byte for byte): sweep_a (13_23), sweep_b (14_13 mop), drink_a (13_09), dance_a (55_01), dance_b (90_31). The
   sweepers' body layer is now a sweeping capture (weight 0.22, the broom hand within 3.5 cm). drink and dance are baked but
@@ -9750,9 +9755,53 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
 - animals.ts: a library model's coat darkens to ~0.6 of its albedo with the weather's surface wetness (WEATHER.wetness, the
   ground's own uniform), loses its fuzz rim and takes a duller sheen. Probe: shots/wx-rain-spring-w7.png, wx-herd-30m-w7.png
   (the spring green of D-522 reads on the plain at 30 m).
+
+## D-530 (s17, V6 interior light and fire): daylight through the town's doorways, night spill, flames, coals, fire shadows, camp hearths
+- Daylight ports (fire.ts lightPorts, firePlaces.ts townPorts; world.ts one-line hook fire.setPorts): the town's ~9,100 doorways
+  between a roofed room and the open each become a daylight source standing 1 m outside the opening, lit only on the room's side
+  (a half-space mask added to the composite's deferred term, fireGlow.ts D.w), of intensity daylight x 0.8 (sunlit ground and
+  walls with the sky) x 4 m2 / pi, cut off at 9 m; the nearest ports within 30 m take the deferred slots the fires leave free
+  (by day all twelve). The light-probe field has no town room interiors, so a doorway into a house read as a black hole by day
+  (fire-lab frames house-day-b vs lanedoor-day-d). At night a port whose room has its lamp or hearth lit spills that light out
+  onto the lane or court before the door (x 0.8 the plain estimate, C; x 3 washed the facade). Specular and SSGI bounce of these lights: none (C).
+- House lamps: a brighter lamp (0.22, 5 m) was tried and reverted: unshadowed, it lit the street facade behind its ledge (fire-lab lanedoor-night-e).
+- Flames of tongues (two octaves of rising turbulence, narrowing column, blackbody ramp from a yellow-white core to deep red
+  tips) replace the soft noise blob; a glowing coal bed (breathing ember patches) under every hearth, brazier and altar within 60 m.
+- Fire shadows: at high/ultra the 2 nearest fire lights cast soft cube-map shadows (radius 6 texels, 30 m reach), drawn when a
+  light takes another fire and refreshed in turn every 24 frames (fires and walls stand still), only where the adapter binds >= 32
+  sampled textures (B24's 16-texture failure); ?fireshadows=0 turns them off. NOT yet seen in a frame (the box crashed twice
+  under the lab runs): the lead's train must confirm, or set FIRE_SHADOW_LIGHTS = 0.
+- Court camp hearths (C3's ask): addCampHearths(fire, campItems(tents), ground, ti => tentStands(tents[ti], sim.t)) after the
+  court's tents exist (fire.extend() re-makes the flames for the new count); lit at the 'home' meal hours while the tent stands.
+  Not wired: a one-line call in world.ts after CourtCampTents is made (the lead's or C3's).
+- tools/dev/fire_lab.{ts,html,mjs}: the light lab plus fires, ports, the Terrace (?terrace=0 leaves it out), eye/look views.
+- fire_occ re-baked for the current Terrace (the parts hash had moved with V4's work; re-bake after V4's last change).
+
 - D-472 addendum (00:31 crash, the second): Windows logged "low virtual memory": COMMIT ran out (limit 71.5 GB = 63 GB RAM
   + 8 GB page file) with 35 GB of RAM still free: Chrome GPU processes commit 5-10 GB each (9.8 + 8.2 + 5.5 GB at the event)
   and the lead had started a full vitest run (up to 16 workers) beside the train and the agents' probes. The Claude app died
   again and stopped every agent. Fix: boxguard.freeGB = min(free RAM, free commit) from perf counters; gpu slots start only
   with >= 12 GB and end their job under 6 GB; scoreboard refuses under 24 GB. No full test suite on the Vagon box while
   agents build (the cloud CI runs npm test on every s17-int push); targeted vitest files only.
+
+- D-523 addendum (s17, V5): the ox (drawn from the cow model) has no udder: tools/blender/animals_real.py `no_udder` presses
+  what hangs below the belly line between the hind legs and the navel up to the belly (72 vertices on the cow model) before
+  the levels and bakes are made.
+
+## D-524 (s17, V5): wet walls in streaks; the wet sheen and puddles verified with a sky to reflect
+- The ground's wet darkening, wet sheen (sky specular scaled by the wetness on porous surfaces), puddles in level hollows and
+  their dark mud rims were already in materials.ts finish() (D-219, D-335), driven by WEATHER uniforms; they read matte in the
+  weather probe only because the probe had no sky environment. The probe now prefilters a sky/ground sphere into skyEnv.
+- materials.ts (one line, uniform-driven, no new shader state): on walls the wet film runs in vertical streaks (wet 0.4-1.0 of
+  the ground's), not an even 55 % film.
+
+## D-513 (s17, V4 terrace): the relief atlas re-baked with a deep undercut (the figures read as carved at 2-10 m)
+- The lead's two routes: (1) the CC-BY "Two Persian courtiers" scan (Objaverse 2af5acdf; a museum fragment, 980 k triangles,
+  checked in look.ts) as a carving-style source, (2) a Cycles re-bake of the existing relief geometry with real undercut depth.
+  Route 2 taken (it reaches all 221 figure definitions and 3,748 placements in one build inside the deadline; route 1 needs a
+  per-figure transfer). The Persepolis reliefs' dark contour line comes from the outline cut square to under: the undercut
+  now pulls the foot of every step of 0.2 relief depths or more (was 0.25) under its arris by 0.55 of the rise (was 0.3), up to
+  5 texels (was 3); the occlusion rays reach 3 relief depths (was 2), so folds and contour hollows hold shade. tools/blender/
+  relief_atlas.ts, baked on the CPU in slot batches (tools/dev/gpu_slot.mjs; ~4 s a figure at 6 jobs), packed and KTX2-encoded
+  as before; the atlas also takes D-510's polychromy change into its input hash. No new asset (the atlas is the project's own,
+  ASSET_LEDGER row "Carved-relief atlas" unchanged in kind). Tier C.

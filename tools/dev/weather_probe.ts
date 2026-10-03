@@ -26,6 +26,7 @@ import { placeVillages } from '../../src/world/plain/villages';
 import { bakeTerrainDetail } from '../../src/terrain/terrainDetail';
 import { PlainGround } from '../../src/world/plain/terrainPlain';
 import { WeatherVfx } from '../../src/world/weatherVfx';
+import { skyEnv } from '../../src/render/envmap';
 import { DustSystem, DUST } from '../../src/world/dust';
 import { BreathFx } from '../../src/world/breath';
 import { Animals, animalsFor, type Species } from '../../src/people/animals';
@@ -92,6 +93,12 @@ void cropState;
     const fake: any = { horizon: sky, sun, hemi, state: { sunDir: d.clone() } }; dust.setSkyLight(fake); breath.setSkyLight(fake);
     for (let i = 0; i < 4; i++) rain.update(0.05, cam, { rain: rn, snowFall: 0, windMs, windDirDeg: windDir, lightning: false }, 0);
     breath.update(t, cam, [], { moving: false }, { tempC: v.tempC ?? 15, rh: 70 });
+    // the sky in the surfaces' reflections (the game captures its sky dome: envmap.ts; here a sphere in the probe's sky and
+    // ground colours, so the wet sheen and the puddles have something to reflect)
+    { const es = new THREE.Scene(), sm = new THREE.MeshBasicNodeMaterial({ side: THREE.BackSide, vertexColors: true }), sg = new THREE.SphereGeometry(10, 32, 16), c = new THREE.Color(), cols: number[] = [];
+      const P2 = sg.getAttribute('position'); for (let i = 0; i < P2.count; i++) { const y = P2.getY(i) / 10; c.copy(sky); if (y < 0) c.multiplyScalar(0.25); else c.multiplyScalar(1 - 0.25 * y); cols.push(c.r, c.g, c.b); }
+      sg.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3)); es.add(new THREE.Mesh(sg, sm));
+      new THREE.PMREMGenerator(r).fromScene(es, 0, 0.1, 100, { renderTarget: skyEnv.target } as any); }
     for (let i = 0; i < 3; i++) await r.renderAsync(scene, cam);
     return { errs: errs.slice(), month, animals: A.stats(), dust: dust.stats, rain: rn, splash: (rain as any).splash.count, drops: (rain as any).rain.count };
   };

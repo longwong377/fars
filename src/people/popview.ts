@@ -70,7 +70,7 @@ interface PS {
   pid: number; home: P2; work: P2 | null; d2: number;
   plan: DayPlan | null; next: DayPlan | null; prev: DayPlan | null;
   /** cached state and the absolute hours it holds for */
-  v0: number; v1: number; /** 3: following the stranger or walking back their way (D-315, talk.ts) */ mode: 0 | 1 | 2 | 3; spot: Spot | null; route: Route | null; w0: number; w1: number; wOut: boolean;
+  v0: number; v1: number; /** 3: following the stranger or walking back their way (D-315, talk.ts); 4: one of the road folk on the road (D-640, roadFolk.ts) */ mode: 0 | 1 | 2 | 3 | 4; spot: Spot | null; route: Route | null; w0: number; w1: number; wOut: boolean;
   act: ActivityId; carry: number; speed: number; what: string; entry: number;
   /** the plan's reason for the act shown and its place (string indices; -1 none) */
   why: number; pl: number;
@@ -177,7 +177,7 @@ export class PopView {
     const homeOf = new Map<number, P2>();
     for (const H of P.households) { let xy: P2 | null = null;
       if (H.zone === 'town') xy = H.xy; else if (H.zone === 'plain') { const m = this.geo.villageOf(H.id); xy = m ? (() => { const v = (this.geo as any).villages[m.vi]; return [v.x, v.y] as P2; })() : null; }
-      else if (H.zone === 'terrace') xy = H.home === 'court_camp' || H.home.startsWith('rcamp:') ? H.xy : TER; /* D-199: the court's camps */ else xy = H.home === 'station' ? [-1450, 395] : [-3000, 0];
+      else if (H.zone === 'terrace') xy = H.home === 'court_camp' || H.home.startsWith('rcamp:') ? H.xy : TER; /* D-199: the court's camps */ else xy = H.home === 'station' ? [-1450, 395] : H.home.startsWith('hinterland:') ? [80, 30] /* D-640: the road folk, on the roads into Pārsa */ : [-3000, 0];
       if (xy) homeOf.set(H.id, xy); }
     for (const p of P.persons) { const h = homeOf.get(p.hh) ?? homeOf.get(p.hh2); if (h) { A[p.id * 4] = h[0]; A[p.id * 4 + 1] = h[1]; }
       const terraceWork = p.zone === 'terrace' || ['builder', 'porter', 'camp', 'caretaker', 'guard'].includes(p.job) || p.work === 'treasury_inside' || p.work === 'treasury_store' || p.work === 'treasury_desk';
@@ -258,6 +258,10 @@ export class PopView {
     { const pl = this.strings[P.place[i]]; if (pl.charCodeAt(0) === 64 && (pl === '@stranger' || pl.startsWith('@back:'))) {
       s.mode = 3; s.back = pl !== '@stranger'; s.spot = null; s.route = null; s.w0 = base + this.segT0(P, i); s.w1 = base + P.t1[i]; s.v0 = t; s.v1 = s.w1; s.act = 'walk'; s.why = P.why[i]; s.wp = -1; s.pl = -1; s.carry = -1; s.speed = 0;
       s.what = s.back ? 'walking back the way the stranger led (D-315)' : 'following the stranger (D-315)'; return; } }
+    // D-640 (C10): the road folk (population.ts addRoadFolk) on the road, at the stair foot or by their flock: placed each update
+    // where the register puts them (roadFolk.ts spotOf), once the traffic has handed them over (Population.shareFolk)
+    if (this.pop.folkShared && this.pop.persons[s.pid].folk && (P.where[i] === ROAD || this.strings[P.place[i]].startsWith('graze:'))) {
+      s.mode = 4; s.spot = null; s.route = null; s.w0 = base + this.segT0(P, i); s.w1 = base + P.t1[i]; s.v0 = t; s.v1 = s.w1; s.act = ACTS[P.act[i]]; s.why = P.why[i]; s.wp = -1; s.pl = -1; s.carry = -1; s.what = 'on the road (roadFolk.ts: D-640)'; return; }
     if (P.where[i] === ROAD) {
       let i0 = i, i1 = i; while (i0 > 0 && P.where[i0 - 1] === ROAD) i0--; while (i1 < P.n - 1 && P.where[i1 + 1] === ROAD) i1++;
       const T0 = base + this.segT0(P, i0), T1 = base + P.t1[i1];
@@ -354,6 +358,7 @@ export class PopView {
     for (const s of this.list) { const te = this.tv(s.pid, t);
       const last = this.jumpedNow ? 0 : s.lastMode; s.lastMode = s.mode === 3 ? 2 : s.mode;
       if (s.mode === 3) { if (!s.isAgent && this.followView(s, te, day, upd)) walking++; continue; } // D-315
+      if (s.mode === 4) { if (this.folkView(s, te, day, upd)) walking++; continue; } // D-640
       if (s.occ >= 0 && (s.mode !== 1 || s.sepFor !== s.spot)) this.release(s);
       // D-215: a small child the view keeps indoors (asleep: the plan's "asleep, carried on her back", "asleep in her lap")
       // with someone who is out of doors is drawn with them too (children, below)
@@ -512,6 +517,16 @@ export class PopView {
     o.plot = 0; o.wall = 0; o.indoor = false; o.e = F.e; o.n = F.n; o.heading = F.heading; o.moving = F.moving; o.speed = F.moving ? this.pace(s.pid) : 0; o.y = this.geo.y(o.e, o.n); o.prop = null; s.viewV = -1; s.viewMoving = o.moving;
     return o.moving;
   }
+  /** D-640: one of the road folk where the register puts them now (Population.folkAt: roadFolk.ts spotOf); not drawn when the
+   *  register has them off the road (home, Pārsa) */
+  private folkView(s: PS, t: number, day: number, upd: number): boolean {
+    const F = this.pop.folkAt(s.pid, t); if (!F) return false;
+    let o = s.view; if (!o) s.view = o = PopView.blank(); this.out[this.nOut++] = o; s.stamp = upd; o.babes!.length = 0; o.hand = 0; o.impair = this.impairOf(s.pid, day);
+    const own = s.act === 'sleep' || s.act === 'eat'; // (the plan's own sleep and meals by the fold: population.ts folkFold)
+    o.pid = s.pid; o.agent = -1; o.hh = this.pop.home(s.pid, day); o.act = own ? s.act : F.act; o.why = own && s.why >= 0 ? this.strings[s.why] : F.why; o.place = ''; o.what = s.what; o.entry = 0; o.carryNote = null;
+    o.plot = 0; o.wall = 0; o.indoor = false; o.e = F.e; o.n = F.n; o.heading = F.heading; o.moving = F.moving && !own; o.speed = o.moving ? this.pace(s.pid) : 0; o.y = this.geo.y(o.e, o.n); o.prop = propOf(o.act, null); s.viewV = -1; s.viewMoving = o.moving;
+    return o.moving;
+  }
   /** the people the stranger is speaking with stand and face the stranger (talk.ts: the pause of a conversation) */
   private faceStranger(t: number) {
     const T = this.sim.talk; if (!T) return; const held = T.heldNow(t); if (!held.length) return; const p = T.player ?? this.sim.player; if (!p) return;
@@ -570,7 +585,7 @@ export class PopView {
   childStature(pid: number): number | null { const age = this.pop.ageOn(pid, Math.floor(this.sim.t / 24)); if (age >= 12) return null; return CHILD_H[Math.max(0, Math.min(11, age))]; }
   /** D-244: the view's state of a person (the renderless trace, tools/dev/people_trace.ts): 0 not drawn, 1 at a spot, 2
    *  walking; the spot (on a walk, where it goes) and its description; null when the person is not a candidate */
-  stateOf(pid: number): { mode: 0 | 1 | 2 | 3; spot: Spot | null; what: string } | null { const s = this.ps.get(pid); return s ? { mode: s.mode, spot: s.spot, what: s.what } : null; }
+  stateOf(pid: number): { mode: 0 | 1 | 2 | 3 | 4; spot: Spot | null; what: string } | null { const s = this.ps.get(pid); return s ? { mode: s.mode, spot: s.spot, what: s.what } : null; }
   /** the plan's description of a person now (dev overlay) */
   describe(pid: number): string { const s = this.ps.get(pid); return s ? `${s.what}${s.mode === 2 ? `, ${s.speed.toFixed(2)} m/s` : ''}` : 'not near'; }
 }
