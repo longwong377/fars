@@ -9710,3 +9710,7 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
 - light v2b (D-480 cont.): the cloud deck fades out between 30 and 60 km (the march at grazing angles smeared the noise into
   streets converging on the vanishing point: cov-000's horizon fan; gone in the lab), and the night toe lift eases by up to
   75 % under a bright moon (GRADE.nightLift from the SkySystem): the moonlit plain p50 73 → 52, the moonless one unchanged (17).
+- contact (D-480 cont., the art direction: nothing floats): the lab's debug views showed the sun contact shadows all but dead
+  (sss view uniform 1 beside sunlit plinths and jambs: 0.6 m rays with 6 cm samples stepped through vertical occluders) and the
+  contact AO near white (0.9). Now SSS_MAX_DISTANCE 1.0 m, SSS_THICKNESS 0.12 m, and the contact AO sharpened by CONTACT_AO_POW
+  1.8 in the composite (pipeline.ts). C; lab-verified only.
