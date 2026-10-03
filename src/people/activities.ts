@@ -104,6 +104,8 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
     variants: [
       // D-780 (s18 C13): the court's programme (people/ceremony.ts, court.ts): riding with the king, to the hunt and at exercise;
       // grooms leading the king's horses; a delegate leading his people's gift animals up the Apadana's stair (the reliefs, B)
+      { when: /in the royal chariot/, anim: 'ride', sound: undefined, animals: { kind: 'mount', species: ['horse_saddle'], pace: 1.8 },
+        note: 'the king driving out in the royal chariot (the reliefs, B): drawn mounted until the chariot and its pair are drawn under him (C14, the animals: C: D-780)' },
       { when: /on horseback/, anim: 'ride', sound: undefined, animals: { kind: 'mount', species: ['horse_saddle'], pace: 1.8 },
         note: 'riding with the king, to the hunt or at exercise, on a saddle cloth, no stirrups (blocklist; Cyr. 8.3, 1.4: claims, B; the pace C: D-780)' },
       { when: /leading the king’s horses|leading the horses back/, animals: { kind: 'string', species: ['horse_saddle', 'horse_saddle', 'horse_saddle'], n: 3, pace: 1.0 }, note: 'a groom leading the king’s saddled horses on a string (C: D-780)' },

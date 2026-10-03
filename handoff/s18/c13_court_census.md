@@ -11,8 +11,8 @@ Days of the peoples' gifts: 19, 33, 45, 59, 72, 83, 99, 110; hunts: 17, 29, 39, 
 | guard_change | 312 | 104 | 0.50 | court_guard_mess |
 | exercise | 204 | 102 | 1.60 | rcamp:p_horse |
 | dawn_rite | 104 | 104 | 1.60 | offering_place |
-| audience | 47 | 47 | 3.20 | court_audience |
-| ride | 21 | 21 | 2.72 | rcamp:p_horse |
+| audience | 75 | 75 | 3.20 | court_audience |
+| ride | 61 | 61 | 2.34 | rcamp:p_horse |
 | banquet | 17 | 17 | 3.50 | court_feast |
 | hunt | 9 | 9 | 6.86 | rcamp:p_horse |
 | gift_day | 8 | 8 | 5.00 | court_audience |
@@ -21,7 +21,7 @@ Days of the peoples' gifts: 19, 33, 45, 59, 72, 83, 99, 110; hunts: 17, 29, 39, 
 
 Banquet seats in the Apadana: 304 round 38 low tables.
 
-(population built in 1.0 s: 27445 people of the court, 679 parties, 356 couriers)
+(population built in 0.9 s: 26392 people of the court, 552 parties, 356 couriers)
 
 ## the first day of the peoples’ gifts: day 19
 
@@ -31,15 +31,15 @@ Banquet seats in the Apadana: 304 round 38 low tables.
 
 | who | people |
 |---|---|
-| delegates going up the stair in file | 211 |
-| bowing before the king (proskynesis) | 22 |
+| delegates going up the stair in file | 153 |
+| bowing before the king (proskynesis) | 15 |
 | the chiliarch before the throne | 1 |
 | the king enthroned | 1 |
-| ushers leading parties | 22 |
-| Persians of rank lining the portico on a gift day | 533 |
-| diners at the banquet | 488 |
-| servers and wine-bearers crossing the Terrace | 182 |
-| lamp tenders | 33 |
+| ushers leading parties | 15 |
+| Persians of rank lining the portico on a gift day | 536 |
+| diners at the banquet | 485 |
+| servers and wine-bearers crossing the Terrace | 171 |
+| lamp tenders | 31 |
 | grooms exercising horses | 686 |
 | couriers riding in | 9 |
 
@@ -52,13 +52,13 @@ Banquet seats in the Apadana: 304 round 38 low tables.
 
 | who | people |
 |---|---|
+| bowing before the king (proskynesis) | 548 |
 | the chiliarch before the throne | 1 |
 | the king enthroned | 1 |
-| receiving the king’s gift | 545 |
-| diners at the banquet | 508 |
-| servers and wine-bearers crossing the Terrace | 166 |
-| lamp tenders | 26 |
-| grooms exercising horses | 685 |
+| diners at the banquet | 517 |
+| servers and wine-bearers crossing the Terrace | 181 |
+| lamp tenders | 29 |
+| grooms exercising horses | 733 |
 | couriers riding in | 2 |
 | the king before the fire at dawn | 1 |
 
@@ -69,32 +69,40 @@ Banquet seats in the Apadana: 304 round 38 low tables.
 
 | who | people |
 |---|---|
-| riders with the king (ride or hunt) | 93 |
-| beaters | 111 |
-| grooms with the king’s horses | 11 |
-| grooms exercising horses | 633 |
+| riders with the king (ride or hunt) | 84 |
+| beaters | 104 |
+| grooms with the king’s horses | 9 |
+| grooms exercising horses | 678 |
 | couriers riding in | 8 |
 
-## a ride: day 18
-
-- dawn_rite 4.60–6.20 at offering_place
-- ride 7.31–9.53 at rcamp:p_horse
-
-| who | people |
-|---|---|
-| riders with the king (ride or hunt) | 47 |
-| grooms with the king’s horses | 15 |
-| grooms exercising horses | 680 |
-| couriers riding in | 9 |
-
-## an ordinary audience: day 16
+## a ride: day 16
 
 - dawn_rite 4.60–6.20 at offering_place
 - audience 8.30–11.50 at court_audience
+- ride 15.40–17.75 at rcamp:p_horse
 
 | who | people |
 |---|---|
 | the chiliarch before the throne | 1 |
 | the king enthroned | 1 |
-| grooms exercising horses | 687 |
+| riders with the king (ride or hunt) | 54 |
+| grooms with the king’s horses | 9 |
+| grooms exercising horses | 690 |
+| couriers riding in | 4 |
+
+## an ordinary audience: day 34
+
+- dawn_rite 4.60–6.20 at offering_place
+- audience 8.30–11.50 at court_audience
+- ride 15.56–17.78 at rcamp:p_horse
+
+| who | people |
+|---|---|
+| bowing before the king (proskynesis) | 5 |
+| the chiliarch before the throne | 1 |
+| the king enthroned | 1 |
+| ushers leading parties | 5 |
+| riders with the king (ride or hunt) | 37 |
+| grooms with the king’s horses | 8 |
+| grooms exercising horses | 675 |
 | couriers riding in | 4 |
