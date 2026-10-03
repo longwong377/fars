@@ -30,7 +30,7 @@ const SPEC: Record<FireKind, { flameH: number; flameW: number; power: number; ra
   brazier: { flameH: 0.7, flameW: 0.55, power: 2.4, range: 22, smoke: 0.5 },
   hearth: { flameH: 0.5, flameW: 0.6, power: 1.6, range: 14, smoke: 1.0 },
   oven: { flameH: 0.25, flameW: 0.4, power: 0.8, range: 8, smoke: 1.2 },
-  lamp: { flameH: 0.06, flameW: 0.03, power: 0.22, range: 5, smoke: 0.0 }, // D-530: 0.08 / 3.5 left the rooms black at night (C)
+  lamp: { flameH: 0.06, flameW: 0.03, power: 0.08, range: 3.5, smoke: 0.0 }, // (D-530: a brighter lamp, unshadowed, lit the street facade behind its ledge: kept)
   kiln: { flameH: 0.35, flameW: 0.5, power: 1.4, range: 10, smoke: 1.6 },
   // D-209: the kept fire on the precinct's stepped altar: a wood fire in the open, a little larger than a hearth's (C)
   altar: { flameH: 0.6, flameW: 0.55, power: 1.9, range: 16, smoke: 1.1 },
@@ -508,10 +508,10 @@ export class FireSystem {
 
 /** D-530: the daylight ports: the outside's reflectance seen through a doorway (sunlit ground and walls with the sky), the
  *  opening's area (m²), the light's cut-off (m) and how far from the eye ports are lit (m) */
-export const PORT_RHO = 0.55, PORT_AREA = 3.0, PORT_CUT = 9, PORT_R = 30, PORT_OUT = 1.0;
+export const PORT_RHO = 0.8, PORT_AREA = 4.0, PORT_CUT = 9, PORT_R = 30, PORT_OUT = 1.0;
 /** D-530: the room fire a port spills at night lies within PORT_FIRE_R m of it; the spill's gain over the plain estimate
  *  (the doorway sees the fire's lit walls, floor and the flame itself: C, judged in the fire lab) */
-export const PORT_FIRE_R = 6, PORT_NIGHT = 3;
+export const PORT_FIRE_R = 6, PORT_NIGHT = 0.8;
 /** D-530: how many of the nearest fire lights cast shadows at high/ultra, their cube maps' reach (m), the soft filter's
  *  radius (texels; a flame a few decimetres across), and how often (frames) each is redrawn while it keeps its fire */
 export const FIRE_SHADOW_LIGHTS = 2, FIRE_SHADOW_FAR = 30, FIRE_SHADOW_RADIUS = 6, FIRE_SHADOW_REFRESH = 24;
