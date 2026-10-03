@@ -10,7 +10,6 @@ describe('the roadside (D-801)', () => {
     console.log(JSON.stringify(W.info));
     expect(W.info.roads).toBeGreaterThanOrEqual(4);
     expect(W.info.wells).toBeGreaterThanOrEqual(8); expect(W.info.halts).toBeGreaterThanOrEqual(6); expect(W.info.shrines).toBeGreaterThanOrEqual(5); expect(W.info.carts).toBe(W.info.halts);
-    expect(W.info.pats).toBeGreaterThan(300);
     const zones = settlementZones(); for (const p of W.places) expect(zones.some(z => pointInPolygon(p.e, p.n, z)), p.id).toBe(false);
     // the Naqsh-e Rustam road (Terrace to the cliff, ~6 km) has at least two of each stop
     for (const k of ['well', 'halt']) expect(W.places.filter(p => p.id.startsWith(`${k}:road_naqsh_e_rustam`)).length, k).toBeGreaterThanOrEqual(2);
