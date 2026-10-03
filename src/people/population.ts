@@ -820,6 +820,25 @@ export class Population {
     // else's life changes
     { const hh = this.hh('q_naqsh', 'terrace', true, 'naqsh:house'); this.households[hh].xy = [...NAQSH.house];
       for (let i = 0; i < 4; i++) { const r = new HStream(this.seed, salt('naqsh-keepers'), i); this.person({ sex: 'm', age: i < 2 ? this.ageIn(r, 38, 62) : this.ageIn(r, 15, 24), job: 'priest', hh, origin: 'Persian', idx: i, work: 'naqsh' }); } }
+    // ---------------- D-651 (s18 C12's hole #1): six more building gangs of ~100, two of each kind, so that the Hall of a Hundred
+    // Columns and the Terrace's other works hold ~900 builders by day, not 300. The Treasury tablets alone count >= 1,348 people
+    // employed in 467 (LIVIUS-TREAS, B) and the Fortification and Treasury texts issue rations to kurtaš work groups in the
+    // hundreds and thousands across the region's building sites (PT-WAGE, HENK2023: B); 900 on the year's one great hall is C.
+    // Made last, from their own stream, so nobody made before them changes (their homes, wives and children as the first three)
+    // (the town's house plots are all taken: they live in the four villages nearest the Terrace, as the kurtaš of the tablets
+    // were housed at Matezziš and the settlements around Pārsa (B), and walk up to the stair foot each morning)
+    { const first = this.gangs.length; let lodg = -1, lodged2 = 0;
+      const near = Object.values(this.quarters).filter(q => q.kind === 'village').sort((a, b) => Math.hypot(a.xy[0] - TERRACE_XY[0], a.xy[1] - TERRACE_XY[1]) - Math.hypot(b.xy[0] - TERRACE_XY[0], b.xy[1] - TERRACE_XY[1]) || (a.id < b.id ? -1 : 1)).slice(0, 4).map(q => q.id);
+      for (let k = 0; k < 6; k++) { const id = first + k, kind = kinds[k % 3], g = this.group('gang', '', 'stair_foot', true, 'terrace'); const members: number[] = [];
+        for (let i = 0; i < 100; i++) { const r = new HStream(this.seed, salt('more-gangs'), id * 1000 + i);
+          const origin = kind === 'brick' ? (r.chance(0.5) ? 'Elamite' : 'Persian') : r.pick(origins), married = r.chance(0.65);
+          let hh: number;
+          if (married) hh = this.hh(r.pick(near), 'plain', origin === 'Persian');
+          else { if (lodg < 0 || lodged2 >= 10) { lodg = this.hh(r.pick(near), 'plain', false); lodged2 = 0; } hh = lodg; lodged2++; }
+          const pid = this.person({ sex: 'm', age: this.ageIn(r, 18, 50), job: 'builder', sub: kind, hh, origin, gang: id, squad: Math.floor(i / 10), rank: i === 0 ? 2 : i % 10 === 1 ? 1 : 0, work: 'hall100_site', single: !married });
+          this.join(g, pid, 0, i === 0); members.push(pid); this.builders.push(pid);
+          if (married) { const w = this.person({ sex: 'f', age: this.wifeAge(r, hh, 17, 40), job: 'homemaker', hh, origin }); this.join(famGroups[(i + k) % 3], w, 0.1); this.kids(hh, r, origin, famGroups[(i + k) % 3]); } }
+        this.gangs.push({ id, kind, chief: members[0], members }); this.groups[g].label = `the ${kind} gang of ${this.nameOf(members[0]) ?? 'an unnamed chief'}`; } }
     // ---------------- ties: kin households in the same quarter/village, a friend at work, a neighbour (C)
     const byQ = new Map<string, number[]>(); for (const h of this.households) if (h.zone === 'town' || h.zone === 'plain') (byQ.get(h.q) ?? byQ.set(h.q, []).get(h.q)!).push(h.id);
     for (const [, list] of byQ) for (let i = 0; i < list.length; i++) { const r = this.rng(-50000 - list[i]); const n = r.int(1, 3);

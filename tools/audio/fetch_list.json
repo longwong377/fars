@@ -108,7 +108,14 @@
   "studio",
   "apartment",
   "flat",
-  "birmingham"
+  "birmingham",
+  "pronunciation",
+  "lingua libre",
+  "ll q",
+  "en us",
+  "eng",
+  "spoken word",
+  "wiktionary"
  ],
  "items": [
   {
@@ -515,7 +522,10 @@
    "q": [
     "stone carving chisel hammer",
     "stonemason chisel",
-    "stone masonry work hammer chisel"
+    "stone masonry work hammer chisel",
+    "stonemason",
+    "stone mason workshop",
+    "stone carving"
    ],
    "note": "the masons at the Hall of 100 Columns: chisels and mallets on limestone, many hands, no machines",
    "reject": [
@@ -699,10 +709,17 @@
    "max": 1.5,
    "q": [
     "chisel stone hit",
-    "stone chisel hammer"
+    "stone chisel hammer",
+    "hammer chisel",
+    "chiseling",
+    "chisel"
    ],
    "note": "an iron chisel struck into limestone",
-   "reject": [],
+   "reject": [
+    "power",
+    "electric",
+    "door"
+   ],
    "split": true
   },
   {
@@ -768,10 +785,29 @@
    "max": 1.5,
    "q": [
     "loom weaving wooden",
-    "weaving loom beater"
+    "weaving loom beater",
+    "hand loom",
+    "wooden loom",
+    "navette",
+    "loom"
    ],
    "note": "the weaver's sword beating the weft",
-   "reject": [],
+   "reject": [
+    "machine",
+    "weefmachine",
+    "spinning",
+    "metal",
+    "impact",
+    "looming",
+    "crows",
+    "forest",
+    "powerloom",
+    "mill",
+    "ambience",
+    "window",
+    "night",
+    "nighttime"
+   ],
    "split": true
   },
   {
@@ -781,10 +817,22 @@
    "max": 1.5,
    "q": [
     "trowel plaster",
-    "trowel scrape mortar"
+    "trowel scrape mortar",
+    "trowel",
+    "trowel scraping",
+    "plastering trowel"
    ],
    "note": "a trowel tapping and smoothing plaster",
-   "reject": [],
+   "reject": [
+    "roller",
+    "paint",
+    "matchbox",
+    "notched",
+    "sand",
+    "soil",
+    "digging",
+    "dig"
+   ],
    "split": true
   },
   {
@@ -1098,13 +1146,27 @@
    "max": 1.5,
    "q": [
     "bow drill",
-    "hand drill stone"
+    "hand drill stone",
+    "hand drill",
+    "fire drill wood",
+    "drilling by hand"
    ],
    "note": "the seal cutter's bow drill",
    "reject": [
     "electric",
     "power",
-    "cordless"
+    "cordless",
+    "ice",
+    "splash",
+    "massive",
+    "mayhem",
+    "martial",
+    "army",
+    "marine",
+    "military",
+    "bugle",
+    "corps",
+    "call"
    ],
    "split": true
   },
@@ -1319,13 +1381,21 @@
    "max": 10,
    "q": [
     "chukar partridge call",
-    "chukar"
+    "chukar",
+    "partridge",
+    "alectoris",
+    "partridge call"
    ],
    "note": "chukars calling",
    "reject": [
     "captive",
     "zoo",
-    "cage"
+    "cage",
+    "caged",
+    "pear",
+    "fire",
+    "cracking",
+    "christmas"
    ],
    "split": true
   },

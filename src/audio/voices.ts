@@ -144,7 +144,7 @@ interface Group { busyUntil: number; nextAt: number; speaker: string | null; tur
 export type SpokenLang = LangId | 'wordless' | `tg:${string}`;
 export interface Uttered { key: string; kind: 'voice' | 'bed'; t0: number; t1: number; unit: string; lang: SpokenLang; src: AudioBufferSourceNode; pan: PannerNode; buf: AudioBuffer; voice: VoiceParams }
 /** what the translation layer may show for an utterance heard near (out of world; T-K3c) */
-export interface Caption { key: string; unit: string; lang: SpokenLang; translit: string; gloss: string; tier: string; t0: number; t1: number }
+export interface Caption { /** D-720: a tongue's speech has `tongue` (tongues.ts) and lang 'wordless' (no lexicon) */ tongue?: string; key: string; unit: string; lang: LangId | 'wordless'; translit: string; gloss: string; tier: string; t0: number; t1: number }
 
 export interface VoicesOptions { seed?: number; clearR?: number; bedR?: number; maxVoices?: number; hrtfN?: number; bedStreams?: number; level?: number; bedLevel?: number; renderBudget?: number; renderMs?: number; sampleRate?: number }
 
@@ -155,7 +155,8 @@ export class PopulationVoices {
   private slots = new Map<string, Slot>(); private groups = new Map<string, Group>();
   private bedNext: number[] = []; private recentAll = new Map<string, number>();
   /** who speaks now (context time): the crowd moves their jaw from `from` to `to` (world.ts) */
-  readonly speaking = new Map<string, { from: number; to: number }>();
+  /** who is speaking now (audio clock), and D-720 (C14's visemes, D-790): the words being said (their IPA and transliteration) */
+  readonly speaking = new Map<string, { from: number; to: number; ipa?: string; text?: string }>();
   /** the talkers voiced this update (individually or by the bed): the crowd lets only the voice move their jaw */
   readonly claimed = new Set<string>();
   /** when set, every utterance and grain started is appended (the offline measurement) */
@@ -257,9 +258,9 @@ export class PopulationVoices {
     g.connect(pan); e.route(pan, 'voices', t0 + dur); src.start(t0); src.stop(t0 + dur + 0.01);
     s.n++; for (const id of [tune.id, ...tune.parts]) s.recent.set(id, now); this.recentAll.set(`${lang}|${tune.id}`, now);
     if (s.recent.size > 64) for (const [k, t] of s.recent) if (t < now - 61) s.recent.delete(k);
-    this.speaking.set(s.key, { from: t0, to: t0 + dur }); s.busyUntil = t0 + dur; s.spoke = t0 + dur; this.stats.utterances++;
+    this.speaking.set(s.key, { from: t0, to: t0 + dur, ipa: tune.ipa, text: tune.translit || tune.gloss }); s.busyUntil = t0 + dur; s.spoke = t0 + dur; this.stats.utterances++;
     const L: SpokenLang = tune.kind === 'wordless' ? 'wordless' : lang ?? (tune.id.startsWith('tg:') ? `tg:${tune.id.split(':')[1]}` : 'wordless'); this.log?.push({ key: s.key, kind, t0, t1: t0 + dur, unit: tune.id, lang: L, src, pan, buf, voice: s.voice });
-    if (this.onCaption && d <= this.captionR) this.onCaption({ key: s.key, unit: tune.id, lang: L, translit: tune.translit, gloss: tune.gloss, tier: tune.tier, t0, t1: t0 + dur });
+    if (this.onCaption && d <= this.captionR) this.onCaption({ key: s.key, unit: tune.id, lang: L.startsWith('tg:') ? 'wordless' : L as LangId | 'wordless', ...(L.startsWith('tg:') ? { tongue: L.slice(3) } : {}), translit: tune.translit, gloss: tune.gloss, tier: tune.tier, t0, t1: t0 + dur });
     return t0 + dur;
   }
   /** Call once a frame with everyone the crowd places near the listener. `hold(key)`: a person speaking a scripted line

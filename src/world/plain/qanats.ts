@@ -51,7 +51,10 @@ export function qanatLines(terrain: Terrain, rivers: RiverProfile[], villages: {
       e = e1; n = n1; dx = nx; dy = ny; L += QANAT.step; pts.push([e, n]);
       if (g < 0.006) { flat += QANAT.step; if (flat > 600) break; }
     }
-    if (L < QANAT.len[0]) continue;
+    // the gallery falls all the way: the line ends at its lowest ground (the outlet), and its head stands >= 3 m above it
+    let lo = 0; for (let i = 1; i < pts.length; i++) if (asl(pts[i][0], pts[i][1]) < asl(pts[lo][0], pts[lo][1])) lo = i;
+    pts.length = lo + 1; L = lo * QANAT.step;
+    if (L < QANAT.len[0] || asl(e0, n0) - asl(pts[lo][0], pts[lo][1]) < 3) continue;
     // shafts: 20-45 m apart, closer toward the foot (C); mounds larger upslope (deeper shafts)
     const shafts: Shaft[] = []; let s = 0, next = 0;
     for (let i = 1; i < pts.length; i++) { const seg = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);

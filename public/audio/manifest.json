@@ -596,6 +596,18 @@
      "author": "PLukx",
      "url": "https://freesound.org/people/PLukx/sounds/256125/"
     }
+   ],
+   "worksite": [
+    {
+     "file": "beds/worksite_0.ogg",
+     "dur": 119.99,
+     "bytes": 673083,
+     "lufs": -23,
+     "src": "freesound:274763",
+     "licence": "CC BY",
+     "author": "Janaund",
+     "url": "https://freesound.org/people/Janaund/sounds/274763/"
+    }
    ]
   },
   "oneshots": {
@@ -1356,6 +1368,109 @@
      "url": "https://freesound.org/people/tuhinpaul/sounds/342838/"
     }
    ],
+   "chisel": [
+    {
+     "file": "oneshots/chisel_0_0.ogg",
+     "dur": 0.75,
+     "bytes": 4057,
+     "src": "freesound:200803",
+     "licence": "CC0",
+     "author": "acostadelgado",
+     "url": "https://freesound.org/people/acostadelgado/sounds/200803/"
+    },
+    {
+     "file": "oneshots/chisel_0_1.ogg",
+     "dur": 0.6,
+     "bytes": 3133,
+     "src": "freesound:200803",
+     "licence": "CC0",
+     "author": "acostadelgado",
+     "url": "https://freesound.org/people/acostadelgado/sounds/200803/"
+    },
+    {
+     "file": "oneshots/chisel_0_2.ogg",
+     "dur": 0.74,
+     "bytes": 4145,
+     "src": "freesound:200803",
+     "licence": "CC0",
+     "author": "acostadelgado",
+     "url": "https://freesound.org/people/acostadelgado/sounds/200803/"
+    },
+    {
+     "file": "oneshots/chisel_1_0.ogg",
+     "dur": 0.17,
+     "bytes": 946,
+     "src": "freesound:461441",
+     "licence": "CC0",
+     "author": "15HPanskaSuchopar_Jakub",
+     "url": "https://freesound.org/people/15HPanskaSuchopar_Jakub/sounds/461441/"
+    },
+    {
+     "file": "oneshots/chisel_1_1.ogg",
+     "dur": 0.18,
+     "bytes": 996,
+     "src": "freesound:461441",
+     "licence": "CC0",
+     "author": "15HPanskaSuchopar_Jakub",
+     "url": "https://freesound.org/people/15HPanskaSuchopar_Jakub/sounds/461441/"
+    },
+    {
+     "file": "oneshots/chisel_1_2.ogg",
+     "dur": 0.17,
+     "bytes": 924,
+     "src": "freesound:461441",
+     "licence": "CC0",
+     "author": "15HPanskaSuchopar_Jakub",
+     "url": "https://freesound.org/people/15HPanskaSuchopar_Jakub/sounds/461441/"
+    }
+   ],
+   "chukar": [
+    {
+     "file": "oneshots/chukar_0_0.ogg",
+     "dur": 0.65,
+     "bytes": 3615,
+     "src": "commons:File:Snow Partridge.ogg",
+     "licence": "CC0",
+     "author": "hi user somesh tripathi",
+     "url": "https://commons.wikimedia.org/wiki/File:Snow_Partridge.ogg"
+    },
+    {
+     "file": "oneshots/chukar_0_1.ogg",
+     "dur": 0.61,
+     "bytes": 3439,
+     "src": "commons:File:Snow Partridge.ogg",
+     "licence": "CC0",
+     "author": "hi user somesh tripathi",
+     "url": "https://commons.wikimedia.org/wiki/File:Snow_Partridge.ogg"
+    },
+    {
+     "file": "oneshots/chukar_0_2.ogg",
+     "dur": 0.61,
+     "bytes": 3373,
+     "src": "commons:File:Snow Partridge.ogg",
+     "licence": "CC0",
+     "author": "hi user somesh tripathi",
+     "url": "https://commons.wikimedia.org/wiki/File:Snow_Partridge.ogg"
+    },
+    {
+     "file": "oneshots/chukar_1_0.ogg",
+     "dur": 0.22,
+     "bytes": 1264,
+     "src": "freesound:27809",
+     "licence": "CC BY",
+     "author": "dobroide",
+     "url": "https://freesound.org/people/dobroide/sounds/27809/"
+    },
+    {
+     "file": "oneshots/chukar_1_1.ogg",
+     "dur": 0.29,
+     "bytes": 1684,
+     "src": "freesound:27809",
+     "licence": "CC BY",
+     "author": "dobroide",
+     "url": "https://freesound.org/people/dobroide/sounds/27809/"
+    }
+   ],
    "cicadas": [
     {
      "file": "oneshots/cicadas_1_0.ogg",
@@ -1909,6 +2024,62 @@
      "licence": "CC0",
      "author": "elliott.klein",
      "url": "https://freesound.org/people/elliott.klein/sounds/367221/"
+    }
+   ],
+   "drill": [
+    {
+     "file": "oneshots/drill_0_0.ogg",
+     "dur": 0.23,
+     "bytes": 1336,
+     "src": "freesound:523271",
+     "licence": "CC0",
+     "author": "MrFossy",
+     "url": "https://freesound.org/people/MrFossy/sounds/523271/"
+    },
+    {
+     "file": "oneshots/drill_0_1.ogg",
+     "dur": 0.18,
+     "bytes": 983,
+     "src": "freesound:523271",
+     "licence": "CC0",
+     "author": "MrFossy",
+     "url": "https://freesound.org/people/MrFossy/sounds/523271/"
+    },
+    {
+     "file": "oneshots/drill_0_2.ogg",
+     "dur": 0.21,
+     "bytes": 1199,
+     "src": "freesound:523271",
+     "licence": "CC0",
+     "author": "MrFossy",
+     "url": "https://freesound.org/people/MrFossy/sounds/523271/"
+    },
+    {
+     "file": "oneshots/drill_1_0.ogg",
+     "dur": 0.24,
+     "bytes": 1308,
+     "src": "freesound:523270",
+     "licence": "CC0",
+     "author": "MrFossy",
+     "url": "https://freesound.org/people/MrFossy/sounds/523270/"
+    },
+    {
+     "file": "oneshots/drill_1_1.ogg",
+     "dur": 0.23,
+     "bytes": 1296,
+     "src": "freesound:523270",
+     "licence": "CC0",
+     "author": "MrFossy",
+     "url": "https://freesound.org/people/MrFossy/sounds/523270/"
+    },
+    {
+     "file": "oneshots/drill_1_2.ogg",
+     "dur": 0.21,
+     "bytes": 1123,
+     "src": "freesound:523270",
+     "licence": "CC0",
+     "author": "MrFossy",
+     "url": "https://freesound.org/people/MrFossy/sounds/523270/"
     }
    ],
    "fire_pop": [
@@ -2572,6 +2743,62 @@
      "licence": "CC0",
      "author": "danjuma anthony",
      "url": "https://commons.wikimedia.org/wiki/File:Kcg-a%CC%B1nywan_(little_owl).ogg"
+    }
+   ],
+   "loom": [
+    {
+     "file": "oneshots/loom_0_0.ogg",
+     "dur": 0.34,
+     "bytes": 1865,
+     "src": "freesound:510266",
+     "licence": "CC0",
+     "author": "Naïma",
+     "url": "https://freesound.org/people/Na%C3%AFma/sounds/510266/"
+    },
+    {
+     "file": "oneshots/loom_0_1.ogg",
+     "dur": 0.32,
+     "bytes": 1736,
+     "src": "freesound:510266",
+     "licence": "CC0",
+     "author": "Naïma",
+     "url": "https://freesound.org/people/Na%C3%AFma/sounds/510266/"
+    },
+    {
+     "file": "oneshots/loom_0_2.ogg",
+     "dur": 0.17,
+     "bytes": 990,
+     "src": "freesound:510266",
+     "licence": "CC0",
+     "author": "Naïma",
+     "url": "https://freesound.org/people/Na%C3%AFma/sounds/510266/"
+    },
+    {
+     "file": "oneshots/loom_1_0.ogg",
+     "dur": 0.85,
+     "bytes": 4258,
+     "src": "freesound:582994",
+     "licence": "CC0",
+     "author": "snapcam",
+     "url": "https://freesound.org/people/snapcam/sounds/582994/"
+    },
+    {
+     "file": "oneshots/loom_1_1.ogg",
+     "dur": 0.4,
+     "bytes": 2269,
+     "src": "freesound:582994",
+     "licence": "CC0",
+     "author": "snapcam",
+     "url": "https://freesound.org/people/snapcam/sounds/582994/"
+    },
+    {
+     "file": "oneshots/loom_1_2.ogg",
+     "dur": 0.42,
+     "bytes": 2380,
+     "src": "freesound:582994",
+     "licence": "CC0",
+     "author": "snapcam",
+     "url": "https://freesound.org/people/snapcam/sounds/582994/"
     }
    ],
    "low": [
@@ -3512,6 +3739,44 @@
      "licence": "CC0",
      "author": "raoul_slayer",
      "url": "http://www.freesound.org/people/raoul_slayer/sounds/101296/"
+    }
+   ],
+   "trowel": [
+    {
+     "file": "oneshots/trowel_1_0.ogg",
+     "dur": 0.28,
+     "bytes": 1666,
+     "src": "freesound:831386",
+     "licence": "CC0",
+     "author": "Sheyvan",
+     "url": "https://freesound.org/people/Sheyvan/sounds/831386/"
+    },
+    {
+     "file": "oneshots/trowel_1_1.ogg",
+     "dur": 0.21,
+     "bytes": 1346,
+     "src": "freesound:831386",
+     "licence": "CC0",
+     "author": "Sheyvan",
+     "url": "https://freesound.org/people/Sheyvan/sounds/831386/"
+    },
+    {
+     "file": "oneshots/trowel_1_2.ogg",
+     "dur": 0.22,
+     "bytes": 1486,
+     "src": "freesound:831386",
+     "licence": "CC0",
+     "author": "Sheyvan",
+     "url": "https://freesound.org/people/Sheyvan/sounds/831386/"
+    },
+    {
+     "file": "oneshots/trowel_2_0.ogg",
+     "dur": 0.67,
+     "bytes": 3927,
+     "src": "freesound:554086",
+     "licence": "CC BY",
+     "author": "F.M.Audio",
+     "url": "https://freesound.org/people/F.M.Audio/sounds/554086/"
     }
    ],
    "wash": [

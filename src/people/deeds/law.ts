@@ -378,7 +378,9 @@ export class Law {
     const place = court === 'judges' ? 'official_bldg' : judge !== null ? `h:${P.home(judge, day)}` : 'official_bldg';
     const heard = court === 'judges' ? "before the king's judges" : 'before the elder of the quarter';
     for (const x of [c.accuser, c.accused]) if (typeof x === 'number' && P.present(x, day) && P.persons[x].dies > day)
-      this.p.lay(x, day, { t0: 8, t1: 9.5, place, act: 'queue', why: `${heard}: ${x === c.accused ? 'accused of' : 'bringing a charge of'} ${c.crime}`, where: place === 'official_bldg' ? 'town' : this.zoneOf(place) });
+      // (D-720: half an hour waiting to be heard, then the hearing itself: an hour and a half in a queue broke the day's rule)
+      for (const sg of [{ t0: 8, t1: 8.5, act: 'queue' as const, why: `waiting to be heard ${heard}` }, { t0: 8.5, t1: 9.5, act: 'talk' as const, why: `${heard}: ${x === c.accused ? 'accused of' : 'bringing a charge of'} ${c.crime}` }])
+        this.p.lay(x, day, { ...sg, place, where: place === 'official_bldg' ? 'town' : this.zoneOf(place) });
     if (c.accused === 'player' && this.stranger.held) this.stranger.held.until = day * 24 + 10;
     if (ev <= 0) { // not proved: dismissed; a wrong charge leaves the accused (if innocent) angry at the accuser
       c.ruled = 'dismissed'; c.why = `not proved ${heard}`;
