@@ -9841,3 +9841,10 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   356) and their cascades (merlon, dove) after the surface cut to 5. TEX_LIMIT checks 32 textures, but the limit is 16 samplers.
 - Checked (s17 02:44, one full-world dev page with ?shaderlog through gpu_slot, this branch with fire shadows off): 156 render
   pipelines over 18 min, no "samplers > 16", no BindGroupLayout and no writeMask validation error.
+
+## D-474 (s17, Vagon lead): s17-int goes to s14-int with a +9 s load
+- Built site, cold, T4, morning commit vs tonight: first frames 42.1 -> 50.6 s (world:fauna's town fill +4.2 s, C4's prefetch
+  +2-4 s, fire occlusion +2.6 s), but all shaders compiled 753 -> 181 s, memory 10.48 -> 9.7 GB, and the day's whole look
+  (light, surfaces, people, animals, Terrace, interiors). Holding every merge back for 9 s would ship none of it; the budget
+  baseline is NOT loosened (gates/budgets.json keeps the morning numbers), so the next merge has to win the 9 s back.
+- Fire shadow cube maps off (FIRE_SHADOW_LIGHTS 0): over the T4's 16 samplers the ground, hills and columns vanished.
