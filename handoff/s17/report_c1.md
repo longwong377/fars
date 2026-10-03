@@ -26,6 +26,11 @@
   q_s2-0181 fixed. **B580 open, 2 left:** of five houses shut in at pinched frontages (pre-existing), three reopened (doors
   with clear jambs, corners cut back to the lane, a door through the cut corner); q_s4-0074 and q_s4-0161 remain (measured in B580).
 
+- **Budget (C4):** no per-view draw budget exists in git; C4's working limit for a town lane view until a train measures it is
+  ~100 draws mean / ~120 max / ~150 k instanced triangles: the fill sits at it. The baked fill JSON was trimmed (rounded numbers:
+  town part 2.51 -> 1.54 MB; village walls every ~6 m), C4 measured the old units at 21-25 MB each.
+- **Frames:** s17-renders has one baseline frame (cov-000, the plain at night); no town frame yet.
+
 ## What a player now sees differently
 - Every lane wall has something at its foot every few metres: jars, pots, basins, stools, rolled and leaned reed mats, tall
   baskets, winnowing trays, tools leaned on the wall (hoe, broom, fork, staff), dung cakes drying, fuel, repair mud and bricks;
