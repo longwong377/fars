@@ -217,7 +217,7 @@ export function buildRivers(terrain: Terrain, rivers: RiverProfile[], canals: Ca
   const flowRel = pick(flowU, riR), speed = mix(flowRel.mul(0.9).add(0.3), float(0.25), isCanal);
   const sAlong = fl.x, across = ac.z.mul(width.mul(0.5));
   const T = vec3(fl.y, 0, fl.z), B = vec3(ac.x, 0, ac.y);
-  const rip = rippleNormal(sAlong, across, T, B, speed, mix(flowRel.mul(0.6).add(0.55), float(0.35), isCanal));
+  const rip = rippleNormal(sAlong, across, T, B, speed, mix(flowRel.mul(0.4).add(0.45), float(0.35), isCanal)); // D-670: the spring river 0.85, was 1.15
   const nW = rip.n;
   wm.normalNode = normalize(cameraViewMatrix.mul(vec4(nW, 0)).xyz);
   // the local water depth across the trapezoid (bed half-width, then the side slopes to the edge; C): deep and dark in

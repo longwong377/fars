@@ -58,7 +58,7 @@ import { roofEdges, wallFeet, type RoofEdges } from './roofedge';
 import { buildPieces } from './palacekit';
 import { paintedLevel, paintedModelMaterial } from './model_paint';
 /** D-276: parts that are colliders only: the round fittings world/furnish.ts draws (storage jars, querns) */
-export const COLLIDER_ONLY = new Set(['jar', 'quern']);
+export const COLLIDER_ONLY = new Set(['jar', 'quern', 'ramp']); // (D-754: the drums' ramp: stepped colliders, drawn as a smooth slope by drum_road.ts)
 const matCache = new Map<string, THREE.MeshStandardNodeMaterial>();
 /** flat greybox material (plan-overlay tests, tools); the world uses procedural surfaces (render/materials.ts) */
 export function flatMaterial(m: Material) {

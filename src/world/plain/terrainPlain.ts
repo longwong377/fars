@@ -383,10 +383,17 @@ export class PlainGround {
       const low = smoothstep(0.7, 0.76, mx_noise_float(positionWorld.mul(0.12)).mul(0.5).add(0.5)).mul(lvl).mul(float(1).sub(wetG)).mul(SEASON.dry.div(SEASON.green.add(SEASON.dry).max(0.001)));
       wildAlb = mix(wildAlb, soil0.mul(0.95).mul(det(G.cracked)), low.mul(0.9)); wildH = mix(wildH, G.cracked.h.mul(0.004), low.mul(0.9));
       { const gs = SEASON.green.div(SEASON.green.add(SEASON.dry).max(0.001)), amount = SEASON.green.add(SEASON.dry).min(1);
-        const q = p, dens = clamp(float(0.5).add(mx_noise_float(q.mul(0.04)).mul(0.3)).add(mx_noise_float(q.mul(0.15).add(5.1)).mul(0.18)), 0, 1);
+        // D-670 (the noon frame from the Terrace: the open ground before it one even sheet to 700 m): the range in patches of
+        // ~100-300 m, grazed down to the soil round the folds and the paths, thick where the flocks seldom go (C)
+        const q = p, range = mx_noise_float(q.mul(0.006).add(vec2(2.3, 8.1))).mul(0.7).add(mx_noise_float(q.mul(0.018).add(vec2(6.6, 1.4))).mul(0.3));
+        const dens = clamp(float(0.5).add(mx_noise_float(q.mul(0.04)).mul(0.3)).add(mx_noise_float(q.mul(0.15).add(5.1)).mul(0.18)).add(range.mul(0.45)), 0, 1);
         const hH = mix(G.straw.h, G.green.h, gs), cov = hblend(dens, hH).mul(amount).mul(float(1).sub(low)).mul(0.9);
         const veg = mix(lin(...SEASON_PALETTE.straw).mul(det(G.straw)), lin(...SEASON_PALETTE.green).mul(det(G.green)), gs); // (V5 D-522: season.ts)
-        wildAlb = mix(wildAlb, veg, cov); wildH = mix(wildH, hH.mul(0.012), cov); }
+        wildAlb = mix(wildAlb, veg, cov); wildH = mix(wildH, hH.mul(0.012), cov);
+        // and the dwarf-shrub steppe (Artemisia, B pollen, SAEIDI2021) in its own stands, grey-green and darker than the herbs
+        // at any season, ~150-400 m across with ragged edges (C)
+        const shrubS = smoothstep(0.15, 0.55, mx_noise_float(q.mul(0.004).add(vec2(4.4, 9.9))).add(mx_noise_float(q.mul(0.03).add(vec2(1.2, 3.3))).mul(0.2)));
+        wildAlb = mix(wildAlb, wildAlb.mul(vec3(0.72, 0.76, 0.7)), shrubS.mul(0.65).mul(float(1).sub(low))); }
       let alb: any = mix(groundLoaded() ? wildAlb : albIn, plotAlb, M);
       let hS: any = mix(groundLoaded() ? wildH : float(0), plotH, M);
       // D-475 (s17 V8): macro variation of the uncultivated and trodden ground at 15-70 m (the 0-60 m ground read as one flat ochre

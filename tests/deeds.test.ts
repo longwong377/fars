@@ -109,6 +109,19 @@ describe('D-720 (C7\'s CI): the deeds\' save round trip', () => {
   }, 600_000);
 });
 
+describe('D-720 (the lead\'s ask): the asks and the rumours survive a save', () => {
+  it('saved, loaded and run on, the world goes the way the unbroken run goes: the asks, the rumours, the economy, the minds', async () => {
+    const { PeopleSim } = await import('../src/people/sim'); const { nav, envOf } = await import('./sim_fixture');
+    const A = new PeopleSim(1, nav(), envOf(1), { asks: true }); A.jumpTo(12 * 24 + 10);
+    const B = new PeopleSim(1, nav(), envOf(1), { asks: true }); B.load(JSON.parse(JSON.stringify(A.save())));
+    A.econTo(20); B.econTo(20);
+    const st = (S: InstanceType<typeof PeopleSim>) => { const R = S.asksWorld.rumours!, K = S.asksWorld.asks as any, E = S.econTo(20);
+      return JSON.stringify({ asks: K.asks.slice(-200), open: [...K.open], ru: R.rumours.length, tell: R.stats.tellings, ev: E.events.length, last: E.events.slice(-300),
+        hh: [...E.hh.values()].map(h => [h.grain, h.cash]), minds: S.deeds.minds.save(), goals: S.deeds.agency.save() }); };
+    const a = st(A); expect(st(B)).toBe(a); expect((A.asksWorld.asks as any).asks.length).toBeGreaterThan(100);
+  }, 900_000);
+});
+
 describe('D-720 (C7\'s determinism): a day reads the same however far the world has gone past it', () => {
   it('two fresh worlds: A runs to day 30 then reads day 10, B reads day 10: the same plans for everyone the deeds laid a stretch on', async () => {
     const { PeopleSim } = await import('../src/people/sim'); const { nav, envOf } = await import('./sim_fixture');

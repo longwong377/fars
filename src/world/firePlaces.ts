@@ -4,7 +4,9 @@ import * as THREE from 'three/webgpu';
 import type { Doorway } from '../arch/parts';
 import { v } from '../arch/spec';
 import placesJson from '../data/people_places.json';
-import { fireLight, type FireKind, type FireSchedule } from './fire';
+import { fireLight, FIRE_DAY, nightOf, type FireKind, type FireSchedule } from './fire';
+import { inResidence, isBanquetNight } from '../people/ceremony';
+import { COURT_NIGHT_FIRES } from '../people/court';
 import { ROOM } from './settlement/site';
 
 /** what placeFires needs of a fire system */
@@ -23,7 +25,7 @@ export function apadanaTorches(m: any, doorways: Doorway[]): [number, number, nu
   return out;
 }
 /** Fire placements for the vertical slice (all C: fires/lamps are attested in general, positions are reconstruction). */
-export function placeFires(fire: FireSink, m: any, parts: any[], doorways: Doorway[] = []) {
+export function placeFires(fire: FireSink, m: any, parts: any[], doorways: Doorway[] = [], occasional = true) {
   const C = { tier: 'C', src: 'RECON', note: 'fire placement reconstructed (C)' };
   // Gate of All Nations: torches on the inner faces either side of each doorway
   const gfl = parts.find((p: any) => p.building === 'gate_nations' && p.kind === 'floor');
@@ -62,13 +64,46 @@ export function placeFires(fire: FireSink, m: any, parts: any[], doorways: Doorw
   const SR = (m.treasury as any)?.scribesRoom as number[] | undefined, SH = (m.treasury as any)?.scribesShelves as number[][] | undefined;
   if (SR) { const L = v<any>('treasury', 'r_scribes_room'), nb = SH?.find(([, , sx, sy]) => sx > sy), top = nb ? nb[4] : SR[4] + L.bench.height;
     fire.add('lamp', gw(L.lamp.at[0], L.lamp.at[1], top + 0.02), { ...C, sched: 'day', body: false, note: 'the scribes\' saucer lamp, lit while they work in the dim room (C)' }); }
+  if (occasional) for (const o of occasionalFires(m, doorways)) fire.add(o.kind, gw(o.at[0], o.at[1], o.at[2]), o.meta);
+}
+
+/** D-680 (the night Terrace and the banquet hall drew unlit): the fires that burn on some nights only, all C (fires and lamps
+ *  in the palaces are attested in general; places and nights reconstructed):
+ *   - a brazier by each night-watch line of the court (people/court.ts COURT_NIGHT_FIRES) on the court's residence nights;
+ *   - the Apadana on a banquet night (people/ceremony.ts isBanquetNight): braziers in two rings among the columns of the
+ *     hall, its floor a sea of warm light under the dark ceiling;
+ *   - on the court's nights, a torch in each jamb of the doorways of the halls the court uses, so the porticoes and doors read
+ *     lit across the Terrace.
+ *  Kept out of the fixed list (terraceFireLights) and given to the occlusion bake as banquetFireLights */
+export function occasionalFires(m: any, doorways: Doorway[] = []): { kind: FireKind; at: [number, number, number]; meta: Parameters<FireSink['add']>[2] }[] {
+  const out: ReturnType<typeof occasionalFires> = [], D = FIRE_DAY;
+  const court = () => D.day < 0 || inResidence(D.seed, nightOf(D.day, D.hour));
+  const banquet = () => D.day >= 0 && isBanquetNight(D.seed, nightOf(D.day, D.hour));
+  const hd = (m.hadish as any)?.room as number[] | undefined;
+  // (the floor under each: the court datum, the Tripylon's raised court 2.6 m (traced), the Hadish court its floor)
+  const floorOf = (line: string) => line === 'cg_hadish' && hd ? hd[4] : line === 'cg_tripylon' ? 2.6 : 0;
+  for (const f of COURT_NIGHT_FIRES) out.push({ kind: 'brazier', at: [f.at[0], f.at[1], floorOf(f.line)], meta: { tier: 'C', src: 'RECON', note: `${f.what} (C; lit on the court's residence nights, D-680)`, stands: court } });
+  const a = m.apadana; if (a) { const [cx, cy] = a.hallCentre, hs = a.hallInterior, pod = a.podium;
+    // (between the columns: the hall's 6 x 6 grid is ~8.7 m on centre, so rings at a quarter and two fifths of the hall)
+    for (const [r, k] of [[hs * 0.22, 6], [hs * 0.4, 10]] as const) for (let i = 0; i < k; i++) { const t = (2 * Math.PI * (i + 0.5)) / k;
+      out.push({ kind: 'brazier', at: [cx + r * Math.cos(t), cy + r * Math.sin(t), pod], meta: { tier: 'C', src: 'RECON', note: 'a banquet brazier in the Apadana hall (C; lit on banquet nights, D-680)', stands: banquet } }); } }
+  // (real doors only: framed or the Gate's, at least 4 m high; the Tachara's low inner doors, windows and niches are not; the
+  // torch 0.4 m in from a framed jamb, clear of the frame)
+  for (const d of doorways) { if (!['gate_nations', 'apadana', 'tachara', 'hadish', 'tripylon', 'hall100'].includes(d.building) || d.height < 4) continue;
+    for (const s of [-1, 1]) { const off = d.width / 2 - ((d as any).framed ? 0.4 : 0.15);
+      out.push({ kind: 'torch', at: [d.c[0] + d.u[0] * s * off, d.c[1] + d.u[1] * s * off, (d.y0 ?? 0) + 2.1], meta: { tier: 'C', src: 'RECON', note: `a torch in the ${d.building} ${d.door ?? ''} doorway (C; the court's nights, D-680)`, stands: court } }); } }
+  return out;
+}
+/** the occasional fires' point lights for the occlusion bake (tools/build_fire_occ.ts), the shape of terraceFireLights */
+export function banquetFireLights(m: any, _parts: any[], doorways: Doorway[] = []): { kind: FireKind; pos: [number, number, number] }[] {
+  return occasionalFires(m, doorways).map(o => { const L = fireLight(o.kind); return { kind: o.kind, pos: [o.at[0], o.at[2] + L.height, -o.at[1]].map(v => Math.round(v * 1000) / 1000) as [number, number, number] }; });
 }
 
 /** where the Terrace fires' point lights stand (world x, y, z, mm-rounded) as FireSystem.update puts them: the fire's base
  *  + LIFT (FireSystem.add), then the light model's height (fireLight) — the fire-light occlusion bake's list (D-222) */
 export function terraceFireLights(m: any, parts: any[], doorways: Doorway[] = []): { kind: FireKind; pos: [number, number, number] }[] {
   const out: { kind: FireKind; pos: [number, number, number] }[] = [];
-  placeFires({ add(kind, base) { const L = fireLight(kind); out.push({ kind, pos: [base.x, base.y + L.height, base.z].map(v => Math.round(v * 1000) / 1000) as [number, number, number] }); } }, m, parts, doorways);
+  placeFires({ add(kind, base) { const L = fireLight(kind); out.push({ kind, pos: [base.x, base.y + L.height, base.z].map(v => Math.round(v * 1000) / 1000) as [number, number, number] }); } }, m, parts, doorways, false);
   return out;
 }
 

@@ -50,20 +50,22 @@ const MUD: RGB = [0.56, 0.47, 0.36];
 const sh = (c: RGB, k: number): RGB => [c[0] * k, c[1] * k, c[2] * k];
 const mixc = (a: RGB, b: RGB, t: number): RGB => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
 /** s18 C15 (D-800): the household's wash on the far level, the same draw as the near level's (settlement/houses.ts washOf, C2's
- *  D-661: gypsum and lime whites, yellow and red ochre earths, most of the poor the bare mud; the lane face's thinner coat, fading
+ *  D-661/D-668: gypsum and lime whites, cream, yellow ochre, pink and red ochre earths, bare mud only for the poorest; the lane face's thinner coat, fading
  *  in the months since the house was last plastered), so a village reads from afar as the patchwork of white, ochre and mud it
  *  is near, not as one buff mass. The values are houses.ts's (kept equal by tests/villages_life.test.ts) */
-export const WASH_VILLAGE = { white: [[0.86, 0.83, 0.76], [0.82, 0.8, 0.74], [0.88, 0.84, 0.75]] as RGB[], ochre: [[0.78, 0.62, 0.38], [0.74, 0.6, 0.4], [0.8, 0.66, 0.44]] as RGB[], red: [[0.66, 0.4, 0.28], [0.6, 0.36, 0.26], [0.7, 0.46, 0.33]] as RGB[] };
+export const WASH_VILLAGE = { white: [[0.9, 0.88, 0.82], [0.86, 0.84, 0.78], [0.92, 0.89, 0.8]] as RGB[], ochre: [[0.82, 0.62, 0.32], [0.78, 0.58, 0.32], [0.84, 0.68, 0.4]] as RGB[], red: [[0.66, 0.4, 0.28], [0.6, 0.36, 0.26], [0.7, 0.46, 0.33]] as RGB[], cream: [[0.9, 0.82, 0.64], [0.87, 0.78, 0.58]] as RGB[], pink: [[0.86, 0.64, 0.56], [0.82, 0.58, 0.5]] as RGB[] };
+/** a house's wash (houses.ts washOf for the house kinds, D-668: white 34-58 % by standing, cream, yellow ochre, pink, red ochre;
+ *  bare mud only for the poorest) */
 export function villageWash(id: string, standing: number): { c: RGB; k: number } | null {
-  const h = (hashString(`${id}:wash`) % 100000) / 100000, h2 = (hashString(`${id}:wash2`) % 1000) / 1000, W = WASH_VILLAGE, st = standing;
-  const pW = 0.12 + 0.4 * st, pO = 0.1 + 0.08 * st, pR = 0.04 + 0.06 * st;
-  return h < pW ? { c: lin(W.white[Math.floor(h2 * W.white.length)]), k: 0.7 + 0.25 * h2 } : h < pW + pO ? { c: lin(W.ochre[Math.floor(h2 * W.ochre.length)]), k: 0.55 + 0.3 * h2 } : h < pW + pO + pR ? { c: lin(W.red[Math.floor(h2 * W.red.length)]), k: 0.45 + 0.3 * h2 } : null;
+  const h = (hashString(`${id}:wash`) % 100000) / 100000, h2 = (hashString(`${id}:wash2`) % 1000) / 1000, W = WASH_VILLAGE, st = standing, pick = (a: RGB[]) => lin(a[Math.floor(h2 * a.length)]);
+  const pW = 0.34 + 0.24 * st, pC = 0.16, pO = 0.14, pP = 0.07, pR = st < 0.2 ? 0.04 : 1;
+  return h < pW ? { c: pick(W.white), k: 0.9 + 0.1 * h2 } : h < pW + pC ? { c: pick(W.cream), k: 0.9 + 0.1 * h2 } : h < pW + pC + pO ? { c: pick(W.ochre), k: 0.88 + 0.1 * h2 } : h < pW + pC + pO + pP ? { c: pick(W.pink), k: 0.85 + 0.1 * h2 } : h < pW + pC + pO + pP + pR ? { c: pick(W.red), k: 0.85 + 0.1 * h2 } : null;
 }
-/** the lane face's tone of a compound on the far level (houses.ts tone(plot, 0, false)) */
+/** the lane face's tone of a compound on the far level (houses.ts tone(plot, 0, false) and washF) */
 function farTone(id: string, L: { standing: number; sincePlaster: number }, c: RGB): RGB {
   const fresh = Math.max(0, 1 - L.sincePlaster / 18), k = (0.96 + 0.05 * (1 - fresh)) * 0.99;
   const m: RGB = [c[0] * k * (1 + 0.02 * fresh), c[1] * k, c[2] * k * (1 - 0.03 * fresh)], W = villageWash(id, L.standing);
-  return W ? mixc(m, W.c, W.k * 0.62 * (0.55 + 0.45 * Math.max(0, 1 - L.sincePlaster / 30))) : m;
+  return W ? mixc(m, W.c, Math.min(1, W.k * 0.95 * (0.88 + 0.12 * Math.max(0, 1 - L.sincePlaster / 30)))) : m;
 }
 /** s18 C15 (D-800): the cloths a household lays to dry over its range's eave (dyes of the period: madder red, woad blue, weld
  *  yellow, undyed and brown wool: C); sRGB */
@@ -179,6 +181,14 @@ export class VillageHouses {
     const [lu, lv] = [c.x, c.y]; void fr;
     b.set('tileId', tile + 1).set('ao', 1);
     const ca = Math.cos(c.angle), sa = Math.sin(c.angle);
+    // s18 C15 (D-800): the compound's trodden earth (its yard and pen, swept and stamped; the plain's grass ended at the walls,
+    // the yards read as lawns): two triangles 4 cm over the ground at its corners, in tile 0 (never collapsed: drawn with the near level
+    // too, which draws no yard floor), the pen darker with dung (C)
+    if (id) { const Hh = this.H, P = (u: number, v: number) => { const e = lu + u * ca - v * sa, n = lv + u * sa + v * ca; return [e, Hh(e, n) + 0.04, -n]; };
+      const k = 0.94 + 0.1 * hi(c.seed, 41), tc = lin([0.56 * k, 0.49 * k, 0.39 * k]), mc = P(0, 0), q = [P(-W, -D), P(W, -D), P(W, D), P(-W, D)];
+      b.set('tileId', 0).set('y0', -1000).set('ytop', 1e4).set('ao', 1);
+      b.poly(q, [0, 1, 0], tc, own); void mc;
+      b.set('tileId', tile + 1); }
     const box = (u0: number, v0: number, u1: number, v1: number, top: number, cc: RGB, o: number) => { if (u1 - u0 < 0.01 || v1 - v0 < 0.01) return; const mu = (u0 + u1) / 2, mv = (v0 + v1) / 2;
       b.set('y0', base).set('ytop', top); b.box(lu + mu * ca - mv * sa, lv + mu * sa + mv * ca, c.angle, (u1 - u0) / 2, (v1 - v0) / 2, y0, top, sh(cc, 0.82), cc, o); };
     const main = c.rooms.filter(r => Math.abs(r.v1 - D) < 1e-6), rv0 = Math.min(...main.map(r => r.v0));
@@ -221,9 +231,9 @@ export class VillageHouses {
     // s18 C15 (D-800): the roofs in use: a stack of straw and fodder on the main range (45 %), brushwood for the oven on the
     // wing (30 %), as the region's flat roofs are used (C)
     if (id && hi(c.seed, 31) < 0.45) { const st = lin([0.78, 0.68, 0.45]), w = 1.2 + 0.8 * hi(c.seed, 32), uc = -W + 1.5 + w / 2 + (2 * W - 3 - w) * hi(c.seed, 33), vc = (rv0 + D) / 2;
-      b.set('y0', -1000).set('ytop', 1e4); const p = L(uc, vc, 0); b.box(p[0], -p[2], c.angle, w / 2, 0.6, roof, roof + 0.55 + 0.4 * hi(c.seed, 34), sh(st, 0.8), st, ownR, false, 31); }
+      b.set('y0', -1000).set('ytop', 1e4); const p = L(uc, vc, 0); b.box(p[0], -p[2], c.angle, w / 2, 0.6, roof, roof + 0.55 + 0.4 * hi(c.seed, 34), sh(st, 0.8), st, ownR, false, 1 | 8 | 16); } // (top and long faces)
     if (id && wing.length && hi(c.seed, 35) < 0.3) { const bw = lin([0.42, 0.36, 0.26]), r0 = wing[0], p = L((r0.u0 + r0.u1) / 2, (r0.v0 + r0.v1) / 2, 0);
-      b.set('y0', -1000).set('ytop', 1e4); b.box(p[0], -p[2], c.angle + 0.3, 0.7, 0.5, roof, roof + 0.45, sh(bw, 0.8), bw, ownR, false, 31); }
+      b.set('y0', -1000).set('ytop', 1e4); b.box(p[0], -p[2], c.angle + 0.3, 0.7, 0.5, roof, roof + 0.45, sh(bw, 0.8), bw, ownR, false, 1 | 8 | 16); }
     // the gateway: dark behind the opening (the leaf, when shut, stands in front of it)
     { const dk = sh(col, 0.1), y1 = base + 2.0; b.set('ao', 0.15); b.quad(L(g0, -D + t / 2 + 0.14, base - 0.3), L(g1, -D + t / 2 + 0.14, base - 0.3), L(g1, -D + t / 2 + 0.14, y1), L(g0, -D + t / 2 + 0.14, y1), N(0, -1), dk, dk, dk, dk, own); b.set('ao', 1); }
   }
@@ -232,9 +242,9 @@ export class VillageHouses {
     const b = cell.far, d = cell.desc.length; cell.desc.push({ tier: 'C', src: 'RECON', note: `the threshing floor of ${v.id}: a round floor of beaten earth and clay, ${THRESH_R * 2} m across, with a kerb of fieldstones, at the village's edge beyond its houses; the grain is trodden out by oxen or donkeys and winnowed in the wind (C; the region's threshing floors by analogy, RECOLLECTION, NOT SEEN; D-254)` });
     b.set('tileId', 0).set('y0', -1000).set('ytop', 1e4).set('ao', 1);
     b.mound(at[0], at[1], THRESH_R, 0.07, lin([0.6, 0.53, 0.42]), this.H, d * 32, 3, 18);
-    const stn = lin([0.52, 0.5, 0.45]), n = 26;
+    const stn = lin([0.52, 0.5, 0.45]), n = 12; // (s18 C15: 12 larger stones, was 26: the plain's triangle budget)
     for (let k = 0; k < n; k++) { const a = (k / n) * Math.PI * 2 + 0.05 * Math.sin(k * 7.1), e = at[0] + Math.cos(a) * (THRESH_R + 0.25), nn = at[1] + Math.sin(a) * (THRESH_R + 0.25), y = this.H(e, nn);
-      const r = 0.16 + 0.06 * Math.abs(Math.sin(k * 3.7)); b.box(e, nn, a + 0.3 * Math.sin(k), r * 1.3, r, y - 0.12, y + r * 0.9, sh(stn, 0.8), stn, d * 32); }
+      const r = 0.24 + 0.08 * Math.abs(Math.sin(k * 3.7)); b.box(e, nn, a + 0.3 * Math.sin(k), r * 1.3, r, y - 0.12, y + r * 0.9, sh(stn, 0.8), stn, d * 32); }
     this.info.floors++;
   }
 

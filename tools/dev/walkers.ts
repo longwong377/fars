@@ -37,7 +37,8 @@ type P2 = [number, number];
 const argv = process.argv.slice(2), flag = (k: string, d: number) => { const i = argv.indexOf(k); return i >= 0 ? +argv[i + 1] : d; };
 const ALL = ['terrace', 'approach', 'town', 'compounds', 'precinct', 'burial', 'ajori', 'roads', 'villages', 'fields', 'banks', 'mountain', 'naqsh', 'camps'];
 const want = !argv[0] || argv[0].startsWith('--') || argv[0] === 'all' ? ALL : argv[0].split(',');
-const N = flag('--targets', 200), SEED = flag('--seed', 1);
+const N = flag('--targets', 200), SEED = flag('--seed', 1), STUCK = argv.includes('--stuck');
+const stuckAt = new Map<string, { t: number; who: Map<string, number> }>();
 const HEAD = 'area | targets | reached | no route | stuck (time share) | hard stuck | fell | rescues | drops>1.5m | invisible walls | stopped by drawn | by a person/animal | by slope | through walls | bot min';
 let s = SEED * 7919 + 13; const rnd = () => ((s = (Math.imul(s, 1664525) + 1013904223) >>> 0) / 4294967296);
 
@@ -163,7 +164,11 @@ function runArea(A: Area): Res {
     if (pl.feetY < g - 0.3 && !R.examples.some(x => x.startsWith('fell'))) ex(`fell: feet ${(g - pl.feetY).toFixed(2)} m under the ground at (${q.x.toFixed(1)}, ${(-q.z).toFixed(1)})`);
     if (pl.feetY < g - 0.3) R.fell++;
     hist.push({ t: R.botT, x: q.x, z: -q.z }); while (hist.length && hist[0].t < R.botT - 3) hist.shift();
-    if (hist.length > 60 && Math.hypot(hist[0].x - q.x, hist[0].z + q.z) < 0.3) R.stuckT += DT;
+    if (hist.length > 60 && Math.hypot(hist[0].x - q.x, hist[0].z + q.z) < 0.3) { R.stuckT += DT;
+      // (s18 C5: where the stuck time is spent, and who stands within 1.5 m then; printed with --stuck)
+      if (STUCK) { const k = `${Math.round(q.x / 4) * 4},${Math.round(-q.z / 4) * 4}`, e = stuckAt.get(k) ?? { t: 0, who: new Map<string, number>() }; e.t += DT; stuckAt.set(k, e);
+        for (const a of W.sim?.agents ?? []) if (!a.offmap && Math.hypot(a.pos[0] - q.x, a.pos[1] + q.z) < 1.5) e.who.set(`agent ${(a as any).role}`, (e.who.get(`agent ${(a as any).role}`) ?? 0) + DT);
+        for (const v of W.view?.query([q.x, -q.z], 1.5) ?? []) if (v.agent < 0) { const kk = `passer-by ${v.moving ? 'walking' : v.act}${v.glance ? ' (making way)' : ''}`; e.who.set(kk, (e.who.get(kk) ?? 0) + DT); } } }
     // passable-where-solid in the town and villages: a raster move through a wall without a door
     const tw = A.router === 'village' ? vsite(A.vi!([q.x, -q.z])).walk : townWalk, l = tw.locate(q.x, -q.z);
     if (l) { const site = tw.boxes[l.si].s; if (lastCell && lastCell.site === site && lastCell.k !== l.k) { const k1 = lastCell.k, k2 = l.k, W0 = site.W, di = (k2 % W0) - (k1 % W0), dj = Math.floor(k2 / W0) - Math.floor(k1 / W0);
@@ -233,4 +238,5 @@ const all: Record<string, Res> = {};
 for (const id of want) { const A = AREAS[id]; if (!A) { console.log(`unknown area ${id}`); continue; } const t1 = Date.now(); const r = runArea(A); all[id] = r;
   console.log(row(id, r), `(${((Date.now() - t1) / 1000).toFixed(0)} s)`); for (const e of r.examples) console.log('   ', e);
   const jf = argv.indexOf('--json'); if (jf >= 0) writeFileSync(argv[jf + 1], JSON.stringify({ meta: { date: new Date().toISOString().slice(0, 10), seed: SEED, N }, areas: all }, null, 1)); }
+if (STUCK) { console.log('stuck time by 4 m cell (s), and who stood within 1.5 m (s):'); for (const [k, e] of [...stuckAt].sort((a, b) => b[1].t - a[1].t).slice(0, 15)) console.log(`  (${k}) ${e.t.toFixed(1)} s: ${[...e.who].sort((a, b) => b[1] - a[1]).slice(0, 4).map(([w, t]) => `${w} ${t.toFixed(1)}`).join(', ') || 'nobody'}`); }
 console.log(`(wall clock ${((Date.now() - t0) / 60000).toFixed(0)} min)`);
