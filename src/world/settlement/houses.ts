@@ -980,7 +980,7 @@ export class SiteHouses {
   /** s17 C1 (D-550): the roof's stores and work (houseplan.ts roof_jars, roof_drying, roof_line) as fill items at their absolute
    *  heights (fill.ts draws them instanced: the near tiles' triangle budget is the houses' own): jars of water and stores, dung
    *  cakes or washed wool spread to dry on a reed mat, a line of washing between two sticks (C) */
-  roofFill(): { m: string; e: number; n: number; y: number; dy: number; rot: number; s: [number, number, number]; col?: Record<string, RGB>; at: string; tilt?: number; day?: boolean }[] {
+  roofFill(): { m: string; e: number; n: number; y: number; dy: number; rot: number; s: [number, number, number]; col?: Record<string, RGB>; at: string; tilt?: number; day?: boolean; seas?: number }[] {
     const out: ReturnType<SiteHouses['roofFill']> = [], s = this.s, CL: RGB[] = [[0.8, 0.74, 0.62], [0.86, 0.82, 0.72], [0.58, 0.22, 0.16], [0.28, 0.32, 0.46], [0.72, 0.58, 0.3], [0.74, 0.68, 0.56]];
     const yaw = (a: number, u: number, v: number) => { const c0 = s.grid(u, v), c1 = s.grid(u + Math.cos(a), v + Math.sin(a)); return Math.atan2(c1[1] - c0[1], c1[0] - c0[0]); };
     const put = (m: string, u: number, v: number, y: number, rot: number, sc: [number, number, number], col?: Record<string, RGB>) => { const [e, n] = s.grid(u, v); out.push({ m, e, n, y, dy: 0, rot, s: sc, ...(col ? { col } : {}), at: 'roof' }); };
@@ -992,6 +992,24 @@ export class SiteHouses {
         if (alt % 3 === 2) { put('wo_fleece', sp.u, sp.v, sp.y + 0.01, r3 + 0.3, [1.6, 1, 1.5], { wool: CL[alt % 2], wool_d: CL[1] }); out[out.length - 1].day = true; } // (the wool taken in at dusk)
         else for (let k = 0; k < 3; k++) { const o = (k - 1) * 0.55; put('wo_dung_cakes', sp.u + ca * o, sp.v + sa * o, sp.y + 0.012, r3 + 1.4 + 0.5 * hi(f.plot, 70 + k), [0.9, 1, 0.9]); } }
       else { const L = Math.min(f.len, 2.6) / 3; put('fill_line', sp.u, sp.v, sp.y - 0.9, r3, [L, 1, 1], { cloth_a: CL[alt % CL.length], cloth_b: CL[(alt >> 2) % CL.length] }); out[out.length - 1].day = true; } }
+    // s18 C2 (D-670, C12 u6 and W21): every house's roof and court lived in through the year (C: the region's flat-roof life):
+    // in the warm months the household sleeps on the roof (mats and the bedding rolls on its largest room), at the harvest
+    // fruit dries there on a mat (apricots, grapes, pomegranates); in the court's far corner from the street door a heap of
+    // ash and sweepings waiting to be carried out, and a reed-mat screen leaned across the corner over the latrine pit
+    const FRUIT_DRY: RGB[] = [[0.82, 0.5, 0.16], [0.52, 0.2, 0.26], [0.62, 0.16, 0.12], [0.7, 0.58, 0.24]];
+    for (const P of s.plots) { if (!HOUSE_KINDS.has(P.kind) || P.kind === 'workshop' || P.idx === this.building) continue; const hh = (k: number) => hi(P.idx, this.si, 200 + k);
+      const big = this.rooms.filter(r => r.plot === P.idx && r.full && r.i1 - r.i0 >= 3 && r.j1 - r.j0 >= 3).sort((a, b) => (b.i1 - b.i0) * (b.j1 - b.j0) - (a.i1 - a.i0) * (a.j1 - a.j0))[0];
+      if (big) { const R = big.R - big.fall - 0.03, at = (fu: number, fv: number): [number, number] => [s.u0 + big.i0 + 0.8 + (big.i1 - big.i0 - 1.6) * fu, s.v0 + big.j0 + 0.8 + (big.j1 - big.j0 - 1.6) * fv], r0 = yaw(0, s.u0 + big.i0, s.v0 + big.j0);
+        if (hh(1) < 0.6) for (let k = 0; k < 1 + Math.floor(hh(2) * 2.5); k++) { const [u, v] = at(0.25 + 0.25 * k, 0.3 + 0.4 * hh(3 + k)); put('mat', u, v, R + 0.004, r0 + (hh(6 + k) - 0.5) * 0.3, [0.62, 1, 0.66]); out[out.length - 1].seas = 2;
+          put('roll', u, v + 0.25, R + 0.01, r0 + Math.PI / 2, [0.9, 0.9, 0.9], { textile: CL[Math.floor(hh(9 + k) * CL.length)] }); out[out.length - 1].seas = 2; }
+        if (hh(12) < 0.5) { const [u, v] = at(0.7, 0.7); put('mat', u, v, R + 0.004, r0 + 0.2, [0.9, 1, 0.92]); out[out.length - 1].seas = 1;
+          for (let k = 0; k < 3; k++) { const [fu, fv] = at(0.62 + 0.08 * k, 0.66 + 0.06 * (k % 2)); put('fill_produce', fu, fv, R + 0.012, r0 + k, [0.7, 0.7, 0.7], { fruit: FRUIT_DRY[Math.floor(hh(13 + k) * FRUIT_DRY.length)] }); out[out.length - 1].seas = 1; } } }
+      const court: number[] = []; const [i0, j0, i1, j1] = P.rect; for (let j = j0; j < j1; j++) for (let i = i0; i < i1; i++) { const k = s.k(i, j); if (s.cell[k] === P.idx && s.sub[k] === COURT) court.push(k); }
+      if (court.length >= 6 && P.door) { const dc = P.door.cell, di = dc % s.W, dj = (dc / s.W) | 0, walls = (k: number) => { const i = k % s.W, j = (k / s.W) | 0; let n = 0; for (const [a, b] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const q = s.inb(i + a, j + b) ? s.k(i + a, j + b) : -1; if (q < 0 || s.cell[q] !== P.idx || s.sub[q] !== COURT) n++; } return n; };
+        const corner = court.filter(k => walls(k) >= 2).sort((a, b) => Math.hypot((b % s.W) - di, ((b / s.W) | 0) - dj) - Math.hypot((a % s.W) - di, ((a / s.W) | 0) - dj))[0];
+        if (corner !== undefined) { const u = s.cu(corner % s.W), v = s.cv((corner / s.W) | 0), y = this.gl(u, v);
+          put('wo_spoil', u - 0.15, v + 0.15, y, hh(20) * 6.28, [0.7, 0.45, 0.7], { earth: [0.36, 0.33, 0.3] }); out[out.length - 1].at = 'court';
+          if (hh(21) < 0.7) { put('fill_matlean', u + 0.2, v - 0.2, y, yaw(Math.PI / 4, u, v), [0.8, 0.9, 0.8]); out[out.length - 1].at = 'court'; } } } }
     // s18 C2 (D-665): the house being built: scaffold poles along its long walls, brick stacks and the mud-mixing heap in its
     // open rooms, a brick mould, a water jar, the spoil of the footing trench (C: mud brick laid a few courses a day, moulded
     // and dried on the spot)
