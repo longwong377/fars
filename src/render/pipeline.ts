@@ -51,7 +51,9 @@ export const TONE_LOOK_ON = !(typeof location !== 'undefined' && new URLSearchPa
 
 export const GI_SCALE = Math.PI / 2;
 /** D-480: the night's white balance (toneLook warm; slightly cool, C) */
-export const NIGHT_WARM = -0.02;
+export const NIGHT_WARM = -0.05; // D-680: was -0.02: the night reads moonlit blue, the fires' pools warm by their own colour
+/** D-680: the night's saturation (x the look's), the dark-adapted eye's fading colour (C) */
+export const NIGHT_SAT = 0.75;
 /** D-480 (light v2): the toe lift added at night (toneLook lift: the dark-adapted eye reads shapes in starlight that a camera's
  *  curve crushes; C) */
 export const NIGHT_LIFT = 1.2;
@@ -82,7 +84,7 @@ export const SSS_MAX_DISTANCE = 1.0, SSS_THICKNESS = 0.12;
  *  the composite (a jar, a door jamb or a wall foot meeting the ground darkens its last decimetres); the lab measured the 0.6 m /
  *  6 cm contact rays stepping through walls (sss debug view all-white beside a sunlit plinth), so they reach 1 m with 12 cm
  *  samples. C */
-export const CONTACT_AO_POW = 1.8;
+export const CONTACT_AO_POW = 2.4; // D-680: was 1.8 (the reset: AO at every wall foot and corner reads)
 /** D-355: the screen-space passes' resolution (× the drawing buffer) per quality; TRAA resolves the upsampled result */
 export const POST_SCALE: Partial<Record<Quality, { ssgi: number; ssr: number; sss: number }>> = {
   high: { ssgi: 1, ssr: 1, sss: 1 },
@@ -411,7 +413,7 @@ export class Pipeline {
       // D-480: the grade follows the light: the warm white balance and the full split tone by day, fading through civil
       // twilight to a slightly cool, gently split night (moonlight and starlight are not graded amber)
       if (!(globalThis as any).__toneHold) { const y = this.sunDirW.value.y, t = Math.min(1, Math.max(0, (y + 0.1) / 0.15)), d = t * t * (3 - 2 * t);
-        TONE_U.warm.value = TONE_LOOK.warm * d + NIGHT_WARM * (1 - d); TONE_U.split.value = TONE_LOOK.split * (0.4 + 0.6 * d); TONE_U.lift.value = TONE_LOOK.lift + NIGHT_LIFT * GRADE.nightLift * (1 - d); }
+        TONE_U.warm.value = TONE_LOOK.warm * d + NIGHT_WARM * (1 - d); TONE_U.sat.value = TONE_LOOK.sat * (NIGHT_SAT + (1 - NIGHT_SAT) * d); TONE_U.split.value = TONE_LOOK.split * (0.4 + 0.6 * d); TONE_U.lift.value = TONE_LOOK.lift + NIGHT_LIFT * GRADE.nightLift * (1 - d); }
     }
     { const H = this.renderer.getDrawingBufferSize(new THREE.Vector2()).y || 540; this.pxAngle.value = 2 * Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2) / H; }
     this.env?.update(this.hemi); // the sky environment, re-captured when the sun or the light has changed (D-157)

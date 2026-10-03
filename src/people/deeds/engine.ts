@@ -13,7 +13,7 @@
 // Tier C throughout (DECISIONS D-459): the law's fines and the elder's hearing are reconstructed from the Achaemenid evidence of
 // royal judges and fines in silver (B for the institution, C for the amounts and the village elder's part).
 import type { Population, Seg, Where } from '../population';
-import { segAt, OPEN_PLACE, wetHours, coldWear, dustWear, FEED_SEG } from '../population';
+import { segAt, OPEN_PLACE, wetHours, coldWear, dustWear, FEED_SEG, backFromOk } from '../population';
 import type { Economy } from '../economy/world';
 import type { RumourNet } from '../asks/rumour';
 import type { ActivityId } from '../activities';
@@ -44,8 +44,9 @@ const VERB_ING: Partial<Record<string, string>> = { visit: 'visiting', help: 'he
 const cl = (x: number, lo = -1, hi = 1) => x < lo ? lo : x > hi ? hi : x;
 /** D-720: the days a day's laid stretches are kept after it (in the running world; a save keeps from the day before its own) */
 const LAYS_KEPT = 60;
-/** D-720: the deeds a save keeps ten days of (wrongs, courting, peace made): what a person would still tell of (the save's 600 KB) */
-const KEPT = new Set(['attack', 'steal', 'break', 'curse', 'accuse', 'threaten', 'insult', 'push', 'court', 'reconcile']);
+/** D-720: the deeds a save keeps ten days of (every wrong the law names, courting, peace made): what a person would still tell of,
+ *  and all the minds read back (goals.ts: a grudge's cause) (the save's 600 KB) */
+const KEPT = new Set<string>([...Object.entries(VERBS).filter(([, v]) => v.wrong).map(([k]) => k), 'court', 'reconcile']);
 const CHILD_HARM = new Set(['attack', 'push', 'steal', 'threaten', 'curse', 'break']);
 const ROMANCE = new Set(['flirt', 'court', 'embrace']);
 /** deeds the people near take note of and tell (a wrong, and words or touches that make talk); the rest need no witnesses
@@ -338,11 +339,12 @@ export class DeedWorld {
     const wx = P.cal?.ctx(day).wx; if (wx) { dustWear(mid, wx); coldWear(mid, wx); } // (dressed for the cold and the dust by their own hours, as the living world's errands)
     let out = base; for (const x of mid) out = cutIn(out, x);
     const body = kept.filter(x => !isWalk(x)).sort((p, q) => (q.t1 - q.t0) - (p.t1 - p.t0))[0];
-    return this.keepDay(base, out, { ...first, t0: first.t0, t1: last.t1 }, body);
+    return this.keepDay(pid, day, base, out, { ...first, t0: first.t0, t1: last.t1 }, body);
   }
   /** D-720 (C7's plan checks): the day's meals and a mother's nursing are kept where the person is, and a rest 'through the heat'
    *  cut short becomes a short rest */
-  private keepDay(base: Seg[], out: Seg[], s: Seg, body: Seg | undefined): Seg[] {
+  private keepDay(pid: number, day: number, base: Seg[], out: Seg[], s: Seg, body: Seg | undefined): Seg[] {
+    const P = this.w.pop;
     // (D-720, C7's meal gaps: the day's meals are kept: one the stretch covers is eaten where the person is, bread and water at
     // the work or the visit, for the meal's own length)
     // (and a mother keeps nursing her baby where she is, as her day had her nursing: planCheck's feeds)
@@ -351,7 +353,7 @@ export class DeedWorld {
     // (a meal the walks there or back covered is eaten at the stretch's nearest end)
     if (body) for (const m of base) { if (m.act !== 'eat' || m.t1 <= s.t0 || m.t0 >= s.t1) continue; const len = Math.max(0.3, Math.min(m.t1, s.t1) - Math.max(m.t0, s.t0)), room = body.t1 - body.t0 > len + 0.5 ? 0.25 : 0, t0 = Math.min(Math.max(m.t0, body.t0 + room), body.t1 - len - room), t1 = Math.min(t0 + len, body.t1); // (a quarter of an hour clear of either end when there is room: arrived, eaten at the work, back to it)
       if (t1 - t0 >= 0.2) out = cutIn(out, { ...body, t0, t1, act: 'eat', why: /visit|guest|eating with|talk/.test(body.why) ? 'eating with them' : 'bread and water at the work' }); }
-    return relabelCuts(base, out);
+    return relabelHousehold(P, pid, day, base, out);
   }
   /** the deeds' overlay of the day plans (Population.deeds) */
   readonly overlay = {
@@ -389,6 +391,9 @@ export class DeedWorld {
     for (const d of [...this.law.day(day), ...this.joint.initiative(day)]) { this.own(d, day, 1000 + k++); if (k % 8 === 0) yield; }
     const tl = performance.now() - t0; yield;
     yield* this.agency.dayParts(day);
+    // (D-720, C7's round trip: the feelings are kept as a save keeps them, every day: the faded ones let go and the rest rounded,
+    // so a save loses nothing the running world still has, and a world loaded runs on as the one that saved it)
+    this.minds.canon(day); this.agency.goals.canon(day);
     this.stats.days++; this.stats.ms += tl + this.agency.stats.ms - ms0; this.stats.deeds += this.next - n0;
   }
   /** a mind's own deed done at an hour of the day (initiative.ts) */
@@ -451,11 +456,20 @@ export class DeedWorld {
 
 /** D-720 (planCheck labels): a stretch of the day cut short by one laid over it no longer is what its reason says ("sleeping
  *  through the heat of the day" for a quarter of an hour): a piece of it is a short rest (the economy's overlay uses it too) */
-export function relabelCuts(base: Seg[], out: Seg[]): Seg[] {
+export function relabelCuts(base: Seg[], out: Seg[], /** D-720: whether a cut piece of the household's hours has none of it there */ alone?: (s: Seg) => boolean): Seg[] {
   const orig = new Set(base); let changed = false;
   const res = out.map(s => { if (orig.has(s) || !/through the heat/.test(s.why)) return s; const b = base.find(x => x.why === s.why && x.t0 <= s.t0 + 1e-6 && x.t1 >= s.t1 - 1e-6);
     if (!b || b.t1 - b.t0 - (s.t1 - s.t0) < 1e-6) return s; changed = true; return { ...s, act: 'rest' as ActivityId, why: s.act === 'sleep' ? 'a short rest out of the sun' : 'resting a while in the shade' }; });
+  // (D-720: the meal "back from the threshing floor" when the work before it was put aside for the overlay's own: the meal plain)
+  for (let i = 0; i < res.length; i++) if (/, back from /.test(res[i].why) && !backFromOk(res, i)) { changed = true; res[i] = { ...res[i], why: res[i].why.replace(/, back from [^,;]*/, '') }; }
+  if (alone) for (let i = 0; i < res.length; i++) if (!orig.has(res[i]) && /with the household/.test(res[i].why) && alone(res[i])) { changed = true; res[i] = { ...res[i], why: res[i].why.replace(/with the household/, 'at home') }; }
   return changed ? res : out;
+}
+/** D-720: relabelCuts for an overlay's day, the household's hours cut short asking whether any of the house is still there (at
+ *  the middle or at both ends, as planCheck asks; their base days, so no overlay reads another's) */
+export function relabelHousehold(P: Population, pid: number, day: number, base: Seg[], out: Seg[]): Seg[] {
+  if (out === base) return out; const mem = P.membersOn(P.home(pid, day), day).filter(x => x !== pid && P.present(x, day)), at = (s: Seg, h: number) => mem.some(x => segAt(P.basePlan(x, day), h).place === s.place);
+  return relabelCuts(base, out, s => { const e = Math.min(0.05, (s.t1 - s.t0) / 4); return !at(s, (s.t0 + s.t1) / 2) && !(at(s, s.t0 + e) && at(s, s.t1 - e)); });
 }
 /** a segment laid into a day: the base is cut around it (the overlays' shared rule) */
 export function cutIn(base: Seg[], s: Seg): Seg[] {

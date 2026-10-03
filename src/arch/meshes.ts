@@ -40,7 +40,7 @@ const ALBEDO: Record<Material, [number, number, number]> = {
   limestone: [0.62, 0.6, 0.56], limestone_dark: [0.28, 0.28, 0.28], mudbrick: [0.66, 0.56, 0.44], mudbrick_painted: [0.58, 0.57, 0.45], plaster: [0.8, 0.76, 0.68],
   plaster_red: [0.5, 0.16, 0.12], bronze: [0.55, 0.4, 0.22],
   timber: [0.36, 0.27, 0.19], glazed: [0.2, 0.4, 0.55], earth: [0.5, 0.42, 0.32], scaffold: [0.45, 0.35, 0.24], rubble: [0.55, 0.52, 0.48],
-  court_fill: [0.5, 0.46, 0.39], terrace: [0.62, 0.6, 0.56], roof_earth: [0.61, 0.54, 0.42], mudbrick_bare: [0.6, 0.52, 0.41], steel: [0.3, 0.3, 0.31], palace_plaster: [0.78, 0.69, 0.54], frame_coat: [0.8, 0.78, 0.72],
+  court_fill: [0.5, 0.46, 0.39], terrace: [0.62, 0.6, 0.56], roof_earth: [0.61, 0.54, 0.42], mudbrick_bare: [0.6, 0.52, 0.41], steel: [0.3, 0.3, 0.31], palace_plaster: [0.9, 0.86, 0.76], frame_coat: [0.8, 0.78, 0.72], palace_crest: [0.6, 0.3, 0.21], relief_ground: [0.33, 0.47, 0.68],
 };
 import { surfaceMaterial, paintedShaftMaterial } from '../render/materials';
 import { pointInPoly } from './parts';
@@ -54,11 +54,12 @@ function shaftPaint(o: ColumnOrder): THREE.Material {
   return paintedShaftMaterial({ ground: pig(R.ground), line: pig(R.line), band: pig(R.band), around: R.around, lozenge_h: R.lozenge_h, line_w: R.line_w, band_h: R.band_h, edge_w: R.edge_w, y0: o.baseH, y1: o.height - o.capitalH, D: o.shaftD });
 }
 import { ceilingTimbers } from './ceilings';
-import { roofEdges, wallFeet, type RoofEdges } from './roofedge';
+import { roofEdges, wallFeet, KIT_CORNICE_H, type RoofEdges, type KitRun } from './roofedge';
+import { buildTerraceKit } from './terracekit';
 import { buildPieces } from './palacekit';
 import { paintedLevel, paintedModelMaterial } from './model_paint';
 /** D-276: parts that are colliders only: the round fittings world/furnish.ts draws (storage jars, querns) */
-export const COLLIDER_ONLY = new Set(['jar', 'quern']);
+export const COLLIDER_ONLY = new Set(['jar', 'quern', 'ramp']); // (D-754: the drums' ramp: stepped colliders, drawn as a smooth slope by drum_road.ts)
 const matCache = new Map<string, THREE.MeshStandardNodeMaterial>();
 /** flat greybox material (plan-overlay tests, tools); the world uses procedural surfaces (render/materials.ts) */
 export function flatMaterial(m: Material) {
@@ -207,11 +208,15 @@ export const renderMaterial = (p: Part): Material => {
   // D-752: the palaces in residence: their walls and towers in the painted, kept plaster; the frames' dark stone under its coat
   if (p.material === 'mudbrick' && PALACE_PLASTER.has(p.building) && PALACE_PLASTER_KINDS.has(p.kind)) return 'palace_plaster';
   if (p.material === 'limestone_dark') return 'frame_coat';
+  // D-755: the crests in red ochre; the Apadana stair façades' relief ground in Egyptian blue
+  if (p.material === 'mudbrick' && PALACE_PLASTER.has(p.building) && PALACE_CREST_KINDS.has(p.kind)) return 'palace_crest';
+  if (p.material === 'limestone' && p.kind === 'facade') return 'relief_ground';
   return p.material;
 };
 /** D-752: the buildings whose mud-brick walls and towers are drawn in palace_plaster (the Treasury keeps its clay paint), and the kinds */
 export const PALACE_PLASTER = new Set(['gate_nations', 'apadana', 'tachara', 'hadish', 'harem', 'tripylon', 'hall100']);
 export const PALACE_PLASTER_KINDS = new Set(['wall', 'tower', 'storerooms', 'pier', 'pilaster']);
+export const PALACE_CREST_KINDS = new Set(['parapet', 'coping', 'string_course']);
 export const PAINTED_INTERIORS = new Set<string>(v<any>('global', 'r_interior_paint').buildings); // SITE_SPEC global.r_interior_paint
 export class PartIndex {
   private cells = new Map<number, number[]>(); private CELL = 4;
@@ -538,7 +543,7 @@ export function shaftLOD(o: ColumnOrder, built: number, st: { fluted?: boolean }
     registerSwap(im, [stand(k as Lod), painted ? shaftPaint(o) : carvedMaterial(mat)]); });
   return { lod, tris: (geos[0].index!.count / 3) * grid.length };
 }
-export interface BuiltArch { /** D-330: the carved stone frames (frames.ts; null: drawn as boxes: flat mode or no trim) */ frames: FrameGeoStats | null; group: THREE.Group; triangles: number; colliders: number; bevel: BevelStats; /** D-321 rev 2: the dressed stone's free arrises (arris.ts ArrisField) */ arris: ArrisEdge[]; /** rev 4: their walls' faces, whose joints the near field grooves */ jointFaces: JointFace[]; /** D-334: the wall heads and roof edges (render geometry) */ roofEdges?: RoofEdges & { pieceTriangles: number } }
+export interface BuiltArch { /** D-803: the Terrace kit's drawn-triangle bound (terracekit.ts) */ kitTriangles?: number; /** D-330: the carved stone frames (frames.ts; null: drawn as boxes: flat mode or no trim) */ frames: FrameGeoStats | null; group: THREE.Group; triangles: number; colliders: number; bevel: BevelStats; /** D-321 rev 2: the dressed stone's free arrises (arris.ts ArrisField) */ arris: ArrisEdge[]; /** rev 4: their walls' faces, whose joints the near field grooves */ jointFaces: JointFace[]; /** D-334: the wall heads and roof edges (render geometry) */ roofEdges?: RoofEdges & { pieceTriangles: number } }
 /** opts.dynamicDoors: door leaves (parts with `door`, D-051) get no static collider, because the world's door system
  *  (doors.ts) gives each a kinematic one that follows its swing. Without it (walkable-grid build, offline bots) a leaf is a
  *  static collider in its walkable-grid pose. Leaves are never drawn here: the door system draws them. */
@@ -551,7 +556,8 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
   // D-334: the wall heads and roof edges (roofedge.ts): render-only boxes drawn with the parts (bevelled, merged per building and
   // material; no colliders: solid false), and the modelled pieces instanced below. Not in the Now view (its parts carry `now`)
   const RE = opts.noRoofEdges || parts.some(p => (p as any).now) ? null : roofEdges(parts);
-  if (RE) RE.boxes.push(...wallFeet(parts)); // D-334: the wall feet (the floor coat or the skirting against the foot)
+  const footRuns: KitRun[] = []; // (D-803: the palaces' wall feet for the kit's plinth)
+  if (RE) RE.boxes.push(...wallFeet(parts, footRuns)); // D-334: the wall feet (the floor coat or the skirting against the foot)
   const all: Part[] = RE ? [...parts, ...RE.boxes] : parts, edgeSet = new Set<Part>(RE?.boxes ?? []);
   const index = new PartIndex(all), bstats: BevelStats = { edges: 0, bevelled: 0, trisFlat: 0, trisBevelled: 0 };
   // D-364 (B186): the mud-brick faces bowed by one world field (mudface.ts), faded against the parts set into them; not in flat
@@ -711,5 +717,6 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
   }
   let roofEdgesOut: BuiltArch['roofEdges'];
   if (RE) { const P = buildPieces(RE.pieces, flatMode); group.add(P.group); tris += P.triangles; roofEdgesOut = { ...RE, pieceTriangles: P.triangles }; }
-  return { group, triangles: tris, colliders, bevel: bstats, arris, jointFaces, roofEdges: roofEdgesOut, frames: baked ? baked.frames : frames?.stats ?? null };
+  let kitTris = 0; if (RE && !flatMode) { const K = buildTerraceKit(RE.heads, footRuns, KIT_CORNICE_H); group.add(K.group); tris += K.triangles; kitTris = K.triangles; } // D-803: the Terrace kit (cornices, plinths)
+  return { group, triangles: tris, kitTriangles: kitTris, colliders, bevel: bstats, arris, jointFaces, roofEdges: roofEdgesOut, frames: baked ? baked.frames : frames?.stats ?? null };
 }

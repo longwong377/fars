@@ -86,9 +86,13 @@ export function buildDrumRoad(): THREE.Group {
     earth.quad(at(S[i], lanes[k]), at(S[i], lanes[k + 1]), at(S[i + 1], lanes[k + 1]), at(S[i + 1], lanes[k]), k === 1 || k === 3 ? rut : bed);
   // the sleepers across the bed
   const total = S[S.length - 1].s;
-  for (let s = 1; s < total - 1; s += DR.sleeper) {
+  // (bedded in the mud to their tops, irregular in length, spacing and set, a few missing or replaced by a log: a working
+  // haul road, not a ruled track)
+  for (let s = 1; s < total - 1; s += DR.sleeper * (0.7 + rng.next() * 0.7)) {
+    if (rng.next() < 0.12) continue;
     const i = Math.min(S.length - 2, Math.floor(s / DRUM_ROAD.step)), f = (s - S[i].s) / (S[i + 1].s - S[i].s), e = S[i].e + (S[i + 1].e - S[i].e) * f, n = S[i].n + (S[i + 1].n - S[i].n) * f, h = S[i].h[1] + (S[i + 1].h[1] - S[i].h[1]) * f;
-    wood.box(W(e, h + lift + DR.sleeperH / 2, n), hw * 0.92, DR.sleeperH / 2, DR.sleeperW / 2, Math.atan2(-nr[1], nr[0]) + (rng.next() - 0.5) * 0.06, timber);
+    const len = hw * (0.55 + rng.next() * 0.35), off = (rng.next() - 0.5) * (hw - len), shade = 0.75 + rng.next() * 0.35;
+    wood.box(W(e + nr[0] * off, h + lift + 0.01, n + nr[1] * off), len, 0.035, DR.sleeperW / 2 * (0.8 + rng.next() * 0.6), Math.atan2(-nr[1], nr[0]) + (rng.next() - 0.5) * 0.25, timber.map(x => x * shade));
   }
   // the kerbs: fieldstones along both edges
   for (const side of [-1, 1]) for (let s = 0.4; s < total - 0.4; s += 0.55 + rng.next() * 0.25) {
@@ -107,10 +111,20 @@ export function buildDrumRoad(): THREE.Group {
     for (const sx of [-0.55, 0.55]) wood.box(W(e + sx, g0 + 0.12, n), 0.09, 0.12, 2.1, 0, timber);
     for (let c = -1.6; c <= 1.6; c += 0.8) wood.box(W(e, g0 + 0.29, n + c), 0.75, 0.05, 0.08, 0, timber);
   }
+  // the ramp drawn as it is built, a smooth slope of rammed earth between low mud kerbs (its parts are its stepped colliders)
+  { const R = DR.ramp, [lx0, lx1, ly0, ly1] = R.landing, n0 = R.n - R.w / 2, n1 = R.n + R.w / 2, ramp = lin([0.58, 0.48, 0.36]), side = lin([0.52, 0.43, 0.32]);
+    const top = (e: number) => e >= lx0 ? R.top : Math.max(0, R.top * (e - R.e1) / (lx0 - R.e1));
+    earth.quad(W(lx0, R.top, ly0), W(lx1, R.top, ly0), W(lx1, R.top, ly1), W(lx0, R.top, ly1), ramp); // the head
+    for (const [a, b] of [[lx0, lx1]]) { earth.quadRaw(W(a, 0, ly0), W(b, 0, ly0), W(b, R.top, ly0), W(a, R.top, ly0), side); earth.quadRaw(W(b, 0, ly0), W(b, 0, ly1), W(b, R.top, ly1), W(b, R.top, ly0), side); }
+    const N = 12; for (let k = 0; k < N; k++) { const e0 = R.e1 + (lx0 - R.e1) * k / N, e1 = R.e1 + (lx0 - R.e1) * (k + 1) / N;
+      earth.quad(W(e0, top(e0), n0), W(e1, top(e1), n0), W(e1, top(e1), n1), W(e0, top(e0), n1), ramp);
+      for (const nn of [n0, n1]) earth.quadRaw(W(e0, 0, nn), W(e1, 0, nn), W(e1, top(e1), nn), W(e0, top(e0), nn), side); }
+    for (const nn of [n0 + 0.2, n1 - 0.2]) for (let k = 0; k < 24; k++) { const e0 = R.e1 + (lx0 - R.e1) * k / 24, e1 = R.e1 + (lx0 - R.e1) * (k + 1) / 24, em = (e0 + e1) / 2;
+      earth.box(W(em, top(em) + 0.12, nn), (e1 - e0) / 2, 0.12, 0.18, 0, side); } } // (the kerbs: mud brick)
   const g = new THREE.Group(); g.name = 'c10:drum-road';
-  const add = (s: Soup, mat: THREE.Material, name: string, note: string) => { if (!s.tris) return; const m = new THREE.Mesh(s.geometry(), mat); m.name = name; m.castShadow = name !== 'c10:drum-road:bed'; m.receiveShadow = true;
+  const add = (s: Soup, mat: THREE.Material, name: string, note: string) => { if (!s.tris) return; const m = new THREE.Mesh(s.geometry(), mat); m.name = name; m.castShadow = true; m.receiveShadow = true;
     m.userData = { tier: DR.tier, src: DR.src, placeholder: false, tris: s.tris, note }; g.add(m); };
-  add(earth, propMaterial('mud', { vertexColors: true }), 'c10:drum-road:bed', 'the drums\' sledge road from the drum ground to the Terrace\'s N edge: a packed-earth bed with the runners\' ruts (D-754, C)');
+  add(earth, propMaterial('mud', { vertexColors: true }), 'c10:drum-road:bed', 'the drums\' sledge road from the drum ground to the Terrace\'s N edge (a packed-earth bed with the runners\' ruts) and the earth ramp down to the court (D-754, C)');
   add(wood, propMaterial('wood', { vertexColors: true, rough: 0.8 }), 'c10:drum-road:timber', 'the road\'s sleepers, the drums\' chocks and two sledges (D-754, C)');
   add(stone, propMaterial('stone', { vertexColors: true, rough: 0.95 }), 'c10:drum-road:kerbs', 'the road\'s fieldstone kerbs and the column drums waiting at the drum ground (D-754, C)');
   g.userData = { tier: DR.tier, src: DR.src, placeholder: false };

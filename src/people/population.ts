@@ -1640,10 +1640,11 @@ export class Population {
   /** D-359 (B226): a wedding the relations layer made (relations/world.ts), joined to the population as its own are: the bride
    *  lives in the groom's house from the day, and the day is a wedding day for both houses (procession, feast: weddingDay).
    *  Only for a bride the population never married or moved (one move a year per person: Person.marry/hh2); false if not */
-  addWedding(bride: number, groom: number, day: number, to: number): boolean {
+  addWedding(bride: number, groom: number, day: number, to: number, room = false): boolean {
     const B = this.persons[bride], G = this.persons[groom]; if (!B || !G || B.hh2 >= 0 || B.marry < 1e9 || B.hh === to || !this.households[to]) return false;
-    // (D-651: a town house holds no more than its plot: a wedding into a full one is not made; the room is kept for her)
-    const T0 = this.households[to]; if (T0.zone === 'town') { const id = (T0.plots ?? [T0.plot]).find(x => x && (this.plotFree.get(x) ?? 0) >= 1); if (!id) return false; this.plotFree.set(id, this.plotFree.get(id)! - 1); if (T0.plots && T0.shares) T0.shares[T0.plots.indexOf(id)]++; }
+    // (D-651: `room`, the minds' own weddings (goals.ts): a town house holds no more than its plot, a wedding into a full one is
+    // not made; the relations layer's weddings are the year's register and are always joined)
+    const T0 = this.households[to]; if (room && T0.zone === 'town') { const id = (T0.plots ?? [T0.plot]).find(x => x && (this.plotFree.get(x) ?? 0) >= 1); if (!id) return false; this.plotFree.set(id, this.plotFree.get(id)! - 1); if (T0.plots && T0.shares) T0.shares[T0.plots.indexOf(id)]++; }
     B.hh2 = to; B.marry = day; B.single = false; G.single = false; if (!this.households[to].joins.includes(bride)) this.households[to].joins.push(bride);
     (this.weddingList[day] ??= []).push({ day, bride, groom, from: B.hh, to }); this.wedCache.delete(day); this.relWed.add(bride); return true;
   }
@@ -1970,7 +1971,7 @@ export class Population {
   plan(pid: number, day: number): Seg[] { let b = this.basePlan(pid, day); const e = this.econ?.touches(pid, day); if (this.wash?.touches(pid, day)) b = this.wash.overlay(pid, day, b); if (e) b = this.econ!.overlay(pid, day, b); if (this.bonds?.touches(pid, day)) b = this.bonds.overlay(pid, day, b); b = this.mindAfter(pid, day, b); if (this.deeds?.touches(pid, day)) b = this.deeds.overlay(pid, day, b); if (this.talk?.touches(pid, day)) b = this.talk.overlay(pid, day, b); b = this.outOfDoors(pid, day, b); b = this.keepFood(pid, day, b); return b === this.basePlan(pid, day) ? b : this.keepDress(day, b); }
   /** D-651 (the out-of-doors day; s18 C12's pagecheck: a town lane at 13:48 with all 144 people at home, 111 of them in walled
    *  courts, and nobody walking): the life of the lanes. A grown-up of the town or a village (14-65, not minding little ones,
-   *  nursing, ill or in mourning, nor someone a child of the house is with) goes out two to four times a day from a stretch at
+   *  nursing, ill or in mourning, nor someone a child of the house is with) goes out three to five times a day from a stretch at
    *  home (resting, at a craft, spinning, talking): to the well for a word with the women there, the quarter's market ground, or
    *  a neighbour's door to talk, with the walks there and back (walkH). The children of 5-13 play in the lane before their own
    *  door, not in the court; and half the houses sit out at their door of an evening. Not in the rain; all C */
@@ -1983,23 +1984,29 @@ export class Population {
     const lane = `lane:${H.q}:${hid}`, step = 0.02;
     // the others of the house who are "with" this one in their own day (a child with its mother): she does not leave them
     // (and the house's own "with the household" hours: the household is together then, planCheck's label)
-    const withMe: [number, number][] = []; for (const m of this.membersOn(hid, d)) if (m !== pid) for (const x of this.basePlan(m, d)) if (x.with === pid || /with the household/.test(x.why)) withMe.push([x.t0, x.t1]);
-    for (const x of segs) if (/with the household/.test(x.why)) withMe.push([x.t0, x.t1]);
-    const free = (a: number, b: number) => !withMe.some(([x, y]) => x < b && y > a);
+    // (a house of three or more is still together with one of it out on an errand)
+    const mem = this.membersOn(hid, d), few = mem.length < 3, withMe: [number, number][] = [];
+    const together: [number, number][] = [];
+    for (const m of mem) if (m !== pid) for (const x of this.basePlan(m, d)) { if (x.with === pid) withMe.push([x.t0, x.t1]); if (/with the household/.test(x.why)) together.push([x.t0, x.t1]); }
+    for (const x of segs) if (/with the household/.test(x.why)) together.push([x.t0, x.t1]);
+    const home2 = (a: number, b: number) => mem.filter(m => m !== pid && this.basePlan(m, d).every(y => y.t1 <= a || y.t0 >= b || y.place === home)).length >= 2;
+    const free = (a: number, b: number) => !withMe.some(([x, y]) => x < b && y > a) && (!together.some(([x, y]) => x < b && y > a) || (!few && home2(a, b)));
     const swap = (x: Seg, parts: Seg[]) => { own(); const i = out.indexOf(x); if (i >= 0) out.splice(i, 1, ...parts.filter(y => y.t1 - y.t0 > 1e-6)); };
     if (age >= 14 && age <= 65 && !this.nurslings(pid, d).length && !segs.some(x => MIND_WHY.test(x.why))) {
-      const n = 2 + Math.floor(u(1) * 3);
-      for (let k = 0; k < n; k++) { const t = 7.5 + u(10 + k) * 10.5, x = segAt(out, t);
-        if (x.place !== home || x.where === 'road' || x.with !== undefined || !['rest', 'craft', 'spin', 'talk'].includes(x.act) || /nurs|asleep|siesta|heat|household/.test(x.why)) continue;
+      const n = 3 + Math.floor(u(1) * 3);
+      const okSeg = (x: Seg) => x.place === home && x.where !== 'road' && x.with === undefined && ['rest', 'craft', 'spin', 'talk'].includes(x.act) && !/nurs|asleep|siesta/.test(x.why) && (!few || !/household/.test(x.why)) && x.t1 > 7.5 && x.t0 < 18.5 && Math.min(x.t1, 18.5) - Math.max(x.t0, 7.5) >= 0.9;
+      for (let k = 0; k < n; k++) { const cand = out.filter(okSeg); if (!cand.length) break; // (among the day's stretches at home that can spare it: an hour picked at random mostly missed them)
+        const x = cand[Math.floor(u(10 + k) * cand.length)], lo = Math.max(x.t0, 7.5), hi = Math.min(x.t1, 18.5), t = lo + u(60 + k) * Math.max(0, hi - lo - 0.8);
         const v = u(20 + k), nb = H.kin.find(o => this.households[o]?.q === H.q) ?? -1;
         // (the well: a word with the women there; the house's own water is the planner's, counted jar by jar: planCheck's water)
         const [place, act, stay, why, back]: [string, ActivityId, number, string, string | undefined] = v < 0.4 ? [`well:${H.q}:${hid}`, 'talk', 0.2 + 0.15 * u(30 + k), 'talking with the neighbours at the well', undefined]
           : v < 0.65 ? [`market:${H.q}`, 'exchange', 0.3 + 0.4 * u(30 + k), 'at the market ground, buying and selling a little', 'basket']
           : [nb >= 0 ? `lane:${H.q}:${nb}` : lane, 'talk', 0.3 + 0.5 * u(30 + k), nb >= 0 ? 'talking with kin at their door' : 'talking with the neighbours in the lane', undefined];
-        const w = Math.min(0.4, Math.max(0.04, this.walkH(home, place, d, W, W))), len = 2 * w + stay; if (x.t1 - x.t0 < len + 0.2) continue;
+        const w = Math.min(0.4, Math.max(0.08, this.walkH(home, place, d, W, W))), len = 2 * w + stay; // (5 minutes at least: the long way round, through the lanes) if (x.t1 - x.t0 < len + 0.2) continue;
         const a = Math.min(Math.max(t, x.t0 + 0.05), x.t1 - len - 0.05); if (!dry(a, a + len) || !free(a, a + len)) continue;
-        swap(x, [{ ...x, t1: a }, { od: 1, t0: a, t1: a + w, place: `road:${W}`, act: 'walk', why: why.endsWith('at the well') ? 'going down to the well' : why.startsWith('at the market') ? 'going to the market ground' : 'going to see a neighbour', where: 'road' },
-          { od: 1, t0: a + w, t1: a + w + stay, place, act, why, where: W }, { od: 1, t0: a + w + stay, t1: a + len, place: `road:${W}`, act: 'walk', why: 'walking home', where: 'road', ...(back ? { carry: back } : {}) }, { ...x, t0: a + len }]); } }
+        const heat = /heat/.test(x.why) && x.act === 'rest' ? { why: 'resting at home' } : {}; // (a rest through the heat cut by an errand is a rest at home either side)
+        swap(x, [{ ...x, t1: a, ...heat }, { od: 1, t0: a, t1: a + w, place: `road:${W}`, act: 'walk', why: why.endsWith('at the well') ? 'going down to the well' : why.startsWith('at the market') ? 'going to the market ground' : 'going to see a neighbour', where: 'road' },
+          { od: 1, t0: a + w, t1: a + w + stay, place, act, why, where: W }, { od: 1, t0: a + w + stay, t1: a + len, place: `road:${W}`, act: 'walk', why: 'walking home', where: 'road', ...(back ? { carry: back } : {}) }, { ...x, t0: a + len, ...heat }]); } }
     // the children's play out in the lane before their door (by day, dry, nobody's charge)
     // (the play of a house's court goes out as one, the playmates of other houses with it: the draw is the house's and the
     // day's, so whoever plays there that day is in the lane; never with a little one, or a child someone small is with)
@@ -2020,7 +2027,10 @@ export class Population {
       swap(x, [{ ...x, t1: a }, { od: 1, t0: a, t1: a + step, place: `road:${W}`, act: 'walk', why: 'out to the door', where: 'road' }, { ...x, od: 1, t0: a + step, t1: b - step, place: lane, act: 'talk', why: 'sitting at the door in the evening with the neighbours' }, { od: 1, t0: b - step, t1: b, place: `road:${W}`, act: 'walk', why: 'back in', where: 'road' }, { ...x, t0: b }]); }
     // (who stays in while the house is out at its door: no longer "with the household", which says the house is there)
     const doorDay = u01(this.seed, S_OUT, hid, d, 60) < 0.45, eveDay = u01(this.seed, S_OUT, hid, d, 50) < 0.5;
-    for (const x of [...out]) if (x.place === home && /with the household/.test(x.why) && ((doorDay && x.t0 < 16.5 && x.t1 > 11) || (eveDay && x.t0 < 20.5 && x.t1 > 17.5))) { own(); const i = out.indexOf(x); out[i] = { ...x, why: x.why.replace(/with the household/, 'at home') }; }
+    for (const x of [...out]) if (x.place === home && /with the household/.test(x.why) && ((doorDay && x.t0 < 16.5 && x.t1 > 11) || (eveDay && x.t0 < 20.5 && x.t1 > 17.5) || (!few && x.t0 < 20.5 && x.t1 > 7.5))) { own(); const i = out.indexOf(x); out[i] = { ...x, why: x.why.replace(/with the household/, 'at home') }; }
+    // (a stretch through the heat cut short by these: no longer said to be through the heat, planCheck's label wants 45 min)
+    if (out !== segs) for (let i = 0; i < out.length; i++) { const x = out[i]; if (!/through the heat/.test(x.why) || heatStretch(out, i) >= 0.75) continue;
+      out[i] = { ...x, why: x.act === 'rest' ? 'resting at home' : x.act === 'sleep' ? 'asleep' : x.why.replace(/,? ?(sleeping |resting )?through the heat( of the day)?/, '') || 'at home' }; }
     return this.follow(pid, d, out);
   }
   /** D-651: who is "with" another (a child with its mother or minder, a baby carried, a playmate) is where that one is in
@@ -2304,13 +2314,14 @@ export const ALL_NAMES: any[] = [...(namesData as any).names, ...(namesRecalled 
 /** D-452: the men of Darius' Bisitun inscription whose names may go to ordinary men (see NAME_POOLS) */
 export const DB_MEN = ['Vidarna', 'Vaumisa', 'Dādarši', 'Taxmaspāda', 'Artavardiya', 'Vivāna', 'Vindafarnā', 'Utāna', 'Θuxra', 'Bagabuxša', 'Gaubaruva',
   'Dātuvahya', 'Ardumaniš', 'Vahuka', 'Bagābigna', 'Upadarma', 'Vahyasparuva', 'Cincaxri', 'Aspacanā'];
-/** D-651 (s18 C12, W1): Darius' six helpers against Gaumāta (DB 4.80-86: Vindafarnā, Utāna, Gaubaruva, Vidarna, Bagabuxša,
- *  Ardumaniš) founded the great houses: their names are not dealt to the town's ordinary men (the court's nobles keep them) */
+/** D-651 (s18 C12, W1): Darius' six helpers against Gaumāta (DB 4.80-86). Kept in the men's pool after all: without them the
+ *  Iranian men's names are 105 and the deal's top share passes T-E2's 1 % (person_census); a reserve for the great houses needs
+ *  more attested men's names first */
 export const THE_SIX = ['Vindafarnā', 'Utāna', 'Gaubaruva', 'Vidarna', 'Bagabuxša', 'Ardumaniš'];
 /** D-651 (W2): a composed woman's name (D-236, *) that is no name: the element doubled (*Čiθračiθrā), or the royal xšaθra-
  *  ("kingship") on the women of the lanes */
 const MECHANICAL = (n: string) => /^\*Xšaθra/.test(n) || (() => { const b = n.replace(/^\*/, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); for (const k of [4, 5, 6]) if (b.length >= 2 * k && b.slice(0, k) === b.slice(k, 2 * k)) return true; return false; })();
-const NAME_POOLS = (() => { const m = new Map<string, string[]>(); for (const n of ALL_NAMES) { if (n.notable || n.reading_uncertain || THE_SIX.includes(n.name) || (n.sex === 'f' && MECHANICAL(n.name))) continue; const k = `${n.sex}:${n.origin_guess}`; (m.get(k) ?? m.set(k, []).get(k)!).push(n.name); }
+const NAME_POOLS = (() => { const m = new Map<string, string[]>(); for (const n of ALL_NAMES) { if (n.notable || n.reading_uncertain || (n.sex === 'f' && MECHANICAL(n.name))) continue; const k = `${n.sex}:${n.origin_guess}`; (m.get(k) ?? m.set(k, []).get(k)!).push(n.name); }
   // attested outside names.json, in the project's research: Herdkama "the Egyptian", chief of a team of 100 labourers in a
   // Treasury text (research/PEOPLE.md, PT-WAGE: SX, C; the name looks Iranian, the label is Egyptian: kept as given)
   (m.get('m:Egyptian') ?? m.set('m:Egyptian', []).get('m:Egyptian')!).push('Herdkama');
@@ -2319,7 +2330,7 @@ const NAME_POOLS = (() => { const m = new Map<string, string[]>(); for (const n 
   // (Vištāspa, Aršāma, ...) nor the nine "liars" whose names the king cursed (Gaumāta, Āçina, Nidintabaira, Martiya, Fravartiš,
   // Ciçantaxma, Vahyazdāta, Araxa, Frāda) nor Imaniš, Aθamaita and Skunxa; Marduniya is left out as the pool's Mardunuya.
   // Their use for ordinary men of 467 is C: names recur in the tablets as in any town
-  m.get('m:Iranian')!.push(...DB_MEN.filter(n => !THE_SIX.includes(n)));
+  m.get('m:Iranian')!.push(...DB_MEN);
   // D-452: the CDLI PF names whose language tools/names_licensed.py could not tell (65 men, A as names) belong to no one origin:
   // in the Fortification texts Iranian and Elamite names stand side by side among the same people (C), so Persian and Elamite
   // men both draw on them, and Elamite men on the Iranian names too (the three names read as Elamite were 12.8 % each of them)
@@ -2330,8 +2341,8 @@ const NAME_POOLS = (() => { const m = new Map<string, string[]>(); for (const n 
   m.set('f:Elamite', [...(m.get('f:Elamite') ?? []), ...(m.get('f:Iranian') ?? [])]);
   return m; })();
 /** every attested name of each sex (not the notable, not the uncertain readings), of whatever origin */
-const NAME_ALL: Record<string, string[]> = { m: [], f: [] }; for (const n of ALL_NAMES) if (!n.notable && !n.reading_uncertain && NAME_ALL[n.sex] && !THE_SIX.includes(n.name) && !(n.sex === 'f' && MECHANICAL(n.name))) NAME_ALL[n.sex].push(n.name);
-NAME_ALL.m.push(...DB_MEN.filter(n => !THE_SIX.includes(n)));
+const NAME_ALL: Record<string, string[]> = { m: [], f: [] }; for (const n of ALL_NAMES) if (!n.notable && !n.reading_uncertain && NAME_ALL[n.sex] && !(n.sex === 'f' && MECHANICAL(n.name))) NAME_ALL[n.sex].push(n.name);
+NAME_ALL.m.push(...DB_MEN);
 // (D-202: Bactrians and Sogdians speak Iranian languages; Ionians draw on the Greek names, Carians, Lydians and Lycians on their
 // own; Thracians and Cappadocians, with no names recalled, on all the names of their sex, as foreign workers in the tablets do)
 const ORIGIN_POOL: Record<string, string> = { Persian: 'Iranian', Median: 'Iranian', Bactrian: 'Iranian', Sogdian: 'Iranian', Elamite: 'Elamite', Babylonian: 'Babylonian', Syrian: 'West Semitic', Egyptian: 'Egyptian', Indian: 'Indian',

@@ -237,95 +237,6 @@
         }
        ]
       },
-      "beard_long": {
-       "region": "beard",
-       "thr": 0.5,
-       "flow": "beard",
-       "cut": "beard",
-       "below": 0.12,
-       "push": "chest",
-       "chest_clear": 0.022,
-       "stick": "aboveChin",
-       "axis_z": 0,
-       "note": "the long beard (the reliefs: long and squared, in rows of curls): guide curves down from the cheeks, chin and upper lip, the moustache out to the mouth's corners, hanging below the jaw to a square cut 12 cm below the chin; inner, middle and outer layers, two-sided where they hang",
-       "layers": [
-        {
-         "spacing": 0.0155,
-         "len": [
-          0.3,
-          0.3
-         ],
-         "lenK": "moustache",
-         "width": [
-          0.018,
-          0.017
-         ],
-         "lift": [
-          0.003,
-          0.014
-         ],
-         "segs": 6,
-         "gravity": 12,
-         "cls": 2,
-         "ao": [
-          0.5,
-          0.9
-         ],
-         "both": true
-        },
-        {
-         "spacing": 0.02,
-         "len": [
-          0.3,
-          0.3
-         ],
-         "lenK": "moustache",
-         "width": [
-          0.016,
-          0.015
-         ],
-         "lift": [
-          0.009,
-          0.024
-         ],
-         "segs": 6,
-         "gravity": 12,
-         "cls": 3,
-         "ao": [
-          0.7,
-          1
-         ],
-         "both": true,
-         "jitter": 0.08
-        },
-        {
-         "spacing": 0.026,
-         "len": [
-          0.3,
-          0.3
-         ],
-         "lenK": "moustache",
-         "width": [
-          0.013,
-          0.011
-         ],
-         "lift": [
-          0.015,
-          0.032
-         ],
-         "segs": 5,
-         "gravity": 12,
-         "cls": 3,
-         "ao": [
-          0.85,
-          1
-         ],
-         "both": true,
-         "jitter": 0.12,
-         "twist": 0.3
-        }
-       ]
-      },
       "beard_short": {
        "region": "beard",
        "thr": 0.5,
@@ -376,36 +287,6 @@
           1
          ],
          "jitter": 0.25
-        }
-       ]
-      },
-      "brows": {
-       "region": "brow",
-       "thr": 0.35,
-       "flow": "brow",
-       "note": "the brows: short cards along the brow, out from the nose and up at the inner end",
-       "layers": [
-        {
-         "spacing": 0.0032,
-         "len": [
-          0.009,
-          0.014
-         ],
-         "width": [
-          0.006,
-          0.004
-         ],
-         "lift": [
-          0.0008,
-          0.0016
-         ],
-         "segs": 2,
-         "gravity": 0,
-         "cls": 4,
-         "ao": [
-          0.8,
-          1
-         ]
         }
        ]
       }
@@ -711,9 +592,7 @@
      "hair_crown": 2400,
      "hair_bob": 4600,
      "bun": 1600,
-     "beard_long": 3600,
-     "beard_short": 900,
-     "brows": 220
+     "beard_short": 900
     }
    },
    "budget_note": "download <= 16 MB of T-K7's 60 MB; GPU: the atlas (UASTC 2048 x 4096, ~11 MB with mips) and the normal atlas (1024 x 2048, ~2.8 MB); triangles per set at the full-detail LOD (the costumes' 42,000 of tests/humans_runtime.test.ts hold the sum; D-323 spends the ~4,300 the simplified hands freed)",
@@ -984,7 +863,9 @@
         "women": [
          "belt"
         ]
-       }
+       },
+       "seeds": 1,
+       "seeds_note": "s18 C14 (D-790): one cut: the second (over robe s1) settled 25 cm off its fitted place after the women's costume changed (people_models' sanity bound 20 cm); every woman wears cut 0's veil"
       },
       "belt": {
        "kind": "sash",

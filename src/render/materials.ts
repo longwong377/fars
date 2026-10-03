@@ -328,13 +328,13 @@ const PALACE_WEATHER: EarthWeatherDef = { base: { h: 0.8, dark: 0.12, dirt: 0.25
  *  plaster, the wash and the foot's dirt at a third, the coats' patchwork faint (the V9 weathering is the ruin-bias's: the
  *  working town and the fortification keep PALACE_WEATHER) */
 const PALACE_KEPT: EarthWeatherDef = { base: { h: 0.6, dark: 0.05, dirt: 0.1 }, top: { h: 0.6, bleach: 0.03, round: 0.4 }, wash: { amp: 0.05, len: 3 }, coat: 0.015, loss: { cover: 0, depth: 0 } };
-/** D-752 (C, after D-771's palette): the palaces' outer faces painted: a lime wash tinted with yellow ochre for the ground, a red
- *  ochre dado 1.4 m high edged by white, Egyptian blue and white bands, and under the wall's head a red frieze 1.1 m deep with
- *  a white edge: the interior scheme's form (global.r_interior_paint) read from the plain. Pigments B (RELIEFS_AND_COLOUR §3a:
+/** D-752 (C, after D-771's palette), D-755 (read from 0.6-2 km, the s18 reset: the ochre ground read as mud from the plain): the
+ *  palaces' outer faces painted: a white lime wash for the ground, a red ochre dado 2 m high edged by white, Egyptian blue and
+ *  white bands, and under the wall's head an Egyptian blue frieze 1.6 m deep with a white edge: the interior scheme's form (global.r_interior_paint) read from the plain. Pigments B (RELIEFS_AND_COLOUR §3a:
  *  red ochre, Egyptian blue, calcite white on the Terrace's plaster); the layout and tones C */
-export const PALACE_OUTER_PAINT: NonNullable<SurfaceDef['paint']> = { ground: [0.8, 0.71, 0.55], dado: { h: 1.4, col: [0.55, 0.25, 0.18] },
-  bands: [{ col: [0.88, 0.86, 0.8], w: 0.09 }, { col: [0.22, 0.38, 0.62], w: 0.12 }, { col: [0.88, 0.86, 0.8], w: 0.06 }],
-  frieze: { h: 1.1, col: [0.55, 0.25, 0.18], edge: { col: [0.88, 0.86, 0.8], w: 0.08 } } };
+export const PALACE_OUTER_PAINT: NonNullable<SurfaceDef['paint']> = { ground: [0.9, 0.86, 0.76], dado: { h: 2.0, col: [0.58, 0.24, 0.17] },
+  bands: [{ col: [0.92, 0.9, 0.84], w: 0.12 }, { col: [0.2, 0.36, 0.62], w: 0.22 }, { col: [0.92, 0.9, 0.84], w: 0.1 }],
+  frieze: { h: 1.6, col: [0.2, 0.36, 0.62], edge: { col: [0.92, 0.9, 0.84], w: 0.16 } } }; // D-755: sized and toned to read from the plain (s18 reset: 0.6-2 km)
 const PLASTER_WEATHER: PlasterWeatherDef = { lift: [1.1, 1.7], bay: 3.0, sd: 0.09, chroma: 0.016, seam: 0, wash: 0.17, washH: 5, hand: { amp: 0.0025, len: 0.6, wid: 0.25, mottle: 0.045 } };
 /** stair blocks along the step (D-218, C): 1.9 m ± 30 %; the row's joint crosses the first tread of each row 6 cm in front of
  *  the next riser (the blocks' 4–5 steps per row: grand_stair.block_construction, B) */
@@ -360,6 +360,9 @@ export const SURFACES: Record<string, SurfaceDef> = {
   // (the block layout of carved members is unknown; a joint may cross a carving only as a hairline) and a finer, rubbed
   // finish (D-029, C)
   limestone_carved: { albedo: LIMESTONE, roughness: 0.55, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.1, tone: { sd: 0.06, chroma: 0.01 }, bump: { amp: 0.0004, freq: 14 }, micro: { amp: 0.00012, freq: 130, alb: 0.03 }, tier: 'C', note: 'carved light grey limestone (columns, colossi, reliefs): joint-free rubbed finish (D-029, C); albedo N7 C (D-188) pending calibration photo (NEEDS #13)' },
+  // D-755 (s18 D-771, C): the ground of the stair façades' reliefs, the whitish finish layer painted Egyptian blue (the Susa
+  // friezes' grounds; RELIEFS_AND_COLOUR §3a, B for the pigment), so the façades read painted from the plain
+  relief_ground: { albedo: [0.33, 0.47, 0.68], roughness: 0.6, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.08, tone: { sd: 0.04, chroma: 0.008 }, bump: { amp: 0.0004, freq: 14 }, micro: { amp: 0.00012, freq: 130, alb: 0.03 }, tier: 'C', note: 'D-755: the relief façades\' ground: Egyptian blue over the whitish finish layer (pigment B, the ground C)' },
   // polished dark grey limestone of the door and window frames: 'dark grey limestone from Majdabad' (RELIEFS_AND_COLOUR §4,
   // Iranica via search extract: B). 'Dark grey' = N3 on the GSA rock-colour chart → luminous reflectance 6.4 % (ASTM D1535):
   // albedo C (D-031). Was 0.013 (sRGB 0.12), i.e. black. Whether frames carried the whitish finishing coat is Q-072.
@@ -381,6 +384,8 @@ export const SURFACES: Record<string, SurfaceDef> = {
   mudbrick_painted: { paint: PALACE_PAINT, albedo: [0.58, 0.57, 0.45], roughness: 0.9, porosity: 0.8, noiseScale: 0.6, noiseAmp: 0.09, tone: { sd: 0.1, chroma: 0.018, patch: -0.07 }, foot: 1, skirt: { h: 0.5, dark: 0.1, salt: 0.08 }, runoff: 0.1, plasterWork: { float: 1, cracks: 0.3 }, plasterWeather: PLASTER_WEATHER, earthWeather: PALACE_WEATHER, bump: { amp: 0.012, freq: 1.1 }, micro: { amp: 0.0006, freq: 55, alb: 0.05 }, tier: 'B/C', note: 'Treasury walls: mud plaster with a greyish yellow-green clay paint (Treasury walls per Schmidt; Pasargadae: via Stein et al. 2016, B); tone C; extent to other buildings open (Q-028)' },
   // D-752: the palaces' walls and towers in residence (meshes.ts renderMaterial): the mud plaster painted inside and out, kept
   palace_plaster: { paint: PALACE_PAINT, outerPaint: PALACE_OUTER_PAINT, albedo: [0.64, 0.55, 0.43], roughness: 0.9, porosity: 0.8, noiseScale: 0.6, noiseAmp: 0.07, tone: { sd: 0.06, chroma: 0.012, patch: -0.04 }, foot: 0.5, skirt: { h: 0.5, dark: 0.04, salt: 0.02 }, runoff: 0.04, plasterWork: { float: 1, cracks: 0.1 }, plasterWeather: PLASTER_WEATHER, earthWeather: PALACE_KEPT, bump: { amp: 0.008, freq: 1.1 }, micro: { amp: 0.0005, freq: 55, alb: 0.04 }, tier: 'B/C', note: 'D-752: the palaces\' mud plaster painted inside (global.r_interior_paint) and out (PALACE_OUTER_PAINT: a yellow-ochre lime ground, a red ochre dado with white and Egyptian blue bands, a red frieze under the head): pigments B (RELIEFS_AND_COLOUR §3a), layout C; kept by the court: no fallen plaster, faint wash and damp (C, holes.md #6)' },
+  // D-755: the palaces' crests (the parapets over the roofs, their copings, the string courses) in red ochre plaster: the roof line's colour
+  palace_crest: { albedo: [0.6, 0.3, 0.21], roughness: 0.9, porosity: 0.8, noiseScale: 0.6, noiseAmp: 0.07, tone: { sd: 0.06, chroma: 0.012, patch: -0.04 }, foot: 0.5, skirt: { h: 0.5, dark: 0.04, salt: 0.02 }, runoff: 0.04, plasterWork: { float: 1, cracks: 0.1 }, plasterWeather: PLASTER_WEATHER, earthWeather: PALACE_KEPT, bump: { amp: 0.008, freq: 1.1 }, micro: { amp: 0.0005, freq: 55, alb: 0.04 }, tier: 'B/C', note: 'D-755: the palaces\' crests (parapets, copings, string courses) in red ochre plaster, the roof line read from the plain (C); after D-752: the palaces\' mud plaster painted inside (global.r_interior_paint) and out (PALACE_OUTER_PAINT: a yellow-ochre lime ground, a red ochre dado with white and Egyptian blue bands, a red frieze under the head): pigments B (RELIEFS_AND_COLOUR §3a), layout C; kept by the court: no fallen plaster, faint wash and damp (C, holes.md #6)' },
   plaster: { albedo: [0.78, 0.74, 0.66], roughness: 0.85, porosity: 0.7, noiseScale: 0.8, noiseAmp: 0.08, roughVar: 0.1, tone: { sd: 0.09, chroma: 0.015, patch: 0.05 }, foot: 1, bump: { amp: 0.0022, freq: 2.4 }, micro: { amp: 0.00025, freq: 70, alb: 0.03 }, tier: 'C', note: 'lime/gypsum plaster' },
   // albedo (C, session 4): a hematite-like reflectance (~4–7 % below 580 nm rising to 30–50 % above 620 nm) integrated
   // with CIE 1931 / D65 gives linear ≈ (0.25–0.53, 0.034–0.085, 0.036–0.059), R/G 6–7.5; the old (0.48, 0.14, 0.10) sRGB
@@ -1154,8 +1159,8 @@ function layer(d: SurfaceDef, base: any, arch = false, band = false): Layer {
     rough = mix(rough, rough.mul(0.94), inner); // a paint film a little less matte than bare mud
   };
   if (arch && d.paint) paintScheme(d.paint, attribute('inner', 'float').mul(float(1).sub(smoothstep(0.3, 0.7, abs(n.y)))).mul(SURF_AB)); // D-334: the painted interiors (inner faces only)
-  if (arch && d.outerPaint) // D-752: the painted exteriors: the vertical faces that are not inner and stand on a floor (the fittings carry y0 = -1000)
-    paintScheme(d.outerPaint, float(1).sub(attribute('inner', 'float')).mul(float(1).sub(smoothstep(0.3, 0.7, abs(n.y)))).mul(step(-500, attribute('y0', 'float'))).mul(step(attribute('ytop', 'float').sub(attribute('y0', 'float')), 500)).mul(SURF_AB));
+  if (arch && d.outerPaint) // D-752: the painted exteriors: the vertical faces that are not inner (the fittings carry ytop = 1e4)
+    paintScheme(d.outerPaint, float(1).sub(attribute('inner', 'float')).mul(float(1).sub(smoothstep(0.3, 0.7, abs(n.y)))).mul(step(attribute('ytop', 'float'), 500)).mul(SURF_AB)); // (D-755: a face with no floor in front, y0 = -1000, takes the ground and the frieze: the towers over the podium's edge)
   if (arch && d.runoff) { // run-off below the tops of exposed stone (D-157, C): streaks fast across the face, slow down it
     const below = attribute('ytop', 'float').sub(p.y), vert = float(1).sub(smoothstep(0.3, 0.7, abs(n.y)));
     const q = vec3(p.x.mul(2.2), p.y.mul(0.2), p.z.mul(2.2));

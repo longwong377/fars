@@ -124,14 +124,17 @@ export function buildStairCrenellations(parts: Part[]): THREE.InstancedMesh | nu
   // and the Harem's long runs drop to their far levels where they are far, not where their nearest merlon is)
   const byB = new Map<string, Crown[]>(); for (const q of crownPlan(parts)) { const k = `${q.building}|${Math.floor(q.e / CROWN_CELL)}|${Math.floor(q.n / CROWN_CELL)}`; (byB.get(k) ?? byB.set(k, []).get(k)!).push(q); }
   for (const [key, list] of byB) { const b = key.split('|')[0];
-    const im = new THREE.InstancedMesh(geo, mesh.material as THREE.Material, list.length), mats: THREE.Matrix4[] = [];
+    // D-755: the palaces' roof-line merlons under the whitish coat (the frames' fluorapatite finish, frame_coat), read white over the
+    // red crests from the plain; the Terrace's edge keeps the bare stone
+    const MC = merlonModel(), coat = b !== 'terrace' && MC ? withBakedMap('frame_coat', MC.maps[0], 'merlon-coat') : null;
+    const im = new THREE.InstancedMesh(geo, coat ?? (mesh.material as THREE.Material), list.length), mats: THREE.Matrix4[] = [];
     list.forEach((q, i) => {
       const X = gw(Math.cos(q.az), Math.sin(q.az)), Z = new THREE.Vector3().crossVectors(X, up), mm = new THREE.Matrix4();
       mm.makeTranslation(q.e, q.y, -q.n).multiply(t.makeBasis(X, up, Z)).multiply(t.makeScale(q.scale ?? 1, q.scale ?? 1, q.depth / D)).multiply(t.makeTranslation(0, 0, -D / 2));
       im.setMatrixAt(i, mm); mats.push(mm);
     });
     im.castShadow = true; im.receiveShadow = true; im.name = `crown-merlons:${key}`; im.computeBoundingSphere();
-    if (MM?.near) im.add(new MerlonNear(im, mats, MM.near));
+    if (MM?.near) im.add(new MerlonNear(im, mats, coat && MC?.maps[1] ? { geo: MM.near.geo, mat: withBakedMap('frame_coat', MC.maps[1], 'merlon-coat-near') } : MM.near));
     im.userData = { tier: 'C', src: 'IR-PERS;NR-ACHAEMENICA;RECON', placeholder: false, note: `${list.length} four-stepped stone merlons crowning the ${b === 'terrace' ? "Terrace's edge parapet (terrace.parapet_height: 'low crenellated parapet', C)" : 'roof parapets of ' + b} (D-750, C: the stair merlon, global.r_stair_crenellation)${MM ? MERLON_NOTE : ''}` };
     mesh.add(im);
   }

@@ -35,6 +35,7 @@ const VIEWS = {
   field_autumn: { ...cov('cov-387'), id: 'field_autumn', why: 'plain fields, day 272 07:19 (cov-387)' },
   night: { ...cov('cov-448'), id: 'night', why: 'the town at night (cov-448)' },
   night_terrace: { ...cov('sb-night-terrace'), id: 'night_terrace', why: 'the Terrace at 22:30 (sb-night-terrace)' },
+  gift: { ...cov('sb-night-terrace'), id: 'gift', w: 'clear', gift: true, why: 'the gift day, half an hour into the audience, from the Gate forecourt (0, 92) looking S (day and hour from the court\'s own set)' },
 };
 const pick = (arg('views', Object.keys(VIEWS).join(','))).split(',').map(k => { if (!VIEWS[k]) throw new Error('unknown view ' + k); return VIEWS[k]; });
 
@@ -130,11 +131,11 @@ const readView = () => {
   // agents, within 40/60/250 m; of those within 60 m, how many are in the camera frustum (a 1.3 m sphere at chest height,
   // the crowd's own test) and how many of those the crowd hides behind a court wall (crowd.walledOff: the eye below the wall top)
   const ce = camP.x, cn = -camP.z, CR = P?.crowd; const places = {};
-  const S = { near40: 0, near60: 0, near250: 0, open60: 0, court60: 0, moving60: 0, inFr40: 0, inFr60: 0, inFrNotWalled60: 0, walledInFr60: 0 };
+  const S = { walkInFr60: 0, walkInFr250: 0, inFr250: 0, near40: 0, near60: 0, near250: 0, open60: 0, court60: 0, moving60: 0, inFr40: 0, inFr60: 0, inFrNotWalled60: 0, walledInFr60: 0 };
   const sp = new Sph(), cv = new V3();
-  const one = (e, n, y, vp) => { const d = Math.hypot(e - ce, n - cn); if (d < 250) S.near250++; if (d >= 60) return; S.near60++; if (d < 40) S.near40++;
+  const one = (e, n, y, vp) => { const d = Math.hypot(e - ce, n - cn); if (d < 250) { S.near250++; sp.center.copy(cv.set(e, y + 0.9, -n)); sp.radius = 1.3; if (fr.intersectsSphere(sp)) { S.inFr250++; if (vp?.moving) S.walkInFr250++; } } if (d >= 60) return; S.near60++; if (d < 40) S.near40++;
     if (vp) { if (vp.plot) S.court60++; else S.open60++; if (vp.moving) S.moving60++; const k = (vp.place || (vp.moving ? '(walking)' : '?')).split(/[:#]/)[0]; places[k] = (places[k] ?? 0) + 1; }
-    sp.center.copy(cv.set(e, y + 0.9, -n)); sp.radius = 1.3; if (!fr.intersectsSphere(sp)) return; S.inFr60++; if (d < 40) S.inFr40++;
+    sp.center.copy(cv.set(e, y + 0.9, -n)); sp.radius = 1.3; if (!fr.intersectsSphere(sp)) return; S.inFr60++; if (d < 40) S.inFr40++; if (vp?.moving) S.walkInFr60++;
     let walled = false; try { walled = !!(vp && CR?.walledOff?.(vp, camP.y)); } catch { } if (walled) S.walledInFr60++; else S.inFrNotWalled60++; };
   for (const p of P?.view?.visible ?? []) one(p.e, p.n, p.y, p);
   for (const a of P?.sim?.agents ?? []) if (!a.offmap) one(a.pos[0], a.pos[1], a.y ?? camP.y, null);
@@ -145,9 +146,12 @@ const readView = () => {
     rows: [...rows.values()].map(r => ({ ...r, mats: [...r.mats].slice(0, 4), tiers: [...r.tiers], tris: Math.round(r.tris) })) };
 };
 
+// the gift day: the court's own first gift day and its audience start (court.ts set.gift, kingDay(d).a0) + 0.5 h
+for (const v of pick) if (v.gift) { const g = await page.evaluate(() => { const K = window.__parsa.world.people?.sim?.pop?.court; if (!K) return null; const d = (K.set?.gift ?? [])[0]; if (d === undefined) return null; const kd = K.kingDay(d); return { d, h: +(kd.a0 + 0.5).toFixed(2) }; }); if (g) { v.day = g.d; v.hour = g.h; v.why += ` (day ${g.d}, ${g.h} h)`; } else v.error = 'no court gift day'; }
 const results = [];
 let key = `${f.day}|${f.hour}|${f.w}`;
 for (const v of pick) {
+  if (v.error) { results.push({ view: v.id, error: v.error }); continue; }
   const t1 = Date.now();
   try {
     const k = `${v.day}|${v.hour}|${v.w}`;
@@ -159,8 +163,11 @@ for (const v of pick) {
     await page.evaluate(() => window.__parsa.step(10, 1 / 30, 0));
     // after a time jump the placement is whole only when the sim has caught up (sim.catchingUp false; a dt-0 tick finishes it)
     const cu = await page.evaluate(async () => { const a = window.__parsa; let k = 0; while (a.world.people?.sim?.catchingUp && k < 200) { await a.tick(); k++; } return { ticks: k, catchingUp: !!a.world.people?.sim?.catchingUp }; });
-    await page.evaluate(() => window.__parsa.step(60, 1 / 30, 1)); // 2 s with the clock running: walkers are mid-walk (a frozen clock never reads 'moving')
-    const r = await page.evaluate(readView); r.catchUp = cu;
+    // finish line B (reset.md): 2 game-minutes with the clock running, then what one more update still cannot route
+    await page.evaluate(() => window.__parsa.step(240, 0.5, 1));
+    const routes = await page.evaluate(async () => { const st = window.__parsa.world.people?.view?.stats; if (!st) return null; const a = { ...st }; await window.__parsa.step(1, 1 / 30, 1); const b = window.__parsa.world.people.view.stats;
+      return { routeWait: b.routeWait - a.routeWait, unresolved: b.unresolved - a.unresolved, pending: b.pending, visible: b.visible, walking: b.walking }; });
+    const r = await page.evaluate(readView); r.catchUp = cu; r.routes = routes;
     results.push({ view: v.id, why: v.why, day: v.day, hour: v.hour, ms: Date.now() - t1, ...r });
     console.log(T(), v.id, r.error ?? `sim<60m ${r.simNear60}, rows ${r.rows.length}`);
   } catch (e) { console.log(T(), v.id, 'FAILED', String(e).slice(0, 300)); results.push({ view: v.id, error: String(e).slice(0, 300) }); if (/closed|crash/i.test(String(e))) break; }
@@ -200,7 +207,11 @@ for (const r of results) {
   for (const x of [...r.rows].sort((a, b) => b.tris - a.tris || b.hidden - a.hidden).slice(0, 60)) md.push(`| ${x.k} | ${x.vis} / ${x.hidden} | ${x.instIn} | ${x.near60} | ${x.tris} | ${x.mats.join(', ')} | ${x.tiers.join('')} |`);
   md.push('', '</details>', '');
 }
-md.splice(6, 0, '## Flags', '', ...(flags.length ? flags.map(s => '- ' + s) : ['- none']), '', `Page errors (unique): ${errs.size}`, ...[...errs].slice(0, 12).map(([k, n]) => `- ${n}x ${k}`), '');
+const pc = (a, b) => b ? (100 * a / b).toFixed(1) + ' %' : '-';
+const fl = ['## Finish line B (reset.md)', '', '| view | walking in frustum < 250 m | walking in frustum < 60 m | routes waiting / unresolved in one update after 2 game-min | out of doors (popview) |', '|---|---|---|---|---|'];
+for (const r of results) if (!r.error && r.sim) fl.push(`| ${r.view} | ${r.sim.walkInFr250} of ${r.sim.inFr250} = ${pc(r.sim.walkInFr250, r.sim.inFr250)} | ${r.sim.walkInFr60} of ${r.sim.inFr60} = ${pc(r.sim.walkInFr60, r.sim.inFr60)} | ${r.routes?.routeWait ?? '?'} / ${r.routes?.unresolved ?? '?'} | ${r.routes?.visible ?? '?'} (walking ${r.routes?.walking ?? '?'}) |`);
+{ const g = results.find(r => r.view === 'gift' && r.sim); if (g) { const cs = g.crowd ?? {}; fl.push('', `Gift day (${g.why}): in the frustum within 60 m ${g.sim.inFr60} (not walled ${g.sim.inFrNotWalled60}); the crowd draws ${cs.people} skinned + ${cs.impostors} impostors in all; drawn near: the people meshes' instances < 60 m in the frustum ${g.rows.filter(x => /humans:|people:impostors/.test(x.k)).reduce((a, x) => a + x.near60, 0)}; places ${JSON.stringify(g.places60)}`); } }
+md.splice(6, 0, ...fl, '', '## Flags', '', ...(flags.length ? flags.map(s => '- ' + s) : ['- none']), '', `Page errors (unique): ${errs.size}`, ...[...errs].slice(0, 12).map(([k, n]) => `- ${n}x ${k}`), '');
 // the json keeps the 80 heaviest rows per view (the full graph is ~2.5 MB a run; --full keeps every row)
 const slim = process.argv.includes('--full') ? results : results.map(r => r.rows ? { ...r, rows: [...r.rows].sort((a, b) => b.tris - a.tris || b.hidden - a.hidden).slice(0, 80) } : r);
 writeFileSync(OUT + '.json', JSON.stringify({ tree: TREE, head, results: slim }));

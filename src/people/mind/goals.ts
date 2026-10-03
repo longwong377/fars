@@ -33,6 +33,7 @@ import { REGNAL_DAYS, dateOf } from '../calendar';
 import { u01, salt } from '../hash';
 import type { Deed } from '../deeds/types';
 import type { DeedWorld } from '../deeds/engine';
+import { VERBS } from '../deeds/verbs';
 import type { ActivityId } from '../activities';
 
 const S = { form: salt('goal-form'), step: salt('goal-step'), pick: salt('goal-pick') };
@@ -187,7 +188,7 @@ export class Goals {
   /** the goals of each house, by kind (an index: the check was a walk over every goal, for every head considered) */
   private byHouse = new Map<number, GoalKind[]>();
   private houseHas(pid: number, kind: GoalKind, day: number) { return !!this.byHouse.get(this.hid(pid, day))?.includes(kind); }
-  private lastDeedBy(victim: number, doer: number): number { const mem = this.W.minds.memory.get(victim) ?? []; for (let i = mem.length - 1; i >= 0; i--) { const r = this.W.rec(mem[i]); if (r && r.deed.actor === doer && r.deed.target === victim) return r.id; } return -1; }
+  private lastDeedBy(victim: number, doer: number): number { const mem = this.W.minds.memory.get(victim) ?? []; for (let i = mem.length - 1; i >= 0; i--) { const r = this.W.rec(mem[i]); if (r && r.deed.actor === doer && r.deed.target === victim && VERBS[r.deed.verb].wrong) return r.id; } return -1; } // (D-720: a grudge's cause is a wrong: the deeds a save keeps)
   make(pid: number, kind: GoalKind, who: number, day: number, span: number, why: string, cause: string): Goal {
     const depth = cause.startsWith('deed:') ? this.host.depthOfDeed(Number(cause.slice(5))) + 1 : cause.startsWith('goal:') ? (this.depth.get(Number(cause.slice(5))) ?? 1) + 1 : 1;
     const g: Goal = { id: this.nextId++, pid, kind, who, born: day, until: Math.min(REGNAL_DAYS + 60, day + span), next: day + 1, prog: 0, n: 0, fails: 0, why, cause, depth, hh: this.hid(pid, day) };
@@ -307,7 +308,7 @@ export class Goals {
       const bride = me.sex === 'f' ? g.pid : w, groom = me.sex === 'm' ? g.pid : w;
       this.act(g, { verb: 'promise', actor: speaker, target: wHead >= 0 && wHead !== speaker ? wHead : w, about: `the betrothal of ${this.name(groom)} and ${this.name(bride)}`, aim: 'the betrothal' }, day, 18);
       const wday = Math.min(REGNAL_DAYS - 2, day + 25 + Math.floor(this.u(g.id, day, 3) * 35)), to = this.hid(groom, day);
-      if (wday > day + 10 && P.addWedding(bride, groom, wday, to)) this.weds.push([bride, groom, wday, to]);
+      if (wday > day + 10 && P.addWedding(bride, groom, wday, to, true)) this.weds.push([bride, groom, wday, to]);
       else this.weds.push([bride, groom, -1, to]); // (betrothed; the wedding after the year's end)
       this.host.mood(g.pid, day, 0.7, 'glad'); this.host.mood(w, day, 0.5, 'glad');
       this.finish(g, day, 'achieved', `betrothed to ${this.name(w)}`); return; }
@@ -459,7 +460,13 @@ export class Goals {
     void day; return '';
   }
 
-  save() { return { n: this.nextId, a: [...this.active.values()], p: [...this.places], w: this.weds, l: this.left, t: [...this.learned], s: this.stats, e: this.ended.slice(-60) }; }
+  /** D-720: at each day's end the ended goals are cut to what is read again (the last 60 for the brief, the talk and the chains; the
+   *  goals won in the last 20 days: a vow of thanks; the courtships given up: the spurned who leave), and the depths to the goals
+   *  held, so the save carries exactly the state the unbroken run goes on with */
+  canon(day: number) { const keep = new Set(this.ended.slice(-60));
+    const kept = this.ended.filter(g => keep.has(g) || (g.out === 'achieved' && day - (g.end ?? 0) < 20) || (g.kind === 'spouse' && g.out === 'abandoned'));
+    this.ended.splice(0, this.ended.length, ...kept); const ids = new Set([...this.active.keys(), ...kept.map(g => g.id)]); for (const k of [...this.depth.keys()]) if (!ids.has(k)) this.depth.delete(k); }
+  save() { return { n: this.nextId, a: [...this.active.values()], p: [...this.places], w: this.weds, l: this.left, t: [...this.learned], s: this.stats, e: this.ended }; }
   load(s: ReturnType<Goals['save']> | undefined) {
     this.active.clear(); this.byPid.clear(); this.byHouse.clear(); this.places.clear(); this.weds.length = 0; this.left.length = 0; this.learned.clear(); this.ended.length = 0; this.depth.clear(); this.nextId = 0;
     for (const k of KINDS) this.stats[k] = [0, 0, 0]; if (!s) return;
@@ -467,7 +474,7 @@ export class Goals {
     for (const [k, v] of s.p) this.places.set(k, v); for (const [k, v] of s.t) this.learned.set(k, v); this.ended.push(...s.e); for (const g of s.e) this.depth.set(g.id, g.depth);
     Object.assign(this.stats, s.s);
     // the world as the minds changed it: their weddings and their leavers put into the fresh population again
-    const P = this.P; for (const w of s.w) { this.weds.push(w); if (w[2] > 0) P.addWedding(w[0], w[1], w[2], w[3]); }
+    const P = this.P; for (const w of s.w) { this.weds.push(w); if (w[2] > 0) P.addWedding(w[0], w[1], w[2], w[3], true); }
     for (const [pid, d] of s.l) { this.left.push([pid, d]); P.deedLeave(pid, d, true); }
   }
 }

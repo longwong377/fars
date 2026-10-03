@@ -58,6 +58,43 @@ settlement/plan.ts (+ new settlement/estates.ts).
   - 45 % have a straw and fodder stack on the roof, and 30 % of the wings carry brushwood.
   - The dung cakes were cut again for the plain's triangle cap: s17-int was already over it, at 2.01 M against 2.0 M.
 
+## Round 2 (lead 3), pushed and tested; not rendered
+- **D-801, the roads** (src/world/plain/wayside.ts, in the nr-life draw):
+  - Along the first 9 km of each of the 4 roads, and the Naqsh-e Rustam road its whole length, there are 12 wells, 12 halts
+    each with an ox-cart, and 10 field shrines (ash and wood; the fire is the people's action). They cost 6.7 k triangles.
+  - The droppings on the road are left to roadLitter.ts.
+  - Paid for inside the plain's 2.0 M: the threshing kerbs went from 26 stones to 12, and the roof stacks have 3 faces.
+- **The Naqsh-e Rustam ground:** the keepers' sheepfold, well and trough, garden and fuel stack, and trodden paths from the
+  house to the table, the Ka'ba's stair and the works.
+- **The estates' roofs are drawn from below**, through C2's Prop.bottom.
+- **road_pasargadae:** nothing to change. D-730 already took it off Kuh-e Rahmat; measured, it stays between −14 and +9 m of
+  its start over 12.8 km.
+- **Roadside placement, checked after the resume:** measured, every stop is 5, 7 or 12 m from the road edge on ground that
+  varies by at most 0.2 m. The stops doubled where the Pasargadae road shares the Naqsh road's stretch (50-70 m apart) were
+  removed (90f107c2). Crude frames are handoff/s18/c15/r2_*.jpg: the halt with its cart, the shrine at a field edge, the
+  Naqsh ground. Nothing floats or is buried. The halts read as boxes (the town kit, D-802, is the fix).
+- **The village gates are painted** by C2's towndoors change: no change from C15.
+
+## Round 3 (lead 3): the town kit (D-802), batch 1
+- **What it is:** tools/blender/kit_town.py builds it (Blender 5.0.1; the cloud runs it through `pip bpy`, which is
+  reproducible: the same hash on two builds). It writes public/models/kit/town/kit.json, manifest.json and town_kit.glb:
+  19 pieces, each in 3 LODs. The loader is src/render/townKit.ts; tests/town_kit.test.ts is green (frames, tiling seams, LOD
+  order, AO range, budget). Contact sheets: handoff/s18/c15/kit_kit_town_0.jpg and kit_kit_town_1.jpg (Cycles, a raking sun).
+- **Not yet in the game:** C2 places the pieces. The interface is the house kit's (kitFrame unit frames), sent to C2.
+- **Departures from the ask:**
+  - **No KTX2 texture maps.** The town's surfaces are world-space scanned materials (Plaster001/007 and the rest through
+    scans.ts), and new maps would cost samplers under the T4's 16-sampler cap. The pieces carry their geometry, baked AO and a
+    per-vertex shade instead.
+  - **No ladder piece.** The house kit's log and rung pieces already build the ladders, and a round member does not survive a
+    non-uniform scale.
+  - **The awning is in metres, not scaled**, for the same reason.
+- **Weak:** on a plain plastered run the relief (batter, ~3 cm undulation, runnels) shows only under raking light. The plaster's
+  grain is left to the game's scanned material.
+
+## Stop (lead 3, 11:27)
+C15 has stopped: the agent count was cut. Town kit batch 1 is merged; C2 places it and extends the pieces if needed. Head
+at the stop: this commit. Nothing is left uncommitted or running.
+
 ## Frames (crude, SwiftShader, `?webgl=1`, 1280 × 720, day 25 10:00 clear)
 
 Before: `origin/s17-int` 803a0e76 (06:00). After: this branch at 4f3ab187. Since then: the village yards are trodden earth

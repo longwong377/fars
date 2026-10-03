@@ -15,6 +15,8 @@ import * as THREE from 'three/webgpu';
 import type { Part, Box, Column } from './parts';
 import { roofEdges, ROOFEDGE } from './roofedge';
 import { towerEnvelopes } from './glazed';
+import { kitGeometry } from './terracekit';
+import { PieceLOD } from './palacekit';
 import { propMaterial, surfaceMaterial } from '../render/materials';
 import { Rng } from '../core/rng';
 
@@ -162,28 +164,16 @@ export function towerWindowFaces(parts: Part[]): { c: [number, number]; u: [numb
   }
   return out;
 }
-function towerWindows(S: Soup, parts: Part[]): number {
-  const TW = TOWER_WINDOWS, stone = lin(TW.stone), dark = lin(TW.recess); let n = 0;
+/** D-803: the windows' places as the kit piece's matrices (origin at the opening's foot centre on the face; x along, z out) */
+export function towerWindowMatrices(parts: Part[]): THREE.Matrix4[] {
+  const TW = TOWER_WINDOWS, out: THREE.Matrix4[] = [];
   for (const f of towerWindowFaces(parts)) {
     const k = Math.floor((f.len - 2 * TW.edge - TW.w) / TW.pitch) + 1; if (k < 1) continue;
-    const a0 = -((k - 1) * TW.pitch) / 2;
-    // a point on the face: s along, y up, z out of the face
-    const P = (s: number, y: number, z: number) => W(f.c[0] + f.u[0] * s + f.n[0] * z, y, f.c[1] + f.u[1] * s + f.n[1] * z);
-    const box = (s0: number, s1: number, y0: number, y1: number, z0: number, z1: number, rgb: number[]) => { // a block's five visible faces (two-sided: no winding to get wrong)
-      S.quad(P(s0, y0, z1), P(s1, y0, z1), P(s1, y1, z1), P(s0, y1, z1), rgb);
-      S.quad(P(s0, y1, z0), P(s0, y1, z1), P(s1, y1, z1), P(s1, y1, z0), rgb); S.quad(P(s0, y0, z0), P(s1, y0, z0), P(s1, y0, z1), P(s0, y0, z1), rgb);
-      S.quad(P(s0, y0, z0), P(s0, y0, z1), P(s0, y1, z1), P(s0, y1, z0), rgb); S.quad(P(s1, y0, z0), P(s1, y1, z0), P(s1, y1, z1), P(s1, y0, z1), rgb); };
-    for (const row of TW.rows) for (let i = 0; i < k; i++) {
-      const s = a0 + i * TW.pitch, y0 = f.y0 + row, y1 = y0 + TW.h, hw = TW.w / 2, fr = TW.frame, C = TW.cornice;
-      S.quad(P(s - hw, y0, -TW.depth), P(s + hw, y0, -TW.depth), P(s + hw, y1, -TW.depth), P(s - hw, y1, -TW.depth), dark); // the recess's back
-      S.quad(P(s - hw, y0, -TW.depth), P(s - hw, y0, 0), P(s - hw, y1, 0), P(s - hw, y1, -TW.depth), dark); S.quad(P(s + hw, y0, -TW.depth), P(s + hw, y1, -TW.depth), P(s + hw, y1, 0), P(s + hw, y0, 0), dark); // its reveals
-      S.quad(P(s - hw, y1, -TW.depth), P(s - hw, y1, 0), P(s + hw, y1, 0), P(s + hw, y1, -TW.depth), dark); // its soffit
-      box(s - hw - fr, s - hw, y0 - fr, y1, 0, 0.06, stone); box(s + hw, s + hw + fr, y0 - fr, y1, 0, 0.06, stone); box(s - hw, s + hw, y0 - fr, y0, 0, 0.06, stone); // jambs and sill
-      box(s - hw - fr, s + hw + fr, y1, y1 + fr, 0, 0.06, stone); box(s - hw - fr - C.over, s + hw + fr + C.over, y1 + fr, y1 + fr + C.h, 0, C.proj, stone); // lintel and its gorge cornice
-      n++;
-    }
+    const a0 = -((k - 1) * TW.pitch) / 2, X = new THREE.Vector3(f.u[0], 0, -f.u[1]), Y = new THREE.Vector3(0, 1, 0), Z = new THREE.Vector3(f.n[0], 0, -f.n[1]);
+    for (const row of TW.rows) for (let i = 0; i < k; i++) { const s = a0 + i * TW.pitch;
+      out.push(new THREE.Matrix4().makeBasis(X, Y, Z).setPosition(f.c[0] + f.u[0] * s, f.y0 + row, -(f.c[1] + f.u[1] * s))); }
   }
-  return n;
+  return out;
 }
 
 /** the dressings as a group of up to three merged meshes (textile, wood, bronze), named 'c10:dressings' */
@@ -198,14 +188,16 @@ export function buildDressings(parts: Part[]): THREE.Group | null {
     valance(cloth, bay, [purple, linen, c1]);
   });
   const st = standardPlaces(parts); for (const s of st) standard(wood, cloth, metal, s, rng);
-  const stone = new Soup(), nWin = towerWindows(stone, parts);
+  const winMats = towerWindowMatrices(parts), nWin = winMats.length; // D-803: the kit's stone window frames
   if (!cloth.tris) return null;
   const g = new THREE.Group(); g.name = 'c10:dressings';
   const add = (S: Soup, mat: THREE.Material, name: string, note: string) => { if (!S.tris) return; const m = new THREE.Mesh(S.geometry(), mat); m.name = name; m.castShadow = true; m.receiveShadow = true;
     m.userData = { tier: D.tier, src: D.src, placeholder: false, tris: S.tris, note }; g.add(m); };
   add(cloth, propMaterial('textile', { vertexColors: true, rough: 0.95 }), 'c10:dressings:cloth', `the porticoes' hangings (${bays.length} bays: two tied-back curtains and a valance each; white, green, blue and purple after Esther 1:6, B for the practice, C for the form) and ${st.length} royal standards' banners (Xenophon Cyr. 7.1.4 for the standard, B; their places C) (D-750)`);
   add(wood, propMaterial('wood', { vertexColors: true, rough: 0.8 }), 'c10:dressings:poles', `the ${st.length} standards' cedar poles (D-750, C)`);
-  add(stone, propMaterial('stone', { vertexColors: true, rough: 0.95 }), 'c10:dressings:tower-windows', `${nWin} blind windows in dark stone frames on the Apadana towers' outer faces (the Tachara's frames, global.r_window; their places C) (D-750)`);
+  if (nWin) { const lod = new PieceLOD([kitGeometry('window0'), kitGeometry('windowL')], propMaterial('stone', { vertexColors: true, rough: 0.95 }), winMats); lod.name = 'c10:dressings:tower-windows';
+    lod.userData = { tier: D.tier, src: D.src, placeholder: false, model: 'terracekit', note: `${nWin} blind windows on the Apadana towers' outer faces: the Persepolis stone frame (three fasciae, the gorge with its tongues) under the whitish coat, modelled and AO-baked in Blender (tools/blender/terracekit.py; D-803; their places C)` };
+    lod.levels.forEach((im, k) => { im.name = `${lod.name}:lod${k}`; im.userData = lod.userData; }); g.add(lod); }
   add(metal, surfaceMaterial('bronze', { vertexColors: true }), 'c10:dressings:finials', `the ${st.length} standards' bronze finials (the eagle's seat; D-750, C)`);
   g.userData = { tier: D.tier, src: D.src, placeholder: false, bays: bays.length, standards: st.length, windows: nWin };
   return g;
