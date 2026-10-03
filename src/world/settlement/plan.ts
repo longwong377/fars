@@ -12,6 +12,7 @@ import { Site, SiteMeta, Plot, P2, Frame, toGrid, toLocal, OUT, LANE, FREE, RES,
 import { generateQuarter, QuarterOpts } from './quarter';
 import { ringCompound, yardCompound, roomBlock, openGround } from './compounds';
 import { HOUSE } from './town_rules';
+import { estateProps, estateLayout, pavilionProps2, goharHallProps, type EstateFrame } from './estates';
 import { precinctProps, precinctMiddens, burialGraves, PRECINCT_FIRE } from './precinct';
 
 export const TOWN_SEED = 467; // the town is architecture: fixed, not per world seed
@@ -199,6 +200,7 @@ function wayStationSite(): Site {
   s.recount(); return s;
 }
 
+const ESTATES = new Map<string, EstateFrame>(); // (by site id: a rebuilt plan replaces its estates' frames)
 function estateSite(id: string, c: P2, theta: number): Site {
   // elite estate in the Bagh-e Firuzi zone (very low-density elite occupation among gardens, GONDET2009 B; plan C):
   // a walled orchard with a courtyard house at one end and a pool
@@ -213,8 +215,19 @@ function estateSite(id: string, c: P2, theta: number): Site {
   F('hearth', s.cu(hx0 + 9), s.cv(hy0 + 9)); F('oven', s.cu(hx0 + 26), s.cv(hy0 + 26)); F('well', s.cu(hx0 + 17), s.cv(hy0 + 17));
   for (let x = 0; x < 6; x++) F('jar_big', s.cu(hx0 + 7 + x), s.cv(hy0 + 27), 1);
   F('pool', s.cu(2 + 60), s.cv(2 + 35), 1, { len: 12, wid: 6, note: 'garden pool (C)' });
-  for (let i = 40; i < 90; i += 6) for (let j = 4; j < 68; j += 6) if (Math.abs(i - 60) > 9 || Math.abs(j - 35) > 6) F('tree', s.cu(2 + i), s.cv(2 + j), rng.range(0.8, 1.15), { species: rng.pick(['pomegranate', 'fig', 'apple', 'pear', 'olive', 'mulberry', 'vine']) });
-  for (let j = 4; j < 34; j += 6) for (const i of [4, 16, 28]) F('tree', s.cu(2 + i), s.cv(2 + j), rng.range(0.8, 1.1), { species: rng.pick(['pomegranate', 'fig', 'vine']) });
+  // s18 C15 (D-800): the orchard as four beds by two channels crossing at the pool (the Pasargadae garden's form, B by analogy;
+  // C): the trees keep 2.5 m clear of the channels (the random stream drawn as before, so the plan's other draws are unchanged)
+  for (let i = 40; i < 90; i += 6) for (let j = 4; j < 68; j += 6) if (Math.abs(i - 60) > 9 || Math.abs(j - 35) > 6) { const sz = rng.range(0.8, 1.15), sp = rng.pick(['pomegranate', 'fig', 'apple', 'pear', 'olive', 'mulberry', 'vine']);
+    if (Math.abs(i - 60) >= 3 && Math.abs(j - 35) >= 3) F('tree', s.cu(2 + i), s.cv(2 + j), sz, { species: sp }); }
+  // (the trees S of the house stop short of its garden porch, estates.ts)
+  for (let j = 4; j < 34; j += 6) for (const i of [4, 16, 28]) { const sz = rng.range(0.8, 1.1), sp = rng.pick(['pomegranate', 'fig', 'vine']); if (j < 28) F('tree', s.cu(2 + i), s.cv(2 + j), sz, { species: sp }); }
+  const pu = s.cu(2 + 60), pv = s.cv(2 + 35), ch = (u: number, v: number, rot: number, len: number) => F('channel', u, v, 1, { rot, len, wid: 0.6, note: 'stone-lined channel of the four-part garden (Pasargadae by analogy, B; C; s18 C15, D-800)' });
+  { const a0 = s.cu(40) - 0.5, a1 = s.cu(91) - 0.5, b0 = s.cv(4) - 0.5, b1 = s.cv(69) - 0.5;
+    ch((a0 + pu - 6) / 2, pv, 0, pu - 6 - a0); ch((pu + 6 + a1) / 2, pv, 0, a1 - pu - 6); ch(pu, (b0 + pv - 3) / 2, Math.PI / 2, pv - 3 - b0); ch(pu, (pv + 3 + b1) / 2, Math.PI / 2, b1 - pv - 3); }
+  const EF = { hx0, hy0, size: 34, court: [hx0 + 6, hy0 + 6, hx0 + 28, hy0 + 28] as [number, number, number, number], gateAt: 10 }, EL = estateLayout(EF, s);
+  for (const [u, v, h] of EL.columns) F('column', u, v, h, { note: 'a column of the porch: stone base, painted timber shaft (estates.ts; C)' });
+  for (const [u, v] of EL.gate.piers) F('column', u, v, 4.4, { note: 'a pier of the gatehouse (estates.ts; C)' });
+  ESTATES.set(id, { site: s, ...EF });
   s.recount(); return s;
 }
 
@@ -288,16 +301,7 @@ function areaCGardenSite(): Site {
  *  roofed room (C: "column bases and foundations beyond the gate", press) */
 const PAVILION: { frame: Frame | null } = { frame: null };
 function pavilionProps(props: Prop[], groups: Map<string, P2[]>) {
-  const f = PAVILION.frame; if (!f) return; const W = 18, D = 14, row = 'paradise_bagh_e_firuzi', feature = 'zone_bagh_e_firuzi', note = 'garden pavilion on the axis, facing the gate: columned porch before a room (C; column bases beyond the gate: press)';
-  groups.set('pavilion', [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => toGrid(f, a * D / 2, b * W / 2)));
-  const B = (u: number, v: number, hu: number, hv: number, y0: number, y1: number, mat: Mat = 'mud', collide = true, colour?: [number, number, number]) => props.push({ shape: 'box', mat, c: toGrid(f, u, v), theta: f.theta, hu, hv, y0, y1, group: 'pavilion', collide, row, feature, note, colour });
-  B(-D / 2 + 0.4, 0, 0.45, W / 2, -0.4, 5.2); B(-D / 2 + 3.5, W / 2 - 0.4, 3.5, 0.45, -0.4, 5.2); B(-D / 2 + 3.5, -W / 2 + 0.4, 3.5, 0.45, -0.4, 5.2); // room walls (back and sides)
-  B(-D / 2 + 7, 3.5, 0.4, W / 2 - 3.5, -0.4, 5.2); B(-D / 2 + 7, -W / 2 + 1, 0.4, 1, -0.4, 5.2); // front wall of the room with a door
-  B(0, 0, D / 2 + 0.4, W / 2 + 0.4, 5.2, 5.9, 'mud', false); // flat roof
-  B(0, 0, D / 2 + 0.6, W / 2 + 0.6, -0.3, 0.35, 'stone', true); // stone platform
-  for (let k = 0; k < 4; k++) { const v = -W / 2 + 2.25 + k * 4.5; for (const u of [D / 2 - 0.9, 2.2]) {
-    props.push({ shape: 'cyl', mat: 'stone', c: toGrid(f, u, v), theta: 0, hu: 0.55, hv: 0.55, y0: 0.3, y1: 0.7, group: 'pavilion', collide: true, row, feature, note: note + ': stone column base' });
-    props.push({ shape: 'cyl', mat: 'timber', c: toGrid(f, u, v), theta: 0, hu: 0.26, hv: 0.26, y0: 0.7, y1: 5.2, group: 'pavilion', collide: true, row, feature, note: note + ': plastered timber column (C)', colour: [0.8, 0.74, 0.64] }); } }
+  const f = PAVILION.frame; if (!f) return; pavilionProps2(props, groups, f); // s18 C15 (D-800): modelled as a porticoed, painted pavilion (estates.ts)
 }
 // Takht-e Rustam (LIVIUS-TR: ~12.5 x 12.5 m, local stone, base for a higher structure like the lower tiers of Cyrus'
 // tomb, B size): placed 18 m E of the road line (the road passes beside it; position C ±400 m). Two steps (the
@@ -371,12 +375,8 @@ export function buildTownPlan(): TownPlan {
   groups.set('takht', [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => toGrid({ c: t.c, theta: gt }, a * TAKHT.size / 2, b * TAKHT.size / 2)));
   const gs = sites.find(s => s.id === 'garden_gohar')!; const hallC = gs.grid(-85, 0); const hf: Frame = { c: hallC, theta: gs.frame.theta };
   const hallW = 24, hallD = 30; groups.set('hall_gohar', [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => toGrid(hf, a * hallW / 2, b * hallD / 2)));
-  const HN = 'columned hall behind Takht-e Rustam ("hypostyle hall reburied behind the platform": search extract, C); size, plan and column form C';
-  for (let a = 0; a < 4; a++) for (let b = 0; b < 5; b++) { const [u, v] = [-hallW / 2 + 3 + a * 6, -hallD / 2 + 3 + b * 6];
-    props.push({ shape: 'cyl', mat: 'stone', c: toGrid(hf, u, v), theta: 0, hu: 0.75, hv: 0.75, y0: -0.2, y1: 0.45, group: 'hall_gohar', collide: true, row: 'hall_dasht_e_gohar', feature: 'zone_dasht_e_gohar', note: HN + ': stone column base' });
-    props.push({ shape: 'cyl', mat: 'timber', c: toGrid(hf, u, v), theta: 0, hu: 0.34, hv: 0.34, y0: 0.45, y1: 6.2, group: 'hall_gohar', collide: true, row: 'hall_dasht_e_gohar', feature: 'zone_dasht_e_gohar', note: HN + ': plastered timber column (C)', colour: [0.78, 0.72, 0.62] }); }
-  props.push({ shape: 'box', mat: 'mud', c: toGrid(hf, -hallW / 2 - 0.5, 0), theta: hf.theta, hu: 0.5, hv: hallD / 2 + 1, y0: -0.4, y1: 6.9, group: 'hall_gohar', collide: true, row: 'hall_dasht_e_gohar', feature: 'zone_dasht_e_gohar', note: HN + ': back wall' });
-  props.push({ shape: 'box', mat: 'mud', c: toGrid(hf, 0, 0), theta: hf.theta, hu: hallW / 2 + 1, hv: hallD / 2 + 1, y0: 6.2, y1: 6.9, group: 'hall_gohar', collide: false, row: 'hall_dasht_e_gohar', feature: 'zone_dasht_e_gohar', note: HN + ': flat roof on timber beams' });
+  goharHallProps(props, hf, hallW, hallD); // s18 C15 (D-800): the porticoed, painted hall (estates.ts)
+  estateProps(props, [...ESTATES.values()]);
   pavilionProps(props, groups);
   // D-209: the open-air sacred precinct (its plinths, altar, wood and ash) and the town's burial ground (precinct.ts)
   precinctProps(props, groups); precinctMiddens(middens); burialGraves(middens, props);
