@@ -12,7 +12,8 @@
 "hour": 5.97,
 "w": "clear",
 "why": "C11 opening shot 'town', first key",
-"owner": "C11"
+"owner": "C11",
+"prio": 5
 },
 {
 "id": "town-20m",
@@ -237,7 +238,8 @@
 "hour": 22.5,
 "w": "clear",
 "why": "night on the Terrace",
-"owner": "C4"
+"owner": "C4",
+"prio": 1
 },
 {
 "id": "face-0.5m",
@@ -277,7 +279,8 @@
 "hour": 21,
 "w": "clear",
 "why": "a great banquet night in the Apadana hall (C13 D-780: seed 1 banquet nights include day 19, from 18.6-19.1 h for 3-4 h)",
-"owner": "C13"
+"owner": "C13",
+"prio": 0
 },
 {
 "id": "intro-town",
@@ -291,7 +294,8 @@
 "hour": 5.97,
 "w": "clear",
 "why": "C11 opening shot 'town' (moved ~150 m S over the lanes, 1babe236), middle key: sunrise+0.35 h",
-"owner": "C11"
+"owner": "C11",
+"prio": 5
 },
 {
 "id": "banquet-throne",
@@ -304,7 +308,8 @@
 "hour": 20,
 "w": "clear",
 "why": "C13's ask: the banquet near the Apadana's throne end at 20 h, seed 1 day 19 (couches, reclining nobles, tables, servers, musicians)",
-"owner": "C13"
+"owner": "C13",
+"prio": 0
 },
 {
 "id": "town-20m-noon",
@@ -317,7 +322,8 @@
 "hour": 12,
 "w": "clear",
 "why": "the town from 20 m at noon (C2's plaster and roofs)",
-"owner": "C2"
+"owner": "C2",
+"prio": 2
 },
 {
 "id": "town-200m-noon",
@@ -330,7 +336,8 @@
 "hour": 12,
 "w": "clear",
 "why": "the N town from 200 m up at noon, looking down over its roofs (C2)",
-"owner": "C2"
+"owner": "C2",
+"prio": 2
 },
 {
 "id": "terrace-100m",
@@ -343,7 +350,36 @@
 "hour": 10,
 "w": "clear",
 "why": "the Terrace's W face from 100 m on the plain (C10's paint)",
-"owner": "C10"
+"owner": "C10",
+"prio": 3
+},
+{
+"id": "ground-before-terrace",
+"e": -60,
+"n": 112,
+"eye": 1.6,
+"az": 250,
+"pitch": -18,
+"day": 30,
+"hour": 10,
+"w": "clear",
+"why": "C3's ground before the Terrace (5aa562ce): the stair foot looking down at the ground W (moment stair-foot-ground)",
+"owner": "C3",
+"prio": 4
+},
+{
+"id": "ground-terrace-approach",
+"e": -140,
+"n": 95,
+"eye": 1.6,
+"az": 75,
+"pitch": -4,
+"day": 30,
+"hour": 10,
+"w": "clear",
+"why": "C3's ground before the Terrace: the approach 80 m W of the stair, looking E at the stair over the ground",
+"owner": "C3",
+"prio": 4
 }
 ]
 }

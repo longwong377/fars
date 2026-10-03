@@ -4,7 +4,7 @@ import { readFileSync, mkdirSync, existsSync, appendFileSync } from 'node:fs';
 const [setFile, outDir] = process.argv.slice(2); mkdirSync(outDir, { recursive: true });
 const S = JSON.parse(readFileSync(setFile, 'utf8')); const P = JSON.parse(readFileSync('/home/user/fars/tests/data/coverage_points.json', 'utf8')).points;
 const work = [...P.filter(p => (S.ids ?? []).includes(p.id)), ...(S.extra ?? [])].filter(v => !existsSync(`${outDir}/${v.id}.png`));
-work.sort((a, b) => a.day - b.day || a.hour - b.hour || String(a.w).localeCompare(String(b.w)));
+work.sort((a, b) => (a.prio ?? 9) - (b.prio ?? 9) || a.day - b.day || a.hour - b.hour || String(a.w).localeCompare(String(b.w)));
 console.log('views', work.length); if (!work.length) process.exit(0);
 const args = ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--enable-unsafe-webgpu', '--enable-features=Vulkan', '--use-vulkan=swiftshader', '--use-webgpu-adapter=swiftshader'];
 const b = await chromium.launch({ headless: true, args });
