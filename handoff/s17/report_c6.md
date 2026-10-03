@@ -7,7 +7,7 @@ the terrain shader alone (terrainPlain.ts, C2's). B630: the world's end (±71.7 
 coverage points (up to 18 px); within 10 km of the Terrace < 1 px. The far Terrace (B175) is in place (D-361; far levels
 switch under 1/4 px; tests/far_terrace 3/3); its look as "one mass" is unjudged, and it has NO sun shadow past 600 m (the cascades' maxFar,
 sunShadows.ts, V1's): flat-lit from the plain; asked V1 for a static Terrace cascade (asks_vagon.md). The quarries are probe-checked only, and the
-whole far ring under them is 80 m cells (no finer DEM in git). tests/plain "<= 40 meshes" fails on int already (106), not mine.
+whole far ring under them is 80 m cells (no finer DEM in git). tests/plain passes 33/33 on the merged int (329bbbb1).
 
 **What a player now sees differently**
 - No terrain LOD pop: geomorphing (CDLOD) — before 32 of 2,873 level switches over 2 px (worst 2.5 px) along 515 coverage

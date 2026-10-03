@@ -9572,6 +9572,10 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   far-bank reflection follows SEASON (was a hard-coded green).
 - Third pass: the footings take 75 % of the scan's buff (sunlit they read cold white-grey); the palaces' plaster bays 1σ 0.07 -> 0.09
   and rain wash 0.13 -> 0.17 (the Gate's 20 m wall read as one flat plane). Frames: shots/a4, t4.
+- KTX2 (the lead): dirt_floor, raked_dirt, stone_wall, clay_block_wall encoded by tools/bake_world/ktx_scans.ts (UASTC+RDO, zstd, mips;
+  public/textures/ktx.json lists them, scans.ts loads them through sharedKTX2; the jpgs stay as the fallback): 9 maps, 24 MB jpg ->
+  32 MB ktx2 on disk, GPU memory a quarter of RGBA8 and no decode on the page. House lab frames identical (shots/a5). The
+  20-80 m ground tiling: no visible repeat in the plain probe frames (shots/p1 stair-top, drum-road).
 
 ## D-480 (s17, V1 light): light v1, the art direction's light and tone
 - Tone (toneLook.ts): the fitted AgX look re-graded for the art direction (AC Origins / RDR2: rich, warm, controlled highlights,
@@ -9721,3 +9725,34 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   sweepers' body layer is now a sweeping capture (weight 0.22, the broom hand within 3.5 cm). drink and dance are baked but
   NOT wired: a new pose cycle needs impostor frames of its own (tests/impostor_frames: drink 0.27 m from the nearest frame),
   i.e. tools/dev/imp_keys.ts --cover and an impostor re-render; next pass (B530).
+
+
+## D-521 (s17, V5): rain that reads (mixed streaks, splashes), dust that shows, a weather probe
+- weatherVfx.ts: each drop its own streak length (0.45-1.25 x) and brightness, the sheet's opacity 0.5 -> 0.34 (a uniform
+  sheet of equal streaks read as scratches on the lens); splashes where drops land within 9 m of the eye (a crown and a
+  rebound droplet, ~0.3 s, closed form in time; brighter than the streak: the sky in the water), none under the halls' roofs;
+  world.ts hook (one line): wvfx.ground = terrain.surfaceAt. shader_build counts the new mesh.
+- dust.ts: the puffs' optical depths 6-10x (the first pass's read as nothing in the probe: tau 0.05-0.12), longer lives,
+  more puffs per animal; a billowing edge (two noise octaves) instead of a disc.
+- tools/dev/weather_probe.{html,ts,mjs}: the plain (plain_probe's ?lite ground, flora, rocks) with the game's Animals in
+  flocks and strings, their dust, the rain, the wet ground and breath; views rain-spring, wet-after, dust-june, herd-5m,
+  herd-30m, cold-morning. Frames judged: shots/wx-*-w6.png (not committed).
+- Not mine, seen in the probe: the wet plain is darker but matte (no sheen, no puddles: the ground material, V2/C2); the
+  ground flora draws black spiky cards on the plain (groundFlora, C2).
+
+## D-522 (s17, V5): the season's palette in one place (season.ts SEASON_PALETTE)
+- The herb layer's green and straw and the stubble's colours lived as copies in materials.ts, terrainPlain.ts (twice),
+  water.ts and groundCover.ts; they now read season.ts SEASON_PALETTE (one-line hooks in each). Spring green moved from an
+  olive (0.31, 0.36, 0.18) that read as summer khaki to a young green (0.34, 0.45, 0.16); straw a little warmer. How much of
+  the ground the herbs cover stays the ground materials' (C2, V2). Probe: shots/pp-small-spring-field-s1.png.
+
+## D-523 (s17, V5): wet coats in the rain
+- animals.ts: a library model's coat darkens to ~0.6 of its albedo with the weather's surface wetness (WEATHER.wetness, the
+  ground's own uniform), loses its fuzz rim and takes a duller sheen. Probe: shots/wx-rain-spring-w7.png, wx-herd-30m-w7.png
+  (the spring green of D-522 reads on the plain at 30 m).
+- D-472 addendum (00:31 crash, the second): Windows logged "low virtual memory": COMMIT ran out (limit 71.5 GB = 63 GB RAM
+  + 8 GB page file) with 35 GB of RAM still free: Chrome GPU processes commit 5-10 GB each (9.8 + 8.2 + 5.5 GB at the event)
+  and the lead had started a full vitest run (up to 16 workers) beside the train and the agents' probes. The Claude app died
+  again and stopped every agent. Fix: boxguard.freeGB = min(free RAM, free commit) from perf counters; gpu slots start only
+  with >= 12 GB and end their job under 6 GB; scoreboard refuses under 24 GB. No full test suite on the Vagon box while
+  agents build (the cloud CI runs npm test on every s17-int push); targeted vitest files only.

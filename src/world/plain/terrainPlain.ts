@@ -16,6 +16,7 @@
 //  - The hills (terrain/terrainDetail.ts): limestone rock by slope and convexity, bedding ledges in cliff-forming
 //    packages, gullies where the DEM's own drainage converges, scree on the concave middle slopes, soil and herbs on the
 //    gentle ground, and shrubs (pistachio-almond, B pollen; C placement), more in the gullies and on shaded slopes.
+import { SEASON_PALETTE, paletteLinear } from '../season';
 import * as THREE from 'three/webgpu';
 import { Fn, uniform, positionWorld, normalWorld, attribute, vec2, vec3, vec4, float, uint, int, ivec2, floor, fract, min, max, mix, step, smoothstep, length, fwidth, textureLoad, texture, abs, sin, cos, clamp, color, mx_noise_float, sqrt, dot } from 'three/tsl';
 import { surfaceMaterial, NOISE_FRAME, SEASON, BLOOM, WEATHER, type Layer } from '../../render/materials';
@@ -325,7 +326,7 @@ export class PlainGround {
       { const gs = SEASON.green.div(SEASON.green.add(SEASON.dry).max(0.001)), amount = SEASON.green.add(SEASON.dry).min(1);
         const q = p, dens = clamp(float(0.5).add(mx_noise_float(q.mul(0.04)).mul(0.3)).add(mx_noise_float(q.mul(0.15).add(5.1)).mul(0.18)), 0, 1);
         const hH = mix(G.straw.h, G.green.h, gs), cov = hblend(dens, hH).mul(amount).mul(float(1).sub(low)).mul(0.9);
-        const veg = mix(lin(0.62, 0.55, 0.36).mul(det(G.straw)), lin(0.31, 0.36, 0.18).mul(det(G.green)), gs);
+        const veg = mix(lin(...SEASON_PALETTE.straw).mul(det(G.straw)), lin(...SEASON_PALETTE.green).mul(det(G.green)), gs); // (V5 D-522: season.ts)
         wildAlb = mix(wildAlb, veg, cov); wildH = mix(wildH, hH.mul(0.012), cov); }
       let alb: any = mix(groundLoaded() ? wildAlb : albIn, plotAlb, M);
       let hS: any = mix(groundLoaded() ? wildH : float(0), plotH, M);
@@ -358,7 +359,7 @@ export class PlainGround {
       alb = mix(alb, packedAlb, tr); hS = mix(hS, mix(G.packed.h, G.mud.h, wetG).mul(0.008), tr);
       // D-227: where the foot's herbs grow back (damp below a drain, less trodden between the paths) they cover the ground in
       // their own colour, the season's green or straw (the road verges' herb, materials.ts herbs), tufted near, their mean far
-      { const gsL = SEASON.green.div(SEASON.green.add(SEASON.dry).max(0.001)), herbC = mix(vec3(0.319, 0.264, 0.107).mul(det(G.straw)), vec3(0.078, 0.107, 0.027).mul(det(G.green)), gsL);
+      { const gsL = SEASON.green.div(SEASON.green.add(SEASON.dry).max(0.001)), herbC = mix(vec3(...paletteLinear(SEASON_PALETTE.straw)).mul(det(G.straw)), vec3(...paletteLinear(SEASON_PALETTE.green)).mul(det(G.green)), gsL);
         const tuftL = smoothstep(0.35, 0.75, mx_noise_float(vec3(p.x.mul(2.3), 6.1, p.y.mul(2.3))).mul(0.5).add(0.5)).mul(near).add(float(1).sub(near).mul(0.6));
         alb = mix(alb, herbC.mul(float(1).add(mx_noise_float(vec3(p.x.mul(0.2), 3.3, p.y.mul(0.2))).mul(0.15))), lush.mul(tuftL).mul(SEASON.green.add(SEASON.dry).min(1)).mul(0.9)); }
       const pxD = fwidth(pathD).max(1e-4), hw = PATH_W / 2;

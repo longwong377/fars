@@ -126,6 +126,8 @@ Large binaries (DEM tifs) stay out of git; `npm run terrain` regenerates derived
   hung WMI, reset the T4 ("device removed") and killed the Claude app and every agent. scoreboard.mjs takes T:/fars-train/train.lock
   and refuses under 16 GB free. Agents start every browser and bake through gpu_slot (GPU_SLOTS=2), never outside a slot.
   When WMI hangs (tasklist/taskkill time out), kill by PID with PowerShell Stop-Process (no /T tree walk).
+  What runs out is COMMIT (RAM + 8 GB page file = 71.5 GB), not RAM: Chrome GPU processes commit 5-10 GB each; boxguard.freeGB
+  is min(RAM, commit). Never run the full vitest suite here while agents build (the cloud CI runs it); targeted files only.
 
 ## Every inch (the user's direction, session 8; D-233)
 The camera-rig moments are NOT the standard. **Nowhere the player can walk may break the illusion**: every walkable place

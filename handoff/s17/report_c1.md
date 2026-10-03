@@ -23,7 +23,13 @@
   floors, straw stacks, folds: possible overlap only near a floor's straw stacks, not handled).
 
 - **Reach (C9's walk bots):** plot spots now only on cells a body reaches from the street door (walk.ts plotCells); the pen
-  q_s2-0181 fixed. **B580 open:** five houses shut in at pinched frontages (pre-existing; the fix reshapes neighbours' walls).
+  q_s2-0181 fixed. **B580 open, 2 left:** of five houses shut in at pinched frontages (pre-existing), three reopened (doors
+  with clear jambs, corners cut back to the lane, a door through the cut corner); q_s4-0074 and q_s4-0161 remain (measured in B580).
+
+- **Budget (C4):** no per-view draw budget exists in git; C4's working limit for a town lane view until a train measures it is
+  ~100 draws mean / ~120 max / ~150 k instanced triangles: the fill sits at it. The baked fill JSON was trimmed (rounded numbers:
+  town part 2.51 -> 1.54 MB; village walls every ~6 m), C4 measured the old units at 21-25 MB each.
+- **Frames:** s17-renders has one baseline frame (cov-000, the plain at night); no town frame yet.
 
 ## What a player now sees differently
 - Every lane wall has something at its foot every few metres: jars, pots, basins, stools, rolled and leaned reed mats, tall
@@ -43,6 +49,7 @@
   follows standing (r 0.15 -> 0.61; the poorer build lower, never higher: the tile gate). Doors in 6 forms.
 - Wear per house (wallwear.ts, instanced decals): smoke over the street doors by age, plaster and trade; splashed feet by the
   doorways; a fresh coat over the door and the facade's top when the sim has just replastered the roof.
+- The year: ~1 in 3 wall spots holds a season's thing (sheaves and grain after the harvest, more fuel in the cold).
 - Night: 558 doorway lamps (the fire system lights them); washing, stools and drying wool brought in at dusk.
 
 ## Census (tools/dev/fill_census.ts; tests/fill_census.test.ts)
