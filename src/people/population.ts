@@ -200,6 +200,8 @@ export const DEPOT_EARLY_H = 1;
  *  posts; not a house, a workshop, a store, a hall or a tent */
 export const OPEN_PLACE = /^(lane:|well:|market:|field:|canal:|pasture:|meadow:|bank:|edge:|slope:|outside|threshing:|garden:|orchard:|vineyard:|estate:|stockyard|crown_fields|river|clay_pit|worksite|h100_|hall100_site|stair_foot|querns|oven|work_hearth|water|forecourt|brickyard|terrace_round|post_|training:|flock:|route:|road:|scrub:|naqsh:(?:tomb|watch|flock))/; // (D-640: the hill's scrub, the ground below the tombs)
 /** at the house but out of doors: on the roof, in the courtyard, at the wall where the dung cakes dry, on the doorstep */
+/** D-651: the stand-in day the deeds' overlay is laid on in segLight (an hour outside what the deeds laid reads the common lot) */
+const LIGHT_BASE: Seg[] = [{ t0: 0, t1: 24, place: '@light', act: 'rest', why: '', where: 'town' }];
 /** D-461: the day's work of a trade, as the town's own minds guess it when no plan is built (Population.segLight; C) */
 const LIGHT_WORK: Partial<Record<string, ActivityId>> = { farmer: 'field_work', gardener: 'garden_work', builder: 'lay_brick', porter: 'carry_sack', camp: 'bake', weaver: 'weave', craftsman: 'craft', scribe: 'write_tablet',
   treasury: 'polish_metal', official: 'inspect', storekeeper: 'weigh', miller: 'grind', brewer: 'brew', groom: 'tend_animals', shepherd: 'herd', herder: 'herd', servant: 'clean', steward: 'inspect', homemaker: 'spin', caretaker: 'clean', messenger: 'walk' };
@@ -1966,7 +1968,11 @@ export class Population {
    *  (dustWear, coldWear) over the whole day, on copies (the base day's stretches are shared) */
   private keepDress(d: number, segs: Seg[]): Seg[] {
     const wx = this.cal.ctx(d).wx, tq = wx.tempQ; if (!wx.dustH && !(tq?.length && Math.min(...tq) < COLD_C)) return segs;
-    const out = segs.map(x => ({ ...x })); dustWear(out, wx); coldWear(out, wx); return out;
+    const out = segs.map(x => ({ ...x })); dustWear(out, wx); coldWear(out, wx);
+    // (the same things worn keep their words as they were: only a change of dress is written)
+    const set = (w?: string) => (w ?? '').split(/, and |, /).filter(Boolean).sort().join('|'), was = new Map(segs.map(x => [`${x.t0}|${x.t1}`, x.wear]));
+    for (const x of out) { const w = was.get(`${x.t0}|${x.t1}`); if (w !== undefined && set(w) === set(x.wear)) x.wear = w; }
+    return out;
   }
   /** D-651: the overlays (the economy's steps, the washing, the relations, the minds' deeds, the talk) lay their stretches over
    *  the planner's day; where one took a meal or a baby's feed, the day keeps one: a short meal of the bread brought along
@@ -2006,12 +2012,17 @@ export class Population {
   /** D-461: the plan as the town's own minds read it when they judge a deed among themselves: the base day (cached) and the
    *  deeds' overlay only (the full overlays cost ~10 ms a person on a fresh day; the stranger's deeds keep the full plan) */
   planLight(pid: number, day: number): Seg[] { const b = this.basePlan(pid, day); return this.deeds?.touches(pid, day) ? this.deeds.overlay(pid, day, b) : b; }
-  /** D-461: the light plan only if the planner has built the base day already (no build: ~1.5 ms each), else null */
-  planIfBuilt(pid: number, day: number): Seg[] | null { const b = this.planCache.get(day)?.get(pid); if (!b) return null; return this.deeds?.touches(pid, day) ? this.deeds.overlay(pid, day, b) : b; }
+  /** D-461: the light plan only if the planner has built the base day already (no build: ~1.5 ms each), else null.
+   *  D-651: always null now. Whether a plan happened to be cached depended on the history of the caches (what the camera had
+   *  looked at, a load, a jump made in slices, the 20,000-plan clear), so the town's own minds decided differently in two runs of
+   *  one seed, and a loaded world went its own way within a day (the save/load round trip). Kept for its callers */
+  planIfBuilt(_pid: number, _day: number): Seg[] | null { return null; }
   /** D-461: what a person is doing at an hour as the town's own minds judge it: the built plan, else the hour's common lot
    *  by their age and trade (asleep at night, at home of an evening, by day a working man or woman at their work, a child at
-   *  play, the old at rest; the festival a day off: C). No plan is built (a fresh house's plans are 1.5 to 70 ms) */
-  segLight(pid: number, day: number, hour: number): Seg { const b = this.planIfBuilt(pid, day); if (b) return segAt(b, hour);
+   *  play, the old at rest; the festival a day off: C). No plan is built (a fresh house's plans are 1.5 to 70 ms).
+   *  D-651: never the cached plan (planIfBuilt), always the common lot, with what the deeds have laid into the day on top */
+  segLight(pid: number, day: number, hour: number): Seg {
+    if (this.deeds?.touches(pid, day)) { const s = segAt(this.deeds.overlay(pid, day, LIGHT_BASE), hour); if (s.place !== LIGHT_BASE[0].place) return s; }
     const h = this.home(pid, day), z = this.households[h]?.zone, where: Where = z === 'plain' ? 'plain' : z === 'terrace' ? 'terrace' : 'town', at = `h:${h}`;
     const s = (act: ActivityId, why: string): Seg => ({ t0: hour, t1: hour, place: at, act, why, where });
     if (hour < 5.5 || hour >= 21.5) return s('sleep', 'asleep'); if (hour >= 17 || hour < 7) return s('rest', 'at home');

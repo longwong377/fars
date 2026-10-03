@@ -353,23 +353,26 @@ export class DeedWorld {
   // (D-459, the late save 3.66 MB: the overlays of days gone by, the promises settled and the faded feelings are not kept)
   save() { const d0 = this.dayDone - 1;
     return { mine: this.mine, minds: this.minds.save(this.dayDone), inj: [...this.injuries].filter(([, v]) => v.until > d0), law: this.law.save(), promises: this.promises.filter(p => !p.kept && !p.broken), skills: [...this.skills],
-      lays: [...this.lays].filter(([k]) => Number(k.split(':')[1]) >= d0), dayDone: this.dayDone, n: this.log.length, joint: this.joint.save(), agency: this.agency.save(),
+      lays: [...this.lays].filter(([k]) => Number(k.split(':')[1]) >= d0), dayDone: this.dayDone, n: this.base + this.log.length, ev: this.evSeen, /* (D-651: the economy's events already felt, and the count of all deeds: a load re-read every event from 0 and felt again those dated ahead) */ joint: this.joint.save(), agency: this.agency.save(),
       // D-720: the deeds of the last ten days and the count of all (a save loaded began the ids again at 0: the memories' ids then
       // read other deeds, the town's talk of deeds (initiative.ts, from its last id seen) stopped until the count caught up, and
       // what a person had lately done or suffered was gone); kept lean: the outcome's effects and witnesses are spent
       next: this.next, recent: this.recentSave(d0) }; }
   /** the deeds kept over a save (D-720): the last day's (but the tellings) and ten days of the weighty ones, as tuples
    *  [id, t×10, verb, actor, target, third, ok, act] (the save's 600 KB: ~2,900 deeds a day would be ~85 KB a day whole) */
-  private recentSave(d0: number) { const out: unknown[][] = [];
-    for (let i = this.log.length - 1; i >= 0; i--) { const r = this.log[i]; if (r.day < d0 - 9) break; const v = r.deed.verb;
-      if (!((r.day >= d0 - 1 && v !== 'tell' && v !== 'lie') || KEPT.has(v))) continue;
-      out.push([r.id, Math.round(r.t * 10), v, r.deed.actor, r.deed.target ?? -1, r.deed.third ?? -1, r.out.ok ? 1 : 0, r.deed.act ?? 0]); }
-    return out.reverse(); }
+  private recentSave(d0: number) { const out = new Map<number, unknown[]>();
+    const tup = (r: DeedRec) => [r.id, Math.round(r.t * 10), r.deed.verb, r.deed.actor, r.deed.target ?? -1, r.deed.third ?? -1, r.out.ok ? 1 : 0, r.deed.act ?? 0];
+    const win = (r: DeedRec) => { const v = r.deed.verb; return r.day >= d0 - 9 && ((r.day >= d0 - 1 && v !== 'tell' && v !== 'lie') || KEPT.has(v)); };
+    for (let i = this.log.length - 1; i >= 0; i--) { const r = this.log[i]; if (r.day < d0 - 9) break; if (win(r)) out.set(r.id, tup(r)); }
+    // (D-651, the save/load identity: the deeds from before a load in the same window too, so a save of a loaded world keeps
+    // them as the first save did. The minds' memories are not saved (Minds.save mem: []): a grudge's cause is lost on a load)
+    for (const r of this.old.values()) if (win(r)) out.set(r.id, tup(r));
+    return [...out.values()].sort((a, b) => (a[0] as number) - (b[0] as number)); }
   /** D-720: deeds from before a load, by id (the log's window begins again empty after it) */
   private old = new Map<number, DeedRec>();
   load(s: ReturnType<DeedWorld['save']> | undefined) { if (!s) return; this.mine = s.mine; this.minds.load(s.minds); this.injuries.clear(); for (const [k, v] of s.inj) this.injuries.set(k, v);
     this.law.load((s as any).law ?? { cases: (s as any).cases }); this.promises.splice(0, this.promises.length, ...s.promises); this.skills.clear(); for (const [k, v] of s.skills) this.skills.set(k, v);
-    this.lays = new Map(s.lays); this.dayDone = s.dayDone; this.evSeen = 0;
+    this.lays = new Map(s.lays); this.dayDone = s.dayDone; this.evSeen = (s as any).ev ?? 0;
     this.log.splice(0); this.base = (s as any).next ?? s.n ?? 0; this.old.clear();
     for (const [id, t10, verb, actor, target, third, ok, act] of ((s as any).recent ?? []) as any[][]) { const t = t10 / 10;
       this.old.set(id, { id, day: Math.floor(t / 24), t, deed: { verb, actor, ...(target !== -1 ? { target } : {}), ...(third !== -1 ? { third } : {}), ...(act ? { act } : {}) } as Deed, out: { ok: !!ok, why: '', effects: [] } }); } this.joint.load(s.joint); this.agency.load(s.agency); }
