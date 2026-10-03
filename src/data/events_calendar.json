@@ -4,7 +4,7 @@
     "doc": "research/EVENTS.md (ids E-xx and CE-xx match); populations and ration templates in src/data/population.json",
     "built": "2026-09-23 (Phase 5 research)",
     "tiers": "A attested / B inferred (includes all search-extract values) / C reconstructed. Most rhythms are C: the dated evidence is Darius-era (PF, 509-493) and only 67 PF texts were read in full (CDLI-PF).",
-    "court_state": "default court_absent (D-003). Events with 'setting': 'court_resident' run only when the out-of-world setting 'Court calendar = seasonal pattern' is on (resident months 1-4).",
+    "court_state": "default court_resident (UD-10, D-236): events with 'setting': 'court_resident' run while the court is in residence (its seed's arrival in Nisannu to E-26); the out-of-world setting 'evidence' (court absent, D-003) turns them off.",
     "months_field": "Babylonian month numbers of year 19 (1 = Nisanu ... 12 = Addaru), or \"all\"",
     "rule_types": {
       "monthly": "once per month per unit (group, household ...) on a day drawn from day_range (day 1 = first day of the Babylonian month)",
@@ -250,6 +250,22 @@
       "participants": [{ "role": "officials and taxpayers with their parties", "count": [1, 20] }], "place_kind": "road -> Terrace",
       "goods": [], "preconditions": ["court_resident"], "effects": ["travellers (E-21) x 3"],
       "default": false, "setting": "court_resident", "tier": "C", "src": "KING2022", "note": "a Darius-era pattern (B, abstract only)"
+    },
+    {
+      "id": "E-28", "kind": "feast", "name": "a great banquet of the king in the Apadana",
+      "months": [1, 2, 3, 4], "rule": { "type": "court_programme", "see": "src/people/ceremony.ts (banquet)" },
+      "participants": [{ "role": "Persians of rank and senior officials (diners)", "count": [300, 550] }, { "role": "servers and wine-bearers", "count": [100, 200] }, { "role": "palace servants with the lamps", "count": [20, 40] }, { "role": "the king, presiding apart", "count": 1 }],
+      "place_kind": "the Apadana's hall and N portico", "goods": [], "preconditions": ["court_resident"], "effects": [],
+      "default": false, "setting": "court_resident", "tier": "C", "src": "ATH4-HERACL;ATH13-PARM;RECON",
+      "note": "D-780: the night after the king comes, every day of the peoples' gifts, his birthday and about one night in seven besides (Heracleides in Athenaeus 4.145: the king's dinner, a claim, B; the nights, place and numbers C)"
+    },
+    {
+      "id": "E-29", "kind": "court_movement", "name": "the king rides out or hunts",
+      "months": [1, 2, 3, 4], "rule": { "type": "court_programme", "see": "src/people/ceremony.ts (ride, hunt)" },
+      "participants": [{ "role": "the king, his escort and bearers, Persians of rank, grooms; beaters for a hunt", "count": [30, 250] }],
+      "place_kind": "the Great Stair -> the plain -> the royal horse lines and the Pulvar's reeds", "goods": [], "preconditions": ["court_resident"], "effects": [],
+      "default": false, "setting": "court_resident", "tier": "C", "src": "XEN-CYR;XEN-CYR-8",
+      "note": "D-780: the king's ride out of the palace (Cyr. 8.3, a claim about Cyrus, B) on about two mornings in five without an audience, and the hunt every eight to fourteen days (Cyr. 1.4, 8.1.38: B claims); every day and number C"
     },
     {
       "id": "E-30", "kind": "offering", "name": "lan: the regular (daily) sacrifice, drawn as an allocation by a magus or priest",

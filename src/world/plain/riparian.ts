@@ -9,6 +9,7 @@
 // radius, and are placed out to that radius plus the distance the camera may move before they are placed again, so
 // none pops in (brief §13.8); they cast no shadows (receive only).
 import * as THREE from 'three/webgpu';
+import { windBend } from './windField';
 import { attribute, uniform, cameraPosition, cameraViewMatrix, vec3, vec4, float, mix, smoothstep, length, sin, cos, time, clamp, max, step, normalize, fract } from 'three/tsl';
 import type { Terrain } from '../../terrain/heightfield';
 import type { CorridorSection } from './rivers';
@@ -73,8 +74,9 @@ export function riparianMargins(profiles: CorridorSection[][], canals: Canal[], 
   const a = bl.x.mul(BLADES * 2.39996).add(yaw).add(rnd(6).mul(1.2)), rr = tuftR.mul(rnd(4).mul(0.85).add(0.15));
   const dir = vec3(cos(a), 0, sin(a)), across = vec3(sin(a).negate(), 0, cos(a));
   const base = dir.mul(rr).add(across.mul(P.x.mul(wBlade).mul(wf).mul(0.5)));
-  const sway = sin(time.mul(1.9).add(seed.mul(6.28)).add(bl.x.mul(3))).mul(U.wind).mul(0.012);
-  const tip = dir.mul(rr.add(lean.mul(hBlade))).add(vec3(sway, hBlade, sway.mul(0.6)));
+  // D-670: the weather's wind (windField.ts): reeds and grass lean downwind, gusts run along the beds; each blade its own phase
+  const bend = windBend(ipos.xz, seed.add(bl.x.mul(0.07)), mix(float(0.9), float(1.4), isGrass)).mul(hBlade);
+  const tip = dir.mul(rr.add(lean.mul(hBlade))).add(vec3(bend.x, hBlade.sub(bend.dot(bend).div(max(hBlade, 0.05)).mul(0.5)), bend.y));
   const local = mix(base, tip, P.y).mul(fade).mul(keep);
   const m = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide });
   m.positionNode = ipos.add(local);

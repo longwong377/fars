@@ -629,6 +629,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const courtOn = (d: number) => d >= 0 && sim.cal.ctx(d).court;
   const music = new MusicSystem(audio, () => courtOn(Math.floor(sim.t / 24)) || courtOn(Math.floor(sim.t / 24) - 1));
   const hadishRoom = rooms.find(r => r.id === 'hadish') ?? null;
+  const apadanaRoom = rooms.find(r => r.id === 'apadana') ?? null; // D-780: the court's banquets in the Apadana (C13)
   const director = new MusicDirector(music, audio, {
     addExtra: (key, x) => { crowd.addExtra(key, { id: -7000 - (x.seed % 1000), dress: x.sex === 'f' ? 'court_woman' : 'persian', sex: x.sex, role: 'musician', seed: x.seed, x: x.e, y: x.y, z: -x.n, yaw: yawOf(x.heading), anim: x.anim } as any); },
     removeExtra: key => crowd.detach(key),
@@ -795,7 +796,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
           if (time - leavesAt > 0.5) { leavesAt = time; syncLeaves(); occCache.clear(); }
           const day = Math.floor(sim.t / 24), C = sim.cal.ctx(day);
           director.update(dt, sim.agents as unknown as PerformerAgent[], { t: sim.t, seed, courtToday: C.court, courtYesterday: courtOn(day - 1), sun: C.sun, foul: C.wx.storm || ctx.cond.rain > 0.3,
-            courtHall: hadishRoom ? { cx: hadishRoom.cx, cy: hadishRoom.cy, sx: hadishRoom.sx, sy: hadishRoom.sy, fl: hadishRoom.fl } : null }, cam.position, bandPeople(day));
+            courtHall: hadishRoom ? { cx: hadishRoom.cx, cy: hadishRoom.cy, sx: hadishRoom.sx, sy: hadishRoom.sy, fl: hadishRoom.fl } : null, banquetHall: apadanaRoom ? { fl: apadanaRoom.fl } : null }, cam.position, bandPeople(day));
           audio.updateOcclusion(3); // ~0.1 ms per query measured in node (D-178): about 0.3 ms a frame
         }
         const jdn = ctx.clock.jdn, b = babylonianDate(jdn); void b;

@@ -148,11 +148,11 @@ describe('writing on objects: in the world', () => {
     expect(all).toMatch(/ARIo Q009270/); expect(all).toMatch(/adam Xšayaṛšā xšāyaθiya/); expect(d.lines).toContain(TRANSLATION_STATUS);
     expect(all).toMatch(/English \(project translation, C\): “I am Xerxes the king\.”/); expect(all).toContain(PROJECT_TRANSLATION_LABEL);
     const L = writingReading('pt_letter')!.lines, p = L.join('\n');
-    expect(L[0]).toMatch(/^RECONSTRUCTED TEXT PTR-1: reconstructed on the Treasury tablets' published formulary — not a surviving text \(C\)/);
+    expect(L[0]).toMatch(/^A reconstructed text\. No tablet of this kind can be read today/); // (the player's words; the record keeps PTR-1, C)
     expect(p).toMatch(/Xerxes year 18, months 11 and 12/); expect(p).toMatch(/Line 1 \(Elamite, ATF\): 6\(diš\) kur-ša-um KU₃\.BABBAR kur-min₂/);
     expect(p).toMatch(/English \(the project's English rendering of its own reconstruction \(C\)\): “6 karša of silver/);
     expect(p).toMatch(/ARIo Q007203/); expect(p).toMatch(/DIŠ\.u₂/); // the seal's text, from ARIo
-    const u = writingReading('pt_letter_unfinished')!.lines.join('\n'); expect(u).toMatch(/PTR-3/); expect(u).not.toMatch(/Sealed with/);
+    const u = writingReading('pt_letter_unfinished')!.lines.join('\n'); expect(u).toMatch(/A reconstructed text/); expect(u).not.toMatch(/Sealed with/);
   });
   it('the transliterations stored contain no modern word', () => {
     for (const [id, t] of Object.entries(WRITING.texts)) for (const f of ['op_translit', 'el_atf', 'bab_atf'] as const) if (t[f]) expect(findModernWords(t[f]!), `${id}.${f}`).toEqual([]);

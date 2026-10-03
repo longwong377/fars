@@ -4,6 +4,7 @@
 // through the winter, turns gold in May, is cut in late May-June and stands as grazed stubble until the autumn ploughing
 // (seasonal.ts, C) without rebuilding anything. Past R_c the terrain shader carries the colour of the same plots.
 import * as THREE from 'three/webgpu';
+import { windBend } from './windField';
 import { attribute, uniform, positionGeometry, normalGeometry, cameraPosition, vec3, vec4, float, int, ivec2, mix, smoothstep, length, textureLoad, sin, time, clamp, max, step, mx_noise_float } from 'three/tsl';
 import { instanceTransform, instanceNormal } from './trees';
 import type { Terrain } from '../../terrain/heightfield';
@@ -30,7 +31,8 @@ export function nearCrops(zm: ZoneMap, cropTex: THREE.DataTexture, day: any, win
   const camD = length(ipos.xz.sub(cameraPosition.xz));
   const fade = float(1).sub(smoothstep(radius * 0.75, radius, camD));
   const h = max(hCrop, stubble).mul(a.w).mul(fade);
-  const sway: any = sin(time.mul(2.1).add(a.z.mul(6.28))).mul(wind).mul(0.02).mul(tip).mul(h);
+  // D-670: the weather's wind (windField.ts): the stand leans downwind and the gusts run across it in waves
+  const bend: any = windBend(ipos.xz, a.z, 1.3).mul(tip).mul(h); void wind;
   const pg = positionGeometry;
   // vine rows (ROW.vineyard): a leafless stock is a narrow bundle of old wood; its spread opens as the shoots leaf out (C)
   const is = (r: number) => step(r - 0.5, a.x).mul(step(a.x, r + 0.5));
@@ -41,7 +43,7 @@ export function nearCrops(zm: ZoneMap, cropTex: THREE.DataTexture, day: any, win
   // before that, and on every other row, each ear is folded onto its culm's top
   const isCereal = is(ROW.barley).add(is(ROW.wheat)).add(is(ROW.emmer_spelt)), earOut = isCereal.mul(smoothstep(0.45, 0.65, hCrop)).mul(ear).add(float(1).sub(ear));
   const pl = mix(ebase, pg, earOut);
-  m.positionNode = instanceTransform(vec3(pl.x.mul(spread), pl.y.mul(h), pl.z.mul(spread)), iscl, ipos).add(vec3(sway, 0, sway.mul(0.5)));
+  m.positionNode = instanceTransform(vec3(pl.x.mul(spread), pl.y.mul(h), pl.z.mul(spread)), iscl, ipos).add(vec3(bend.x, bend.dot(bend).mul(-0.5).mul(h), bend.y));
   m.normalNode = instanceNormal(mix(normalGeometry, vec3(0, 1, 0), 0.75).normalize(), iscl); // leaves lit like a canopy, not like flat cards
   const gCol = mix(vec3(0.12, 0.2, 0.05), vec3(0.085, 0.155, 0.045), smoothstep(0.2, 0.8, hCrop)), sCol = mix(vec3(0.4, 0.34, 0.19), vec3(0.5, 0.39, 0.16), smoothstep(0.1, 0.4, hCrop));
   const cropTip = mix(gCol, sCol, clamp(straw.div(green.add(straw).max(0.01)), 0, 1));

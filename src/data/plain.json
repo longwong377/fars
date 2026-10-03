@@ -308,7 +308,7 @@
   {
    "id": "river_pulvar",
    "kind": "river",
-   "name": "Pulvar (Sivand; Araxes? of the Greeks)",
+   "name": "Pulvar (Sivand; the Medos of the Greeks, Strabo 15.3.6)",
    "tier": "C",
    "src": "PLEIADES-FARS;KOR-HSJ2023;WMO-CLINO",
    "note": "Course = modern OSM course (Pleiades 922701, FT) clipped to 42 km; Holocene course changes are known upstream (LANDSCAPE.md), so the 467 course is C. Today intermittent (dammed at Sivand, modern). Flow table is reconstruction (C): winter rain Nov-Apr (WMO Shiraz normals, A) plus Zagros snowmelt Mar-May; the Kur system \"is never completely dry because it is fed by the snowmelt of Zagros\" (KOR-HSJ2023, B). Wetter than today c. 500 BCE (Maharlou, B) so perennial in 467 (C).",
@@ -1282,7 +1282,7 @@
   {
    "id": "river_kur",
    "kind": "river",
-   "name": "Kur (Kor; Cyrus/Araxes?)",
+   "name": "Kur (Kor; the Araxes of the Greeks, Strabo 15.3.6)",
    "tier": "C",
    "src": "PLEIADES-FARS;KOR-HSJ2023;WMO-CLINO",
    "note": "Modern OSM course (Pleiades 922672, FT) clipped to 42 km; nearest approach 13.7 km W of the Apadana. Basin ~9,700 km2, mean basin rain 344 mm (KOR-HSJ2023, B). Modern dams (Doroodzan, Mulla Sadra) and the 10th-c. CE weir are blocked. Flow table C.",
@@ -2798,7 +2798,7 @@
   {
    "id": "nr_xerxes_tomb",
    "kind": "royal_tomb",
-   "name": "Tomb attributed to Xerxes (ENE of Darius I)",
+   "name": "Royal tomb façade being cut, ENE of Darius I (later attributed to Xerxes, alive in 467)",
    "tier": "C",
    "src": "LIVIUS-NR;WP-NR",
    "note": "Uninscribed; attribution by elimination (LIVIUS-NR, B). Kings prepared tombs in life (Darius: Ctesias via WP-NR, B), so Xerxes' tomb may be cut or being cut in 467 (C). Q-047 decided in D-033: chronology.json marks it present (facade cut, uninscribed), and it is built without inscription panels; the later tombs (Artaxerxes I, Darius II) stay absent.",

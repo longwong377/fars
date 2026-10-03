@@ -71,7 +71,7 @@ export interface Wear { fade: number; soil: number; fit: number; foldAmp: number
   hat: number }
 /** dye strength, garment age and hem soil by dress (C): court dress wears stronger, newer dyes; everyone walks on dust */
 const WEAR_BY: Record<string, { s: [number, number]; f: [number, number]; soil: [number, number] }> = {
-  persian: { s: [0.55, 1], f: [0, 0.3], soil: [0.12, 0.3] }, guard: { s: [0.5, 0.95], f: [0.05, 0.35], soil: [0.18, 0.35] },
+  persian: { s: [0.55, 1], f: [0, 0.3], soil: [0.12, 0.3] }, guard: { s: [0.65, 1], f: [0, 0.15], soil: [0.1, 0.2] }, // (D-780: the king's spearmen in new, strong robes: worn patches read as stains)
   // D-199: the king's robe newest and strongest; the delegations' best clothes, but after the road (C)
   king: { s: [0.9, 1], f: [0, 0.05], soil: [0.05, 0.12] }, court_woman: { s: [0.7, 1], f: [0, 0.2], soil: [0.04, 0.12] }, envoy: { s: [0.4, 0.9], f: [0.05, 0.35], soil: [0.2, 0.4] },
   envoy_short: { s: [0.4, 0.9], f: [0.05, 0.35], soil: [0.2, 0.4] }, envoy_bare: { s: [0.3, 0.8], f: [0.05, 0.4], soil: [0.2, 0.45] },
@@ -95,8 +95,10 @@ export const SKIN_RAMP: RGB[] = [[0.84, 0.66, 0.54], [0.78, 0.58, 0.46], [0.7, 0
 export const ORIGIN_TONE: Record<string, number> = { Thracian: 0.2, Ionian: 0.28, Lydian: 0.3, Carian: 0.3, Lycian: 0.3, Cappadocian: 0.32, Sogdian: 0.36, Bactrian: 0.38, Median: 0.38, Persian: 0.4,
   Syrian: 0.44, Babylonian: 0.46, Elamite: 0.48, Egyptian: 0.62,
   // the court setting's delegations only (D-199; the same cline, C)
-  Scythian: 0.3, Armenian: 0.34, Cilician: 0.34, Parthian: 0.4, Arian: 0.4, Sagartian: 0.4, Arachosian: 0.46, Arab: 0.52, Libyan: 0.5, Gandharan: 0.56, Indian: 0.68, Kushite: 0.84 };
-export const TONE_SD = 0.16;
+  Scythian: 0.3, Armenian: 0.34, Cilician: 0.34, Parthian: 0.4, Arian: 0.4, Sagartian: 0.4, Arachosian: 0.46, Arab: 0.56, Libyan: 0.52, Gandharan: 0.58, Indian: 0.72, Kushite: 0.9 };
+// (D-780, C12 pass 2: the spread narrowed from 0.16 so the peoples of the empire read as themselves in a crowd, as the delegation
+// reliefs distinguish them; the means as before, the far ends of the cline a little further out: C)
+export const TONE_SD = 0.12;
 const rampAt = (p: number): RGB => { const f = Math.max(0, Math.min(1, p)) * (SKIN_RAMP.length - 1), i = Math.min(SKIN_RAMP.length - 2, Math.floor(f)), t = f - i;
   return [0, 1, 2].map(c => SKIN_RAMP[i][c] + (SKIN_RAMP[i + 1][c] - SKIN_RAMP[i][c]) * t) as RGB; };
 /** iris colour index (humanMaterial IRIS) by origin (C): dark to light brown for nearly everyone; a small share of
@@ -187,7 +189,11 @@ const grimeFor = (role: string): [number, number, string] => {
 export function lookFor(A: HumanAssets, p: LookInput, worldSeed: number): PersonLook {
   const rng = new Rng(worldSeed, `look:${p.seed}`);
   const del = p.delegation ? DELEGATIONS.find(x => x.id === p.delegation) ?? null : null;
-  const dress: Dress = del ? del.dress : p.dress, child = dress === 'child' || p.role === 'child', sex = p.sex;
+  // D-780 (C12 pass 2): the guards' kit as the reliefs show it: two in three guards not of Persian birth wear the pleated court
+  // robe of the spearmen and archers (the Susa archers, Elamite or Persian: SUSA-ARCH, B) rather than the Median riding dress;
+  // the third keeps it, as the Medes alternate with the Persians on the stair reliefs (B). The choice from the seed alone (no draw)
+  const guardRobe = !del && !p.pieces && p.role === 'guard' && p.dress === 'median' && p.seed % 3 !== 0;
+  const dress: Dress = del ? del.dress : guardRobe ? 'guard' : p.dress, child = dress === 'child' || p.role === 'child', sex = p.sex;
   const group: 'adult' | 'elder' | 'child' = child ? 'child' : p.age ?? (['official', 'scribe', 'foreman'].includes(p.role) && rng.chance(0.35) ? 'elder' : 'adult');
   const S = STATURE[sex];
   const drawn = child ? 0 : Math.max(S.mean - 2.2 * S.sd, Math.min(S.mean + 2.2 * S.sd, S.mean + S.sd * rng.normal())), stature = p.stature ?? drawn;
@@ -291,7 +297,7 @@ export function lookFor(A: HumanAssets, p: LookInput, worldSeed: number): Person
   // D-780 (holes #11; new draws last): the gold of the court's robes: the gold plaques sewn on the robes of Persians of rank
   // (HDT 9.80 'gold plaques'; the gold appliqués of the Oxus Treasure and of Achaemenid tombs: B for the thing) drawn as the
   // rosette motif in a gold-yellow (the shared motif of the material: one in three robes of the Persians and the court women; C)
-  const uR = rng.next(), gold = !pattern && free && ((dress === 'persian' && uR < 0.35) || (dress === 'court_woman' && uR < 0.5));
+  const uR = rng.next(), gold = !pattern && free && ((dress === 'persian' && uR < 0.5) || (dress === 'court_woman' && uR < 0.5));
   if (gold) { pattern = 1; trimK = uR < 0.18 ? 'ochre' : 'weld'; col.trim = dyeColour(trimK, 1, 0.05); }
   const tiers = pieces.map(id => `${id} ${PIECES[id]?.tier ?? 'C'}`).join(', ');
   const delNote = del ? `; the ${del.id} of the Apadana reliefs (relief ${del.relief}; form B, colours C: D-199)` : dress === 'king' ? '; the king as the reliefs carve him (robe, crown, beard: B; colours C: D-199)' : '';

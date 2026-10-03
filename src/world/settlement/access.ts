@@ -98,17 +98,17 @@ export function ensureAccess(s: Site, min = 0.8): { opened: number; resited: num
         for (const n of C) if (n > last && (!set.length || set.some(m => nb4(m).includes(n)))) grow([...set, n]); };
       grow([]); sets.sort((a, b) => a.length - b.length);
       let best: { set: number[]; m: number; n: number; got: number; extra: number[] } | null = null;
-      for (const set of sets) { if (best && set.length > best.set.length && best.got >= roomy) break; const qs = [...new Set(set.map(n => s.cell[n]))], saved = set.map(n => [n, s.cell[n], s.sub[n], s.room[n]] as const);
+      let trials = 0; for (const set of sets) { if ((best && set.length > best.set.length) || trials > 40) break; /* (the smallest cut that works; at most 40 floods a house: each re-derives the site's walls) */ const qs = [...new Set(set.map(n => s.cell[n]))], saved = set.map(n => [n, s.cell[n], s.sub[n], s.room[n]] as const);
         const before = qs.map(q => (byPlot.get(q) ?? []).filter(x => !set.includes(x) && r[x]).length);
         for (const n of set) { s.cell[n] = LANE; s.sub[n] = 0; s.room[n] = -1; }
         for (const n of set) for (const m of nb4(n)) { if (!own.has(m) || set.includes(m)) continue;
-          const e = s.edgeBetween(m, n); if (s.noWall.has(e) || inWay(e)) continue; const had = s.doors.has(e); s.doors.add(e); resetSiteCaches(s); let r2 = siteReach(s);
+          const e = s.edgeBetween(m, n); if (s.noWall.has(e) || inWay(e)) continue; const had = s.doors.has(e); s.doors.add(e); resetSiteCaches(s); let r2 = siteReach(s); trials++;
           const got = cells.filter(k => !set.includes(k) && r2[k]).length;
           if (r2[m] && got >= 0.5 * roomy && (!best || got > best.got) && s.doorClear(e) >= Math.min(min, NARROW_DOOR)) {
             // (a neighbour's room the cut left without its way out gets an inner door to a reached place of its own, as above)
             const extra: number[] = []; for (const q of qs) { if (q === p.idx) continue; const lost = (byPlot.get(q) ?? []).filter(y => !set.includes(y) && r[y] && !r2[y]);
-              for (const k of lost) { if (r2[k]) continue; for (const kk of nb4(k)) { if (s.cell[kk] !== q || !r2[kk]) continue; const e2 = s.edgeBetween(k, kk); if (s.doors.has(e2) || s.noWall.has(e2) || !s.edgeWall(k, kk) || inWay(e2)) continue;
-                s.doors.add(e2); if (s.doorClear(e2) < min) { s.doors.delete(e2); continue; } resetSiteCaches(s); const r3 = siteReach(s); if (!r3[k]) { s.doors.delete(e2); resetSiteCaches(s); continue; } extra.push(e2); r2 = r3; break; } } }
+              let tries = 0; for (const k of lost) { if (r2[k] || tries >= 4 || trials > 40) continue; for (const kk of nb4(k)) { if (s.cell[kk] !== q || !r2[kk]) continue; const e2 = s.edgeBetween(k, kk); if (s.doors.has(e2) || s.noWall.has(e2) || !s.edgeWall(k, kk) || inWay(e2)) continue;
+                s.doors.add(e2); if (s.doorClear(e2) < min) { s.doors.delete(e2); continue; } resetSiteCaches(s); const r3 = siteReach(s); trials++; tries++; if (!r3[k]) { s.doors.delete(e2); resetSiteCaches(s); continue; } extra.push(e2); r2 = r3; break; } } }
             if (qs.every((q, x) => (byPlot.get(q) ?? []).filter(y => !set.includes(y) && r2[y]).length >= before[x])) best = { set, m, n, got, extra: [...extra] };
             for (const e2 of extra) s.doors.delete(e2); }
           if (!had) s.doors.delete(e); }
