@@ -55,7 +55,9 @@ describe('shared shaders (D-250)', () => {
   });
   it('D-473: within 8 vertex buffers too (3 for the matrices and the colour), and on by default (?shareinst=0 to opt out)', () => {
     const geo = new THREE.BoxGeometry(1, 1, 1); for (let k = 0; k < 3; k++) geo.setAttribute('extra' + k, new THREE.BufferAttribute(new Float32Array(geo.attributes.position.count), 1));
-    expect(fitsAttributes(new THREE.InstancedMesh(geo, new THREE.MeshStandardNodeMaterial(), 4))).toBe(false); // 6 buffers + 3
+    // (D-740: counted exactly: 6 buffers + the matrices' 2 fit; with an instance colour, 6 + 3 do not)
+    expect(fitsAttributes(new THREE.InstancedMesh(geo, new THREE.MeshStandardNodeMaterial(), 4))).toBe(true);
+    const col = new THREE.InstancedMesh(geo, new THREE.MeshStandardNodeMaterial(), 4); col.setColorAt(0, new THREE.Color()); expect(fitsAttributes(col)).toBe(false);
     expect(readFileSync('src/render/shareInstancing.ts', 'utf8')).toContain("get('shareinst') === '0'");
   });
 });

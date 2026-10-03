@@ -78,6 +78,9 @@ for (const v of visits) {
   let t0 = Date.now(); const s = () => +((Date.now() - t0) / 1000).toFixed(1), r = {};
   await page.goto(`${host}/fars/?quality=${q}&trace${extra ? '&' + extra : ''}`);
   await page.waitForFunction(() => window.__parsa?.ready === true || window.__parsa?.error, null, { timeout: 3_600_000, polling: 250 });
+  // s17 V10 (D-479): ready and the first frames are timed here, before the memory probes below (a forced GC, a scene walk, every
+  // worker's heap: ~10-15 s that D-580's readyS/framesS had counted as load)
+  r.readyS = s(); if (!(await page.evaluate(() => window.__parsa.error ?? null))) { await page.evaluate(() => new Promise(res => { let n = 0; const f = () => (++n >= 3 ? res() : requestAnimationFrame(f)); requestAnimationFrame(f); })); r.framesS = s(); }
   r.error = await page.evaluate(() => window.__parsa.error ?? null); r.swControl = await page.evaluate(() => !!navigator.serviceWorker?.controller); r.warm = await page.evaluate(() => window.__warm ?? null);
   r.siteCache = await page.evaluate(async () => { try { const ks = await caches.keys(), out = {}; for (const k of ks) out[k] = (await (await caches.open(k)).keys()).length; const e = await navigator.storage.estimate(); return { caches: out, usageMB: Math.round(e.usage / 1048576), quotaMB: Math.round(e.quota / 1048576) }; } catch (e) { return String(e); } }); r.memAtReady = await memByType();
   // D-580 (Linux): the CPU seconds each thread of the page's processes has used by ready, by thread name
@@ -98,10 +101,10 @@ for (const v of visits) {
     return Object.fromEntries(Object.entries(by).sort((a, b) => b[1] - a[1]).slice(0, 30).map(([k, b]) => [k, Math.round(b / 1048576)])); }).catch(e => String(e).slice(0, 120));
   r.heapsMB = await (async () => { const o = { main: await page.evaluate(() => Math.round((performance.memory?.usedJSHeapSize ?? 0) / 1048576)).catch(() => null), workers: {} };
     for (const w of page.workers()) { const k = w.url().split('/').pop().replace(/^blob:.*/, 'blob').replace(/-[\w-]{8}\.js$/, '.js'); const mb = await Promise.race([w.evaluate(() => Math.round((performance.memory?.usedJSHeapSize ?? 0) / 1048576)).catch(() => null), new Promise(r => setTimeout(() => r(null), 3000))]);
-      const x = o.workers[k] ??= { n: 0, MB: 0 }; x.n++; x.MB += mb ?? 0; } return o; })(); r.readyS = s(); r.readyPageS = await page.evaluate(() => window.__parsa.readyAt ? +(window.__parsa.readyAt / 1000).toFixed(1) : null); console.log(v, 'ready', r.readyS, 's (page clock', r.readyPageS, 's)', r.error ?? ''); // (D-580: readyS is when the harness saw it: later when the main thread is busy)
+      const x = o.workers[k] ??= { n: 0, MB: 0 }; x.n++; x.MB += mb ?? 0; } return o; })(); r.probesDoneS = s(); r.readyPageS = await page.evaluate(() => window.__parsa.readyAt ? +(window.__parsa.readyAt / 1000).toFixed(1) : null); console.log(v, 'ready', r.readyS, 's, frames', r.framesS, 's (page clock', r.readyPageS, 's)', r.error ?? ''); // (D-580: readyS is when the harness saw it: later when the main thread is busy)
   const log1 = await served(); r.beforeReadyMB = +(log1.reduce((x, e) => x + (e.b ?? 0), 0) / 1048576).toFixed(1); r.requests = log1.length; r.served = log1.map(e => [e.p, e.b ?? 0, e.t]); r.lastByteBeforeReadyS = +(Math.max(0, ...log1.map(e => e.t)) / 1000).toFixed(1);
   if (!r.error) {
-    await page.evaluate(() => new Promise(res => { let n = 0; const f = () => (++n >= 3 ? res() : requestAnimationFrame(f)); requestAnimationFrame(f); })); r.framesS = s();
+    await page.evaluate(() => new Promise(res => { let n = 0; const f = () => (++n >= 3 ? res() : requestAnimationFrame(f)); requestAnimationFrame(f); }));
     // every shader compiled (progressive compile), or 20 min
     const t1 = Date.now(); while (Date.now() - t1 < 1_200_000) { const c = await page.evaluate(() => window.__parsa.compiling?.() ?? null); if (!c) break; r.compiled = c.done; r.deferredLast = c.deferred; if (c.live === 0 && !c.deferred && Date.now() - t1 > 3000) break; await page.waitForTimeout(1000); }
     r.settledS = s();

@@ -294,7 +294,8 @@ export function siteFill(s: Site, seed: number, items: FillItem[], st: FillStats
     if (nearB(e, n, 2.3) || nearB(e, n, 2.6, 'peg') || nearTaken(u, v, 1.0) || nearDoor(u, v, 0.8)) continue;
     const m = pickNot(LITTER, u01(...key, 3), e, n, () => true); if (!m) continue;
     const [a, b] = LITTER_S[m] ?? [0.8, 1.1], sc = a + (b - a) * u01(...key, 4), fl = m === 'wo_spoil' ? 0.35 + 0.2 * u01(...key, 5) : 1;
-    items.push({ m, e, n, dy: m === 'tool_stick' ? 0.01 : 0, rot: u01(...key, 6) * 6.283, s: [sc, sc * fl, sc], at: 'litter', ...(m === 'wo_spoil' ? { col: { earth: ASH[Math.floor(u01(...key, 7) * ASH.length)] } } : {}) });
+    // (s18 C2, D-660: lifted 1.2 cm: the flattest junk lay under the lanes' earth, drawn 1 cm over the terrain near the eye)
+    items.push({ m, e, n, dy: m === 'tool_stick' ? 0.022 : 0.012, rot: u01(...key, 6) * 6.283, s: [sc, sc * fl, sc], at: 'litter', ...(m === 'wo_spoil' ? { col: { earth: ASH[Math.floor(u01(...key, 7) * ASH.length)] } } : {}) });
     addB(items.length - 1); st.litter = (st.litter ?? 0) + 1; }
 }
 

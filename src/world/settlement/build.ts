@@ -7,7 +7,7 @@ import type { Physics } from '../../player/physics';
 import type { Terrain } from '../../terrain/heightfield';
 import type { FireSystem, FireKind, FireSchedule } from '../fire';
 import { surfaceMaterial } from '../../render/materials';
-import { attribute, positionLocal, positionWorld, textureLoad, ivec2, int, float, step, vec2, fract, smoothstep, fwidth, mix, clamp } from 'three/tsl';
+import { attribute, positionLocal, positionWorld, cameraPosition, vec3, textureLoad, ivec2, int, float, step, vec2, fract, smoothstep, fwidth, mix, clamp } from 'three/tsl';
 import { SiteHouses, plasterBatch, newHB, TILE, NEAR_R, NEAR0, NEAR0_HYST, HOUSE_PARTS, POLE_GAP, seasonOf, type HB } from './houses';
 import { interiorRing } from '../interiors/ring';
 import { TownDoors } from './towndoors';
@@ -67,6 +67,8 @@ export function partDesc(desc: Desc[], o: number, far: boolean): Desc | null {
 }
 /** town meshes farther than this from the camera cast no shadows (they would only fill the Terrace's far cascades) */
 export const SHADOW_RANGE = 150;
+/** the town's trodden ground over the terrain near the eye (m; s18 C2, D-660: was 0.1, over the fill's and the people's feet) */
+export const GROUND_LIFT = 0.01;
 
 export class Settlement {
   readonly group = new THREE.Group();
@@ -163,7 +165,7 @@ export class Settlement {
       const R3 = 3, occ = (i: number, j: number) => { let r = 0, n = 0;
         for (let dj = -R3; dj < R3; dj++) for (let di = -R3; di < R3; di++) { const ii = i + di, jj = j + dj; if (ii < 0 || jj < 0 || ii >= s.W || jj >= s.H) continue; n++; if (s.cell[s.k(ii, jj)] >= 0 && s.sub[s.k(ii, jj)] === ROOM) r++; }
         return 1 - 0.3 * (n ? r / n : 0); };
-      const tile = (i0: number, j0: number, n: number, c: RGB) => { const P = (i: number, j: number) => { const g = s.grid(s.u0 + i, s.v0 + j); return [g[0], H(g[0], g[1]) + 0.1, -g[1]]; };
+      const tile = (i0: number, j0: number, n: number, c: RGB) => { const P = (i: number, j: number) => { const g = s.grid(s.u0 + i, s.v0 + j); return [g[0], H(g[0], g[1]) + GROUND_LIFT, -g[1]]; };
         const C = (i: number, j: number): RGB => shade(c, occ(i, j));
         ground.quad(P(i0, j0), P(i0 + n, j0), P(i0 + n, j0 + n), P(i0, j0 + n), [0, 1, 0], C(i0, j0), C(i0 + n, j0), C(i0 + n, j0 + n), C(i0, j0 + n), 0); };
       for (let bj = 0; bj < s.H; bj += 4) for (let bi = 0; bi < s.W; bi += 4) {
@@ -209,7 +211,11 @@ export class Settlement {
       m.userData = { tier: 'C', src: 'RECON', note: `settlement cluster ${cl.id} (${mat})`, describe: (hit: any) => desc[owner[hit?.faceIndex ?? -1]] ?? null };
       this.group.add(m); this.info.tris += b.tris; this.info.meshes++; if (cl.id === 'gardens') m.castShadow = false; else this.casters.push(m);
     }
-    if (ground.tris) { const gm = surfaceMaterial('road', { vertexColors: true }) as any; gm.polygonOffset = true; gm.polygonOffsetFactor = -4; gm.polygonOffsetUnits = -8; // 10 cm over the ground: the terrain's coarser LODs must not poke through
+    if (ground.tris) { const gm = surfaceMaterial('road', { vertexColors: true }) as any; gm.polygonOffset = true; gm.polygonOffsetFactor = -4; gm.polygonOffsetUnits = -8;
+      // s18 C2 (D-660): 1 cm over the terrain round the eye, rising to 10 cm by 140 m (the terrain's coarser LODs must not poke
+      // through there). It was 10 cm everywhere: the lanes' fill, litter and people stand on the terrain's height (fill.ts, the
+      // nav grid), so 98 % of the litter and the mats lay under the lane's earth and every jar and tool stood 10 cm sunk in it
+      gm.positionNode = positionLocal.add(vec3(0, smoothstep(float(30), float(140), positionLocal.xz.sub(cameraPosition.xz).length()).mul(0.1 - GROUND_LIFT), 0));
       const m = new THREE.Mesh(ground.toGeometry(), gm); m.name = 'settlement:ground'; m.receiveShadow = true; m.matrixAutoUpdate = false; const own = ground.owner;
       m.userData = { tier: 'C', src: 'RECON', note: gDesc[0].note, describe: (hit: any) => gDesc[own[hit?.faceIndex ?? -1]] ?? gDesc[0] }; this.group.add(m); this.info.tris += ground.tris; this.info.meshes++; }
     if (refuse.tris) { const m = new THREE.Mesh(refuse.toGeometry(), mats.refuse); m.name = 'settlement:refuse'; m.receiveShadow = true; m.matrixAutoUpdate = false; const own = refuse.owner;

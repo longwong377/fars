@@ -509,12 +509,40 @@
      260
     ],
     [
-     300,
-     1200
+     40,
+     460
     ],
     [
-     908,
-     3365
+     -80,
+     540
+    ],
+    [
+     -200,
+     810
+    ],
+    [
+     -360,
+     1180
+    ],
+    [
+     -360,
+     1980
+    ],
+    [
+     -320,
+     2180
+    ],
+    [
+     120,
+     3020
+    ],
+    [
+     720,
+     3620
+    ],
+    [
+     868,
+     3690
     ],
     [
      818,
@@ -551,7 +579,8 @@
    "chrono": "road_naqsh_e_rustam",
    "blocklist_ok": {
     "later-sites-plain": "the road passes the natural Naqsh-e Rajab gap; the Sasanian reliefs there stay absent (nr_sasanian, naqsh_e_rajab)"
-   }
+   },
+   "course_note": "D-730 (s18): the straight line [150,260]-[300,1200]-[908,3365] climbed ~100 m over Kuh-e Rahmat's north spur; redrawn as a least-cost course round its foot on the plain (40 m grid, slope penalty, the town's plots kept clear), passing ~340 m W of the Naqsh-e Rajab gap's reliefs site, to the ford by Takht-e Rustam (C)"
   },
   {
    "id": "road_pasargadae",
@@ -568,8 +597,112 @@
      250
     ],
     [
-     2600,
-     1900
+     40,
+     460
+    ],
+    [
+     -80,
+     540
+    ],
+    [
+     -200,
+     810
+    ],
+    [
+     -360,
+     1180
+    ],
+    [
+     -360,
+     1980
+    ],
+    [
+     -320,
+     2180
+    ],
+    [
+     120,
+     3020
+    ],
+    [
+     720,
+     3620
+    ],
+    [
+     868,
+     3690
+    ],
+    [
+     818,
+     4099
+    ],
+    [
+     840,
+     4180
+    ],
+    [
+     920,
+     4220
+    ],
+    [
+     2160,
+     4220
+    ],
+    [
+     2400,
+     4100
+    ],
+    [
+     2480,
+     3980
+    ],
+    [
+     2560,
+     3940
+    ],
+    [
+     2640,
+     3980
+    ],
+    [
+     3000,
+     3980
+    ],
+    [
+     3080,
+     3940
+    ],
+    [
+     3560,
+     3980
+    ],
+    [
+     3680,
+     3940
+    ],
+    [
+     3760,
+     3900
+    ],
+    [
+     3880,
+     3740
+    ],
+    [
+     3840,
+     3660
+    ],
+    [
+     4160,
+     3100
+    ],
+    [
+     4480,
+     2780
+    ],
+    [
+     4880,
+     2580
     ],
     [
      5200,
@@ -1696,7 +1829,8 @@
    ],
    "width_m": 7,
    "chrono": "road_pasargadae",
-   "course_note": "D-257: polyline beyond 5.2 km redrawn as a least-cost valley path (tools/dev/reroute_pasargadae.ts): the modern trace (polyline_latlon) lies on the river line and crossed it 14 times; the redrawn road crosses the Pulvar 3 times, each at a ford (plain/crossings.ts); course C"
+   "course_note": "D-257: polyline beyond 5.2 km redrawn as a least-cost valley path (tools/dev/reroute_pasargadae.ts): the modern trace (polyline_latlon) lies on the river line and crossed it 14 times; the redrawn road crosses the Pulvar 3 times, each at a ford (plain/crossings.ts); course C",
+   "course_note_head": "D-730 (s18): the first 5.2 km (Terrace to the Pulvar valley) redrawn: the old straight line [250,250]-[2600,1900]-[5200,2600] climbed ~290 m straight over Kuh-e Rahmat's north spur and drew as a bright streak down its face (C4 s18). Now a least-cost course over a 40 m grid (slope penalty, ground over 25 % impassable, river cells a ford, the town's plots kept clear), shared with the Naqsh-e Rustam road out of the town and over its Pulvar ford by Takht-e Rustam, then up the east bank with a second ford ~2.5 km E; ~9.8 km, at most ~8 m above the plain (C)"
   },
   {
    "id": "road_royal_west",

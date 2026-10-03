@@ -89,7 +89,7 @@ export async function buildOfflineWorld(o: { seed?: number; day?: number; hour?:
     if (sim.pop.court) { const tents = new CourtCampTents(sim.pop.court.tents, (e, n) => T.heightAt(e, -n), P); tents.setTime(t); scene.add(tents.group); } // (D-252: the tents standing at t)
     if (plain) { geo = new PopGeo({ pop: sim.pop, nav, town: settlement?.plan ?? null, ground: (e, n) => T.heightAt(e, -n), seed,
       villages: plain.data.villages, compounds: vi => villageCompounds(plain.data.villages[vi], T, seed), canals: plain.data.canals.map(c => c.pts) });
-      view = new PopView(sim, geo, seed); }
+      view = new PopView(sim, geo, seed); view.setDoorways(doorways); }
     const R = P.R; agentBodies = sim.agents.map(() => { const b = P.world.createRigidBody(R.RigidBodyDesc.kinematicPositionBased().setTranslation(0, -1000, 0)); P.world.createCollider(R.ColliderDesc.capsule(0.55, 0.25).setTranslation(0, 0.8, 0), b); return b; });
     if (plain) { const groundAt = (e: number, n: number) => (nav.walkable(e, n) ? nav.heightAt(e, n) : T.heightAt(e, -n));
       const villagesIn: VillageIn[] = plain.data.villages.map(v => ({ id: v.id, x: v.x, y: v.y, r: v.r, comps: villageCompounds(v, T, seed) }));

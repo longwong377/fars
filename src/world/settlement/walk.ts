@@ -412,4 +412,18 @@ export function plotCells(s: Site, idx: number): { open: number[]; rooms: number
     PLOT_CELLS.set(s, t); }
   return t[idx];
 }
+/** s17 V10 (D-479): every plot's cells of these sites, flat (per site: the open and room cells plot by plot, and each plot's
+ *  counts), for the baked world: the door-reach pass (D-550) was ~4 s of the build on the T4 page, all in the first caller
+ *  (world.ts, the fauna). Taken at the same point of the build as before, so the solids it saw are the same */
+export function exportPlotCells(sites: Site[]): { open: Int32Array; rooms: Int32Array; nOpen: Int32Array; nRooms: Int32Array }[] {
+  return sites.map(s => { const t = s.plots.map((_, i) => plotCells(s, i)), cat = (f: (x: { open: number[]; rooms: number[] }) => number[]) => Int32Array.from(t.flatMap(f));
+    return { open: cat(x => x.open), rooms: cat(x => x.rooms), nOpen: Int32Array.from(t, x => x.open.length), nRooms: Int32Array.from(t, x => x.rooms.length) }; });
+}
+/** the inverse of exportPlotCells (false, nothing taken, when it does not fit these sites) */
+export function importPlotCells(sites: Site[], d: ReturnType<typeof exportPlotCells> | null | undefined): boolean {
+  if (!d || d.length !== sites.length || d.some((x, i) => x.nOpen.length !== sites[i].plots.length)) return false;
+  sites.forEach((s, i) => { if (PLOT_CELLS.has(s)) return; const x = d[i]; let a = 0, b = 0;
+    PLOT_CELLS.set(s, Array.from(x.nOpen, (no, p) => { const nr = x.nRooms[p], r = { open: Array.from(x.open.subarray(a, a + no)), rooms: Array.from(x.rooms.subarray(b, b + nr)) }; a += no; b += nr; return r; })); });
+  return true;
+}
 export { OUT, LANE, SQUARE, ROOM, COURT, YARD };

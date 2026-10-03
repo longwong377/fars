@@ -85,7 +85,7 @@ import { Birds, Jackals } from './wildlife';
 import { SmallLife, type CellCtx } from './smallLife';
 import { GroundFlora, RoseBeds } from './groundFlora';
 import { RoadLitter } from './roadLitter';
-import { WorldFill } from './fill'; import { TownTethers, townTethers } from './settlement/tethers'; import { RoofWear } from './settlement/roofwear'; import { townFill, terraceFill } from './fillPlan'; import { villageSite, importVillageSites, exportVillageSites } from './plain/villagesite';
+import { WorldFill } from './fill'; import { TownTethers, townTethers } from './settlement/tethers'; import { RoofWear } from './settlement/roofwear'; import { townFill, terraceFill } from './fillPlan'; import { villageSite, importVillageSites, exportVillageSites } from './plain/villagesite'; import { exportPlotCells, importPlotCells } from './settlement/walk';
 import { GroundRocks } from './groundRocks';
 import { Bedrock, loadRockKit } from './hills/bedrock';
 import { Ledges, loadLedgeFace } from './hills/ledges';
@@ -153,7 +153,7 @@ import { TreeKit } from './trees/render';
 import { newGameStart } from '../core/newGame';
 import { cached, prefetchWorldCache, cacheStats, cacheGet, cachePut, cacheEnabled, prefetchUnits, cachedSync, cacheGetSync, cachePutSync, verifying, verify, prefetchedKeys } from './cache/worldCache';
 /** D-392: the baked units read by the build's sync stages (cacheGetSync), fetched ahead */
-const SYNC_UNITS = ['townplan', 'navcore', 'arch'], WORLD_UNITS = ['grime', 'fill', 'zones', 'vsites'];
+const SYNC_UNITS = ['townplan', 'navcore', 'arch'], WORLD_UNITS = ['grime', 'fill', 'zones', 'vsites', 'plotcells'];
 import { hashArrays, hashString, hashBytes } from './cache/pack';
 import { packGeo, unpackGeo, geoHash, type GeoPack } from './cache/geo';
 import { mudFace } from '../arch/mudface';
@@ -427,6 +427,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   wmark('sim');
   settlement?.roofWear.setSource(RoofWear.source(sim.pop.households, (hh, d) => sim.deeds.joint.roofOf(hh, d), () => Math.floor(sim.t / 24))); // s17 C1 (D-550): leaking and fresh roofs
   sim.routeSearchesPerStep = 1; // at most one new route search per render frame (D-024)
+  sim.aheadMs = 4; // D-650: tomorrow made ready ~4 ms a frame
   // D-199: the court's camps (court setting only): the tents of the court's camp and of the retinue's camps (camps.ts)
   const campTents = sim.pop.court ? new CourtCampTents(sim.pop.court.tents, (e, n) => terrain.heightAt(e, -n), phys) : null; if (campTents) root.add(campTents.group);
   if (sim.pop.court) addCampHearths(fire, campItems(sim.pop.court.tents), (e, n) => terrain.heightAt(e, -n), ti => tentStands(sim.pop.court!.tents[ti], sim.t)); // D-530: the court camps' hearths (C3's ask)
@@ -449,7 +450,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   let navOwn = false;
   if (navCore) for (const k of prefetchedKeys('navcore')) { if (!k.startsWith(navKey + '|')) continue; const m = cacheGetSync<Map<string, unknown>>('navcore', k);
     if (m instanceof Map) { for (const [a, v] of m) navCore.set(a, v); if (k === `${navKey}|${seed}`) navOwn = true; } }
-  const view = new PopView(sim, geo, seed, { warm: !navOwn }); crowd.view = view;
+  const view = new PopView(sim, geo, seed, { warm: !navOwn }); crowd.view = view; view.setDoorways(doorways); // D-690: the view keeps people out of the Terrace doorways (C5)
   if (navCore && !navOwn) cachePutSync('navcore', `${navKey}|${seed}`, navCore);
   wmark('view');
   // D-210: the animals that live about the town, the villages, the paradise and the river (world/fauna.ts), and the animals
@@ -464,6 +465,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const fillItems = cachedSync('fill', bakeKey, () => [...townFill(settlement?.plan.sites ?? [], seed, villagesIn.map(v => villageSite(v, v.comps as any).site), Object.values(sim.pop.quarters).filter(q => q.kind === 'town' || q.kind === 'garden').map(q => q.xy)).items, ...terraceFill(seed)]); // (D-392: the plan from the baked world)
   const fill = new WorldFill([...fillItems, ...(settlement?.roofFill() ?? [])], { ground: groundAt, phys, nav }); root.add(fill.group); // (s17 C1: + the roofs' things)
   const tethers = new TownTethers(townTethers(settlement?.plan.sites ?? [], fillItems), groundAt); root.add(tethers.group); // s17 C1 (D-550): the households' animals at their tethers
+  // s17 V10 (D-479): the town plots' cells a body reaches from the door (walk.ts plotCells, ~4 s live) from the baked world
+  if (settlement && !importPlotCells(settlement.plan.sites, cacheGetSync<ReturnType<typeof exportPlotCells>>('plotcells', bakeKey))) cachePutSync('plotcells', bakeKey, exportPlotCells(settlement.plan.sites));
   const fauna = new Fauna(seed, settlement?.plan ?? null, villagesIn, groundAt, { rivers: plain.data.rivers.rivers.map(r => ({ pts: Array.from(r.x, (x, i) => [x, r.y[i]] as [number, number]), half: r.topWidth / 2 })), canals: plain.data.canals.map(c => c.pts as [number, number][]) });
   { // the wild animals beyond the town (session 9, beasts.ts): uncultivated land from the plain's own land use; people at the
     // town's places, the villages and the Terrace (the lions and the steppe animals keep kilometres from them)
@@ -657,7 +660,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const simulate = (dt: number, clock: any) => {
     const target = clock.t * 24;
     if (!simStarted) { sim.jumpTo(target); simStarted = true; }
-    else { const ds = (target - sim.t) * 3600; if (ds < -1 || ds > 900) sim.jumpTo(target); else if (ds > 0) sim.step(ds); }
+    else { const ds = (target - sim.t) * 3600; if (ds < -1 || ds > 900) sim.jumpTo(target, dt > 0 ? 8 : 0); /* D-650: a day change is sliced over frames (8 ms each); a dt-0 tick jumps whole */ else if (ds > 0) sim.step(ds); }
     if (playerAt) sim.player = [playerAt.x, -playerAt.z];
     // doors (D-051): swing, schedules, people opening closed doors as they pass; before the next physics step
     doors.player = playerAt; doors.people = sim.agents.filter(a => !a.offmap).map(a => a.pos as [number, number]);
