@@ -9928,6 +9928,8 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   mid ring's outer 12-cell band is blended into (build_terrain.py's seam blending); meander.ts now re-blends that band
   (each sample's own height recovered from the old blend or taken from the carve, mixed with the far ring as it is now). The
   horizon map rebuilt (tools/build_horizon.ts). terrain, terrain_walk, horizon and plain tests green; villages unchanged.
+- The T4's black screen (Vagon's culprit probe: plain-stone's shadow pass bound a released buffer): the fords' merged stone
+  mesh casts no shadow from birth and is never re-flagged at run time; the shared quarry mesh is hidden, never disposed.
 
 ## D-720 Follow thirty: the people answer from their own lives without the model, and the town's deeds and yesterday reach their talk (session 18, cloud C8; UD-07, UD-08, UD-11, UD-21, UD-24, UD-32)
 - Measured (tools/dev/follow30.ts; REVIEWS/follow30.json): thirty people drawn by seed across the town, the villages, the Terrace's
