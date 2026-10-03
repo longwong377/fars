@@ -102,7 +102,11 @@ export const SCAN_USE: Record<string, ScanUse> = {
   matting: { scan: 'Wicker010B', scale: 0.6, alb: 0.75, height: 0.002, rough: 0.4 },
   bronze: { scan: 'Metal013', scale: 0.6, alb: 0.45, height: 0.0004, rough: 0.6 },
   // the palaces' furnishings (world/furnish_palaces.ts FURNISH_SURFACES, D-212): textiles as felted wool, clay, the metals
-  furn_textile: { scan: 'Fabric043', scale: 0.5, alb: 0.55, height: 0.0008, rough: 0.4 },
+  // D-780 (s18 C13, the lead's ambientCG sets): the court's woven wool (couch mattresses and bolsters, cushions, hangings, covers)
+  // takes Fabric 030's tabby weave (Fabric 043 was a felt); the pile carpets Carpet 012's dense cut pile; both at a low chroma
+  // so the scans' own grey-blue fibres do not speckle the madder and indigo (C)
+  furn_textile: { scan: 'Fabric030', scale: 0.35, alb: 0.6, height: 0.0007, rough: 0.4, chroma: 0.3 },
+  furn_carpet: { scan: 'Carpet012', scale: 0.4, alb: 0.65, height: 0.0015, rough: 0.45, chroma: 0.25 },
   furn_clay: { scan: 'clay_floor_001', scale: 0.7, alb: 0.8, height: 0.0008, rough: 0.6 },
   furn_silver: { scan: 'Metal013', scale: 0.4, alb: 0.3, height: 0.0002, rough: 0.5 },
   furn_gilt: { scan: 'Metal013', scale: 0.4, alb: 0.3, height: 0.0002, rough: 0.5 },
@@ -114,7 +118,7 @@ export const SCAN_USE: Record<string, ScanUse> = {
   tent_cloth: { scan: 'hessian_230', scale: 0.5, alb: 0.45, height: 0.001, rough: 0.4 }, // D-330: the court tents' woven wool, linen and goat hair (the weave; the colour is the tent's)
   prop_clay: { scan: 'clay_floor_001', scale: 0.6, alb: 0.9, height: 0.0008, rough: 0.6 },
   prop_stone: { scan: 'rock_surface', scale: 0.7, alb: 0.8, height: 0.0015, rough: 0.5 },
-  prop_leather: { scan: 'Leather014', scale: 0.5, alb: 0.5, height: 0.0005, rough: 0.5 },
+  prop_leather: { scan: 'Leather037', scale: 0.4, alb: 0.55, height: 0.0005, rough: 0.5, chroma: 0.35 }, // (D-780: a finer grain than Leather 014's)
   prop_metal: { scan: 'Metal013', scale: 0.4, alb: 0.35, height: 0.0003, rough: 0.6 },
   prop_wood: { scan: 'rough_wood', scale: 0.8, alb: 0.6, height: 0.0015, rough: 0.5 },
   prop_mud: { scan: 'brown_mud_dry', scale: 1.0, alb: 0.6, height: 0.003, rough: 0.4 },

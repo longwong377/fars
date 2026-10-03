@@ -909,5 +909,65 @@
    "diff.jpg (sRGB)",
    "arm.jpg (R ao (none: 1), G roughness, B metal 0)"
   ]
+ },
+ "Carpet012": {
+  "meanLinear": [
+   0.03973,
+   0.04803,
+   0.06987
+  ],
+  "meanAO": 0.6191,
+  "meanRough": 0.8791,
+  "name": "Carpet 012",
+  "authors": [
+   "ambientCG (Lennart Demes / Struffel Productions)"
+  ],
+  "licence": "CC0",
+  "source": "https://ambientcg.com/view?id=Carpet012",
+  "res": "2k",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal), packed from the ambientCG maps (D-301)"
+  ]
+ },
+ "Fabric030": {
+  "meanLinear": [
+   0.10631,
+   0.10492,
+   0.10662
+  ],
+  "meanAO": 0.925,
+  "meanRough": 0.7284,
+  "name": "Fabric 030",
+  "authors": [
+   "ambientCG (Lennart Demes / Struffel Productions)"
+  ],
+  "licence": "CC0",
+  "source": "https://ambientcg.com/view?id=Fabric030",
+  "res": "2k",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal), packed from the ambientCG maps (D-301)"
+  ]
+ },
+ "Leather037": {
+  "meanLinear": [
+   0.12687,
+   0.03905,
+   0.0219
+  ],
+  "meanAO": 1.0,
+  "meanRough": 0.3972,
+  "name": "Leather 037",
+  "authors": [
+   "ambientCG (Lennart Demes / Struffel Productions)"
+  ],
+  "licence": "CC0",
+  "source": "https://ambientcg.com/view?id=Leather037",
+  "res": "2k",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal), packed from the ambientCG maps (D-301)"
+  ]
  }
 }
