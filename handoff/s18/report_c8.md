@@ -1,0 +1,77 @@
+# s18 C8: the people's depth (D-720), report
+
+Branch `cloud-s18-c8-depth`. Tool: `npx tsx tools/dev/follow30.ts 60 REVIEWS/follow30.json own|old` (node only; thirty people drawn by
+seed across six kinds of life, seeds 1, 7, 42, day 60 with five days run live, the world as world.ts builds it; each followed
+through the day, the next day and the day a season on, and asked five things: who are you, who lives in your house, what work
+do you do, what has happened to you this year, what troubles you). The full replies and day plans are in REVIEWS/follow30.json.
+
+## Broken, placeholder or unseen (first)
+- **Unseen:** the in-browser model (cloud). The prompt path was judged by what it carries (the fact ground.ts puts next to each
+  question; the Lately line), not by a model's words. The replies scored are the own-lines path: what every player meets until the
+  model has loaded, and always on a card that cannot hold it. The score is a rule (a name or shared content word from the facts the
+  question asks for), not a reader's judgement; its two misses are "a toy of my own" (a three-letter word), i.e. grounded.
+- **Not mine, asked of the lead:** a court servant of a retinue camp (seed 1, pid 59405) spends the whole day at rest, talk and
+  knucklebones (court.ts): the job is a label that day (she worked the day before: kneading, water, sweeping the tents).
+- **By design, not changed:** the minds' deeds touch ~600 people a day of 81,000 (initiative.ts: feeling-driven deeds capped at
+  300 a day, D-462's cost). None of the thirty had a townsfolk deed in the five live days; 8 of 30 (the road folk, children of the
+  Treasury, a mother at the field) still have nothing done by or to them this year that they could tell (they now have yesterday).
+  Raising deed volume is a cost question for the budget (asked as a next step).
+- **Road folk** (hinterland register) live off the map all day (3 plan parts, 2 reasons): they pass through; their day off the map
+  is a label. Their talk is grounded (home, kin, past, hopes).
+- aims.ts phrasing ("a trade for Manuš") reads oddly (not mine).
+- The own lines are English (translation layer); the heard voice is the person's own language as before (voice.ts heardReply).
+
+## The thirty, before → after (replies grounded of 5; thin spots)
+| seed/pid | kind | person | replies | thin before | thin after |
+|---|---|---|---|---|---|
+| 1/5415 | town | Muška, 24m gardener | 0/5 → 5/5 | replies, deeds | ok |
+| 1/29658 | village | Miθratausā, 29f homemaker | 0/5 → 5/5 | replies, deeds | deeds |
+| 1/2605 | terrace | Vahuzātā, 32f treasury | 0/5 → 5/5 | replies, deeds, words | ok |
+| 1/73244 | road | Aryaduxçā, 21f homemaker | 0/5 → 5/5 | reasons, replies, deeds | reasons, deeds |
+| 1/59405 | court | Ina-Esagil-banât, 46f servant | 0/5 → 5/5 | work, replies, history, ties | work |
+| 1/45926 | camp | Rēmūt, 43m builder | 0/5 → 5/5 | replies | ok |
+| 1/1164 | town | Ampirdawiš, 11m child | 0/5 → 5/5 | replies, deeds | ok |
+| 1/22641 | village | Dātastūnā, 15f homemaker | 0/5 → 5/5 | replies | ok |
+| 1/1577 | terrace | Dātazauštrī, 13f treasury | 0/5 → 5/5 | replies, deeds | deeds |
+| 1/80336 | road | Utira, 53m craftsman | 0/5 → 5/5 | replies, deeds | deeds |
+| 7/62228 | court | Bakumarda, 34m groom | 0/5 → 5/5 | replies, history, ties | ok |
+| 7/402 | camp | Rauzazza, 48m builder | 0/5 → 5/5 | replies, deeds, words | ok |
+| 7/1828 | town | Telephanes, 6m child | 0/5 → 4/5 | replies | replies |
+| 7/11248 | village | Cincaxri, 67m elder | 0/5 → 5/5 | replies, deeds, words | ok |
+| 7/256 | terrace | the son of Bagābigna, 44m guard | 0/5 → 5/5 | replies, deeds | ok |
+| 7/81078 | road | Hupannana, 34m craftsman | 0/5 → 5/5 | replies, deeds | deeds |
+| 7/48398 | court | Čiθrazauštrī, 18f homemaker | 0/5 → 5/5 | replies, history, ties | ok |
+| 7/808 | camp | Theodoros, 49m builder | 0/5 → 5/5 | replies, deeds | ok |
+| 7/6767 | town | Zababa-iddin, 13m child | 0/5 → 4/5 | replies, deeds | replies |
+| 7/27238 | village | Bakiš, 37m farmer | 0/5 → 5/5 | replies | ok |
+| 42/1559 | terrace | Busasa, 24f treasury | 0/5 → 5/5 | replies, words | ok |
+| 42/78491 | road | Aspazauštrī, 48f homemaker | 0/5 → 5/5 | reasons, replies, deeds | reasons, deeds |
+| 42/63571 | court | Irdabada, 38m porter | 0/5 → 5/5 | replies, history, ties | ok |
+| 42/1270 | camp | Rtašyāti, 29f camp | 0/5 → 5/5 | replies, deeds | ok |
+| 42/7012 | town | Yamakšedda, 7m child | 0/5 → 5/5 | replies, deeds | ok |
+| 42/12789 | village | Ištimanka, 20m farmer | 0/5 → 5/5 | replies, words | ok |
+| 42/1971 | terrace | Muška, 12m treasury | 0/5 → 5/5 | replies, deeds | deeds |
+| 42/80411 | road | Amazātā, 20f homemaker | 0/5 → 5/5 | replies, deeds | deeds |
+| 42/51182 | court | Uštana, 23m steward | 0/5 → 5/5 | replies, history, ties | ok |
+| 42/664 | camp | Jedaniah, 40m builder | 0/5 → 5/5 | replies | ok |
+
+Share thin (before → after): replies ignoring their life 100 % → 6.7 % (2 rule misses; 150 → 148 of 150 grounded); nothing
+done by or to them that they can tell 60 % → 26.7 %; broken words in the life (news "heard of wrong the house of", "grain or
+help") 16.7 % → 0; a courtier's wrong history (work group, garrison) 16.7 % → 0; no friend 16.7 % → 0; job a label 3.3 % → 3.3 %
+(court.ts); reasons 6.7 % → 6.7 % (road folk off the map). Every day changed the next day and a season on (0 % loops, both runs).
+
+## What was fixed, for everyone
+1. **The own lines** (converse/ownlines.ts, ui.ts): OwnMind plays the person in the same turn as the model, so asks, deeds, the
+   sandbox, memory and gossip work with no model at all (checked: "Help me fix your roof" → repair done; "Give me some bread" →
+   given; "Do you remember me?" → "Yes, I remember you. Just now you asked me for bread, and I gave you bread."). Words from the
+   life record in the first person and the person's manner: temperament, oath, age, an ask-back, an oath or a proverb once a talk.
+2. **Lately** (deeds/lately.ts, engine.ts, life.ts, ground.ts, prompt.ts): the townsfolk's deeds by, to, about and before each
+   person, from their side ("Bagadata helped me with the work, two days ago"; "I saw Kuraš strike Miθra, yesterday"), into the
+   brief's Lately line, the ground facts and the own lines. Yesterday's own doings too.
+3. **The deeds' save** keeps the count and ten days of the log: a loaded save began deed ids at 0 again, so memories read other
+   deeds and the town's talk of deeds (initiative.ts) stopped until the count caught up.
+4. **Words**: the deeds' rumour kinds worded; "gave them grain when the house ran short"; the court's people came with the court
+   (or to petition, or with a delegation), live in its camp or tents, live beside fellow servants or companions, and have them as friends.
+
+## Tests
+tests/ownlines.test.ts (new, 8). Targeted: talk_prompt, converse, deeds, minds, talk_world, stranger_talk, npc_talk (results below).
