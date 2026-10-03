@@ -23,6 +23,7 @@ import { PLAIN, feature, tag } from './data';
 import type { Physics } from '../../player/physics';
 import { fitBlocks, carvedBlockGeometry, inscriptionAtlas, opSignsNote, INSCRIPTION_PICK_LAYER, type Block } from '../../arch/decor';
 import { panelText, type PanelText } from '../../arch/inscription_text';
+import CAPTIONS from './naqsh_captions.json';
 import { paintFacadeGeometry, paintedFacadeMaterial, type FacadeFrame } from './naqsh_paint';
 import { buildNaqshLife } from './naqsh_life';
 import { ReliefSet, type ReliefItem } from '../../arch/reliefs';
@@ -152,9 +153,18 @@ function tombFacade(f: Face, cx: number, inscribed: boolean, id: string): { ston
   if (inscribed) { // DNa panel behind the king, Old Persian text inset 0.1 m
     panels.push(onFace(f, box(1.6, 2.2, 0.02), cx - 4.9 + 0.1, top + 0.9, R));
     texts.push({ id: 'DNa', x0: cx - 4.8 - 0.7, yTop: top + 0.9 + 2.1, w: 1.4, h: 2.0, d: R - 0.02, text: panelText('DNa', 'op')! });
-    // (s18 C15, D-800: the captions DNc, DNd, DNe are NOT carved yet: their published Old Persian (ARIo Q007154-6, CC0) is
-    // prepared in naqsh_captions.json, but the inscription data, the programme (royal_inscriptions.json 'missing') and the
-    // translation layer do not carry them; carving them waits on that (Q-290, Q-1730), so only the data's own texts are cut)
+    // s18 C15 (D-800): the captions of the edition (ARIo Q007154-6, CC0; src/data/inscriptions.json via
+    // tools/build_naqsh_captions.ts): DNc over Gobryas, the king's spear-bearer, the top attendant of the left side panel; DNd
+    // over Aspathines, below him; DNe, each people's name beside its throne-bearer (the edition's 30 lines on the façade's 28
+    // drawn bearers, in order; the 12 lines lost in the edition uncut; lines 29-30, whose bearers the façade does not draw, under
+    // the captions of each tier's last bearer: C)
+    texts.push({ id: 'DNc', x0: cx - 4.6 - 0.55, yTop: u0 + 0.35 + 2 * 2.6 + 1.85 + 0.42, w: 1.1, h: 0.38, d: R - 0.02, text: panelText('DNc', 'op')!, glyph: 0.045 });
+    texts.push({ id: 'DNd', x0: cx - 4.6 - 0.55, yTop: u0 + 0.35 + 2.6 + 1.85 + 0.2, w: 1.1, h: 0.2, d: R - 0.02, text: panelText('DNd', 'op')!, glyph: 0.045 });
+    const n = F.throne_bearers / F.throne_bearer_tiers, DNe = panelText('DNe', 'op')!; let li = 0;
+    (CAPTIONS.DNe.lines as (string[] | null)[]).forEach((l, k) => { if (!l) return; const line = DNe.lines[li++]; if (line === undefined) return;
+      // (lines beyond the drawn bearers stand under the caption of each tier's last bearer)
+      const over = k >= F.throne_bearers, kk = over ? (k - F.throne_bearers) * n + n - 1 : k, t = Math.floor(kk / n), i = kk % n, x = -span / 2 + 0.35 + i * (span - 0.7) / (n - 1);
+      texts.push({ id: 'DNe', x0: cx + x + 0.05, yTop: u0 + 0.35 + t * (bearerH + 0.3) + 0.75 - (over ? 0.25 : 0), w: 0.52, h: 0.2, d: R - 0.02, text: { font: 'op', lines: [line], lined: true }, glyph: 0.03 }); });
   }
   return { stone, items, panels, front: frontG, texts };
 }
@@ -366,8 +376,9 @@ export function buildNaqsh(terrain: Terrain, ancientFootAsl: number): NaqshBuild
       const block: Block = { id: a.id, ver: 'op', text: a.text }, fit = fitBlocks([block], 'stack', a.w, a.h, a.glyph ?? NR_GLYPH_MAX, a.glyph ? Math.min(0.02, a.glyph) : undefined), L = fit.parts[0].layout;
       // text geometry: x 0…w along the face, the block's top at y 0, lines going down, z out of the panel (the signs' quads
       // lie on the dressed face; the shader cuts them in)
-      const cg = carvedBlockGeometry(block, L); carvedSigns.push({ id: a.id, ver: 'op', signs: cg.userData.signs });
+      const cg = carvedBlockGeometry(block, L); { const prev = carvedSigns.find(c => c.id === a.id); if (prev) prev.signs += cg.userData.signs; else carvedSigns.push({ id: a.id, ver: 'op', signs: cg.userData.signs }); } // (DNe: one record, its captions in order)
       carved.push(onFace(f, cg, a.x0, a.yTop, a.d));
+      if (a.glyph) { textInfo.push(`${a.id}: ${L.signs.length} signs, glyph ${(fit.glyph * 100).toFixed(1)} cm${fit.fits ? '' : ' (DOES NOT FIT the field at the smallest glyph)'}`); continue; } // the captions: no pick rectangle (the plain's mesh budget); their translations are in translations.json
       const quad = box(a.w + 0.1, a.h + 0.1, 0.001); onFace(f, quad, a.x0 + a.w / 2, a.yTop - a.h - 0.05, a.d - 0.01);
       const pick = new THREE.Mesh(quad, pickMat); pick.layers.set(INSCRIPTION_PICK_LAYER); pick.name = `inscription:${a.id}:op:pick`;
       pick.userData = { tier: 'C', inscription: a.id.replace(/^DNe\d+$/, 'DNe'), version: 'op', pickFar: 80 }; texts.add(pick);
@@ -376,7 +387,7 @@ export function buildNaqsh(terrain: Terrain, ancientFootAsl: number): NaqshBuild
   }
   if (carved.length) {
     const tm = new THREE.Mesh(mergeGeometries(carved.map(g => g.index ? g.toNonIndexed() : g))!, inscMat); tm.name = 'nr-inscriptions-carved'; tm.receiveShadow = true;
-    tm.userData = { carved: carvedSigns, tier: 'B/C', src: 'ARIO-CATF;ARIO;NOTO;LIVIUS-NR', placeholder: true, note: `DNa, DNb Old Persian (text A: ARIo Q007152/Q007153, CC0). DNa ${opSignsNote('DNa')}. DNb ${opSignsNote('DNb')}. Incised in the dressed field, V-section at 45° (C, D-177); panel position C. NOT carved [PLACEHOLDER, Q-290, Q-1730]: the captions DNc, DNd, DNe (their Old Persian from ARIo Q007154-6 is prepared in naqsh_captions.json, not yet in the inscription data); the Elamite and Babylonian versions of DNa and DNb: no licensed digital edition exists (ARIo, CDLI and every open mirror carry the Old Persian only; the El/Bab are edited in print alone), so nothing is cut rather than anything invented — ${textInfo.join('; ')}` };
+    tm.userData = { carved: carvedSigns, tier: 'B/C', src: 'ARIO-CATF;ARIO;NOTO;LIVIUS-NR', placeholder: true, note: `DNa, DNb Old Persian (text A: ARIo Q007152/Q007153, CC0). DNa ${opSignsNote('DNa')}. DNb ${opSignsNote('DNb')}. Incised in the dressed field, V-section at 45° (C, D-177); panel position C. The captions DNc, DNd and DNe carved in Old Persian from the edition (ARIo Q007154-Q007156, CC0; s18 C15, D-800; places C; no pick rectangle). NOT carved [PLACEHOLDER, Q-290, Q-1730]: DNe's 12 lines lost in the edition; the Elamite and Babylonian versions of DNa and DNb: no licensed digital edition exists (ARIo, CDLI and every open mirror carry the Old Persian only; the El/Bab are edited in print alone), so nothing is cut rather than anything invented — ${textInfo.join('; ')}` };
     texts.add(tm); tris += tm.geometry.getAttribute('position').count / 3;
   }
   group.add(texts);

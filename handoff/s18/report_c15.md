@@ -10,10 +10,8 @@ settlement/plan.ts (+ new settlement/estates.ts).
   source: ORACC ARIo (oracc/catf, CC0) edits these two texts in Old Persian only, and so do the ARIo JSON mirror, SLAB-NLP/Akk
   and the CDLI composites. No Hugging Face or GitHub dataset has them. The versions exist in print alone. Nothing was invented;
   the panels carry the Old Persian alone, flagged PLACEHOLDER in the carved mesh's note.
-- **DNc, DNd and DNe are not carved.** Their Old Persian is prepared from the edition (naqsh_captions.json; 18 of DNe's 30
-  lines survive). Carving them waits on three things outside my files: inscriptions.json, the programme
-  (royal_inscriptions.json 'missing') and translations.json. A first carving broke C7's language test (only the data's own
-  texts are cut, §10) and was reverted.
+- **DNc, DNd and DNe are carved but cannot be picked.** They are carved from the edition and have translations, but have no pick
+  rectangle (the plain is at its 40-mesh cap), so the translation layer cannot be opened on them yet.
 - **The estates' houses are still bare mud** behind the new painted porches. Plot kind `elite` is not in C2's wash draw
   (houses.ts `HOUSE_KINDS`). I asked the lead/C2 for a one-line change. The rooms' interiors are not painted (interiors are not
   mine). Two smaller gaps: the porch roofs sit on per-prop ground heights (no group base), and the estates add one settlement

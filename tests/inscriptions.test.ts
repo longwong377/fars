@@ -132,7 +132,7 @@ describe('the signs are cut into the stone, not raised on it (M6)', () => {
     const miss = programme.missing as any[];
     // D-214 carved the anta copies of XPc and XPd, the garment lines DPb and XPk, XPj and XPm and XPg's plaque; what is left is
     // XPg on glazed bricks and the Naqsh-e Rustam versions and captions not in the corpus or not placed
-    expect(miss.map(m => m.id)).toEqual(['XPg', 'DNa', 'DNb', 'DNc, DNd, DNe']);
+    expect(miss.map(m => m.id)).toEqual(['XPg', 'DNa', 'DNb']); // (s18 C15, D-800: DNc, DNd, DNe carved from ARIo Q007154-6)
     for (const m of miss) { expect(m.why.length, m.id).toBeGreaterThan(20); expect(m.q, m.id).toBe('Q-290'); }
     expect(g.userData.placeholder).toBe(true); expect(g.userData.missing.length).toBe(miss.length);
     expect(g.userData.summary).toMatch(/NOT carved \[PLACEHOLDER: Q-290/);
