@@ -18,6 +18,7 @@ const A = decodeHumanAssets(meta, bin.buffer.slice(bin.byteOffset, bin.byteOffse
 describe('visemes from phones (face.ts)', () => {
   it('maps letters to mouth shapes and coarticulates them', () => {
     expect(phoneOf('m')).toBe('m'); expect(phoneOf('ū')).toBe('u'); expect(phoneOf('š')).toBe('s'); expect(phoneOf(' ')).toBe('_'); expect(phoneOf('ā')).toBe('a');
+    expect(phonesOf('ˈmɑːθ').cls.join('')).toBe('maas'); // (IPA, as the voices carry it)
     const P = phonesOf('mam umu'); expect(P.cls.join('')).toBe('mam_umu');
     const at = (cls: string) => { const i = P.cls.indexOf(cls); return (P.t[i] + (P.t[i + 1] ?? P.dur)) / 2; };
     const m = visemeAt(P, 0, at('m')), a = visemeAt(P, 0, at('a')), u = visemeAt(P, 0, P.t[P.cls.lastIndexOf('u')] + 0.04);
