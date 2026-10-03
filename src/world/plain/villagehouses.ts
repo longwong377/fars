@@ -231,9 +231,9 @@ export class VillageHouses {
     // s18 C15 (D-800): the roofs in use: a stack of straw and fodder on the main range (45 %), brushwood for the oven on the
     // wing (30 %), as the region's flat roofs are used (C)
     if (id && hi(c.seed, 31) < 0.45) { const st = lin([0.78, 0.68, 0.45]), w = 1.2 + 0.8 * hi(c.seed, 32), uc = -W + 1.5 + w / 2 + (2 * W - 3 - w) * hi(c.seed, 33), vc = (rv0 + D) / 2;
-      b.set('y0', -1000).set('ytop', 1e4); const p = L(uc, vc, 0); b.box(p[0], -p[2], c.angle, w / 2, 0.6, roof, roof + 0.55 + 0.4 * hi(c.seed, 34), sh(st, 0.8), st, ownR, false, 31); }
+      b.set('y0', -1000).set('ytop', 1e4); const p = L(uc, vc, 0); b.box(p[0], -p[2], c.angle, w / 2, 0.6, roof, roof + 0.55 + 0.4 * hi(c.seed, 34), sh(st, 0.8), st, ownR, false, 1 | 8 | 16); } // (top and long faces)
     if (id && wing.length && hi(c.seed, 35) < 0.3) { const bw = lin([0.42, 0.36, 0.26]), r0 = wing[0], p = L((r0.u0 + r0.u1) / 2, (r0.v0 + r0.v1) / 2, 0);
-      b.set('y0', -1000).set('ytop', 1e4); b.box(p[0], -p[2], c.angle + 0.3, 0.7, 0.5, roof, roof + 0.45, sh(bw, 0.8), bw, ownR, false, 31); }
+      b.set('y0', -1000).set('ytop', 1e4); b.box(p[0], -p[2], c.angle + 0.3, 0.7, 0.5, roof, roof + 0.45, sh(bw, 0.8), bw, ownR, false, 1 | 8 | 16); }
     // the gateway: dark behind the opening (the leaf, when shut, stands in front of it)
     { const dk = sh(col, 0.1), y1 = base + 2.0; b.set('ao', 0.15); b.quad(L(g0, -D + t / 2 + 0.14, base - 0.3), L(g1, -D + t / 2 + 0.14, base - 0.3), L(g1, -D + t / 2 + 0.14, y1), L(g0, -D + t / 2 + 0.14, y1), N(0, -1), dk, dk, dk, dk, own); b.set('ao', 1); }
   }
@@ -242,9 +242,9 @@ export class VillageHouses {
     const b = cell.far, d = cell.desc.length; cell.desc.push({ tier: 'C', src: 'RECON', note: `the threshing floor of ${v.id}: a round floor of beaten earth and clay, ${THRESH_R * 2} m across, with a kerb of fieldstones, at the village's edge beyond its houses; the grain is trodden out by oxen or donkeys and winnowed in the wind (C; the region's threshing floors by analogy, RECOLLECTION, NOT SEEN; D-254)` });
     b.set('tileId', 0).set('y0', -1000).set('ytop', 1e4).set('ao', 1);
     b.mound(at[0], at[1], THRESH_R, 0.07, lin([0.6, 0.53, 0.42]), this.H, d * 32, 3, 18);
-    const stn = lin([0.52, 0.5, 0.45]), n = 26;
+    const stn = lin([0.52, 0.5, 0.45]), n = 12; // (s18 C15: 12 larger stones, was 26: the plain's triangle budget)
     for (let k = 0; k < n; k++) { const a = (k / n) * Math.PI * 2 + 0.05 * Math.sin(k * 7.1), e = at[0] + Math.cos(a) * (THRESH_R + 0.25), nn = at[1] + Math.sin(a) * (THRESH_R + 0.25), y = this.H(e, nn);
-      const r = 0.16 + 0.06 * Math.abs(Math.sin(k * 3.7)); b.box(e, nn, a + 0.3 * Math.sin(k), r * 1.3, r, y - 0.12, y + r * 0.9, sh(stn, 0.8), stn, d * 32); }
+      const r = 0.24 + 0.08 * Math.abs(Math.sin(k * 3.7)); b.box(e, nn, a + 0.3 * Math.sin(k), r * 1.3, r, y - 0.12, y + r * 0.9, sh(stn, 0.8), stn, d * 32); }
     this.info.floors++;
   }
 
