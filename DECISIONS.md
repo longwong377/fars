@@ -9805,3 +9805,7 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   relief_atlas.ts, baked on the CPU in slot batches (tools/dev/gpu_slot.mjs; ~4 s a figure at 6 jobs), packed and KTX2-encoded
   as before; the atlas also takes D-510's polychromy change into its input hash. No new asset (the atlas is the project's own,
   ASSET_LEDGER row "Carved-relief atlas" unchanged in kind). Tier C.
+## D-525 (s17, V5): puddles fade far off and at grazing angles
+- materials.ts finish() (one line, no new shader state): the puddle mask fades over 60-150 m of view distance and below
+  ~10 degrees between the view and the surface, so thin pools far off no longer show as white slivers of mirrored sky
+  along the horizon (shots/wx-wet-flat-w8.png); they read as wet ground there. shader_build and material tests green.
