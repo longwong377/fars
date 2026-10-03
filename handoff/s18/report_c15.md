@@ -69,8 +69,27 @@ settlement/plan.ts (+ new settlement/estates.ts).
 - **The estates' roofs are drawn from below**, through C2's Prop.bottom.
 - **road_pasargadae:** nothing to change. D-730 already took it off Kuh-e Rahmat; measured, it stays between −14 and +9 m of
   its start over 12.8 km.
-- **Unseen:** a render of the halts, wells and shrines was stopped at the reset, so their placement has not been looked at in a
-  frame.
+- **Roadside placement, checked after the resume:** measured, every stop is 5, 7 or 12 m from the road edge on ground that
+  varies by at most 0.2 m. The stops doubled where the Pasargadae road shares the Naqsh road's stretch (50-70 m apart) were
+  removed (90f107c2). Crude frames are handoff/s18/c15/r2_*.jpg: the halt with its cart, the shrine at a field edge, the
+  Naqsh ground. Nothing floats or is buried. The halts read as boxes (the town kit, D-802, is the fix).
+- **The village gates are painted** by C2's towndoors change: no change from C15.
+
+## Round 3 (lead 3): the town kit (D-802), batch 1
+- **What it is:** tools/blender/kit_town.py builds it (Blender 5.0.1; the cloud runs it through `pip bpy`, which is
+  reproducible: the same hash on two builds). It writes public/models/kit/town/kit.json, manifest.json and town_kit.glb:
+  19 pieces, each in 3 LODs. The loader is src/render/townKit.ts; tests/town_kit.test.ts is green (frames, tiling seams, LOD
+  order, AO range, budget). Contact sheets: handoff/s18/c15/kit_kit_town_0.jpg and kit_kit_town_1.jpg (Cycles, a raking sun).
+- **Not yet in the game:** C2 places the pieces. The interface is the house kit's (kitFrame unit frames), sent to C2.
+- **Departures from the ask:**
+  - **No KTX2 texture maps.** The town's surfaces are world-space scanned materials (Plaster001/007 and the rest through
+    scans.ts), and new maps would cost samplers under the T4's 16-sampler cap. The pieces carry their geometry, baked AO and a
+    per-vertex shade instead.
+  - **No ladder piece.** The house kit's log and rung pieces already build the ladders, and a round member does not survive a
+    non-uniform scale.
+  - **The awning is in metres, not scaled**, for the same reason.
+- **Weak:** on a plain plastered run the relief (batter, ~3 cm undulation, runnels) shows only under raking light. The plaster's
+  grain is left to the game's scanned material.
 
 ## Frames (crude, SwiftShader, `?webgl=1`, 1280 × 720, day 25 10:00 clear)
 

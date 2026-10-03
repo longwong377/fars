@@ -26,6 +26,22 @@
 - NOT fixed by me: the T4's "[Buffer] used in submit while destroyed" in ShadowMaterial pipelines (C9's deferred-dispose
   work); the far cascade disposes nothing (?farcsm=0 rules it out on the T4).
 
+## The night list (after the first DONE; leads 2-3)
+- Pushed: stars by magnitude/colour through the twilight, extinction, twinkle; a luminous moonless dome (land dark against it);
+  the Moon's maria; the night grade cooler and less saturated (high only); the night's fires (watch braziers, banquet
+  braziers, door torches; occlusion re-baked); the town's dusk smoke (tau 0.34 over the gate 0.3); the nightingale, dawn
+  chorus and noon hush; ledges dispose after swap. Frames: c4_frames/dusk-west-1900/1925, predawn-rahmat-stars,
+  night-plain-after-dome, night-apadana-portico-Qlow.
+- Broken/unseen: the fires' nights need world.ts to call fire.setDay (asked; until then the watch burns every night and the
+  banquet never); fire light pools cannot be judged at Q=low in the cloud (few or no fire lights there); the night grade is
+  post (high) only, unseen; town_glow keeps two red assertions about the sim's warm-evening hearths (C2's belt, routed);
+  lint:lang is red on a texture not mine (public/textures/plaster001/arm.jpg unregistered).
+- Since: the comet of 467 (comet.ts: 75 evenings from mid-July, east of the sun, tail away from it; C, Plutarch Lys. 12 / Pliny
+  NH 2.149) and the season's clouds (cloudKind.ts: winter stratiform sheets, spring/summer cumulus, autumn cirrus veil).
+- Not done: the spring flood and the dust-storm wall (weather/river owners' systems), heat shimmer by default (its composite
+  graph unverified on a GPU: left opt-in); the snow cap exists through the shared snowline (January 725 m over the court:
+  Rahmat's tops and the far Zagros) but is unseen.
+
 ## What a player meets now
 - **Far views get sun shadows** (if the T4 confirms): past 600 m, where nothing had a sun shadow, a fifth map fitted to the
   Terrace and town box (east -1480..330, north -1580..840; 4096², texel <= 0.9 m at every sun) shades walls, porticoes and

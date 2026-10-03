@@ -51,7 +51,9 @@ export const TONE_LOOK_ON = !(typeof location !== 'undefined' && new URLSearchPa
 
 export const GI_SCALE = Math.PI / 2;
 /** D-480: the night's white balance (toneLook warm; slightly cool, C) */
-export const NIGHT_WARM = -0.02;
+export const NIGHT_WARM = -0.05; // D-680: was -0.02: the night reads moonlit blue, the fires' pools warm by their own colour
+/** D-680: the night's saturation (x the look's), the dark-adapted eye's fading colour (C) */
+export const NIGHT_SAT = 0.75;
 /** D-480 (light v2): the toe lift added at night (toneLook lift: the dark-adapted eye reads shapes in starlight that a camera's
  *  curve crushes; C) */
 export const NIGHT_LIFT = 1.2;
@@ -411,7 +413,7 @@ export class Pipeline {
       // D-480: the grade follows the light: the warm white balance and the full split tone by day, fading through civil
       // twilight to a slightly cool, gently split night (moonlight and starlight are not graded amber)
       if (!(globalThis as any).__toneHold) { const y = this.sunDirW.value.y, t = Math.min(1, Math.max(0, (y + 0.1) / 0.15)), d = t * t * (3 - 2 * t);
-        TONE_U.warm.value = TONE_LOOK.warm * d + NIGHT_WARM * (1 - d); TONE_U.split.value = TONE_LOOK.split * (0.4 + 0.6 * d); TONE_U.lift.value = TONE_LOOK.lift + NIGHT_LIFT * GRADE.nightLift * (1 - d); }
+        TONE_U.warm.value = TONE_LOOK.warm * d + NIGHT_WARM * (1 - d); TONE_U.sat.value = TONE_LOOK.sat * (NIGHT_SAT + (1 - NIGHT_SAT) * d); TONE_U.split.value = TONE_LOOK.split * (0.4 + 0.6 * d); TONE_U.lift.value = TONE_LOOK.lift + NIGHT_LIFT * GRADE.nightLift * (1 - d); }
     }
     { const H = this.renderer.getDrawingBufferSize(new THREE.Vector2()).y || 540; this.pxAngle.value = 2 * Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2) / H; }
     this.env?.update(this.hemi); // the sky environment, re-captured when the sun or the light has changed (D-157)

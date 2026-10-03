@@ -140,14 +140,20 @@ type RGB = [number, number, number];
  *  wrap per channel is base + curvature × scatter length (red scatters furthest: d'Eon & Luebke's sum-of-Gaussians
  *  widths are ~1–3 mm for red, well under 1 mm for blue), capped; flat skin keeps a small base wrap. */
 export const SKIN = {
-  f0: 0.028, roughSheen: 0.6, roughOil: 0.34, oilLobe: [0.1, 0.34] as [number, number],
-  scatter: [0.0028, 0.0011, 0.0006] as RGB, wrapBase: [0.1, 0.035, 0.018] as RGB, wrapMax: 0.55,
+  // (s18 C14 D-790, the reviewers' "plastic skin": the oily lobe broader and weaker (its glint lay on every forehead and cheek
+  // like varnish: 0.34 / 0.1-0.34 before), the sheen a little rougher, the terminator softer (more base wrap, red most))
+  f0: 0.028, roughSheen: 0.66, roughOil: 0.44, oilLobe: [0.06, 0.2] as [number, number],
+  scatter: [0.0028, 0.0011, 0.0006] as RGB, wrapBase: [0.16, 0.06, 0.03] as RGB, wrapMax: 0.6,
   /** full-scale heights (m) of the detail map's crease and age channels; the age channel scales with the age decade */
   crease: 0.00045, age: 0.0004,
   /** thin-part transmission: tint (light through ~2–5 mm of tissue is red) and strength (C) */
   transTint: [1, 0.3, 0.14] as RGB, trans: 0.4,
   /** band-limited pore octaves (cycles/m, amplitude m): faded where a period spans fewer than ~3 px (as D-147) */
   pores: [[1100, 0.000025], [340, 0.00005]] as [number, number][],
+  /** s18 C14 (D-790): the scanned micro-relief (ShareTextures human skin, CC0; tools/humans/skin_pores.mjs: the skin layers'
+   *  alpha, stored at sd 0.12 about 0.5) laid triplanar in bind space: m a repeat, m of height per unit (sd ~ 15 um), and its
+   *  finest cells' frequency for the band limit (cycles/m). It replaces the finer pore octave where the scans are loaded */
+  microTile: 0.07, microAmp: 0.000125, microF: 900,
 };
 /** Eyes (C unless noted): radii in m (iris diameter ~11.5–12 mm, B: standard anatomy; daylight pupil 3 mm, C), sclera
  *  albedo (linear: a white tissue that reflects most visible light, slightly warm; the MakeHuman texture's sclera was
@@ -531,7 +537,11 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     skinAlb = skinAlb.mul(mix(vec3(1), vec3(1.07, 0.88, 0.86), flushK.mul(0.55)));
     skinAlb = mix(skinAlb, mix(vec3(sLum), skinAlb, 0.55).mul(vec3(1.04, 0.97, 0.96)), lipsK.mul(0.6));
     const oil = sD.g, transl = sD.a;
-    const poreH = n1.mul(SKIN.pores[0][1]).mul(band(SKIN.pores[0][0])).add(n2.mul(SKIN.pores[1][1]).mul(band(SKIN.pores[1][0])));
+    let fineH: any = n1.mul(SKIN.pores[0][1]).mul(band(SKIN.pores[0][0]));
+    if (SL) { const nbS = normalize(cross(P.dFdx(), P.dFdy()).add(vec3(0, 1e-9, 0))), w0 = pow(abs(nbS), vec3(4)), wt = w0.div(max(dot(w0, vec3(1)), 1e-4)), q = P.div(SKIN.microTile);
+      const sa = (c: any) => texture(T.scans!.skin, c).depth(0).a; // (s18 C14: the micro-relief in the skin layers' alpha)
+      fineH = sa(q.zy).mul(wt.x).add(sa(q.xz).mul(wt.y)).add(sa(q.xy).mul(wt.z)).sub(0.5).mul(SKIN.microAmp).mul(band(SKIN.microF)); }
+    const poreH = fineH.add(n2.mul(SKIN.pores[1][1]).mul(band(SKIN.pores[1][0])));
     const skinH = sD.r.sub(0.5).mul(2 * SKIN.crease).add(sD.b.sub(0.5).mul(2 * SKIN.age).mul(age01)).add(poreH);
 
     // ---- eye
@@ -571,9 +581,9 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     const rr = length(vec2(cu, cv)).mul(h1.mul(0.3).add(1.7)), th = atan(cv, cu).add(h2.mul(TAU));
     // a spiral groove in each curl (beards: BEARD.turns turns, a deeper groove)
     const tuft = clamp(float(1).sub(rr.mul(rr)), 0, 1).mul(sin(th.add(rr.mul(mix(8, TAU * BEARD.turns, isBeard)))).mul(mix(0.25, 0.35, isBeard)).add(mix(0.75, 0.65, isBeard)));
-    // (s18 C14 D-790: on the scalp and cheeks the snail cells at 0.35, not 0.6: at conversation distance their regular lattice
+    // (s18 C14 D-790: on the scalp and cheeks the snail cells at 0.15, not 0.6: at conversation distance their regular lattice
     // read as bubble wrap; the long beard's carved rows keep 0.75)
-    const court: any = mix(natural, tuft.mul(u1.mul(0.4).add(0.6)), mix(0.35, 0.75, massC));
+    const court: any = mix(natural, tuft.mul(u1.mul(0.4).add(0.6)), mix(0.15, 0.75, massC));
     const straight = u1.mul(0.6).add(u2.mul(0.4));
     const curls = mix(mix(natural, court, kCourt), straight, kStraight);
     const hairAlb = vColor.mul(curls.mul(0.75).add(0.42)).mul(u3.mul(0.2).add(0.9));

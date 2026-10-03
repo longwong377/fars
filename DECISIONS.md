@@ -9954,6 +9954,18 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   bare or thick (+-45 % herb cover), and grey-green Artemisia stands 150-400 m across (terrainPlain.ts; C).
 - The river drew as sky-blue and bank-brown blotches (riv-a): the long ripple octaves calmer (2.4 m 0.075 -> 0.04, 1 m 0.07 ->
   0.05) and the spring river's ripple scale 1.15 -> 0.85, so the far bank's reflection breaks in streaks, not patches (C).
+- The shallows one even tint (riv-a): the bed under them silt or pale gravel in 10-30 m patches, the riffles the river's own water
+  whitened, and a patchy drift line of foam and chaff at the water's edge (rivers.ts; C).
+- Triangle margin (lead 3: <= 1.9 M): far orchard plots (> 10 km) keep only the tree lines facing the plain's middle (every tree
+  still drawn once), the static field-tree set to 6.5 km (was 8), near river sections 9-24 m (were 8-20): 1.99 -> 1.88 M (C).
+- Blind review (s18, 3/10: "fields in hard-edged colour strips with sparse weed sprites"): every plot's crop thins over 3-8 m into
+  the headland's weeds (one shared band between plots), plot shades +-12 % (were +-17 %); the near cover denser (wild herbs x1.3,
+  weeds in the crops x1.25, caps up), paid for by nearer LODs (4/12 m, were 5.5/16), within the 0.35 M cover budget (C).
+- The plain's static triangles went over 2 M (2.009 M: the merged Naqsh relief figures, 0.5 M): the rivers' sections beyond 12 km
+  from the Apadana every 20-45 m (were 12-45 m), 1.99 M (C).
+- Millet (W19): a summer crop row after flax, 3 % of the irrigated plots taken from the fallow (17 %), sown June, cut mid-September
+  (Herodotus 3.117: millet and sesame of summer irrigation, B analogy; calendar C). plain_d223 (field share 0.397 < 0.4, from the
+  town's growth: irrigated -4.1 k census px, town site and trodden +3.6 k) and land_work (planCheck, timber carts) fail without it too.
 
 ## D-720 Follow thirty: the people answer from their own lives without the model, and the town's deeds and yesterday reach their talk (session 18, cloud C8; UD-07, UD-08, UD-11, UD-21, UD-24, UD-32)
 - Measured (tools/dev/follow30.ts; REVIEWS/follow30.json): thirty people drawn by seed across the town, the villages, the Terrace's
@@ -10072,6 +10084,12 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   town from the Terrace 0.23 -> 0.34); (f) the soundscape: the nightingale on spring nights, the dawn chorus, the summer noon
   hush; (g) ledges.ts disposes a swapped strip geometry two updates later. Dusk measured: sunset 18.36 h on day 0, the sun
   sinks 12.6 deg/h (30 N), so 19.25 h is the end of nautical twilight. All C.
+- (h) the comet of 467 (comet.ts): Plutarch (Lysander 12, after Daimachus) has a fiery body seen 75 days before the stone of
+  Aegospotami (Pliny NH 2.149: Ol. 78.2, 467/466); here a great comet for 75 evenings from game day 88 (mid-July 467), east
+  of the sun (elongation 35-62-40 deg), magnitude 4.5 -> 0.2 -> 4.5, tail 6-24 deg away from the sun, drawn in the world frame
+  from the sun and the ecliptic pole; C (dates, place, brightness). (i) The season's clouds (cloudKind.ts): the deck's
+  stratiform share by month (winter 0.7: thin, flat, even, softly eroded), a cirrus veil in the dome (autumn 0.55, summer
+  0.15), lit by the high sun. C.
 - Unseen: the cloud cannot draw Q=high (WebGL2: program validation failures and a lost device with the cascade on AND off;
   WebGPU: SwiftShader's 16-texture cap), so the far cascade is verified node-side only; it needs a T4 frame.
 
@@ -10207,6 +10225,12 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   'recline', measured on the rig); UD-27 at the court (court.json houses): the Persians of rank as 55 great houses married into
   one another and into the king's house, with rivals, and the king's favour drifting by the season, shown in the banquet's
   seats, the audience's places and who talks with whom (all C); court.test's sealed-letter test cut to the court's residence.
+- Fifth pass (the lead's ambientCG sets, branch s18-face-assets): the court's textiles take CC0 scans in bulk: Fabric 030's tabby
+  for the woven wool of couches, cushions, hangings and covers (furn_textile; Fabric 043 was a felt), Carpet 012's cut pile for
+  the carpets (a furn_carpet surface of their own), Leather 037 for leather props; the people's wool and leather layers
+  (build_humans_scans.py --cloth, for the dress weave and the guards' gear) rebuilt from Fabric 030 and Leather 037, the dyes
+  unchanged; KTX2 baked with KTX-Software 4.4.2 on Linux. people_drape's far-mean test on a plain robe (the rosettes' far mean
+  is the impostor's, people_look).
 
 ## D-760 An original score, out of world: recorded orchestra, a main theme, an hour for the world, and a director that leaves silence (session 18, cloud C11; UD-38, UD-39)
 - The user's words (UD-38, UD-39) add non-diegetic music to the out-of-world layer, at a Hollywood bar and never recognisable as AI: the brief's "no background score" (§11) gives way to them; its ban on the "ancient Persia" cliché stands and binds the score (blocklist 'music-cliche': no duduk, oud or santur, no augmented-second "exotic" modes, no bent ethnic solo as the theme's identity; after C12's fourth pass the first draft's cor-anglais "duduk", alto-flute "ney" and Phrygian/Hijaz cues were rewritten for solo cello, horn, clarinet and flute in minor, Dorian and Aeolian). Majesty comes from harmony, brass, choir and rhythm; the period's colour (harp, frame drum) is used lightly. Equal temperament is the orchestra's own: the brief's tuning rule governs the world's players (src/audio/music.ts), not the out-of-world score. C.
@@ -10297,6 +10321,10 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   over the procedural creases (tools/blender/face_scan.py; skin.ts applyFaceRelief); its albedo is not used (one man's
   stubble and brows on every face). The hair atlas's curls loosened (curly, court and beard rows: more irregular radius,
   pitch and phase, more strays and fray: the elder's "bubble wrap"), rebuilt in the cloud (ktx_cli.mjs takes given levels).
+- D-790 round 5: the skin's micro-relief from ShareTextures (CC0) in the scan layers' alpha, triplanar (SKIN.microTile 7 cm,
+  microAmp: sd ~15 um) in place of the finer pore octave; the court shell's cells on scalp and cheeks at 0.15; a woman's own
+  walk, stance, talk and box carry from ACCAD Female1 (CC BY 3.0; tools/mocap/bvh.ts), idle/talk chosen by the gait style;
+  people_hair, people_cloth and scans.ktx2 rebuilt in the cloud (ktx_cli.mjs: arrays, levels, RDO, extract).
 
 ## D-691 Carried props sit on the body, seated poses clear their props (s18 cloud C5)
 - tools/dev/prop_clip.ts: every activity and variant that holds a prop, and the goods in the plan's words (basket, sack, jar,
@@ -10425,7 +10453,7 @@ touched; the budget baseline is not re-accepted from such a head.
 - Three quarters inside the old nav box (plan.ts): q_b8 against the Terrace's west foot south of the Grand Stair (e −240…−134; the zone stops at e −100, and the way along the foot between the two roads stays open: traffic.ts courierOut), q_b9 between the road west and the road south at the foot (300 x 180 m), q_b10 fronting the road west, the way to the Gate. Open: the stair's forecourt, the walk from the stair's foot to Persepolis West (settlement_build), the roads. The town's capacity kept under population.json's night 10,000 + 10 %: the farthest quarters smaller (q_s2 190², q_s3 170 x 190, q_s4 160 x 150, q_b5 130 x 120): plots 2,202, homes 2,117, capacity 10,785; every house reached (0 shut, lanes 100 %, plot cells 99.92 %).
 - Draws and triangles held: the three in their neighbours' far meshes (settlement_build 45 meshes), the far roofs' things the jars and mats only (houses.test's far level < 800 k).
 - tests/settlement.test.ts's "no plot inside the nav box" (the old rule) now fails by design: asked of the lead to narrow it to the Terrace and the stair forecourt; the nav grid wants C5's rebuild with the town's colliders.
-- Addendum (lead 2, lead 3): tests/settlement.test.ts's nav check narrowed to the Terrace (e −65…262, n −245…240) and the stair forecourt (e −250…−60, n 40…200), houses only kept out of those; q_b1 removed (it sat on the forecourt's approach), the house being built moved to q_b10-0027 (centre −342.2, 136.4); 2,164 plots, capacity 10,638 ≤ 11,000. C7's red "no run points at the camera" (plain/townGround.ts, not mine, lead 3's mandate): a desire line longer than ~12 m whose midpoint bearing from the stair lies within 15° of its own is not drawn (radial runs 1 → 0). Town props take `bottom?: boolean` (C15's ask, plan.ts Prop, build.ts passes it to Batch.box); the town's own props all stand on the ground, so none set it. The plain_d223 fields share (0.177 < 0.4) is NOT fixed: the town now fills the stair view's 200–1,000 m foreground, a conflict put to the lead, the test not loosened.
+- Addendum (lead 2, lead 3): tests/settlement.test.ts's nav check narrowed to the Terrace (e −65…262, n −245…240) and the stair forecourt (e −250…−60, n 40…200), houses only kept out of those; q_b1 removed (it sat on the forecourt's approach), the house being built moved to q_b10-0027 (centre −342.2, 136.4); 2,164 plots, capacity 10,638 ≤ 11,000. Then (lead 3, C7 camp_life red): the court baggage trains' legs off the road kept open ground: q_b9 split either side of the west camp's leg (q_b9 E, q_b11 W), q_b10 (road 160–280 m) and q_b6 (720–860 m) beside the court's and north camp's legs, q_b8 narrowed W of the way round the Terrace's foot; building site now q_b10-0020 (−311.2, 121.3); 2,083 plots, capacity 10,033; the nav check's forecourt n 0…200 (the road corridor is the roads clause); towndoors: every leaf takes instanceColor (C15). C7's red "no run points at the camera" (plain/townGround.ts, not mine, lead 3's mandate): a desire line longer than ~12 m whose midpoint bearing from the stair lies within 15° of its own is not drawn (radial runs 1 → 0). Town props take `bottom?: boolean` (C15's ask, plan.ts Prop, build.ts passes it to Batch.box); the town's own props all stand on the ground, so none set it. The plain_d223 fields share (0.177 < 0.4) is NOT fixed: the town now fills the stair view's 200–1,000 m foreground, a conflict put to the lead, the test not loosened.
 ## D-751 The cloud frames' black walls: the KTX2 target from the WebGL2 context (s18 cloud C10)
 - The cloud's eyes draw through WebGL2 (?webgl=1) while sharedKTX2 (render/loaders.ts) took its transcode target from the WebGPU
   adapter's features: BC7, which SwiftShader's WebGL2 cannot upload (compressedTexSubImage2D 'invalid format'), so every KTX2
@@ -10483,3 +10511,21 @@ touched; the budget baseline is not re-accepted from such a head.
   ochre plaster (palace_crest); the roof-line merlons under the frames' whitish coat; the Apadana stair façades' relief ground
   Egyptian blue (relief_ground); faces with no floor in front (the towers over the podium's edge) painted too. All C (pigments B).
 - Probe frames (WebGL2 SwiftShader, no aerial perspective) at 700 m-1 km before/after: handoff/s18/c10/distance-*.jpg.
+
+- src/world/plain/wayside.ts, drawn in Naqsh-e Rustam's nr-life mesh (no new draw): along the first 9 km of every road present in 467 (settlement.json; the Naqsh-e Rustam road its whole length), a well every ~2.2 km (fieldstone kerb, posts and beam, a stone trough), a halt every ~2.6 km (a mud-brick shelter open to the road, a bench, jars, a tethering post and dung, an ox-cart stood by it with solid wheels, shafts and sacks), a field shrine every ~3.1 km on the far side (a small stepped altar of the Naqsh reliefs' form, its ash heap and stacked wood; the fire is the people's action, not drawn), nothing in a settlement zone or on steep ground. Measured: 4 roads, 10 wells, 10 halts and carts, 9 shrines (a stop with another of its kind within 500 m not doubled where roads share their stretch out of the town), 5.7 k triangles (the road's droppings are roadLitter.ts's, session 10: not repeated). Way-stations and travel rations B (the Fortification texts); the spacing and the forms C. To pay for it inside the plain's 2.0 M: the threshing floors' kerbs 12 larger stones (were 26), the roof stacks three faces.
+| D-811 | s18 lead 3 | Deployed s17-int e8e271e8 to s14-int (Pages): C9's live path (a) WebGL low lit, 0 faults; the live site was black (c3bde8ab). The user: the lead is the director and deploys without asking. |
+## D-697 After a jump nobody stays where the old state put them; the walks traced (s18 cloud C5)
+- popview.ts collect: a state more than STALE_H (0.05 h) out of date (not yet re-evaluated after a jump, over the plan budget)
+  is not drawn (C12's T1: 489 people stood at the court's places for seconds after a jump from day 40 to day 200; now 0 at
+  the first update). The catch-up after a jump runs longer (CATCH_UP 60 ms, then 8 ms for 90 updates): three seconds after
+  a jump the view places >= 80 % of a settle (tests/people_drawn.test.ts); a second after, cov-266 had 25 of 45 (the earlier
+  "104 of 116" counted stale states from before the jump).
+- tools/dev/walktrace.ts: the plans' walks at a moment against the view. At cov-142 (d88 13:48) the errands' walks are lost to
+  routes: TownWalk finds no route out of most of q_w3 eastward (261 of 537 lane cells; 58 of 67 homes without a route out),
+  sent to C2 with a repro. At q_s1 (d0 10:00) 53 of 75 people on the move walk; the walks are short (3-5 min), and only 6 of
+  303 drawn within 60 m walk: more and longer trips are the plans' (C1).
+- The doorstep shares a little higher (spin 50 %, play 65 %, talk 55 %, rest 40 %, craft 35 %, clean 45 %, eat 20 %).
+- Later the same session (C12's holes and the lead's asks): staffed works at C3's stations (D-670 spots); a wedding never overfills a town house and a craft's house is never in another craft's workshop; a village's fields out to 3.2 km; meals, feeds and dress kept whatever the overlays lay (keepFood, keepDress: meal and feed faults 37-54 a day -> 0); the Six's names kept off commoners, no doubled or royal xšaθra- women's names, all twelve Old Persian months first, the chronicle as the world's record (chronicleWords); the Terrace's courts and kitchens spread (slots 1.2 m apart); save/load: the minds' reading off the plan cache, the deeds' evSeen and window kept (the persistence round trip byte-identical; still diverging after ~5 days because the minds' memories are not saved: C8's budget).
+- The out-of-doors day (outOfDoors, follow): errands through the lanes (the well, the market ground, kin's door: 1.4 an adult a day, ~15 min of walking), the children's play in their lane, the heat of the day in the lane's shade and on the doorstep (45 % of house-days), the evening at the door, the field work from first light; who is "with" another follows them out (Seg.od). Node census (tools/dev/outdoor_census.ts, pagecheck's reading): the lane cov-142 at 13:48 open 2 -> 25 of 142.
+## D-802 The town kit: modelled mud-brick pieces for the town's and the villages' houses (s18 cloud C15, lead 3)
+- tools/blender/kit_town.py (Blender 5.0.1; `node tools/blender/kit_town.mjs`, BLENDER=tools/blender/bpy_cli.sh in the cloud; reproducible: the same kit.json hash on two builds) writes public/models/kit/town/kit.json, manifest.json and town_kit.glb: wall runs (wall0..2 plastered, with the batter, the float's undulation and rain runnels; wallworn0..1 with the plaster fallen to 4+ brick courses; walllaced0..1 with a timber lacing band), corner, foot0..1 (splashed skirt, fieldstones), doorframe (reveals, timber lintel, threshold), window0..1 (grille), parapet0..1 (lip, drip edge, vigas), roof0..1, hatch, steps, awning (in metres). Each in three levels (LOD0 <= 1.6 k triangles, a wall run 240 / 60 / 4), Cycles AO baked at the real size with a 0.8 m reach (open faces ~1, as the house kit). In the house kit's unit frames, so kit.ts kitFrame places them unchanged; loader src/render/townKit.ts (loadTownKit, townPiece). No texture maps: the town's world-space scanned plaster, brick and timber surfaces dress them (the T4's 16-sampler cap), colour by the callers' vertex colours x the pieces' shade. C2 swaps the boxes (interface sent). No ladder piece: the house kit's log/rung pieces build ladders.

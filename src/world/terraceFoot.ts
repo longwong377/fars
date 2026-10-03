@@ -58,7 +58,10 @@ export function footAnimal(slot: FootSlot, day: number, hour: number, seed: numb
   let u = hf(seed + id, day, 4), sp: Species = 'donkey'; for (const [s, p] of D.species) { if (u < p) { sp = s === 'second' ? footSecond(seed, day) : s; break; } u -= p; }
   // eating at the fodder most of the time, now and then head up and a shift of the feet (C)
   const eat = fr(t / (17 + 9 * hf(id, 5)) + hf(id, 6)) < 0.7 ? 1 : 0;
-  Object.assign(out, { sp, e: slot.e, n: slot.n, x: 0, z: 0, yaw: slot.yaw + (hf(id, day, 7) - 0.5) * 0.5, phase: t * 1.3 + id, walk: 0, graze: eat, lie: 0, coat: hf(seed + id, day, 8) });
+  // s18 blind review ("horses lined up like toys"): a tied animal stands where its slack lets it, not on a ruler: up to 0.6 m
+  // along the rope, 0.5 m off it, and turned up to ±50° (C)
+  const ja = (hf(seed + id, day, 9) - 0.5) * 1.2, jo = (hf(seed + id, day, 10) - 0.5) * 1.0, ux = Math.cos(slot.yaw), uy = -Math.sin(slot.yaw);
+  Object.assign(out, { sp, e: slot.e + ux * ja + Math.sin(slot.yaw) * jo, n: slot.n + uy * ja + Math.cos(slot.yaw) * jo, x: 0, z: 0, yaw: slot.yaw + (hf(id, day, 7) - 0.5) * 1.75, phase: t * 1.3 + id, walk: 0, graze: eat, lie: 0, coat: hf(seed + id, day, 8) });
   return out;
 }
 

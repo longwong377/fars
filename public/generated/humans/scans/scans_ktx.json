@@ -1,6 +1,6 @@
 {
  "about": "D-740: the skin, cloth and fold layers as one KTX2 array (tools/bake_world/ktx_humans.ts); humanScans.ts loads it when skin, cloth and folds match",
- "src": "afb80ec72520f658",
+ "src": "9e667076fb2376db",
  "size": 1024,
  "skin": 12,
  "cloth": 4,

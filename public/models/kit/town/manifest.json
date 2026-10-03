@@ -1,0 +1,456 @@
+{
+ "about": "D-802 town kit manifest: per piece its unit frame footprint (x, z extent), sockets (unit coords), what scales its height, triangles per level of detail",
+ "frame": "x 0..1 along the run, y 0..1 up, z -0.5..0.5 across (kit.ts kitFrame)",
+ "pieces": {
+  "wall0": {
+   "footprint": [
+    1,
+    1
+   ],
+   "sockets": {
+    "start": [
+     0,
+     0,
+     0
+    ],
+    "end": [
+     1,
+     0,
+     0
+    ]
+   },
+   "height": "the wall",
+   "note": "a plastered run",
+   "tris": [
+    240,
+    60,
+    4
+   ]
+  },
+  "wall1": {
+   "footprint": [
+    1,
+    1
+   ],
+   "sockets": {
+    "start": [
+     0,
+     0,
+     0
+    ],
+    "end": [
+     1,
+     0,
+     0
+    ]
+   },
+   "height": "the wall",
+   "note": "a plastered run",
+   "tris": [
+    240,
+    60,
+    4
+   ]
+  },
+  "wall2": {
+   "footprint": [
+    1,
+    1
+   ],
+   "sockets": {
+    "start": [
+     0,
+     0,
+     0
+    ],
+    "end": [
+     1,
+     0,
+     0
+    ]
+   },
+   "height": "the wall",
+   "note": "a plastered run",
+   "tris": [
+    240,
+    60,
+    4
+   ]
+  },
+  "wallworn0": {
+   "footprint": [
+    1,
+    1
+   ],
+   "sockets": {
+    "start": [
+     0,
+     0,
+     0
+    ],
+    "end": [
+     1,
+     0,
+     0
+    ]
+   },
+   "height": "the wall",
+   "note": "a run with the plaster fallen from a patch: the brick courses",
+   "tris": [
+    1602,
+    254,
+    4
+   ]
+  },
+  "wallworn1": {
+   "footprint": [
+    1,
+    1
+   ],
+   "sockets": {
+    "start": [
+     0,
+     0,
+     0
+    ],
+    "end": [
+     1,
+     0,
+     0
+    ]
+   },
+   "height": "the wall",
+   "note": "a run with the plaster fallen from a patch: the brick courses",
+   "tris": [
+    1602,
+    254,
+    4
+   ]
+  },
+  "walllaced0": {
+   "footprint": [
+    1,
+    1
+   ],
+   "sockets": {
+    "start": [
+     0,
+     0,
+     0
+    ],
+    "end": [
+     1,
+     0,
+     0
+    ]
+   },
+   "height": "the wall",
+   "note": "a run with a timber lacing band at 0.58-0.64 of the height",
+   "tris": [
+    336,
+    108,
+    4
+   ]
+  },
+  "walllaced1": {
+   "footprint": [
+    1,
+    1
+   ],
+   "sockets": {
+    "start": [
+     0,
+     0,
+     0
+    ],
+    "end": [
+     1,
+     0,
+     0
+    ]
+   },
+   "height": "the wall",
+   "note": "a run with a timber lacing band at 0.58-0.64 of the height",
+   "tris": [
+    336,
+    108,
+    4
+   ]
+  },
+  "corner": {
+   "footprint": [
+    1,
+    1
+   ],
+   "sockets": {
+    "centre": [
+     0,
+     0,
+     0
+    ]
+   },
+   "height": "the wall",
+   "note": "the rounded arris where two runs meet (x, z in thickness units)",
+   "tris": [
+    270,
+    110,
+    46
+   ]
+  },
+  "foot0": {
+   "footprint": [
+    1,
+    1
+   ],
+   "sockets": {
+    "start": [
+     0,
+     0,
+     0
+    ],
+    "end": [
+     1,
+     0,
+     0
+    ]
+   },
+   "height": "~0.5 m",
+   "note": "the splashed foot with its fieldstones",
+   "tris": [
+    96,
+    24,
+    4
+   ]
+  },
+  "foot1": {
+   "footprint": [
+    1,
+    1
+   ],
+   "sockets": {
+    "start": [
+     0,
+     0,
+     0
+    ],
+    "end": [
+     1,
+     0,
+     0
+    ]
+   },
+   "height": "~0.5 m",
+   "note": "the splashed foot with its fieldstones",
+   "tris": [
+    96,
+    24,
+    4
+   ]
+  },
+  "doorframe": {
+   "footprint": [
+    1,
+    1
+   ],
+   "sockets": {
+    "leafHinge": [
+     0,
+     0,
+     0.1
+    ],
+    "lintelTop": [
+     0.5,
+     1.1,
+     0
+    ]
+   },
+   "height": "the opening (DOOR_H)",
+   "note": "reveals, the timber lintel, the threshold",
+   "tris": [
+    72,
+    48,
+    36
+   ]
+  },
+  "window0": {
+   "footprint": [
+    1,
+    1
+   ],
+   "sockets": {
+    "sill": [
+     0.5,
+     0,
+     0
+    ]
+   },
+   "height": "the opening (~0.35 m)",
+   "note": "a small high window with its grille",
+   "tris": [
+    52,
+    48,
+    48
+   ]
+  },
+  "window1": {
+   "footprint": [
+    1,
+    1
+   ],
+   "sockets": {
+    "sill": [
+     0.5,
+     0,
+     0
+    ]
+   },
+   "height": "the opening (~0.35 m)",
+   "note": "a small high window with its grille",
+   "tris": [
+    72,
+    68,
+    48
+   ]
+  },
+  "parapet0": {
+   "footprint": [
+    1,
+    1
+   ],
+   "sockets": {
+    "roofLine": [
+     0,
+     0,
+     0
+    ]
+   },
+   "height": "~0.4 m",
+   "note": "the roof edge, its drip edge (+z) and the vigas",
+   "tris": [
+    156,
+    84,
+    18
+   ]
+  },
+  "parapet1": {
+   "footprint": [
+    1,
+    1
+   ],
+   "sockets": {
+    "roofLine": [
+     0,
+     0,
+     0
+    ]
+   },
+   "height": "~0.4 m",
+   "note": "the roof edge, its drip edge (+z) and the vigas",
+   "tris": [
+    156,
+    84,
+    18
+   ]
+  },
+  "roof0": {
+   "footprint": [
+    1,
+    1
+   ],
+   "sockets": {
+    "origin": [
+     0,
+     0,
+     0
+    ]
+   },
+   "height": "unscaled (y in m)",
+   "note": "a 1 x 1 m tile of the packed-mud roof",
+   "tris": [
+    72,
+    8,
+    2
+   ]
+  },
+  "roof1": {
+   "footprint": [
+    1,
+    1
+   ],
+   "sockets": {
+    "origin": [
+     0,
+     0,
+     0
+    ]
+   },
+   "height": "unscaled (y in m)",
+   "note": "a 1 x 1 m tile of the packed-mud roof",
+   "tris": [
+    72,
+    8,
+    2
+   ]
+  },
+  "hatch": {
+   "footprint": [
+    1,
+    1
+   ],
+   "sockets": {
+    "centre": [
+     0,
+     0,
+     0
+    ]
+   },
+   "height": "unscaled (m)",
+   "note": "the roof hatch and its lid",
+   "tris": [
+    108,
+    108,
+    108
+   ]
+  },
+  "steps": {
+   "footprint": [
+    1,
+    1
+   ],
+   "sockets": {
+    "foot": [
+     0,
+     0,
+     0
+    ]
+   },
+   "height": "the rise",
+   "note": "three mud steps",
+   "tris": [
+    36,
+    36,
+    36
+   ]
+  },
+  "awning": {
+   "footprint": [
+    3,
+    2
+   ],
+   "sockets": {
+    "wall": [
+     0,
+     2.3,
+     0
+    ]
+   },
+   "height": "unscaled (m: 3 x 2 x 2.3)",
+   "note": "two poles, the beam, a sagging cloth (its colour the caller's)",
+   "tris": [
+    188,
+    78,
+    62
+   ]
+  }
+ }
+}
