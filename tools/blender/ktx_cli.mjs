@@ -47,10 +47,24 @@ if (ai >= 0) {
 }
 const li = a.indexOf('--levels');
 if (li >= 0) {
-  const n = +a[li + 1], lv = a.slice(li + 2, li + 2 + n), out = a[a.length - 1];
-  const { read, write } = await import('ktx-parse');
-  const parts = []; for (const f of lv) parts.push(read(await enc(f, false)));
-  const c = parts[0]; c.levels = parts.map(p => p.levels[0]); c.levelCount = n;
+  const n = +a[li + 1], lv = a.slice(-(n + 1), -1), out = a[a.length - 1]; // (the levels are the n arguments before the output, whatever flags come between)
+  const { read, write } = await import('ktx-parse'); const { zstdCompressSync, constants } = await import('node:zlib');
+  const raw0 = f => encodeToKTX2(f, { isUASTC: true, uastcLDRQualityLevel: Math.min(3, +(opt('--uastc-quality') ?? 2)), needSupercompression: false, generateMipmap: false,
+    isSetKTX2SRGBTransferFunc: opt('--assign-tf') === 'srgb', isKTX2File: true, imageDecoder, ...RDO });
+  // (s18 C14: the encoder takes at most ~12 Mpix an image: a larger level is encoded in strips of whole block rows, whose
+  // UASTC blocks, independent and row-major, join into the level's)
+  const MAXPX = 12000000;
+  const levelRaw = async (f) => { const img = sharp(readFileSync(f)), m = await img.metadata(), w = m.width, h = m.height;
+    if (w * h <= MAXPX) return Buffer.from(read(await raw0(new Uint8Array(readFileSync(f)))).levels[0].levelData);
+    const rows = Math.max(4, Math.floor(MAXPX / w / 4) * 4), parts = [];
+    for (let y = 0; y < h; y += rows) { const hh = Math.min(rows, h - y), b = await sharp(readFileSync(f)).extract({ left: 0, top: y, width: w, height: hh }).png().toBuffer();
+      parts.push(Buffer.from(read(await raw0(new Uint8Array(b))).levels[0].levelData)); }
+    return Buffer.concat(parts); };
+  const c = read(await raw0(new Uint8Array(await sharp({ create: { width: 4, height: 4, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } }).png().toBuffer())));
+  const m0 = await sharp(readFileSync(lv[0])).metadata(); c.pixelWidth = m0.width; c.pixelHeight = m0.height; c.levelCount = n;
+  const zl = +(opt('--zstd') ?? 0); c.levels = [];
+  for (const f of lv) { const raw = await levelRaw(f); c.levels.push({ levelData: zl ? new Uint8Array(zstdCompressSync(raw, { params: { [constants.ZSTD_c_compressionLevel]: zl } })) : new Uint8Array(raw), uncompressedByteLength: raw.length }); }
+  if (zl) { c.supercompressionScheme = 2; for (const d of c.dataFormatDescriptor) d.bytesPlane = d.bytesPlane.map(() => 0); }
   const k2 = write(c); writeFileSync(out, k2); console.log(`ktx_cli: ${n} given levels -> ${out} (${k2.length} B)`);
   process.exit(0);
 }
