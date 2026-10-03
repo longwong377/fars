@@ -10449,3 +10449,8 @@ touched; the budget baseline is not re-accepted from such a head.
   ~4 m over the court along the whole N edge, so an earth ramp (parts, walkable) comes down westward from a head against the
   edge (e 146-154) to the court along the strip between the edge and the garrison. All C; the movers (traffic.ts) still stop at
   the drum ground: their last 250 m onto the ramp is C1's.
+- (D-696, the walk) a post held keeps its place, but two people of a post are never on one spot (SEP_POST 0.1 m: a shared spot
+  is spread, the court's files keep their own spacing), and a guard at his post gives half a step (0.5 m) to the stranger;
+  the court's waiting keep facing what they wait on (no group facing for FACING_ACTS). Terrace bots seed 1: stuck time 4.8-6.6 %
+  -> 0.47 % (gate 0.5 %), 40/40; seed 2: 1.56 %, 40/40, the rest at the Hall of 100's site where detailed agents (masons,
+  sim.ts) stand in the way: they do not make way yet (sim.ts, C1). tools/dev/walkers.ts --stuck: where the time is spent.
