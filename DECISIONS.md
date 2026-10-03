@@ -9809,3 +9809,8 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
 - materials.ts finish() (one line, no new shader state): the puddle mask fades over 60-150 m of view distance and below
   ~10 degrees between the view and the surface, so thin pools far off no longer show as white slivers of mirrored sky
   along the horizon (shots/wx-wet-flat-w8.png); they read as wet ground there. shader_build and material tests green.
+- Sampler budget (s17, the T4's "samplers 17/18 > 16"): tests/samplers_d300 now registers the town's surfaces and its node limit
+  tightens 6 -> 5 (the page adds more since light v1). Surfaces with a baked detail map (WALL_BAKE: palace walls, palace roofs,
+  houses) drop the scan's roughness map (roughness follows the scan's luminance); the palace roofs' ceiling matting keeps its
+  procedural weave without a scan when a top layer is present; the Terrace's court fill takes the wall's own limestone scan
+  (shared sampler; was gravelly_sand). Max node count now 5 (was 6: terrace, roof_timber, mudbrick). Terrace probe: no errors.

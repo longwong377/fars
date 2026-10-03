@@ -74,7 +74,9 @@ export const SCAN_USE: Record<string, ScanUse> = {
   // D-302: the terrain, the rivers' banks, the tracks and the canal banks lay their own ground layers (GROUND below, groundScan);
   // this entry is the 'earth' of other meshes (the Now view's stumps, the lab ground): dust, not the cracked earth of D-295
   earth: { scan: 'dirt', scale: 2.0, scale2: 9, alb: 0.8, height: 0.008, rough: 0.5 },
-  court_fill: { scan: 'gravelly_sand', scale: 2.0, scale2: 9, alb: 0.7, hue: 0.3, /* D-490: a share of the sand's buff (flat grey under the probe) */ height: 0.006, rough: 0.5 },
+  // D-490 (s17, the T4 at 17 samplers): the Terrace's court fill takes the wall's own limestone scan (one sampler for both; the fill is
+  // the stone's dressing chips), finer, with more of its buff
+  court_fill: { scan: 'rock_boulder_dry', chroma: 0.5, hue: 0.6, scale: 1.1, scale2: 6.1, alb: 0.6, /* D-490: a share of the sand's buff (flat grey under the probe) */ height: 0.006, rough: 0.5 },
   // D-490: the town's lanes, courts and tracks take Dirt Floor (trodden and swept packed earth: pores, grit, chaff), half its own
   // buff laid over the ground's vertex colour (the court floors read as pale concrete under light v1 with Rocky Trail 02's fine grit)
   road: { scan: 'dirt_floor', scale: 1.9, scale2: 8.3, alb: 0.9, chroma: 0.6, hue: 0.35, height: 0.008, rough: 0.5 }, // D-302: trodden earth and fine gravel (was sandy_gravel_02: too fine to read)
@@ -236,8 +238,12 @@ export function applyScan<L extends { alb: any; rough: any; height: any | null; 
   // the scan's roughness costs a sampler; a surface with a rock layer (the terrain) is at WebGPU's 16 samplers per stage
   // without it, so there the procedural roughness stands (session 11: 17 samplers failed the terrain's pipeline)
   // D-300: no roughness map on rock layers or where the sampler budget asks (noRough); D-301: roughness follows the scan's luminance where roughLum is set
-  let rough = u.rock || noRough ? L.rough : L.rough.mul(mix(float(1), tri(T.arm, u.scale).g.div(M.meanRough), u.rough));
+  // D-490 (s17, the T4's 17-18 samplers): a surface with a baked detail map (WALL_BAKE) drops the scan's roughness map; its roughness
+  // follows the scan's luminance instead (one sampler less on the palaces' and houses' walls and roofs)
+  const armOff = u.rock || noRough || !!WALL_BAKE[name];
+  let rough = armOff ? L.rough : L.rough.mul(mix(float(1), tri(T.arm, u.scale).g.div(M.meanRough), u.rough));
   if (u.roughLum) rough = rough.mul(float(1).add(lum.sub(1).mul(u.roughLum)));
+  else if (armOff && !u.rock && WALL_BAKE[name]) rough = rough.mul(float(1).add(lum.sub(1).mul(-0.4)));
   rough = rough.clamp(0.05, 1);
   const bump = lum.sub(1).mul(u.height * (noNor ? 1 / 6 : 1));
   const nt = u.nor && T.nor && !noNor ? triNormal(T.nor, u.scale).mul(u.nor) : null;
