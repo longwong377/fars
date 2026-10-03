@@ -10269,3 +10269,11 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
 - First run (92d6a6bf): the town lanes are empty in the simulation (everyone at home in the courts at 13:48); people in
   courts are not drawn from an eye above the walls; the Terrace draws what the simulation holds; the roofs exist in the
   geometry; the far shadow reaches 2,000 m.
+
+## D-810 The deploy rule while the live site is black (s18 cloud lead, 2026-10-03 07:4x UTC)
+The deployed c3bde8ab shows players a black screen on a real GPU (Vagon, asks_cloud 06:2x-07:0x), so any head that draws is
+better for every player than what is live. Rule for today: a head that (1) draws on the T4 in the live path (title, Enter,
+60 s walk, no frameFaults/renderFaults that blank the frame) and (2) is not worse than c3bde8ab on first frames, page memory
+and frame time is deployed at once; settle time and download-before-ready (worse on 9700b06d: 1266 vs 611 s, 413 vs 372 MB)
+become C9's next fix and the next deploy must recover them. No threshold in gates/thresholds.json or gates/budgets.json is
+touched; the budget baseline is not re-accepted from such a head.
