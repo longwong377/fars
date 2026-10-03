@@ -1784,6 +1784,35 @@ def a_wo_fold():
     straw = [heap(0.45, 0.25, -1.5 + 1.5 * i, 1.2 * math.sin(i * 7), seed=540 + i, lump=0.5, name='s') for i in range(3)]
     return dict(thorn=join(th, 'thorn'), thorn_d=join(th2, 'thorn_d'), straw_d=join(straw, 'straw_d'))
 
+@woW
+def a_wo_shaduf():
+    """D-670: a shaduf (well sweep) at a river or canal bank: two mud-brick pillars ~1.9 m with a cross-beam, a long sweep
+    pole pivoting on it, a lump of clay and stones as the counterweight on the short end, a rope from the long end to a
+    leather bucket (the Assyrian reliefs and Egyptian tombs: B analogy for the device; its use on the Pulvar C). The water
+    is toward +Z (forward); the bucket hangs over it"""
+    pil = [boxG(0.5, 1.9, 0.5, x, 0, -0.3, bevel=0.04) for x in (-0.65, 0.65)]
+    for i, b in enumerate(pil): displace(b, 0.02, 0.15, seed=600 + i)
+    bar = [log((-0.85, 1.95, -0.3), (0.85, 1.95, -0.3), 0.07, 0.07, 8, 'bar', seed=603)]
+    pole = [log((0, 2.55, -2.2), (0, 1.25, 3.6), 0.07, 0.04, 8, 'pole', seed=604)]
+    cw = heap(0.32, 0.5, 0, 0, seed=605, lump=0.4, name='cw'); xform(cw, (0, 0, 0)); q = G((0, 2.35, -2.25)); xform(cw, (q.x, q.y, q.z))
+    rope = [pathG([(0, 1.25, 3.6), (0, 0.25, 3.62)], 0.012, 4, 'rope')]
+    bucket = lathe([(0.0, 0.0), (0.16, 0.02), (0.2, 0.18), (0.19, 0.3)], 12, 'bucket'); q = G((0, -0.05, 3.62)); xform(bucket, (q.x, q.y, q.z))
+    return dict(mud=join(pil, 'mud'), wood=join(bar, 'wood'), wood_d=join(pole, 'wood_d'), clay=cw, cord=join(rope, 'cord'), hide=bucket)
+
+@woW
+def a_wo_pontoon():
+    """D-670: one bay of a boat bridge (6 m along the crossing, +Z): a plank-built boat moored across the bridge line (along x,
+    its length with the current), a deck of planks on two stringers over it, low side rails, the mooring ropes (Herodotus
+    7.36, the Hellespont bridges of boats, and Xenophon's Tigris crossing: B analogy for the form; a Kur crossing of boats C).
+    Origin: the water surface under the bay's centre; the hull sits ~0.45 m deep"""
+    hull = pathG([(-2.6, -0.1, 0), (-2.0, -0.35, 0), (0, -0.45, 0), (2.0, -0.35, 0), (2.6, -0.1, 0)], [0.25, 0.62, 0.72, 0.62, 0.25], 10, 'hull', scale=(1.0, 0.7))
+    rim = [pathG([(-2.55, 0.12, z), (0, 0.18, z * 1.05), (2.55, 0.12, z)], 0.04, 5, 'gun') for z in (-0.68, 0.68)]
+    string = [boxG(0.18, 0.2, 6.0, x, 0.2, 0, bevel=0.01) for x in (-1.1, 1.1)]
+    deck = [boxG(3.0, 0.06, 0.28, 0, 0.4, -2.85 + i * 0.3, bevel=0.008, yaw=0.01 * math.sin(i * 3.1)) for i in range(20)]
+    rails = [boxG(0.08, 0.08, 6.0, x, 0.95, 0) for x in (-1.45, 1.45)] + [boxG(0.1, 0.55, 0.1, x, 0.42, z) for x in (-1.45, 1.45) for z in (-2.8, 0, 2.8)]
+    ropes = [pathG([(x, 0.2, 0), (x * 1.6, -0.2, 0)], 0.015, 4, 'moor') for x in (-2.4, 2.4)]
+    return dict(wood_d=join([hull] + rim, 'wood_d'), wood=join(string + deck + rails, 'wood'), cord=join(ropes, 'cord'))
+
 def sledge_parts():
     runners = [pathG([(x, 0.1, -1.55), (x, 0.1, 1.2), (x, 0.14, 1.45), (x, 0.24, 1.58)], 0.1, 4, 'runner') for x in (-0.6, 0.6)]
     cross = [boxG(1.5, 0.12, 0.24, 0, 0.18, z, bevel=0.012) for z in (-1.0, 0, 1.0)]
