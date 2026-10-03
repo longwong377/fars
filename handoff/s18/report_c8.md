@@ -69,6 +69,12 @@ do you do, what has happened to you this year, what troubles you). The full repl
   left to CI. One run of day_slice "a jump across frames is the jump at once" failed under load and passed three times after
   (unexplained; flagged).
 
+- **Persistence (C7's CI):** the deeds' save round-trips byte for byte (test in tests/deeds.test.ts).
+- **Songs (holes #15):** work songs at the works and the building, reaping songs in the fields, singing at the well, the market's
+  calls (by the plan's place), in the singer's own tongue reconstructed (tier C), word by word to the lullaby's tune; two singers
+  at most near the listener; lullabies sung with words every other phrase. **Unheard** in the cloud (formant/neural). The magi's
+  recitation is still wordless (the ritual rule: no invented liturgy).
+
 ## The thirty, before → after (replies grounded of 5; thin spots)
 | seed/pid | kind | person | replies | thin before | thin after |
 |---|---|---|---|---|---|
