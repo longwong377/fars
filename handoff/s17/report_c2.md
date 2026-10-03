@@ -4,7 +4,9 @@
 - SEEN ONLY CRUDELY: the cloud's WebGPU loses its device; the ground probe now takes `?webgl` (three's WebGL2 backend on
   SwiftShader), which gave crude frames: the track verge (worn tread, denser verge), the grass, and (22:07) the stooks
   standing on a cut barley plot in mid-June (166 field items drawn, no model missing). Not seen at all: the threshing floors,
-  straw stacks, field-edge trees, anything on the T4. Views asked in asks_vagon.md.
+  straw stacks, field-edge trees, the quarry path. On the T4: the only published frame (cov-000, the plain at a moonless
+  01:26) shows the ground pitch black (night light, V1's, flagged by the lead), so nothing of the plain's fill can be judged
+  from it. Views asked in asks_vagon.md (track verge in April, stooks in June, floor and straw in October).
 - FOUND AND FIXED: the plain's grass tufts drew black flames (uncut alpha cards on a black atlas) in every render since s12.
 - Residual copies: 155 of ~340,000 instances near the paths (0.05%) still have a twin within 20 m (a cell is checked against
   its neighbours' unturned items, so a turned neighbour can collide; cross-plot orchard chains); not zero.
@@ -34,8 +36,10 @@
 **Census** (tools/dev/plain_census.ts, 146 km of paths within 14 km, 18 Apr): plain bare 2 m cells 3.4% -> 3.2%; verge bare
 2.8% -> 0.0%; longest bare verge 88 m -> 2 m; fields 85.5% green crop (Apr), 72.9% stubble (Jul).
 
-**Files**: src/world/plain/{verge,variety,fieldFill}.ts (new), groundCover.ts, crops.ts, trees.ts, townGround.ts, index.ts;
-src/world/groundFlora.ts, groundRocks.ts; tools/dev/plain_census.ts (new), ground_probe.ts; tests/plain_fill.test.ts (new).
+**Files**: src/world/plain/{verge,variety,fieldFill}.ts (new), groundCover.ts, crops.ts, trees.ts, townGround.ts, ribbons.ts,
+index.ts; src/world/trees/{atlas_worker.ts (new), assets.ts}; src/world/groundFlora.ts, groundRocks.ts; tools/dev/plain_census.ts
+(new), ground_probe.ts (?tracks&fill&webgl); tests/plain_fill.test.ts (new). The plain's sources changed: the world-cache bake
+is stale until the next bake (the Pages build bakes).
 
-**Tests**: plain_fill 7/7, ground_flora, ground_cover, scan_props, life_models, roses, plain, landscape: all pass (60+);
-tsc clean for touched files; guards 25/25.
+**Tests** (final, on cloud-s17-int b9c44423 with Vagon's s17-int in it): plain_fill 10/10 and plain, landscape, ground_cover,
+ground_flora, tree_assets, world_cache, scan_props, life_models, roses: 95/95; tsc clean for the touched files; guards 25/25.
