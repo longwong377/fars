@@ -918,6 +918,14 @@ function layer(d: SurfaceDef, base: any, arch = false, band = false): Layer {
     // (the band draws the joint's rounded arrises as geometry: no lip tilt there)
     tilt = T1.mul(sH.mul(lipH)).add(T2b.mul(sB.mul(lipB))).mul(-ARRIS_K).mul(jmask).mul(SURF_AB).mul(band ? float(1).sub(step(jd, JOINT_W)) : float(1));
     alb = alb.mul(blockToneFactor(J, d, ids));
+    if (RW) { // D-803: the retaining walls' drafted margins (anathyrosis's visible face: a chisel-dressed band ~7 cm wide along every
+      // bed and head joint, the face within it point-dressed and standing a little proud: B for the Persepolis masonry, the width C),
+      // as albedo and roughness and a thin shadow line where the face rises; filtered by the pixel footprint (fades at distance)
+      const DM = 0.07, dJ = min(dB, dH), pxJ = min(pxB, pxH), onW = vs.mul(float(1).sub(RW.inFoot)).mul(SURF_AB);
+      const margin = bandCoverN(dJ, pxJ, float(DM)).sub(slot).max(0).mul(onW), rise = bandCoverN(dJ, pxJ, float(DM + 0.012)).sub(bandCoverN(dJ, pxJ, float(DM))).max(0).mul(onW);
+      alb = alb.mul(float(1).add(margin.mul(0.07)).sub(rise.mul(0.16)).sub(float(1).sub(margin).mul(onW).mul(0.03)));
+      rough = mix(rough, rough.mul(0.85), margin);
+    }
     const tiltA = RW ? mix(float(J.tilt ?? 0), float(MASONRY.foot.tilt), RW.inFoot.mul(vs)) : float(J.tilt ?? 0); // (D-232: the foot's rougher faces)
     if (J.tilt) tilt = tilt.add(T1.mul(ids.a.mul(2).sub(1)).add(T2.mul(ids.e.mul(2).sub(1))).mul(tiltA).mul(vert.add(flat)).mul(SURF_AB));
     let polish: any = float(0);
