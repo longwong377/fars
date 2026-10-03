@@ -142,7 +142,10 @@ export interface LookInput { id: number; sex: 'm' | 'f'; role: string; dress: Dr
    *  dye (a DYES key), dirt (hem soil) and wear (fading) replace the seeded draw for its slot: body → main, legs and over →
    *  second; the best set wears its dye strong, mourning the plainest (C). Applied after every seeded draw (no draw is
    *  consumed): a person without it looks as before */
-  outfit?: { set?: 'work' | 'best' | 'mourning' | 'sleep'; garments?: { slot: string; dye: string; dirt: number; wear: number }[] } }
+  outfit?: { set?: 'work' | 'best' | 'mourning' | 'sleep'; garments?: { slot: string; dye: string; dirt: number; wear: number }[] };
+  /** D-780 (holes u4): the shade temperature where the person is now (°C; popview at attach): in the heat a heavy labourer works
+   *  stripped to the waist, the tunic tied about the hips (the bare-chested wrap's mesh, envoy_bare; C). Absent: as before */
+  tempC?: number }
 /** the delegations of the Apadana reliefs (D-199): dress, pieces, beard, dyes and gifts per people */
 export interface DelegationDef { id: string; origin: string; relief: string; dress: Dress; pieces: string[]; beard: 'long' | 'short' | 'none'; dyes: { main: string[]; second: string[]; trim: string[] }; gifts: [string, string][]; note: string }
 export const DELEGATIONS: DelegationDef[] = (delegationsData as any).peoples;
@@ -192,7 +195,10 @@ export function lookFor(A: HumanAssets, p: LookInput, worldSeed: number): Person
   // robe of the spearmen and archers (the Susa archers, Elamite or Persian: SUSA-ARCH, B) rather than the Median riding dress;
   // the third keeps it, as the Medes alternate with the Persians on the stair reliefs (B). The choice from the seed alone (no draw)
   const guardRobe = !del && !p.pieces && p.role === 'guard' && p.dress === 'median' && p.seed % 3 !== 0;
-  const dress: Dress = del ? del.dress : guardRobe ? 'guard' : p.dress, child = dress === 'child' || p.role === 'child', sex = p.sex;
+  // D-780 (holes u4): heavy work in the heat: half the masons, porters and labourers above 30 °C, all above 34 °C, stripped to the
+  // waist (the seed alone decides who: no draw)
+  const bare = !del && !p.pieces && p.dress === 'worker' && p.sex === 'm' && (p.tempC ?? 0) > 30 && ['mason', 'porter', 'builder', 'labourer', 'farmer'].includes(p.role) && ((p.tempC ?? 0) > 34 || p.seed % 2 === 0);
+  const dress: Dress = del ? del.dress : guardRobe ? 'guard' : bare ? 'envoy_bare' : p.dress, child = dress === 'child' || p.role === 'child', sex = p.sex;
   const group: 'adult' | 'elder' | 'child' = child ? 'child' : p.age ?? (['official', 'scribe', 'foreman'].includes(p.role) && rng.chance(0.35) ? 'elder' : 'adult');
   const S = STATURE[sex];
   const drawn = child ? 0 : Math.max(S.mean - 2.2 * S.sd, Math.min(S.mean + 2.2 * S.sd, S.mean + S.sd * rng.normal())), stature = p.stature ?? drawn;
@@ -238,8 +244,8 @@ export function lookFor(A: HumanAssets, p: LookInput, worldSeed: number): Person
     case 'guard': on.add('bun'); if (man) on.add(beardRoll < 0.85 ? 'beard_long' : 'beard_short'); on.add(rng.chance(0.7) ? 'hat_fluted' : 'fillet'); if (rng.chance(0.4)) on.add('torque'); break;
     case 'median': on.add('bun'); if (man) on.add(beardRoll < 0.8 ? 'beard_long' : 'beard_short'); on.add('cap_soft'); if (p.role === 'guard') { on.add('akinaka'); on.add('gorytos'); }
       else if (rng.chance(0.45)) on.add('kandys'); break;
-    case 'worker': if (man) { const egyptian = p.origin === 'Egyptian'; if (!egyptian && beardRoll < 0.3) on.add('beard_long'); else if (!egyptian && beardRoll < 0.8) on.add('beard_short'); }
-      if (rng.chance(0.4)) on.add('work_trousers'); if (rng.chance(0.4)) on.add('shoes'); // (D-780, holes u4: most working men barefoot: C) const h = rng.next(); if (h < 0.4) on.add('headband'); else if (h < 0.65) on.add('cap_soft'); break; // (D-780: more heads covered, and more various)
+    case 'worker': case 'envoy_bare': if (man) { /* (D-780: a labourer stripped to the waist keeps a working man's beard and headgear) */ const egyptian = p.origin === 'Egyptian'; if (!egyptian && beardRoll < 0.3) on.add('beard_long'); else if (!egyptian && beardRoll < 0.8) on.add('beard_short'); }
+      if (rng.chance(0.4)) on.add('work_trousers'); if (rng.chance(0.4)) on.add('shoes'); /* (D-780, holes u4: most working men barefoot: C) */ const h = rng.next(); if (h < 0.4) on.add('headband'); else if (h < 0.65) on.add('cap_soft'); break; // (D-780: more heads covered, and more various)
     case 'woman': if (rng.chance(0.65)) { on.add('headcloth'); on.delete('hair'); /* hidden under it (it poked through) */ } else { on.delete('hair'); on.add('hair_bob'); } if (rng.chance(0.45)) on.add('shoes'); break;
     case 'child': if (rng.chance(0.3)) on.add('shoes'); break;
     // D-199: the king as the reliefs carve him: hair gathered at the nape, the long squared beard, the crown (always)
