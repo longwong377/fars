@@ -21,7 +21,7 @@
 import { interiorsOn } from '../interiors/town';
 import { registerHouses } from '../interiors/ring';
 import { Batch, RGB, lin } from './geom';
-import { Site, Plot, Wall, ROOF_T, DOOR_H, P2, ROOM, COURT, YARD } from './site';
+import { Site, Plot, Wall, ROOF_T, DOOR_H, P2, ROOM, COURT, YARD, toLocal } from './site';
 import { hashString } from '../../core/rng';
 import { fixturesOf, livesOf, HOUSE_KINDS, type Fixture, type HouseLife } from './houseplan';
 import { kitOn, kitLog, kitPiece, kitFrame, KIT, scanVessel } from './kit';
@@ -68,6 +68,8 @@ export const P = { whole: 0, wall: 1, socle: 2, roof: 3, eave: 4, ceiling: 5, do
 
 const MUD: RGB = [0.56, 0.47, 0.36], POLE: RGB = [0.5, 0.43, 0.34], BRUSH: RGB = [0.52, 0.45, 0.31], MAT: RGB = [0.5, 0.43, 0.3], STONE: RGB = [0.53, 0.51, 0.47];
 const sh = (c: RGB, k: number): RGB => [c[0] * k, c[1] * k, c[2] * k];
+/** s18 C2 (D-660): the roofs' straw-and-clay finish coat, sun-bleached (linear; C) */
+const ROOF_COAT: RGB = lin([0.74, 0.64, 0.5]);
 const mixc = (a: RGB, b: RGB, t: number): RGB => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
 const smooth = (x: number) => { const t = Math.min(1, Math.max(0, x)); return t * t * (3 - 2 * t); };
 /** hash of integers to [0, 1) */
@@ -252,7 +254,9 @@ export class SiteHouses {
     }
     for (const r of this.rooms) { b.set('tileId', r.tile + 1).set('y0', -1000).set('ytop', 1e4).set('ao', 1);
       // each roof its own earth (rolled and renewed at its own time: C)
-      const c = sh(this.pcol[r.plot], 0.94 + 0.12 * hi(r.room, this.si, 7)), g = s.grid(s.u0 + (r.i0 + r.i1) / 2, s.v0 + (r.j0 + r.j1) / 2);
+      // (s18 C2, D-660: the top in the roof's own straw-and-clay coat, paler and warmer than the walls' plaster and more
+      // varied roof to roof: from the Terrace and 20 m up the roofs read as the plaster of the walls, the town as boxes)
+      const c = this.roofCol(r), g = s.grid(s.u0 + (r.i0 + r.i1) / 2, s.v0 + (r.j0 + r.j1) / 2);
       b.box(g[0], g[1], th, (r.i1 - r.i0) / 2, (r.j1 - r.j0) / 2, r.R - ROOF_T, r.R - r.fall - 0.012, sh(c, 0.8), c, this.owner(r.plot, P.roof)); }
     // D-324b: the court things that show from afar: each ladder's rails against the eave (a thin slab each), the firewood and
     // fodder stacks (a low block), from the near level's own fixtures
@@ -270,8 +274,19 @@ export class SiteHouses {
     for (let fi = 0; fi < this.fixtures.length; fi++) { const f = this.fixtures[fi]; if (f.kind !== 'roof_fuel') continue; const sp = this.roofSpot(f); if (!sp) continue;
       b.set('tileId', this.tileOfPlotEl(f.plot, sp.u, sp.v) + 1).set('y0', -1000).set('ytop', 1e4).set('ao', 0.9); const g = s.grid(sp.u, sp.v), bc = sh(lin([0.47, 0.41, 0.31]), 0.85 + 0.2 * hi(f.alt ?? 0, 5));
       b.box(g[0], g[1], th + f.rot, f.len / 2, 0.42, sp.y + 0.02, sp.y + 0.2 + 0.08 * hi(f.alt ?? 0, 6), sh(bc, 0.8), bc, this.fixDesc[fi] * 32 + P.fixture); }
+    // s18 C2 (D-660): the roofs' stores and work (roofFill: drawn instanced within 120 m) on the far level too, as the forms
+    // that read from afar: the jars a low dark block, the reed mats and what dries on them a pale flat sheet, the dung cakes dark
+    for (const it of this.roofFill()) { if (it.m === 'fill_line') continue; const q = toLocal(s.frame, it.e, it.n), t = this.tileAt(q[0], q[1]); b.set('tileId', (this.big[this.plotOf(q[0], q[1])] ? t : this.plotTile[this.plotOf(q[0], q[1])] ?? t) + 1).set('y0', -1000).set('ytop', 1e4).set('ao', 0.9);
+      const jar = it.m.startsWith('jar'), k = it.s[0], cl: RGB = jar ? lin([0.6, 0.42, 0.3]) : it.m === 'mat' ? lin([0.74, 0.64, 0.44]) : it.m === 'wo_fleece' ? lin(it.col?.wool ?? [0.8, 0.75, 0.64]) : lin([0.36, 0.3, 0.22]);
+      const [hx, hz, hy] = jar ? [0.22 * k, 0.22 * k, 0.62 * k] : it.m === 'mat' ? [0.62 * k, 0.48, 0.015] : it.m === 'wo_fleece' ? [0.5, 0.42, 0.04] : [0.2, 0.2, 0.03];
+      b.box(it.e, it.n, it.rot, hx, hz, it.y - 0.02, it.y + hy, sh(cl, 0.7), cl, this.owner(this.plotOf(q[0], q[1]), P.fixture)); }
     b.set('ao', 1);
   }
+  /** s18 C2 (D-660): a roof's top colour on every level: the plot's earth under a straw-and-clay coat, sun-bleached paler and
+   *  warmer than the walls' plaster, each roof renewed at its own time (C) */
+  roofCol(r: RoomEl): RGB { return sh(mixc(this.pcol[r.plot], ROOF_COAT, 0.45 + 0.25 * hi(r.room, this.si, 8)), 0.92 + 0.18 * hi(r.room, this.si, 7)); }
+  /** the plot of a site-local point (−1 outside any) */
+  private plotOf(u: number, v: number) { const k = this.cellAt(u, v); return k >= 0 ? this.s.cell[k] : -1; }
   /** D-324: an exposed wall top on the far level: both faces up to the worn line (stations ~3 m apart and at the rain's deeper
    *  notches), its top across the wall, the ends closed (6 triangles a station, 4 at the ends) */
   private farCrest(b: Batch, we: WallEl, sp: ReturnType<SiteHouses['wallSpan']>, T: ReturnType<SiteHouses['topOf']>, c: RGB) {
@@ -547,7 +562,7 @@ export class SiteHouses {
         faceCol[sg] = { col: colF, ao: aoF, ysoc };
         const surf = this.face(B.plaster, { ax, sA: pA, sB: pB, cc, t, sg, yb: ysoc, yt: x => ytopF(x) - bev, holes: faceHoles, bulge, seed: seed + si * 13, st2: topSt,
           col: colF, owner: this.owner(we.plot, P.wall), ao: aoF, y0: ysoc, ytop: top, foot: kitOn ? (sd.cls === 'open' ? 0.035 : 0.02) * (house ? 1 : 1.5) : 0, sag });
-        for (const h of faceHoles) if (h.brick !== undefined) this.brickLoss(B, ax, cc, t, sg, h, colF, aoF, ysoc, top, we.plot, seed);
+        for (const h of faceHoles) if (h.brick !== undefined) this.brickLoss(B, ax, cc, t, sg, h, colF, aoF, ysoc, top, we.plot, seed, surf);
         // decals on this face: repairs, bare brick, soot, the household's dung cakes, the drain's stain
         if (we.plot >= 0) this.faceDecals(we, sd, sg, floor, top, faceHoles, courtFix, decs, seed + si); // (yard and garden walls weather too)
         // D-364: rain rills down the face from the notches the rain has cut in an exposed top (the kit's 'rill', full level)
@@ -637,7 +652,7 @@ export class SiteHouses {
   }
   /** D-324: a loss of the plaster over the brick (the kit's 'bpl' ring, flush with the face on the hole's edge and coloured
    *  as the wall there, broken back to the brick; the 'bbr' courses behind it in the brick material) */
-  private brickLoss(B: HB, ax: number, cc: number, t: number, sg: number, h: Hole, colF: (x: number, y: number) => RGB, aoF: (y: number) => number, ysoc: (x: number) => number, top: number, plot: number, seed: number) {
+  private brickLoss(B: HB, ax: number, cc: number, t: number, sg: number, h: Hole, colF: (x: number, y: number) => RGB, aoF: (y: number) => number, ysoc: (x: number) => number, top: number, plot: number, seed: number, surf: (x: number, y: number) => number = () => 0) {
     const P2l = (x: number, off: number): [number, number] => (ax === 0 ? [x, cc + off] : [cc + off, x]);
     const al = ax === 0 ? this.dirW(1, 0) : this.dirW(0, 1), nA = ax === 0 ? this.dirW(0, sg) : this.dirW(sg, 0), fl = h.fl ?? 1, x0 = fl > 0 ? h.s0 : h.s1;
     const O = this.wp(...P2l(x0, sg * (t / 2)), h.y0), X = [al[0] * fl, 0, al[1] * fl], Y = [0, 1, 0], Z = [nA[0], 0, nA[1]], own = this.owner(plot, P.repair);
@@ -648,6 +663,22 @@ export class SiteHouses {
     const bc = sh(lin([0.62, 0.53, 0.41]), 0.88 + 0.15 * hi(seed, 131)); B.brick.set('ao', aoF(h.y0 + BRICK_H / 2));
     kitFrame(B.brick, br, O, X, Y, Z, bc, own, B.brick.cur('ao'), 0.2, k => { const y = h.y0 + br.p[k * 3 + 1], d = 0.8 + 0.2 * smooth((y - ysoc(x0 + fl * br.p[k * 3])) / 0.9); return sh(bc, br.k[k] * d); });
     B.plaster.set('ao', 1); B.brick.set('ao', 1);
+    // s18 C2 (D-660): the loss read as a sticker cut into a clean wall: round it the plaster is thinned, cracked and damp-stained
+    // where it has begun to come away, darkest at the break and gone into the wall's own colour 8-20 cm out (an irregular rim)
+    this.halo(B.plaster, ax, cc, t, sg, h.s0, h.s1, h.y0, h.y1, seed * 13 + h.s0 * 7, 0.08, 0.2, (x, y) => sh(colF(x, y), 0.84), colF, surf, own);
+  }
+  /** s18 C2 (D-660): a feathered rim round a box on a wall face: from the box's outline (16 points round it) out by rim0..rim1
+   *  (by the angle, irregular), its colour from `inner` at the outline to the wall's own (`outer`) at its edge; on the face as
+   *  drawn (surf), 2-3 mm proud */
+  private halo(b: Batch, ax: number, cc: number, t: number, sg: number, s0: number, s1: number, y0: number, y1: number, seed: number, rim0: number, rim1: number, inner: (x: number, y: number) => RGB, outer: (x: number, y: number) => RGB, surf: (x: number, y: number) => number, own: number) {
+    const P2l = (x: number, off: number): [number, number] => (ax === 0 ? [x, cc + off] : [cc + off, x]), nA = ax === 0 ? this.dirW(0, sg) : this.dirW(sg, 0), N = [nA[0], 0, nA[1]];
+    const p = (x: number, y: number, o2: number) => this.wp(...P2l(x, sg * (t / 2 + surf(x, y) + o2)), y);
+    const mx = (s0 + s1) / 2, my = (y0 + y1) / 2, hx = (s1 - s0) / 2, hy = (y1 - y0) / 2, n = 16, ring: [number, number, number, number][] = [];
+    for (let k = 0; k < n; k++) { const a = (k / n) * Math.PI * 2, ca = Math.cos(a), sa = Math.sin(a), f = 1 / Math.max(Math.abs(ca) / hx, Math.abs(sa) / hy); // (the outline: the box's edge along the ray)
+      const r = rim0 + (rim1 - rim0) * hi(Math.round(seed), k, 151); ring.push([mx + ca * f, my + sa * f, mx + ca * (f + r), my + sa * (f + r)]); }
+    b.set('y0', -1000).set('ytop', 1e4).set('ao', 1);
+    for (let k = 0; k < n; k++) { const [ax0, ay0, bx0, by0] = ring[k], [ax1, ay1, bx1, by1] = ring[(k + 1) % n];
+      b.quad(p(ax0, ay0, 0.003), p(ax1, ay1, 0.003), p(bx1, by1, 0.002), p(bx0, by0, 0.002), N, inner(ax0, ay0), inner(ax1, ay1), outer(bx1, by1), outer(bx0, by0), own); }
   }
   /** a hole's reveals (and, for a niche, its back); a window's back opens into the dark room */
   private reveal(B: HB, ax: number, cc: number, t: number, sg: number, h: Hole, col: RGB, plot: number) {
@@ -693,7 +724,7 @@ export class SiteHouses {
       const q = kitPiece(d.kind === 'patch' ? 'rpatch' : 'rill', hi(d.seed, 144)), W = d.s1 - d.s0, H = d.y1 - d.y0, fl = d.kind === 'patch' && hi(d.seed, 145) < 0.5 ? -1 : 1; const aoM = B.plaster.cur('ao'); const draw = () => {
       const al = ax === 0 ? this.dirW(1, 0) : this.dirW(0, 1), A3 = [al[0] * fl, 0, al[1] * fl], N3 = [nA[0], 0, nA[1]], cr = [A3[1] * N3[2] - A3[2] * N3[1], A3[2] * N3[0] - A3[0] * N3[2], A3[0] * N3[1] - A3[1] * N3[0]];
       const idx = cr[1] > 0 ? q.i.map((_, j) => q.i[j - (j % 3) + [0, 2, 1][j % 3]]) : q.i; // (along, up, out) left-handed in the world: wind the other way
-      const x0 = d.kind === 'patch' ? (fl > 0 ? d.s0 : d.s1) : (d.s0 + d.s1) / 2, base: RGB = d.kind === 'patch' ? sh([col[0] * 1.08, col[1] * 1.06, col[2] * 0.98], 1.02 + 0.04 * hi(d.seed, 146)) : col;
+      const x0 = d.kind === 'patch' ? (fl > 0 ? d.s0 : d.s1) : (d.s0 + d.s1) / 2, base: RGB = d.kind === 'patch' ? sh([col[0] * 1.035, col[1] * 1.025, col[2] * 0.99], 1.0 + 0.03 * hi(d.seed, 146)) : col; // (s18 C2, D-660: a smaller step from the wall's tone: they read as stickers)
       const b = B.plaster; b.set('y0', -1000).set('ytop', 1e4); 
       b.mesh(q.nv, k => { const x = x0 + fl * q.p[k * 3] * W, y = d.y0 + q.p[k * 3 + 1] * H; return this.wp(...P2l(x, sg * (t / 2 + surf(x, y) + 0.0015 + q.p[k * 3 + 2])), y); },
         k => { const nx = q.n[k * 3] / W, ny = q.n[k * 3 + 1] / H, nz = q.n[k * 3 + 2]; const v = [A3[0] * nx + N3[0] * nz, ny, A3[2] * nx + N3[2] * nz], L = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / L, v[1] / L, v[2] / L]; },
@@ -706,15 +737,15 @@ export class SiteHouses {
       // s17 C1 (Vagon's probe frames: hard-edged stickers under the scanned walls): an irregular outline, and a feathered rim
       // 10-18 cm wide round it in the plaster batch, its inner edge the patch's (or the broken plaster's) colour, its outer edge
       // the wall's own, so the patch fades into the wall instead of ending at a line
-      const rimW = 0.1 + 0.08 * hi(d.seed, 77), ring: { a: number; r: number }[] = [];
+      const rimW = 0.16 + 0.1 * hi(d.seed, 77), ring: { a: number; r: number }[] = [];
       for (let k = 0; k < n; k++) { const a = (k / n) * Math.PI * 2 + 0.25 * (hi(d.seed, k, 3) - 0.5), r = 0.62 + 0.38 * hi(d.seed, k); ring.push({ a, r }); }
       { const rb = B.plaster; rb.set('y0', -1000).set('ytop', 1e4).set('ao', 1);
         const at = (k: number, out: number) => { const { a, r } = ring[k % n], ex = Math.cos(a) * (rx * r + out), ey = Math.sin(a) * (ry * r + out); return [mx + ex, my + ey] as [number, number]; };
-        const wallC = (x: number, y: number): RGB => colAt ? colAt(x, y) : col, inner: RGB = d.kind === 'patch' ? sh(mixc(col, [col[0] * 1.08, col[1] * 1.06, col[2] * 0.98], 1), 1.03) : sh(col, 0.82);
+        const wallC = (x: number, y: number): RGB => colAt ? colAt(x, y) : col, inner: RGB = d.kind === 'patch' ? sh([col[0] * 1.035, col[1] * 1.025, col[2] * 0.99], 1.015) : sh(col, 0.86);
         for (let k = 0; k < n; k++) { const [x0, y0] = at(k, 0), [x1, y1] = at(k + 1, 0), [x2, y2] = at(k + 1, rimW), [x3, y3] = at(k, rimW);
           const ci0 = colAt ? mixc(wallC(x0, y0), inner, 0.85) : inner, ci1 = colAt ? mixc(wallC(x1, y1), inner, 0.85) : inner;
           rb.quad(p(x0, y0, 0.003), p(x1, y1, 0.003), p(x2, y2, 0.0025), p(x3, y3, 0.0025), N, ci0, ci1, wallC(x2, y2), wallC(x3, y3), this.owner(plot, P.repair)); } }
-      for (let k = 0; k < n; k++) { const { a, r } = ring[k]; pts.push(p(mx + Math.cos(a) * rx * r, my + Math.sin(a) * ry * r, d.kind === 'patch' ? 0.004 : 0)); cols.push(d.kind === 'patch' ? sh(mixc(col, [col[0] * 1.08, col[1] * 1.06, col[2] * 0.98], 1), 1.03 + 0.03 * hi(d.seed, k, 1)) : sh(lin([0.62, 0.53, 0.41]), 0.9 + 0.15 * hi(d.seed, k, 2))); }
+      for (let k = 0; k < n; k++) { const { a, r } = ring[k]; pts.push(p(mx + Math.cos(a) * rx * r, my + Math.sin(a) * ry * r, d.kind === 'patch' ? 0.004 : 0)); cols.push(d.kind === 'patch' ? sh([col[0] * 1.035, col[1] * 1.025, col[2] * 0.99], 1.015 + 0.02 * hi(d.seed, k, 1)) : sh(lin([0.62, 0.53, 0.41]), 0.9 + 0.15 * hi(d.seed, k, 2))); }
       const b = d.kind === 'patch' ? B.plaster : B.brick; if (d.kind === 'patch') b.set('y0', -1000).set('ytop', 1e4); b.set('ao', 0.95); b.poly(pts, N, cols, this.owner(plot, P.repair)); b.set('ao', 1); return; }
     if (d.kind === 'soot') { const b = B.plaster; b.set('y0', -1000).set('ytop', 1e4).set('ao', 1); const k = d.k ?? 0.6; const nx = 4, ny = 4;
       const cAt = (i: number, j: number): RGB => { const fx = Math.abs(i / nx - 0.5) * 2, fy = j / ny; const dark = (1 - fx * fx) * (fy < 0.25 ? 0.6 + fy * 1.6 : 1 - (fy - 0.25) / 0.75) * (1 - k); return sh(col, 1 - Math.max(0, dark) * 1.0); };
@@ -741,7 +772,7 @@ export class SiteHouses {
     const span = dr < 2 ? v1 - v0 : u1 - u0, fallTot = r.fall;
     const yRoof = (u: number, v: number) => { if (!falls) return R + (vn(u * 1.3 + seed, v * 1.3) - 0.5) * 0.02;
       const f = dr === 0 ? (v - v0) / span : dr === 1 ? (v1 - v) / span : dr === 2 ? (u - u0) / span : (u1 - u) / span; return R - fallTot * (1 - Math.min(1, Math.max(0, f))) + (vn(u * 1.3 + seed, v * 1.3) - 0.5) * 0.02; };
-    const own = this.owner(r.plot, P.roof), rc = sh(this.pcol[r.plot], 1.02);
+    const own = this.owner(r.plot, P.roof), rc = this.roofCol(r); // (s18 C2: the roof's own coat, as the far level)
     if (!r.full) { // an irregular room (absorbed cells): per-cell roof squares, no eave
       B.plaster.set('y0', -1000).set('ytop', 1e4).set('ao', 1);
       for (let j = r.j0; j < r.j1; j++) for (let i = r.i0; i < r.i1; i++) { const k = s.k(i, j); if (s.cell[k] !== r.plot || s.room[k] !== r.room) continue;
