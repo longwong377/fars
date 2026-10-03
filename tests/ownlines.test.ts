@@ -54,10 +54,10 @@ describe('D-720 own lines: grounded in the life', () => {
 
 describe('D-720 lately: the townsfolk’s deeds reach what a person can tell', () => {
   const recs: DeedRec[] = [
-    { id: 0, day: 58, t: 58 * 24 + 9, deed: { verb: 'help', actor: 2, target: 1 }, out: { ok: true, why: '' } },
-    { id: 1, day: 59, t: 59 * 24 + 9, deed: { verb: 'attack', actor: 3, target: 4 }, out: { ok: true, why: '' } },
-    { id: 2, day: 59, t: 59 * 24 + 10, deed: { verb: 'court', actor: 1, target: 5 }, out: { ok: false, why: '', refused: true } },
-    { id: 3, day: 20, t: 20 * 24, deed: { verb: 'give', actor: 6, target: 1 }, out: { ok: true, why: '' } },
+    { id: 0, day: 58, t: 58 * 24 + 9, deed: { verb: 'help', actor: 2, target: 1 }, out: { ok: true, why: '', effects: [] } },
+    { id: 1, day: 59, t: 59 * 24 + 9, deed: { verb: 'attack', actor: 3, target: 4 }, out: { ok: true, why: '', effects: [] } },
+    { id: 2, day: 59, t: 59 * 24 + 10, deed: { verb: 'court', actor: 1, target: 5 }, out: { ok: false, why: '', refused: true, effects: [] } },
+    { id: 3, day: 20, t: 20 * 24, deed: { verb: 'give', actor: 6, target: 1 }, out: { ok: true, why: '', effects: [] } },
   ];
   const names: Record<number, string> = { 1: 'Arta', 2: 'Bagadata', 3: 'Kuraš', 4: 'Miθra', 5: 'Irdabama', 6: 'Old Uštana' };
   const W = { minds: { memory: new Map([[1, [0, 1, 2, 3]]]) }, rec: (i: number) => recs[i], name: (a: number | 'player') => typeof a === 'number' ? names[a] : 'the stranger' };
