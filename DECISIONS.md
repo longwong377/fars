@@ -9836,3 +9836,28 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   new parameters stay in relief_atlas.ts: the atlas test reads "not current", as it already did since D-510's polychromy
   change. To finish: `RELIEF_WORK=T:/fars-blender/reliefs node C:/Users/Administrator/fars/tools/dev/gpu_slot.mjs v4 -- npx tsx
   tools/blender/relief_atlas.ts --jobs=5 --reuse` (~8 min bake + pack), then commit the two KTX2 files and the index.
+
+## D-670 The river meanders, the fields have texture, the plain stands filled to the far views (session 18, cloud C3)
+- The Pulvar and the Kur were ruler-straight: plain.json's courses are OSM lines with ~450 m vertices, and build_terrain.py
+  carved and rivers.ts drew straight reaches between them. tools/plain/meander.ts (run once after build_terrain.py) rounds the
+  course and gives it a reconstructed meander train (C): sine-generated bends (Langbein & Leopold), arc wavelength ~11-19
+  widths, swing 0.2-1.3 rad by reach, a third harmonic for skew, a slow +-110 m belt wander; Pulvar length x1.17, Kur x1.04
+  (the Kur hemmed by its canals). It fills the old straight trench (never above the old floodplain), carves the new course
+  (radius top/2 + 1.42 cells) and rewrites rivers.json with the base course (base_x/y/bank) and the samples it changed
+  (prior). The canals and villages are placed on that base course and prior ground (data.ts baseCourse/priorTerrain), so no
+  village moves (all 37 identical for seed 1; the meanders keep 30 m off every pool seed's canals beyond their heads, 60 m
+  off its villages, 14 m off the roads and cross each road where it did); canal heads are joined to the water in 25 m steps
+  (7 of 37 shortened where a bend reaches them).
+- Banks (rivers.ts BEND): point bars on the inner side of a bend (slope up to 2x gentler, gravel and sand in the shader), cut
+  banks steeper and raised up to 0.7 m, +-15 % slope and 0-0.3 m top along any reach, calm within 70-150 m of every ford; the
+  water's edge follows each side's slope; sections every R/4 (8-20 m) near, R/3 (12-45 m) far (banks 266k -> 192k tris).
+  Reeds in 3-9 m clumps with gaps and their own heights, on the upper slope (knee-deep at the flood), few on bars and cut
+  banks; bank trees stand back of the bars.
+- Fields (terrainPlain.ts): greyer olive greens, a hue per plot, uneven vigour inside a plot, drill rows while young, a ragged
+  1-3 m weedy headland drawn by coverage at any distance, irrigation basins (11-15 x 18-28 m) with ridges and their own
+  wetness (all C).
+- The far plain: field-edge trees (now ~17 a km2 of fields) and a new fallow scrub (almond, tamarisk, pistachio; thinned near
+  the Terrace) within 8 km stand in the static far impostor set (they ended at the 900 m mid ring); the villages' floors,
+  stacks, heaps and folds drawn to 2.2 km; crop guards' reed shelters at irrigated plot edges and herders' wattle pens with
+  their huts on the fallow (the kit's models), to 2.2 km (fieldFill.ts LAND). Census (plain_census, 18 Apr): bare 3.0 % and
+  repeats 0.0 % as in s17; field trees near paths 25 -> 77.

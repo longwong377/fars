@@ -293,7 +293,7 @@ export class PlainGround {
       // plot its own hue (bluer barley, yellower wheat and emmer, sowing date and soil: C); the stand's vigour uneven inside a
       // plot (thin and yellowish where the soil is poorer or the water did not reach, lush in the low corners: +-20 % cover over
       // ~8-25 m, C), each octave band-limited by the pixel
-      const young = lin(0.32, 0.42, 0.18), mature = lin(0.24, 0.33, 0.15), ripe = lin(0.72, 0.60, 0.33), stubble = lin(0.66, 0.60, 0.46);
+      const young = lin(0.34, 0.42, 0.2), mature = lin(0.26, 0.34, 0.17), ripe = lin(0.72, 0.60, 0.33), stubble = lin(0.66, 0.60, 0.46);
       const hue = unitN(hash2N(ph, uint(11), 44)).mul(plotKeep);
       const vig = mx_noise_float(vec3(p.x.mul(0.042), 3.1, p.y.mul(0.042))).mul(bl(24)).add(mx_noise_float(vec3(p.x.mul(0.13), 9.2, p.y.mul(0.13))).mul(0.5).mul(bl(8)));
       const green = mix(young, mature, smoothstep(0.2, 0.8, hgt)).mul(det(G.green)).mul(mix(vec3(0.93, 1.0, 1.07), vec3(1.06, 1.0, 0.86), hue))
