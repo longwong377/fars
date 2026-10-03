@@ -9952,6 +9952,8 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   weeders, pruners, pickers, a herder), fronts moving along the strip through the work's days; plain.fieldWork(e, n, r, day) (C).
 - The open ground before the Terrace drew one even sheet to 700 m (noon frame): the range now in 100-300 m patches, grazed
   bare or thick (+-45 % herb cover), and grey-green Artemisia stands 150-400 m across (terrainPlain.ts; C).
+- The river drew as sky-blue and bank-brown blotches (riv-a): the long ripple octaves calmer (2.4 m 0.075 -> 0.04, 1 m 0.07 ->
+  0.05) and the spring river's ripple scale 1.15 -> 0.85, so the far bank's reflection breaks in streaks, not patches (C).
 
 ## D-720 Follow thirty: the people answer from their own lives without the model, and the town's deeds and yesterday reach their talk (session 18, cloud C8; UD-07, UD-08, UD-11, UD-21, UD-24, UD-32)
 - Measured (tools/dev/follow30.ts; REVIEWS/follow30.json): thirty people drawn by seed across the town, the villages, the Terrace's
