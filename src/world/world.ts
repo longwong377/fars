@@ -473,6 +473,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   if (sim.pop.court) { const cc = CAMPS.find(c => c.id === 'court'); if (cc) fauna.addCourtVehicles(cc.c as [number, number], cc.r); fauna.addCampLines(sim.pop.court.tents, settlement?.plan ?? null); } // (D-570: the camps' picket lines)
   fauna.addTerraceFoot(new TerraceFoot(seed, groundAt)); // D-227: the tether lines, heaps and loads at the foot of the Grand Stair (C)
   root.add(fauna.group); const faunaMs = performance.now() - faunaT0;
+  (sim.pop as any).shareFolk?.(); // D-640: the road folk are the population's people (pids, homes, days; talkable): the traffic leaves them to popview
   const traffic = new Traffic(seed, sim.pop as any, settlement?.plan ?? null); const movers: Mover[] = [], moverKeys = new Set<string>();
   traffic.setQuarries(quarrySites(terrain)); // D-256: the quarrymen at work and the drums hauled to the Terrace
   // D-570: the herders' flocks out on the stubble, the slopes and the steppe (roadFolk.ts), and drawn far by the fauna
