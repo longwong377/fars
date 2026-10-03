@@ -179,6 +179,14 @@ export class VillageHouses {
     const [lu, lv] = [c.x, c.y]; void fr;
     b.set('tileId', tile + 1).set('ao', 1);
     const ca = Math.cos(c.angle), sa = Math.sin(c.angle);
+    // s18 C15 (D-800): the compound's trodden earth (its yard and pen, swept and stamped; the plain's grass ended at the walls,
+    // the yards read as lawns): two triangles 4 cm over the ground at its corners, in tile 0 (never collapsed: drawn with the near level
+    // too, which draws no yard floor), the pen darker with dung (C)
+    if (id) { const Hh = this.H, P = (u: number, v: number) => { const e = lu + u * ca - v * sa, n = lv + u * sa + v * ca; return [e, Hh(e, n) + 0.04, -n]; };
+      const k = 0.94 + 0.1 * hi(c.seed, 41), tc = lin([0.56 * k, 0.49 * k, 0.39 * k]), mc = P(0, 0), q = [P(-W, -D), P(W, -D), P(W, D), P(-W, D)];
+      b.set('tileId', 0).set('y0', -1000).set('ytop', 1e4).set('ao', 1);
+      b.poly(q, [0, 1, 0], tc, own); void mc;
+      b.set('tileId', tile + 1); }
     const box = (u0: number, v0: number, u1: number, v1: number, top: number, cc: RGB, o: number) => { if (u1 - u0 < 0.01 || v1 - v0 < 0.01) return; const mu = (u0 + u1) / 2, mv = (v0 + v1) / 2;
       b.set('y0', base).set('ytop', top); b.box(lu + mu * ca - mv * sa, lv + mu * sa + mv * ca, c.angle, (u1 - u0) / 2, (v1 - v0) / 2, y0, top, sh(cc, 0.82), cc, o); };
     const main = c.rooms.filter(r => Math.abs(r.v1 - D) < 1e-6), rv0 = Math.min(...main.map(r => r.v0));
