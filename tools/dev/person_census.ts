@@ -131,7 +131,8 @@ export function historyCensus(pop: Population, day: number): HistoryCensus {
   for (const pid of ids) {
     const past = pastM.get(pid)!, kin = kinM.get(pid)!, p = pop.persons[pid], age = pop.ageOn(pid, day);
     const sibs = new Map<number, PastEvent[]>(); if (p.mother >= 0) for (const c of pop.childrenOf(p.mother)) if (c !== pid && pastM.has(c)) sibs.set(c, pastM.get(c)!);
-    const spk = kin.find(k => k.rel === 'wife' || k.rel === 'husband'), mutual = !!spk && !!kinM.get(spk.pid)?.some(k => k.pid === pid && (k.rel === 'wife' || k.rel === 'husband'));
+    const spk = kin.find(k => k.rel === 'wife' || k.rel === 'husband'), mutual = !!spk && !!(kinM.get(spk.pid) ?? kinOf(pop, spk.pid, day)).some(k => k.pid === pid && (k.rel === 'wife' || k.rel === 'husband'));
+    // (a spouse away that day, as a road-folk wife at home off the map, still names back: their kin taken all the same; D-710)
     if (spk && !mutual) oneSided++; const spouse = spk && mutual ? pastM.get(spk.pid) ?? null : null;
     const bad = checkPast(pop, pid, day, past, kin, { sibs, spouse }, seed); for (const r of bad) byRule[r] = (byRule[r] ?? 0) + 1;
     const all = past.length + yearEvents(pop, pid, day).length; total += all;
