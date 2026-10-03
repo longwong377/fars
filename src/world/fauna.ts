@@ -68,7 +68,7 @@ export const FAUNA = {
 } as const;
 export const FAC: Record<string, P2> = Object.fromEntries((townData as any).facilities.map((f: any) => [f.id, f.at as P2]));
 
-interface Yard { spots: P2[]; bed: P2; door: P2; /** s18 C14 (D-790): the open ground of the lane just outside the door, when the door gives on one */ lane?: P2 }
+interface Yard { spots: P2[]; bed: P2; door: P2; /** s18 C14 (D-790): the open ground of the lane just outside the door, when the door gives on one */ lane?: P2; /** the lane's open spots about it (hens out at the door) */ laneSpots?: P2[] }
 interface YardDog { yard: Yard; seed: number; where: 'town' | 'village' | 'stable' }
 interface Strays { c: P2; spots: P2[]; n: number; seed: number; /** s18 C14: a lane route out from the midden and back (open ground all the way) */ route?: P2[]; len?: number }
 interface HenYard { yard: Yard; n: number; cock: boolean; seed: number; r?: number }
@@ -145,7 +145,9 @@ export class Fauna {
         // s18 C14 (D-790): the lane outside the door: the nearest open point 1-2.5 m out with room about it (a tethered donkey, hens out)
         let lane: P2 | undefined; if (p.door) out3: for (const r of [1.2, 1.7, 2.3]) for (let q = 0; q < 12; q++) { const a = (q / 12) * Math.PI * 2, x: P2 = [door[0] + r * Math.cos(a), door[1] + r * Math.sin(a)];
           if ([0, 0.9, -0.9].every(d => openGround(plan, x[0] + d * Math.sin(a), x[1] - d * Math.cos(a))) && openGround(plan, x[0] + 0.6 * Math.cos(a), x[1] + 0.6 * Math.sin(a))) { lane = x; break out3; } }
-        return { spots, bed, door, lane }; };
+        const laneSpots: P2[] = []; if (lane) { laneSpots.push(lane); for (let q = 0; q < 16 && laneSpots.length < 4; q++) { const a = h01(this.seed, hi, 40 + q) * Math.PI * 2, r = 1.2 + 2.3 * h01(this.seed, hi, 60 + q), x: P2 = [lane[0] + r * Math.cos(a), lane[1] + r * Math.sin(a)];
+          if (openGround(plan, x[0], x[1]) && lineOpen(plan, lane, x)) laneSpots.push(x); } }
+        return { spots, bed, door, lane, laneSpots }; };
       hi++;
       if (p.kind === 'house' || p.kind === 'house_large') {
         if (h01(this.seed, hi, 1) < FAUNA.yardDogTown) this.yardDogs.push({ yard: yard(), seed: hi * 7 + 1, where: 'town' });
@@ -292,11 +294,16 @@ export class Fauna {
   }
   private henAt(y: HenYard, j: number, c: FaunaCtx, out: AnimalInst & { e: number; n: number }, sc: { s: number }) {
     const s = y.seed * 17 + j, T = 7 + 6 * h01(s, 1), k = Math.floor((c.t + h01(s, 2) * T) / T), u = fr((c.t + h01(s, 2) * T) / T), sp: Species = y.cock && j === y.n ? 'cock' : 'hen';
-    let A: P2, B: P2;
+    let A: P2, B: P2, via: P2 | null = null;
     if (y.r) { const pt = (q: number): P2 => { const a = h01(s, q) * Math.PI * 2, r = Math.sqrt(h01(s, q, 5)) * y.r!; return [y.yard.bed[0] + r * Math.cos(a), y.yard.bed[1] + r * Math.sin(a)]; }; A = pt(k); B = pt(k + 1); }
-    else { const sp0 = y.yard.spots; const a = sp0[(k + j) % sp0.length], b = sp0[(k + j + 1) % sp0.length], o = (q: number) => (h01(s, q) - 0.5) * 1.6; A = [a[0] + o(k), a[1] + o(k + 99)]; B = [b[0] + o(k + 1), b[1] + o(k + 100)]; }
-    const walking = u > 0.55, w = walking ? smooth((u - 0.55) / 0.45) : 0, e = A[0] + (B[0] - A[0]) * w, n = A[1] + (B[1] - A[1]) * w;
-    Object.assign(out, { sp, e, n, x: 0, z: 0, yaw: walking ? Math.atan2(B[0] - A[0], B[1] - A[1]) : h01(s, k, 6) * 6.28 + 0.4 * Math.sin(c.t * 0.5 + j), phase: (2 * Math.PI * c.t * 0.25) / 0.22, walk: walking ? 1 : 0,
+    else { // (s18 C14 D-790: the hens of a yard with a lane door go out for a while to peck in the lane, out and back by the door)
+      const L = y.yard.laneSpots, isOut = (kk: number) => !!L && L.length >= 2 && h01(s, Math.floor((kk + 7 * j) / 24), 12) < 0.3, o = (q: number) => (h01(s, q) - 0.5) * 1.6;
+      const P = (kk: number): P2 => { const sp0 = isOut(kk) ? L! : y.yard.spots, a = sp0[(kk + j) % sp0.length]; return [a[0] + o(kk), a[1] + o(kk + 99)]; };
+      A = P(k); B = P(k + 1); via = isOut(k) !== isOut(k + 1) ? y.yard.door : null; }
+    const u0 = via ? 0.15 : 0.55, walking = u > u0, w = walking ? smooth((u - u0) / (1 - u0)) : 0; let e: number, n: number, dir: number;
+    if (via && walking) { const h = w < 0.5, f = h ? w * 2 : w * 2 - 1, P0 = h ? A : via, P1 = h ? via : B; e = P0[0] + (P1[0] - P0[0]) * f; n = P0[1] + (P1[1] - P0[1]) * f; dir = Math.atan2(P1[0] - P0[0], P1[1] - P0[1]); }
+    else { e = A[0] + (B[0] - A[0]) * w; n = A[1] + (B[1] - A[1]) * w; dir = Math.atan2(B[0] - A[0], B[1] - A[1]); }
+    Object.assign(out, { sp, e, n, x: 0, z: 0, yaw: walking ? dir : h01(s, k, 6) * 6.28 + 0.4 * Math.sin(c.t * 0.5 + j), phase: (2 * Math.PI * c.t * 0.25) / 0.22, walk: walking ? 1 : 0,
       graze: !walking && fr(c.t * 0.9 + j * 0.37) < 0.45 ? 1 : 0, lie: 0, coat: h01(s, 9) });
     sc.s = 0.85 + 0.3 * h01(s, 11); return out;
   }
