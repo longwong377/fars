@@ -9936,6 +9936,10 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   a_wo_shaduf, a_wo_pontoon); waterworks.ts places ~127 shadufs on the river and canal banks within 12 km (every ~420 m /
   ~330 m, sides alternating, none near a ford or on a road) with a 'lift' spot each for C1, and a bridge of boats on the
   royal road over the Kur whose deck rides on the river's level of the day.
+- Real plants (Vagon's 26 Poly Haven downloads, the lead's ask): 23 scans built (ph_props.mjs; region-wrong ones rejected:
+  moss, a succulent, the fruit model, a garden tree), 11 MB. groundFlora.ts gains four kinds drawn only from scans: wild shrubs
+  (Searsia, a broom-like bush), bunch grasses (straw by summer; also at the water), dead wood (rare) and the spring flowers
+  (March-May); the old kinds prefer the scans over the modelled cards (the T4's pale floating blobs). Memo keys widened (x8).
 
 ## D-720 Follow thirty: the people answer from their own lives without the model, and the town's deeds and yesterday reach their talk (session 18, cloud C8; UD-07, UD-08, UD-11, UD-21, UD-24, UD-32)
 - Measured (tools/dev/follow30.ts; REVIEWS/follow30.json): thirty people drawn by seed across the town, the villages, the Terrace's
