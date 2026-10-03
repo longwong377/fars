@@ -8,6 +8,11 @@
 - Crouched, the visible body is hidden (the kit has no crouch pose): PLACEHOLDER in that state only.
 - tests/plain.test.ts fails (106 meshes > 40); it fails the same way on cloud-s17-int.
 
+- **Final run on cloud-s17-int (00:20 UTC, with V3's people and everyone's merges), day 25 at 10:00:** Terrace 36/40
+  (was 34; the 4 misses are still people), town 35/40 (2 are the unroutable q_s2 pen; 2 are unexplained: the player's 0.5 m capsule stopped against party walls (q_s2-0013/0022, 0042/0054) near street doors; C1 checked that their route legs are valid for a 0.56 m body, so the next look is the walker at those two doors; 1 is a passer-by in a lane). Doors with people: Terrace 118/130,
+  street 555/598, inner 502/503; 37 failures touch a person standing in the opening. The V3/C10 ask for standing people
+  to make way still holds.
+
 **What a player now notices**
 - Weight: the body starts and stops over about a step. Paces: careful 0.8 m/s (Alt), walking 1.35, brisk 1.95 (Shift; was a 3.2 jog). Crouch is C. Slopes slow the body.
 - The head bobs ±1.8 cm, lowest at each footfall, and settles when you stop (it used to freeze mid-bob). Sway, a landing dip and a breath at rest.
