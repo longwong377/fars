@@ -157,7 +157,7 @@ for (const v of pick) {
     await page.evaluate(() => window.__parsa.step(10, 1 / 30, 0));
     // after a time jump the placement is whole only when the sim has caught up (sim.catchingUp false; a dt-0 tick finishes it)
     const cu = await page.evaluate(async () => { const a = window.__parsa; let k = 0; while (a.world.people?.sim?.catchingUp && k < 200) { await a.tick(); k++; } return { ticks: k, catchingUp: !!a.world.people?.sim?.catchingUp }; });
-    await page.evaluate(() => window.__parsa.step(5, 1 / 30, 0));
+    await page.evaluate(() => window.__parsa.step(60, 1 / 30, 1)); // 2 s with the clock running: walkers are mid-walk (a frozen clock never reads 'moving')
     const r = await page.evaluate(readView); r.catchUp = cu;
     results.push({ view: v.id, why: v.why, day: v.day, hour: v.hour, ms: Date.now() - t1, ...r });
     console.log(T(), v.id, r.error ?? `sim<60m ${r.simNear60}, rows ${r.rows.length}`);

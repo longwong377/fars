@@ -66,20 +66,21 @@ export function installRenderSafetyNet(renderer: THREE.WebGPURenderer) {
   R._handleObjectFunction = R._renderObjectDirect;
 }
 
-/** D-740 (s18, the T4's last validation error: "[Buffer bindingBuffer863] used in submit while destroyed" on a
- *  MeshBasicNodeMaterial): a material or geometry disposed while a mesh in the scene still draws it frees the GPU buffers that
- *  mesh binds, and the next submit is invalid as a whole (nothing of the frame is drawn). Such a dispose is refused (a small
- *  leak, or a later dispose once the mesh has left the scene) and logged once with the mesh's path and the material's name
- *  (window.__liveDisposals), so the disposer can be fixed. Disposals of things no mesh in the scene uses go through. */
-export function guardLiveDisposals(scene: THREE.Object3D, T: { Material: any; BufferGeometry: any }) {
-  const log: Record<string, number> = ((globalThis as any).__liveDisposals = {}), cost = ((globalThis as any).__disposeChecks = { n: 0, ms: 0 });
-  const userOf = (x: any, geo: boolean) => { let hit: any = null; scene.traverse((o: any) => { if (hit || !o.isMesh && !o.isLine && !o.isPoints && !o.isSprite) return;
-    if (geo ? o.geometry === x : (Array.isArray(o.material) ? o.material.includes(x) : o.material === x)) hit = o; }); return hit; };
-  const pathOf = (o: any) => { const p: string[] = []; for (let x = o; x && p.length < 5; x = x.parent) p.push(x.name || x.type); return p.join(' < '); };
-  for (const [C, geo] of [[T.Material, false], [T.BufferGeometry, true]] as const) {
-    const proto = C.prototype; if (proto.__parsaLiveGuard) continue; proto.__parsaLiveGuard = true; const dispose = proto.dispose;
-    proto.dispose = function (this: any) { const t0 = performance.now(), u = userOf(this, geo); cost.n++; cost.ms += performance.now() - t0;
-      if (u) { const k = `${geo ? 'geometry' : 'material'} ${this.name || this.type} on ${pathOf(u)}`; if (!(k in log)) { log[k] = 0; console.warn(`[render] dispose refused: ${k} is still drawn (D-740); fix the disposer`); } log[k]++; return; }
-      return dispose.call(this); };
-  }
+/** D-740 (s18, the T4's black screen: "[Buffer bindingBuffer…] used in submit while destroyed" in the shadow pass): a
+ *  dispose() runs at once, while the frame being built may already have bound what it frees (the shadow passes are encoded
+ *  before the scene's updates finish; a material's dispose frees every binding of every object using it), and WebGPU then
+ *  rejects the whole submit: nothing of the frame is drawn. Every dispose of a geometry, material, texture or render target
+ *  is deferred here: it runs `frames` frames later (tick() once a frame, main.ts), or after 2 s when no frame is being drawn
+ *  (the world's build). What is disposed and then used again is simply re-uploaded by three. window.__deferredDisposals counts. */
+export function deferDisposals(T: { Material: any; BufferGeometry: any; Texture: any; RenderTarget?: any }, frames = 3) {
+  const Q: { f: number; t: number; run: () => void }[] = [], st = ((globalThis as any).__deferredDisposals = { queued: 0, run: 0, max: 0 }); let frame = 0, lastTick = 0;
+  const drain = (force: boolean) => { const now = performance.now(); let k = 0;
+    while (k < Q.length && (force || frame - Q[k].f >= frames || (now - lastTick > 2000 && now - Q[k].t > 2000))) k++;
+    const due = Q.splice(0, k); for (const d of due) { try { d.run(); st.run++; } catch (e) { console.warn('[render] deferred dispose failed', e); } } };
+  for (const C of [T.Material, T.BufferGeometry, T.Texture, T.RenderTarget]) { const proto = C?.prototype; if (!proto || proto.__parsaDeferred) continue; proto.__parsaDeferred = true;
+    const dispose = proto.dispose;
+    proto.dispose = function (this: any, ...a: any[]) { if (this.__disposeQueued) return; this.__disposeQueued = true;
+      Q.push({ f: frame, t: performance.now(), run: () => { this.__disposeQueued = false; dispose.apply(this, a); } }); st.queued++; st.max = Math.max(st.max, Q.length); }; }
+  setInterval(() => drain(false), 1000);
+  return { /** once a frame, before it is built */ tick: () => { frame++; lastTick = performance.now(); drain(false); }, flush: () => drain(true) };
 }

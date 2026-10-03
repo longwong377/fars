@@ -237,5 +237,12 @@
   "yard_share_town": 0.18,
   "evidence": "D-771 (s18 C12): the domestic cat kept in Egypt for millennia and known in the Near East; the town has Egyptian households and grain stores; mousers in the yards probable (C). No Achaemenid image or text of a cat was read.",
   "place": "in about a sixth of the town's house yards: lying in the sun or the shade by day, about the yard at dusk and dawn, off over the wall when someone comes close (C)"
+ },
+ "donkey": {
+  "tier": "C",
+  "src": "EVENTS-R;RECON",
+  "door_share_town": 0.08,
+  "evidence": "Pack donkeys carry the grain to the royal stores (E-06, E-06b: 4-40 to a delivery, C) and E-49 lists donkeys with the transhumant bands; a household beast of burden for water, fuel and goods is the Near Eastern norm from the Bronze Age to the last century (C, by analogy). No count of household donkeys at Parsa was read.",
+  "place": "in about one town house in twelve whose door gives on a lane: tied alongside the wall outside the door from mid-morning to late afternoon on the days it is not out on an errand, standing hipshot, head down at a little fodder now and then, braying now and then; in the yard at night (C; s18 C14 D-790)"
  }
 }
