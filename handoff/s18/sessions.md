@@ -21,3 +21,4 @@ Ownership added during the session: C4 + src/world/(fire,firePlaces).ts (night l
 
 Ownership added after C12's audit (04:35): C2 + src/world/settlement/surfaces.ts and the town-shape rule (plan.ts:43 goes); C10 + src/render/(grime,scans).ts; C5 + src/core/settings.ts playerMode default (visitor) and the player's lamp.
 | C14 people up close and the last procedural animals | src/people/(humans,humanAssets,humanFormat,humanGPU,humanMaterial,humanRig,humanScans,body,bodyShape,drape,softbody,marks,mocap,mocapClips,anim,peopleModels,impostors).ts, src/people/(animalForm,animalModels,animalReal,animalRig,animals).ts | cloud-s18-c14-faces | session_01TrboZqCfzNnJ2kLM351EqN |
+| C15 beyond the Terrace (Naqsh-e Rustam, estates, villages) | src/world/plain/(naqsh,villagehouses,villages,villagesite).ts (from C3), src/world/settlement/compounds.ts + plan.ts:274-358 (estates/pavilion/halls block) | cloud-s18-c15-beyond | session_01U22hbmA1DxZZUchN136wkU |
