@@ -1,0 +1,33 @@
+{
+ "cues": {
+  "main_theme": {
+   "title": "Pārsa (main theme)",
+   "tags": [
+    "main",
+    "film"
+   ],
+   "seconds": 146.13,
+   "marks": {
+    "night": 0,
+    "call": 8.219,
+    "theme": 24.213,
+    "heartbeat": 39.281,
+    "build": 54.392,
+    "tutti": 68.514,
+    "trumpets": 82.228,
+    "rise": 95.942,
+    "summit": 116.616,
+    "title": 124.718,
+    "coda": 128.929,
+    "last": 137.822,
+    "end": 146.129
+   },
+   "bytes": {
+    "ogg": 2506389,
+    "m4a": 2431335
+   },
+   "lufs": -16,
+   "tp": -1.5
+  }
+ }
+}
