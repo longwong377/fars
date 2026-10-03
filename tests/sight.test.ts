@@ -76,3 +76,18 @@ describe('people react to the stranger on sight (D-385)', () => {
     const n0 = v.talk.events.length; v.strangerSeen(kids, at); expect(v.talk.events.length).toBe(n0);
   });
 });
+
+describe('D-720 (the holes audit 4-1): a stranger where he has no right to be', () => {
+  const sim = simAt(1, D, H, { asks: true }); const t = D * 24 + H, P = sim.pop;
+  it('the house shouts him out of its rooms (once a day, the house\'s trust down, the lane told); a guest is welcome', () => {
+    // someone awake at home at this hour, 12 or over
+    const pid = P.persons.findIndex(p => P.present(p.id, D) && P.ageOn(p.id, D) >= 16 && (() => { const s = segAt(P.plan(p.id, D), H); return s.place === `h:${P.home(p.id, D)}` && s.act !== 'sleep'; })());
+    expect(pid).toBeGreaterThanOrEqual(0); const hhN = P.home(pid, D), hh = `h:${hhN}`, E = sim.econTo(D); const tr0 = E.trust!.trustOf(hh, 'player', D);
+    const near = [{ pid, e: 1, n: 0 }], r = reactions(sim, near, { e: 0, n: 0, inside: { kind: 'house', hh: hhN } }, t)[0];
+    expect(r.kind).toBe('stare'); expect(r.challenge).toBe(true); expect(r.why).toMatch(/uninvited/);
+    expect(E.trust!.trustOf(hh, 'player', D)).toBeLessThan(tr0); expect(sim.deeds.minds.feelOf(pid, 'player', D).anger).toBeGreaterThan(0.2);
+    const tr1 = E.trust!.trustOf(hh, 'player', D); reactions(sim, near, { e: 0, n: 0, inside: { kind: 'house', hh: hhN } }, t); expect(E.trust!.trustOf(hh, 'player', D)).toBe(tr1); // (once a day)
+    // not inside: no challenge
+    expect(reactions(sim, near, { e: 0, n: 0 }, t)[0]?.challenge).toBeUndefined();
+  });
+});

@@ -265,7 +265,7 @@ const NEWS_WORDS: Record<string, string> = { death: 'a death in', illness: 'sick
   wrong: 'a wrong done by', insult: 'an insult given by', curse: 'a cursing by', threaten: 'threats made by', assault: 'a beating given by', damage: 'damage done by', slander: 'slander spread by', threat_to_child: 'a child threatened by',
   feud: 'a feud with', fine: 'a fine laid on', fined: 'a fine laid on', hearing: 'a hearing for',
   // (D-375: the town's talk of the stranger)
-  hosted: 'the stranger taken in as a guest by', guest_sent_away: 'the stranger sent away by', ingrate: 'the stranger leaving without a word of thanks to', guest_repaid: 'the stranger\'s gift in thanks to',
+  hosted: 'the stranger taken in as a guest by', trespass: 'the stranger walking uninvited into', guest_sent_away: 'the stranger sent away by', ingrate: 'the stranger leaving without a word of thanks to', guest_repaid: 'the stranger\'s gift in thanks to',
   claim_denied: 'the stranger\'s lie found out by', claim_doubted: 'the stranger\'s tale doubted by', hired_stranger: 'the stranger hired as a hand by', dismissed: 'the stranger dismissed by', ruling_for: 'a ruling for the stranger against', ruling_against: 'a ruling against the stranger, in a matter of', joined_house: 'the stranger taken into', learned_tongue: 'the stranger speaking the tongue of' };
 function talkOf(pop: Population, hh: number, day: number, age: number): { needs: string[]; news: string[] } {
   const A = age >= 12 ? pop.asksNow?.(`h:${hh}`, day) ?? null : null; if (!A) return { needs: [], news: [] };

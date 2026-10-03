@@ -347,6 +347,16 @@ export class DeedWorld {
     out.push(...this.law.briefOf(pid, day), ...this.joint.briefOf(pid, day), ...this.agency.briefOf(pid, day)); // (D-461: what they are set on, and their mood)
     return out;
   }
+  /** D-720 (the holes audit 4-1): the stranger found where he has no right to be (sight.ts 'challenge'), once a place and day: the
+   *  one who found him angry and wary of him, the house's trust in him down, and the talk of it put into the rumour net to travel
+   *  the houses' ties (a 'trespass' rumour: the town keeps away from him as from a thief, sight.ts BAD_NEWS) */
+  private trespassSeen = new Set<string>();
+  trespassed(pid: number, hh: string, t: number, where: string) {
+    const day = Math.floor(t / 24), k = `${where}|${hh}|${day}`; if (this.trespassSeen.has(k)) return; this.trespassSeen.add(k); if (this.trespassSeen.size > 400) this.trespassSeen.clear();
+    this.minds.move(pid, 'player', { anger: where === 'house' ? 0.35 : 0.2, fear: 0.1, resp: -0.1 }, day);
+    const E = this.w.econ(day); if (E?.trust && E.hh.has(hh)) E.trust.note(hh, 'player', where === 'house' ? -0.25 : -0.1, day);
+    const R = this.w.rumours(); if (R && E?.hh.has(hh) && where === 'house') R.inject(day, hh, 'trespass', 1, hh, 'player');
+  }
   /** a person's wound now (the renderer's and the marks' hook) */
   injuryOf(pid: number, day: number) { const i = this.injuries.get(pid); return i && i.until > day ? i : null; }
 
