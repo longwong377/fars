@@ -319,7 +319,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // the tests' day 0, else the new game's day; a continued game's other day bakes at its first frame as before)
   const prebakeTrees = () => { const P = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams(); const d = P.has('day') || P.has('test') || P.has('bench') ? +(P.get('day') ?? 0) : newGameStart(seed, settings?.courtCalendar === 'seasonal').day; TreeKit.peek()?.prebake(doyOf(d)); };
   prebakeTrees();
-  const wvfx = new WeatherVfx({ test: 1500, low: 2500, medium: 5000, high: 8000, ultra: 12000 }[q]); root.add(wvfx.group);
+  const wvfx = new WeatherVfx({ test: 1500, low: 2500, medium: 5000, high: 8000, ultra: 12000 }[q]); root.add(wvfx.group); wvfx.ground = (x, z) => terrain.surfaceAt(x, z); // (V5 D-521: the rain's splashes land on the walked surface)
   const shafts = new RainShafts(terrain); root.add(shafts.group); // distant rain cells approaching on the wind
   void QUALITY;
   // Phase 7: the Marvdasht plain (src/world/plain; plain.json): rivers, canals, fields, orchards, villages, Naqsh-e Rustam

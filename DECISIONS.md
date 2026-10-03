@@ -9622,6 +9622,9 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   the head at each edge (one rim stood the upper edge off the sloping forehead: a halo). A skirted walker's knee folds less in
   the swing (SKIRT_KNEE): the heel no longer kicks out through the back of a long dress or robe. people_cloth rebuilt and
   reproduced; the Cycles impostors re-rendered on the new posture and garments.
+- (D-500, step 6) Short sleeves' settled cloth capped at 1.2 cm proud of the arm (applyDrape capOut, outfits DRAPE_CAP: the
+  caps settled 3 cm out, epaulettes on every working man); talkers' arms 60 % back to standing. people_cloth and people_hair
+  rebuilt and reproduced.
 - **D-511 (V4, under D-510): the double-bull protome capitals from the licensed sculpts (B360 closed).** The protome of every
   bull and composite capital (210) is two kneeling bull fore-parts back to back cut from the D-510 W bull (the lamassu
   sculpt's chest, curl rows and forelegs with the bull-head scan): cut at the shoulder where the colossus stands in the round
@@ -9713,6 +9716,32 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   (glazed.ts doorFriezeFaces + the shared band builder): both broad faces, border courses and ground with rosettes, the
   courses fitted to each part's height (10 courses, 5 rosettes a face), a child mesh of the Apadana frieze (one draw; the
   Apadana frieze's own test unchanged). Colours, layout C as D-214.
+- (D-500, close) Cycles impostors re-rendered after the last cloth change; report handoff/s17/report_people.md.
 - light v2b (D-480 cont.): the cloud deck fades out between 30 and 60 km (the march at grazing angles smeared the noise into
   streets converging on the vanishing point: cov-000's horizon fan; gone in the lab), and the night toe lift eases by up to
   75 % under a bright moon (GRADE.nightLift from the SkySystem): the moonlit plain p50 73 → 52, the moonless one unchanged (17).
+
+
+## D-521 (s17, V5): rain that reads (mixed streaks, splashes), dust that shows, a weather probe
+- weatherVfx.ts: each drop its own streak length (0.45-1.25 x) and brightness, the sheet's opacity 0.5 -> 0.34 (a uniform
+  sheet of equal streaks read as scratches on the lens); splashes where drops land within 9 m of the eye (a crown and a
+  rebound droplet, ~0.3 s, closed form in time; brighter than the streak: the sky in the water), none under the halls' roofs;
+  world.ts hook (one line): wvfx.ground = terrain.surfaceAt. shader_build counts the new mesh.
+- dust.ts: the puffs' optical depths 6-10x (the first pass's read as nothing in the probe: tau 0.05-0.12), longer lives,
+  more puffs per animal; a billowing edge (two noise octaves) instead of a disc.
+- tools/dev/weather_probe.{html,ts,mjs}: the plain (plain_probe's ?lite ground, flora, rocks) with the game's Animals in
+  flocks and strings, their dust, the rain, the wet ground and breath; views rain-spring, wet-after, dust-june, herd-5m,
+  herd-30m, cold-morning. Frames judged: shots/wx-*-w6.png (not committed).
+- Not mine, seen in the probe: the wet plain is darker but matte (no sheen, no puddles: the ground material, V2/C2); the
+  ground flora draws black spiky cards on the plain (groundFlora, C2).
+
+## D-522 (s17, V5): the season's palette in one place (season.ts SEASON_PALETTE)
+- The herb layer's green and straw and the stubble's colours lived as copies in materials.ts, terrainPlain.ts (twice),
+  water.ts and groundCover.ts; they now read season.ts SEASON_PALETTE (one-line hooks in each). Spring green moved from an
+  olive (0.31, 0.36, 0.18) that read as summer khaki to a young green (0.34, 0.45, 0.16); straw a little warmer. How much of
+  the ground the herbs cover stays the ground materials' (C2, V2). Probe: shots/pp-small-spring-field-s1.png.
+
+## D-523 (s17, V5): wet coats in the rain
+- animals.ts: a library model's coat darkens to ~0.6 of its albedo with the weather's surface wetness (WEATHER.wetness, the
+  ground's own uniform), loses its fuzz rim and takes a duller sheen. Probe: shots/wx-rain-spring-w7.png, wx-herd-30m-w7.png
+  (the spring green of D-522 reads on the plain at 30 m).

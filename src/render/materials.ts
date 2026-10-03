@@ -11,6 +11,7 @@
 // side of the hairline joint; on the architecture's own meshes (surfaceMaterial(…, { arch: true }), whose vertices carry
 // the part's base height and, for hall floors, the floor's box) a splash and dust band at the foot of walls and traffic
 // wear along the floors' axes; indirect specular from the sky environment (envmap.ts) on the smoother surfaces.
+import { SEASON_PALETTE } from '../world/season';
 import { receiveReliefShadow, RELIEF_SHADOW_FLAG } from './reliefShadow';
 import * as THREE from 'three/webgpu';
 import { uniform, positionWorld, normalWorld, normalView, positionView, mx_noise_float, mx_worley_noise_float, mx_worley_noise_vec2, vec2, vec3, float, mix, smoothstep, max, min, clamp, color, abs, fract, step, attribute, sign, fwidth, exp, floor, dot, cameraViewMatrix, vec4, texture, positionGeometry, atan, sin, cos, instanceIndex, normalGeometry, mx_worley_noise_float_2d, textureLoad, ivec2, int, sqrt } from 'three/tsl';
@@ -1053,7 +1054,7 @@ function layer(d: SurfaceDef, base: any, arch = false, band = false): Layer {
     const patch = mix(fine, dens, far);
     const up = smoothstep(0.8, 0.97, n.y);
     const cover = patch.mul(up).mul(d.herbs);
-    const green = color(new THREE.Color().setRGB(0.31, 0.36, 0.18, THREE.SRGBColorSpace)), straw = color(new THREE.Color().setRGB(0.62, 0.55, 0.36, THREE.SRGBColorSpace));
+    const green = color(new THREE.Color().setRGB(...SEASON_PALETTE.green, THREE.SRGBColorSpace)), straw = color(new THREE.Color().setRGB(...SEASON_PALETTE.straw, THREE.SRGBColorSpace)); // (V5 D-522: season.ts)
     const veg = mix(straw, green, SEASON.green.div(SEASON.green.add(SEASON.dry).max(0.001)));
     const tint = float(1).add(mx_noise_float(q.mul(1.3).add(9.1)).mul(0.12)).add(mott.mul(1.5)); // tuft-to-tuft tone
     const amount = cover.mul(SEASON.green.add(SEASON.dry).min(1)).mul(0.85);

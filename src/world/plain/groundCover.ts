@@ -12,6 +12,7 @@
 //    the paths, the camps and the tether lines (townGround.ts trample), and a little on the steppe (the herds graze it).
 // All C (the rules and densities); the grasses' species by the scans' forms (C). Positions are a hash of (seed, 2 m cell);
 // three levels by distance, drawn from one atlas (one material): one InstancedMesh per piece and level.
+import { SEASON_PALETTE } from '../season';
 import * as THREE from 'three/webgpu';
 import { sharedDraco } from '../../render/loaders';
 import { texture, uv, vec3, dot, attribute, max, smoothstep } from 'three/tsl';
@@ -32,7 +33,7 @@ export const COVER_KINDS: Record<CoverKind, { ids: string[]; size: [number, numb
   dung: { ids: ['dung_pat', 'dung_horse', 'dung_sheep'], size: [0.16, 0.3], cap: 250 },
 };
 /** the herb layer's colours (terrainPlain.ts veg: straw and green, sRGB), the stubble's straw fresh and grazed-grey, the dung */
-const COL = { straw: [0.62, 0.55, 0.36], green: [0.31, 0.36, 0.18], stubble: [0.72, 0.64, 0.42], stubbleOld: [0.58, 0.55, 0.47], dung: [0.30, 0.25, 0.18] } as const;
+const COL = { ...SEASON_PALETTE, dung: [0.30, 0.25, 0.18] } as const; // (V5 D-522: the season's palette lives in season.ts)
 function h32(...v: number[]) { let h = 2166136261 >>> 0; for (const x of v) { h = Math.imul(h ^ (x | 0), 16777619) >>> 0; h = Math.imul(h ^ (h >>> 15), 2246822519) >>> 0; } return h >>> 0; }
 const u01 = (...v: number[]) => h32(...v) / 4294967296;
 const lin = (c: readonly number[], k = 1) => { const q = new THREE.Color().setRGB(c[0] * k, c[1] * k, c[2] * k, THREE.SRGBColorSpace); return [q.r, q.g, q.b] as [number, number, number]; };

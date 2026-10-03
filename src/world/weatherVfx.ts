@@ -17,7 +17,7 @@
 import * as THREE from 'three/webgpu';
 import { colourOnly } from '../render/fx';
 import { roofedNode } from '../render/probes/roofs';
-import { attribute, vec4, float, uv, smoothstep, uniform, length, vec2, clamp } from 'three/tsl';
+import { attribute, vec4, float, uv, smoothstep, uniform, length, vec2, clamp, abs, max, mix } from 'three/tsl';
 import { Rng } from '../core/rng';
 
 /** streak / flake geometry (m) and the volumes round the eye (C) */
@@ -39,6 +39,14 @@ export class WeatherVfx {
   private drops: Float32Array; private flakes: Float32Array;
   private rainFade: THREE.InstancedBufferAttribute; private snowFade: THREE.InstancedBufferAttribute;
   private rng = new Rng(1, 'weather-vfx');
+  /** V5 D-521: each drop's own streak length (x RAIN_L) and brightness: a uniform sheet of equal streaks read as scratches on
+   *  the lens; real rain mixes drop sizes (C) */
+  private dropLen: Float32Array; private dropAlpha: Float32Array;
+  /** V5 D-521: the splashes on the ground round the eye: a crown and a rebound droplet where a drop lands, ~0.3 s each (C);
+   *  drawn only where the ground is known (set by the world: ground) and not under the halls' roofs */
+  ground: ((x: number, z: number) => number) | null = null;
+  private splash: THREE.InstancedMesh; private splashPh: THREE.InstancedBufferAttribute; private t = 0;
+  static readonly SPLASH_R = 9;
   readonly flash = new THREE.DirectionalLight(0xdfe6ff, 0);
   /** the radiance a streak and a flake show (renderer units; set each frame from the sky: setLight) */
   private uRain = uniform(new THREE.Color(0.5, 0.52, 0.56)); private uFlake = uniform(new THREE.Color(0.8, 0.8, 0.84));
@@ -49,6 +57,8 @@ export class WeatherVfx {
     this.group.name = 'weather-vfx';
     this.maxFlakes = maxDrops * 2;
     this.drops = new Float32Array(maxDrops * 3); this.flakes = new Float32Array(this.maxFlakes * 3);
+    this.dropLen = new Float32Array(maxDrops); this.dropAlpha = new Float32Array(maxDrops);
+    for (let i = 0; i < maxDrops; i++) { const k = this.rng.next(); this.dropLen[i] = 0.45 + 0.8 * k * k; this.dropAlpha[i] = 0.45 + 0.55 * this.rng.next(); }
     for (let i = 0; i < maxDrops; i++) { const a = this.drops; a[i * 3] = (this.rng.next() - 0.5) * 2 * RAIN_VOL.R; a[i * 3 + 1] = this.rng.next() * RAIN_VOL.H; a[i * 3 + 2] = (this.rng.next() - 0.5) * 2 * RAIN_VOL.R; }
     for (let i = 0; i < this.maxFlakes; i++) { const a = this.flakes; a[i * 3] = (this.rng.next() - 0.5) * 2 * SNOW_VOL.R; a[i * 3 + 1] = this.rng.next() * SNOW_VOL.H; a[i * 3 + 2] = (this.rng.next() - 0.5) * 2 * SNOW_VOL.R; }
     const streak = new THREE.PlaneGeometry(RAIN_W, RAIN_L);
@@ -56,7 +66,7 @@ export class WeatherVfx {
     const rm = colourOnly(new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide, fog: true }));
     const u = uv(), fr = attribute('aFade', 'float');
     rm.colorNode = vec4(this.uRain, 1);
-    rm.opacityNode = smoothstep(0.0, 0.4, u.y).mul(smoothstep(0.6, 1.0, u.y).oneMinus()).mul(0.5).mul(fr).mul(float(1).sub(roofedNode())); // no rain under the halls' roofs (session 5)
+    rm.opacityNode = smoothstep(0.0, 0.45, u.y).mul(smoothstep(0.55, 1.0, u.y).oneMinus()).mul(0.34).mul(fr).mul(float(1).sub(roofedNode())); // no rain under the halls' roofs (session 5)
     this.rain = new THREE.InstancedMesh(streak, rm, maxDrops); this.rain.frustumCulled = false; this.rain.count = 0;
     const flake = new THREE.PlaneGeometry(FLAKE, FLAKE);
     this.snowFade = new THREE.InstancedBufferAttribute(new Float32Array(this.maxFlakes).fill(1), 1); this.snowFade.setUsage(THREE.DynamicDrawUsage); flake.setAttribute('aFade', this.snowFade);
@@ -67,7 +77,21 @@ export class WeatherVfx {
     this.snow = new THREE.InstancedMesh(flake, sm, this.maxFlakes); this.snow.frustumCulled = false; this.snow.count = 0;
     this.rain.userData = { tier: 'C', note: 'rain streaks round the eye: lit by the skylight, ≥ 1 px wide with their light conserved (D-219)' };
     this.snow.userData = { tier: 'C', note: 'snowflakes round the eye: white scatterers under the skylight and a quarter of the sun, ≥ 1 px (D-219)' };
-    this.group.add(this.rain, this.snow, this.flash, this.flash.target);
+    // the splashes: a crown ring that widens and thins, and a rebound droplet that rises and falls, on an upright card turned to
+    // the eye about the vertical (aSplash: x the splash's age 0-1, y its brightness)
+    const sg = new THREE.PlaneGeometry(1, 1).translate(0, 0.5, 0); const NS = Math.max(64, Math.floor(maxDrops / 6));
+    this.splashPh = new THREE.InstancedBufferAttribute(new Float32Array(NS * 2), 2); this.splashPh.setUsage(THREE.DynamicDrawUsage); sg.setAttribute('aSplash', this.splashPh);
+    const spm = colourOnly(new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide, fog: true }));
+    const sa = attribute('aSplash', 'vec2'), age = sa.x, cx = u.x.sub(0.5).mul(2), cy = u.y;
+    // the crown: an ellipse (seen from the side) of radius growing with the age, its rim thin; the droplet: a dot above it
+    const rr = age.mul(0.85).add(0.15), ring = length(vec2(cx.div(rr), cy.sub(0.08).mul(5))), crown = smoothstep(0.75, 0.95, ring).mul(float(1).sub(smoothstep(1.0, 1.25, ring))).mul(float(1).sub(smoothstep(0.0, 0.35, cy)));
+    const dropY = age.mul(1.6).sub(age.mul(age).mul(1.7)).add(0.12), dot = float(1).sub(smoothstep(0.05, 0.16, length(vec2(cx, cy.sub(dropY)))));
+    spm.colorNode = vec4(this.uRain.mul(2.6), 1); // (a splash shows the sky it reflects and refracts: brighter than the streak's mean surroundings, C)
+    spm.opacityNode = max(crown.mul(float(1).sub(age)), dot.mul(float(1).sub(age).mul(0.8))).mul(sa.y).mul(0.55).mul(float(1).sub(roofedNode()));
+    this.splash = new THREE.InstancedMesh(sg, spm, NS); this.splash.frustumCulled = false; this.splash.count = 0; this.splash.name = 'weather:splash';
+    this.splash.userData = { tier: 'C', note: 'raindrops splashing on the ground round the eye: crown and rebound droplet, ~0.3 s each (V5 D-521)' };
+    void abs; void mix;
+    this.group.add(this.rain, this.snow, this.splash, this.flash, this.flash.target);
   }
   /** the light the streaks and flakes show: the hemisphere light (sky colour, ground colour, intensity: irradiance) and the
    *  sun's irradiance at normal incidence (colour × intensity, 0 when hidden) */
@@ -86,7 +110,7 @@ export class WeatherVfx {
     const nHail = Math.floor(this.maxFlakes * 0.6 * Math.min(1, cond.hail ?? 0)), hailing = nHail > nSnow, ns = Math.max(nSnow, nHail), fall = hailing ? 14 : 1.0, sway = hailing ? 0 : 0.3, drift = hailing ? 0.3 : 0.8;
     const wrap = (v: number, c: number, r: number) => { const d = v - c; return c + (((d + r) % (2 * r)) + 2 * r) % (2 * r) - r; };
     // rain: 6.5 m/s fall (C, typical drop terminal velocity), tilted by wind
-    const axis = new THREE.Vector3(-wx, 6.5, -wz).normalize(), ax = new THREE.Vector3(), rt = new THREE.Vector3(), fw = new THREE.Vector3(); // (up along the streak)
+    const axis = new THREE.Vector3(-wx, 6.5, -wz).normalize(), ax = new THREE.Vector3(), axL = new THREE.Vector3(), rt = new THREE.Vector3(), fw = new THREE.Vector3(); // (up along the streak)
     { const { R, H } = RAIN_VOL;
       for (let i = 0; i < nr; i++) {
         const a = this.drops; a[i * 3] += wx * dt; a[i * 3 + 1] -= 6.5 * dt; a[i * 3 + 2] += wz * dt;
@@ -96,9 +120,21 @@ export class WeatherVfx {
         // the streak along the drop's velocity (fall + wind), turned about that axis to face the eye (session 7 turned each
         // streak by the same signed angle in its own facing frame: streaks leant both ways across the frame)
         ax.copy(axis); rt.set(cp.x - x, cp.y - y, cp.z - z).cross(ax); if (rt.lengthSq() < 1e-8) rt.set(1, 0, 0); rt.normalize(); fw.crossVectors(rt, ax);
-        m4.makeBasis(rt.multiplyScalar(mp.scale), ax, fw).setPosition(x, y, z); this.rain.setMatrixAt(i, m4); this.rainFade.setX(i, mp.fade * nearFade(d));
+        m4.makeBasis(rt.multiplyScalar(mp.scale), axL.copy(ax).multiplyScalar(this.dropLen[i]), fw).setPosition(x, y, z); this.rain.setMatrixAt(i, m4); this.rainFade.setX(i, mp.fade * nearFade(d) * this.dropAlpha[i]);
       } }
     this.rain.count = nr; this.rain.instanceMatrix.needsUpdate = nr > 0; this.rainFade.needsUpdate = nr > 0;
+    // the splashes (closed form in time: splash i lands at a hashed spot in its n-th cycle; the eye's disc wraps them)
+    this.t += dt;
+    { const NS = this.splash.instanceMatrix.count, ns = this.ground ? Math.floor(NS * Math.min(1, cond.rain * 1.2)) : 0, R = WeatherVfx.SPLASH_R, life = 0.32;
+      const h = (a: number, b: number) => { const v = Math.sin(a * 12.9898 + b * 78.233) * 43758.5453; return v - Math.floor(v); };
+      const qy = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), ph = this.splashPh.array as Float32Array; let k = 0;
+      for (let i = 0; i < ns; i++) {
+        const c = this.t / life + h(i, 7), n = Math.floor(c), age = c - n, a = 6.2832 * h(i, n), r = R * Math.sqrt(0.02 + 0.98 * h(n, i + 0.5));
+        const x = cp.x + r * Math.cos(a), z = cp.z + r * Math.sin(a), y = this.ground!(x, z); if (!Number.isFinite(y) || y > cp.y) continue;
+        const d = Math.hypot(x - cp.x, y - cp.y, z - cp.z), size = (0.07 + 0.06 * h(i, n + 3)) * Math.max(1, d * pxAngle / 0.02);
+        qy.setFromAxisAngle(up, Math.atan2(cp.x - x, cp.z - z)); m4.compose(pos.set(x, y, z), qy, scl.set(size * 1.6, size, 1)); this.splash.setMatrixAt(k, m4);
+        ph[k * 2] = age; ph[k * 2 + 1] = (0.5 + 0.5 * h(i, n + 9)) * nearFade(d) * Math.min(1, 9 / Math.max(1, d)); k++; }
+      this.splash.count = k; if (k) { this.splash.instanceMatrix.needsUpdate = true; this.splashPh.needsUpdate = true; } }
     { const { R, H } = SNOW_VOL;
       for (let i = 0; i < ns; i++) {
         const a = this.flakes; a[i * 3] += (wx * drift + Math.sin(i + a[i * 3 + 1]) * sway) * dt; a[i * 3 + 1] -= fall * dt; a[i * 3 + 2] += (wz * drift + Math.cos(i * 1.3 + a[i * 3 + 1]) * sway) * dt;
