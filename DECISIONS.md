@@ -9894,6 +9894,20 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   stacks, heaps and folds drawn to 2.2 km; crop guards' reed shelters at irrigated plot edges and herders' wattle pens with
   their huts on the fallow (the kit's models), to 2.2 km (fieldFill.ts LAND). Census (plain_census, 18 Apr): bare 3.0 % and
   repeats 0.0 % as in s17; field trees near paths 25 -> 77.
+- Qanats unblocked (the lead's ask from C12's holes audit): Q-052 says no qanat in Fars is dated to the Achaemenids, not that
+  there were none; Polybius 10.28 has the Persian kings rewarding underground water works. By D-207 they are drawn, tier C
+  (qanats.ts): 56 lines (~2,700 shaft mounds, 20-45 m apart, larger upslope) from the hill-foot fans down onto the plain,
+  clear of the zones, Terrace, rivers, roads and villages, in 3 km tiles shown within ~3.2 km. blocklist.json's qanat entry
+  removed, ANACHRONISM_BLOCKLIST.md row marked unblocked, plain.json not_placed line removed, the plain test's banned-name
+  list updated. settlement.json, lives.json (others' files) still say "no qanats" in their notes.
+- Trees (trees/render.ts setDay): every day change after the first bake re-bakes the impostors in the worker, jumps too (C1's
+  sliced day jump made the 1.7 s main-thread bake the worst frame); the far trees follow within a second or two.
+- crossings.ts: one ford per place across roads (D-730's two roads share a line and a ford). tools/plain/meander.ts re-runs
+  (it undoes the last meander from the base course and prior samples it kept); re-run after D-730's rerouted roads.
+- The plain's frame budget (D-040's 2 M at the village wells) after the s17-int merge (+80 k of village door leaves): the fords'
+  and quarries' shared stone mesh cast its 361 k shadow triangles in every frame (the castShadow line sat inside a comment);
+  now within 300 m of a ford or 450 m of a quarry. The river apron in two steps (11 vertices a section, was 13); canal banks
+  at the canals' 25 m trace step (was 12.5).
 
 ## D-720 Follow thirty: the people answer from their own lives without the model, and the town's deeds and yesterday reach their talk (session 18, cloud C8; UD-07, UD-08, UD-11, UD-21, UD-24, UD-32)
 - Measured (tools/dev/follow30.ts; REVIEWS/follow30.json): thirty people drawn by seed across the town, the villages, the Terrace's
@@ -9961,6 +9975,11 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   No src edits (an audit).
 - B580: a landlocked house whose only lane contact is a corner cell keeps a 0.02-0.3 m slot between the two crossing 0.7 m walls whatever door is cut (measured at 10 cm). access.ts' last pass cuts up to three connected cells at that corner (the house's own or a neighbour's; never a door cell or a small plot) back to the lane, the door through the cut (a narrow 0.6 m door allowed there), a neighbour's room the cut strands given an inner door, kept when the house is then at least half reached and no other plot loses a reached place; the cut reaching most is kept. q_s4-0074 (100/100 cells), q_s4-0161 (91/141: its inside split by a narrow inner passage), q_w3-0122 and one more entered. Then a lane pocket no body walks into (q_w2-0077 and q_w2-0082 faced a 40-cell one whose one exit was a one-cell lane, 0.15 m of room) gets its one-cell corridor widened into the larger plot along it (and, if the two wall corners across the junction still leave a diagonal slot, one cell beyond), kept when the pocket is then reached and every plot keeps its reached places (a large yard may lose 0.2 %). Every house of the town can now be entered: shut houses 6 → 0, quarter plot cells reached 99.437 → 99.805 %, lane cells 99.742 → 100 % (reach_census.ts). town_plots.json regenerated. The nav grid (public/generated/nav.i16, tools/build_nav.ts) still holds the old doors: the people do not yet route through the new ones (asked of the lead).
 
+## D-661 The lower-city belt at the Terrace's foot; the houses washed, the doors painted (s18 cloud C2, the lead's call on C12's holes audit #4 and #5)
+- The rule that kept the Terrace's whole approach empty is gone (plan.ts): the town was nine blocks 0.5-2 km out in grass and the first frame an empty field with dark lumps before a lone platform. Five belt quarters (C) join the quarters to the Terrace's foot and run along the roads: q_b1 (N of the road west by q_w1), q_b3 (between q_w3 and the foot), q_b4 (on the road south between the Terrace and q_s1, the road its main street), q_b5 (between q_w1 and the officials' houses), q_b6 (on the road west, the processional way a 14 m main street through it). Kept open: the processional way, the stair's forecourt, the court's camps (court.json), and the people's walkable grid round the Terrace (e −620…262, n −245…185: the nav grid holds no town walls, so a quarter there would let people walk through houses; widening it means rebuilding the nav grid with the town's colliders, not done). Plots 1,505 → 2,244, homes 1,456 → 2,173 (town_plots.json), every one reached (reach_census: 0 shut, lane cells 100 %). The population is unchanged: households take the nearest houses of their zone, so the belt draws people in toward the Terrace and leaves more houses empty further out. Cost: the town's build grows with its plots (~+50 %); measured in the report.
+- The houses all one buff mud: each household's wash over the mud plaster (houses.ts washOf; C: gypsum and lime whites, yellow and red ochre earth washes), 12-52 % of houses white by standing, 10-18 % yellow ochre, 4-10 % red ochre, the rest bare mud; full in the court, thinner on the lane face, fading in the months since the last renewal; the roofs keep their earth coat. Street doors: 60 % bare weathered poplar, the rest painted red ochre, a blue-grey or a green-grey earth (towndoors.ts, an instance tint; C). Five more dyes in the cloths' palette (fillPlan.ts CLOTHS: weld-over-woad green, madder-over-woad purple, weld yellow, bright madder, deep woad) for the awnings, the washing and the market's cloth.
+- C5's q_w1 plot 141 (B691) is not a collider fault: plot index 141 is q_w1-0142, a pen whose street door opens onto a one-cell strip of the pen (its row 34) with the pen's own outer wall 0.8 m behind; the routes reach it (siteReach), the door walk walks into that wall.
+
 ## D-680 (s18, cloud C4): the far sun cascade; the Rahmat streak traced
 - sunShadows.ts: past the last cascade (600 m) nothing had a sun shadow, so the Terrace and town from the plain read flat-lit.
   A fifth, static map fitted to the box of the Terrace and the town (FAR_BOX: east -1480..330, north -1580..840, 4096²,
@@ -10011,3 +10030,48 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   left out; animalModels passes the normals): they flick now (1.5-2.4 cm on donkeys, horses, sheep, dogs, camels). The
   camels' and the dromedary's tails swing (tail_r 0.06 / 0.07; a library tail's lever capped at 0.42 m so the hair against
   the hocks is not torn: TAIL_LEVER_REAL); the camel_pack's lying tear (lod1, 4 cm) gone with it.
+
+## D-740 The budget: every scan in KTX2 with low-first twins, one shader for the birds, the T4's pipeline limits counted on real WGSL (s18 cloud C9; UD-31)
+- Measured in the cloud (built site as Pages serves it, 100 Mbit/s, cold, `?quality=high&norender&seed=1`, headless Chromium on SwiftShader's WebGPU; tools/dev/pipeline_census.mjs, n=2 each). Base: s17 tip bc1afaca. After: this branch (s17-int 0b3871de merged, so V10's load fixes are in it too). The T4's own path is measured with `?twins=1`:
+  ready 64.3 -> 52.3 s; bytes before ready 370 -> 371 MB (textures 56 -> 56); page memory at ready 5.35 -> 4.55 GB, peak 5.87 -> 5.15 GB; textures bound by the scene's pipelines 2,259 -> 1,374 MB of GPU bytes; scene-pass shader programs 254 -> 216 (vertex modules 199 -> 160); pipelines over 16 vertex inputs / 8 buffers / 16 samplers: 0 (worst 16 / 8 / 11).
+- Textures: the 36 scan maps still loaded as 2048² jpgs (22.4 MB each on the GPU as RGBA8 with mips) are now UASTC KTX2 (BC7: 5.6 MB), and the ground's 12 layers are one KTX2 array (~64 MB, not 256 MB; no 192 MB array packed by hand on the page). KTX-Software 4.4.2's Linux release downloads in the cloud: /tmp/ktxsw, KTX=<it> for tools/bake_world/ktx_scans.ts, ktx_ground.ts and the new ktx_low.ts.
+- Low first for KTX2 (lowfirst.ts, loaders.ts): each KTX2 scan and the ground array has an ETC1S twin (`.low.ktx2`, the same size and mips, 35.7 MB for all 46), loaded before ready. After the world is up, the UASTC file's mips go into the same texture. This only happens where both transcode to BC7 (a desktop GPU without ETC2 or ASTC: the T4). Elsewhere (SwiftShader, Apple) the listed scans take their jpgs, low first, as before (cloud: 339 MB before ready). `?twins=1/0` force it either way.
+- Birds: the wingbeat's rate and shoulder are uniforms. shareInstancing.fitsAttributes now counts exactly (4 matrix + 4 previous matrix + 1 colour only when present). On three's uniform path an instanced mesh's matrix buffer is named after its node (`NodeBuffer_<id>`), so every such mesh had its own program. Flying birds: 31 programs -> 2. Each bird model's uv is packed into life.zw (one input and one buffer less).
+- Starling: D-570's fix holds on the real WGSL: 14 inputs now (6 geometry + 4 matrix + 4 previous matrix). D-570's geometry count had missed TRAA's previous matrix; on the pre-D-570 file the new test reads exactly the T4's 17. Doves: 9-16 inputs, <= 8 buffers, 3 node samplers in every level. The node census finds no fault; the T4's own log is asked for.
+- Tests: tests/pipeline_limits.test.ts (three's WGSLNodeBuilder, velocity MRT on, share-instancing on, 64 KiB uniform limit: every bird level, the jackals and the small life within 16 / 8 / 5 node samplers; the flying birds <= 2 programs); shader_share's buffer case follows the exact rule. In-page census: `__parsa.census()` (src/dev/pipelineCensus.ts).
+- Not done / not mine: the dist grew 704 -> 934 MB (Pages limit 1 GB). build_site.mjs should leave out the jpgs whose KTX2 is listed (77 MB) and the ground-only layer jpgs (84 MB): ~773 MB (asked of the lead). RGBA8 textures left in other owners' files: models/land cover/ground (6 x 21 MB), people_cloth_folds (21 MB), humans scans array (107 MB), tree leaf atlases (2 x 32 MB), bark array (45 MB) (asked).
+## D-771 The ruin rules rewritten in research/ and the blocklist (s18 cloud C12; UD-02, UD-14, UD-29)
+- Every absence rule that only recorded the evidence's silence now says what 467 most probably had (tier C, each change
+  marked "s18 D-771" in place with its reason and the old wording). In COURT, EVENTS, PEOPLE and CHRONOLOGY (and Q-005), the
+  court now comes and goes by default (D-236), so "court ABSENT is the default / evidence-strict" is gone. The king is
+  staged as a king (column, audience, bow, feast, gift day) but never addresses the visitor. A gift day of the delegations
+  with their animals; tukta and E-36 scheduled; harp and pipes at court; secular songs may have reconstructed words (UD-24).
+  The magi's chant stays wordless (CLAUDE.md ritual rule). Relief backgrounds, faces, animals and eyes are painted on the
+  whitish ground; capitals and colossi are painted; shafts have a finish coat, not raw stone; garments have borders; the
+  throne has lion bands; windows have shutters or grilles; the named work places are built; the brick fields, tower stairs,
+  drum ramp, Rahmat quarries, E-foot cistern, Akhor Rostam niches, private tombs, soil moisture, mules and camels; household
+  niches in non-Persian homes; qanats allowed (Ayn Manawir, Polybius 10.28).
+- Blocklist: "modern tents/villages"; gilding is banned as everything-gold, not outside attested zones; cats unblocked
+  (mousers); qanat allowed.
+- Kept: fire temples, statues of gods, music at Persian sacrifice, post-467 buildings and sites, windcatchers, domes,
+  fired-brick houses, glass windows, silk, rice as a staple.
+- Not mine to change (asked): src/data/blocklist.json (the 'qanat' term and the descriptions), tests/plain.test.ts:356
+  ('qanat'), tools/chrono_to_md.py:12 (CHRONOLOGY.md is generated: the new line must go into the generator), and the data
+  files (C13).
+
+## D-780 The court as a living spectacle, its dress dyed, its halls laid (s18 cloud C13; holes #10, #11, #14, #18; UD-09, UD-10, UD-29)
+- UD-09, UD-10 and UD-29 overrule "no procession is staged" (court.ts, court.json, COURT.md) and the `never` rules of E-24 and
+  E-35. src/people/ceremony.ts: the court's programme, a pure function of (seed, day): audiences (0.55 of mornings), the days of
+  the peoples' gifts (every delegation then at Persepolis goes up in the reliefs' order behind its usher, the leader bowing with
+  his hand before his mouth; the first a few days after the king comes, then every 10-16 days), the king's gifts and his dawn at
+  the magi's fire the morning after he comes, the tukta on a seeded day, great banquets in the Apadana (seats round low tables in
+  the bays; servers crossing the Terrace; lamps), rides and hunts with the king, escort, nobles, grooms and beaters on the plain,
+  royal-road couriers every day, grooms exercising the horses. court.ts reads it into each person's day (new: the chiliarch).
+  Every day, hour, count and place is C (sources in court.json `ceremony`). The king still never speaks to or reacts to the
+  visitor (brief 1.1).
+- Dress (looks.ts, garments.ts, delegations.json): madder, woad and weld were cheap: working dress dyed about 3 in 5, women 4 in
+  5, children's hems dyed; guards in the Susa archers' yellow, white and purple; torques on 60 % of Persians (40 % guards); bronze
+  rings for a share of working men; gold plaques on a third of the court robes (drawn as the rosette motif in gold-yellow).
+  people_look's rank test: court chroma > 1.5x the working dress's (was 2x; rank still shows).
+- Furnishings (furnish_palaces.ts): the Apadana laid for the banquets (a carpet and a table in each seated bay, lamp stands,
+  hangings on the W, E and N walls); with the court away the halls keep their hangings, and the Apadana a keeper's corner and lamps.

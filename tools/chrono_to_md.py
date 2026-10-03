@@ -9,7 +9,7 @@ L+=["","## Archives in use in 467 BCE","| Archive | State | Tier | Sources |","|
 "| Treasury Archive (492–458; peak Xerxes yrs 19–20) | active | B | IR-TREAS |","| Fortification Archive (509–493) | closed; tablets stored in the fortification | B | CHRON-C |","",
 "## King and court (brief §2)","- No source places Xerxes at Persepolis on any date in 467 BCE (Q-005).",
 "- General pattern: Persepolis was a seasonal spring/summer residence of a mobile court (WP-PERS-SEASON, RESIDENCE2021; B for the pattern, C for any given year). Under Darius I, trips to the king peaked at the New Year (KING2022, B).",
-"- **Default (evidence-strict): the king is ABSENT**, with a smaller garrison guarding the Treasury (§9.1). The setting *Court calendar = seasonal pattern* (out-of-world, tier C) puts the court in residence Nisannu–Du'uzu. See DECISIONS D-003.",
+"- **Default since D-236 (UD-10): the court comes and goes** (resident from its arrival in Nisannu to E-26, C); the out-of-world setting *Court calendar = evidence only* keeps the king ABSENT with a smaller garrison guarding the Treasury (§9.1). **s18 D-771 (C):** this line called the absent king the evidence-strict default (D-003); no text places Xerxes here in 467 either way (Q-005).",
 "","## People filter","- Named NPCs must be attested around Xerxes yrs 15–20 (Treasury tablets) or be long-tenured. Darius-era Fortification Archive individuals are allowed only as tier C, and only if their life plausibly spans to 467."]
 # Phases 6-7: settlement and plain features (src/data/settlement.json, src/data/plain.json). Not yet in chronology.json:
 # add an id there before any asset uses it as a `structure` (lint:chrono is fail-closed).

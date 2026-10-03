@@ -69,7 +69,7 @@ Text that still calls a state "evidence-strict" should be read as stale wherever
 | 21 | **There are no seasonal or one-off marks.** | Kuh-e Rahmat (2,216 m) is under the January snowline of 2,350 m (`weather/climate.ts:38`), so it is never capped in an ordinary winter. No comet: Pliny NH 2.149 records one in 467/466 (GB3). No floods, dust walls, house fires or locusts (GA59, G68). No run-off in lanes after rain (GB7). Heat shimmer is behind `?heat=1` (`pipeline.ts:66`). | A white ridge for weeks in a wetter climate. The 467 comet, the one sky event that dates the year. A spring flood over the fords. A dust storm. (A for the comet, B/C for the rest) | S–M | Unowned (weather) / C4 (sky) |
 | 22 | **Some visible faults read as broken, not as old.** | sb-town-from-rahmat: the foreground ridge is a black striped stretched mesh. Coverage cameras that face a wall or are black: cov-056 (vegetation filling the view), cov-070, cov-112, cov-322 (black). Black floating blobs in the sky (sb-town-from-rahmat). The Treasury floor mirrors like glass (cov-182). The garden reads as trees on flat ground with drawn lines (cov-014/280). | Not a 467 question. The coverage set also under-samples: about 5 of 40 views judge nothing. | S–M each | C4 (terrain mesh); harness C6; garden C2 |
 | 23 | **Movement in a world of several km is a 1.35–1.95 m/s walk.** | `player/motion.ts:22`. There is no horse, cart or boat ride. The opening starts 3.8 km out (`intro.ts:35`). | The brief rules out fast travel, but riding a hired donkey or horse, or sitting on a cart, is period-true and keeps the walking pace honest. (C) | M | C5 |
-| 24 | **Faces at 0.3–3 m read as game NPCs.** | B112; `playing.ts`: "the rig has a jaw and no lips". The fallback voice is PLACEHOLDER-quality (`converse/voice.ts:11`). | Not a 467 question. | L | Vagon (V3) |
+| 24 | **Faces at 0.3–3 m read as game NPCs.** | B112; `playing.ts`: "the rig has a jaw and no lips". The fallback voice is PLACEHOLDER-quality (`converse/voice.ts:11`). | Not a 467 question. | L | C14 (people up close) |
 | 25 | **Page memory and load.** | `bench-reports/load_s17.md`: memory 5.5–5.7 GB against a 5 GB target; the world pops in as shaders compile (`main.ts:626`). | Not a 467 question. | L | C9 |
 
 ### Smaller holes from the same sweep, unranked
@@ -98,3 +98,140 @@ Text that still calls a state "evidence-strict" should be read as stale wherever
 - The talk is on by default (`talk: true`). The opening plays by default and is skippable. The Grand Stair is climbable.
 - Rightly absent (after 467): the Artaxerxes III stair, palaces H, G and A3, the unfinished gate, the Rahmat tombs, Naqsh-e
   Rajab's reliefs, the Frataraka complex, the Sasanian altars, fire temples.
+
+# Second pass (deeper): the people, the ruin rules, the first ten minutes, faces
+
+## New measurement: the people exist in the simulation but not in the frames (the new #1)
+
+`npx tsx tools/dev/life_census.ts --seed 1 --days 30,200 --hours 9.5,15.5` counts the people the renderer is fed: 515 coverage
+points, people within 60 m. Day 30 has the court, day 200 does not. Full output: handoff/s18/holes_life_census.txt.
+
+| sub-area | points | moments empty | people per moment (work / idle / moving) |
+|---|---|---|---|
+| terrace:open | 31 | 9 % | 107 / 82 / 12 |
+| terrace:apadana:roofed | 15 | 15 % | 121 / 40 / 13 |
+| terrace:gate_nations:roofed | 8 | 0 % | 93 / 80 / 22 |
+| town:lanes | 48 | 0 % | 62 / 86 / 2 |
+| town:courts | 37 | 0 % | 79 / 98 / 3 |
+| plain:fields | 22 | 88 % | 0.2 / 0.1 / 0 |
+| plain:roads | 19 | 79 % | 0.4 / 0.3 / 0.1 |
+| plain:river | 13 | 77 % | 4.3 / 2.2 / 0.1 |
+| far:quarries | 5 | 100 % | 0 |
+| plain:open | 12 | 100 % | 0 |
+
+Day 200 still feeds 41,000 people (62,000 on day 30).
+
+The s17 final frames of the same sub-areas show almost nobody:
+- the Apadana on day 200 at 08:48 (cov-294): empty;
+- the Terrace on day 168 at 12:35 (cov-252): empty;
+- the Gate on day 241 at 16:16 (cov-350): empty;
+- town courts and lanes (cov-037/098/142/266): one man or nobody.
+
+So the census says the Terrace and town are crowded, and the pixels say they are empty. In the coverage json the `life` field
+is empty for all 46 views, so no frame counted its drawn people. Nobody has noticed the gap because the people check is a node
+census and the look check is a frame.
+
+**Hole C1 (rank 1, above every row of pass 1).** Life that is simulated but not drawn.
+- Fix: a counted render first. One Terrace view and one lane view, with `crowd.nearPeople()` counted against people_trace at
+  the same moment. Then fix whatever drops them: the lazy plans within the frame budget (`popview.ts:13,366`, "pending"),
+  impostors not shown, people in rooms, or the coverage page's own load.
+- Fix size: S to find, unknown to fix.
+- Owner: C5 (popview, crowd) with C6 (cloud eyes) counting.
+
+**Hole C2 (rank 4).** The working land is empty even in the simulation.
+- Fields are empty at 88 % of point-moments in spring and autumn mornings; roads 79 %; the river 77 %; the quarries 100 %,
+  although the quarries feed a live building site and C3's stone carts run them.
+- 467 BC (B): spring and autumn are the peak field seasons (ploughing, weeding, irrigating, harvest); the Fortification
+  tablets record work gangs on the crown fields.
+- Owner: C1 (population: work places and field gangs) + C3 (plain).
+
+## The ruin rules still written in the data and research (feeds every builder)
+
+The full sweep of research/*.md, src/data/*.json, DECISIONS and the blocklist found about 60 surviving absence rules. About
+35 should be OVERTURNED (the evidence is silent) and about 20 KEPT (built after 467, or attested absent). The text still
+steers whoever reads it.
+
+**Stale everywhere.** "Court ABSENT is the default and the evidence-strict state" survives in 9 places, although D-236 and
+D-252 made the court come and go by default: COURT.md:5, court.json:6-7, events_calendar.json:7, population.json:9,
+town.json:3, EVENTS.md:11, PEOPLE.md:53 and :290, DECISIONS.md:37.
+- Fix: rewrite them to "the court is resident from about Nisannu 6-18 to E-26; court absent is a setting".
+- Fix size: S. Owner: C13 (court) for the data; the lead for the research files.
+
+New holes this pass found (not in pass 1), ranked:
+
+| # | Hole | Evidence | 467 BC most probably (tier) | Fix | Owner |
+|---|---|---|---|---|---|
+| P2-1 | ~~RETRACTED (third pass): skin tone IS tied to origin since D-155 (looks.ts ORIGIN_TONE, Q-240: Egyptian 0.62, Indian 0.68, Kushite 0.84 … Thracian 0.2); D-092's line was superseded.~~ Was: **Skin tone is not tied to origin**: a Kushite, an Indian and a Persian are drawn from the same range | DECISIONS D-092 (DECISIONS.md:229): "Nothing is tied to origin: no evidence was read" | Kushite, Indian, Egyptian and Arab workers and delegates visibly darker. The Apadana delegations are the evidence of who came. (A for who; B for skin) | S | C13 (looks) |
+| P2-2 | **The delegations' animals, chariots and dress are left out**: lioness, okapi, ibex and chariots "NOT drawn", animals "stay at the camp"; mantles, cloaks, shawls, tassels and the chin wrap "not modelled" | delegations.json:5-87; fauna.json:76; COURT.md:90-112,191 | The Apadana stair reliefs (A): every delegation leads its gifts and animals up the stair. | M | C13 + C9 (fauna) |
+| P2-3 | **Nobles' and delegates' robes are plain; the throne's lion bands are not drawn; relief eyes have no pupils** | Q-427 "every other garment plain"; Q-238; RELIEFS_AND_COLOUR:114,117 | Patterned borders (the Susa archers, the Oxus finds, B). Lion bands on the throne covers (B). Painted pupils. | S–M | C13 (dress); C10 (throne, reliefs) |
+| P2-4 | **No storks, bats, cats, rats or flies; mules and camels left off the plain for budget; no herders' bands on the move; reins not drawn and wheels do not turn** | fauna.json:85,103; Q-563; DECISIONS.md:3888-3890; blocklist `later-animals` keeps cats out | Storks on columns and roofs (a Fars signature), bats at dusk, cats as mousers in the stores (long kept in Egypt and the Near East), turning wheels. (B) | M | C9 (fauna, smallLife); the wheels and reins belong to C9 or V5 |
+| P2-5 | **Corner-tower stairs and walkable roofs are not built; the Hadish S balcony is not modelled** | Q-630; site_spec.json:356 | Roofs were living and working space; the towers had stairs. (B) | M | C10 |
+| P2-6 | **The drum transport's last 250 m and the ascent to the Terrace are not modelled** | Q-710 | An earthen ramp and sledge road on the N side, with gangs hauling. The most cinematic labour on site. (B) | M | C10 / C1 |
+| P2-7 | **No festive dress or toys; the women's necklaces, rouge and false hair are left out** | DECISIONS.md:4348, :4240; Q-435 | Best clothes at festivals and weddings; toys (both found in Near Eastern contexts, B); Xenophon's Median court make-up. | S–M | C13 |
+| P2-8 | **The blocklist bans probable things in its wording**: `modern-landscape` bans "tents" and "villages"; `gold-everything` bans "gilding outside attested zones"; `qanat?` treats silence as absence | ANACHRONISM_BLOCKLIST.md:11,25,45 | Write "modern tents and villages"; "gilding beyond probable zones"; unblock qanats. | S | Lead (research) |
+| P2-9 | **Akhor Rostam niches, private rock tombs, the E-foot cistern and the Rahmat quarry faces are not built** | Q-085, Q-428, Q-565; settlement.json:2050,2069 | The Rahmat quarries behind the Terrace were being cut in 467 (B). | M | C3 (plain) / C10 (cistern) |
+| P2-10 | **No seasonal soil moisture; no gates barred at night** | Q-603; access.json:39 | Dark spring loam; town and Terrace gates shut after dark (B/C). | S | C3; C5 (access) |
+
+Keep (correct absences, confirmed): no music at a Persian sacrifice (HDT 1.132); no fire temple, cult statue or altar fire
+(HDT 1.131); no musicians on the Persepolis reliefs; the Artaxerxes III stair, the 32-column hall, Palace H and the Unfinished
+Gate; buried foundation tablets; silk; windcatchers, domes and fired-brick houses; cheetahs; the weirs outside the extent.
+
+## The first ten minutes as a newcomer, minute by minute
+
+1. **Loading (44–60 s; memory 5.5–5.7 GB).** The Rahmat skyline and "There is no map, no marker and no guide. Walk, listen,
+   and ask the people." Good tone.
+   - Hole: there is no hint of HOW to ask. Talk is T and V; the hint says E.
+2. **Title over the live world, then the 85 s wordless opening.** It starts at sunrise + 1.45 h and runs 3.8 km out at the
+   river.
+   - Hole: on the public site (s14-int) none of this exists yet.
+3. **First step.** The spawn is grid e −175 n 122 facing the W face of the Terrace across the approach.
+   - Hole: the field is empty, scattered with dark lumps (sb-spawn-first / -morning). The façade is in shade (the sun is
+     behind Kuh-e Rahmat). The court arrives in 1–3 game days = 24–72 real hours.
+   - What the player sees: a lone grey platform, a few horses, nobody near. A AAA opening would put the player in motion
+     among people within 10 s: the road thronged before the arrival, a herald riding past, the stair full.
+4. **Walking to the stair: 300+ m at 1.35 m/s, about 4 min, with nothing to meet.** There are no road folk on the approach
+   in the frames (C10's road folk are unseen in a render).
+5. **The stair and the Gate.** Climbable and imposing (sb-stair-climb), but grey stone throughout.
+   - Hole: no guard visible at the head of the stair in the frame, though 16 guard posts exist (`GUARD_POSTS`,
+     population.ts:153). In 'observer' mode nobody challenges the player.
+6. **Pressing E at a person:** a single attested line, no subtitle (translation is off by default), nothing from the bulk
+   population.
+   - Hole: the player concludes people can't be talked to. T is never discovered.
+7. **What the player understands after 10 minutes:** the date and place (the title's dedication, "the nineteenth year of
+   Xerxes · 467 BCE"); that the world is big and quiet; that people mostly ignore you.
+   - What they don't understand: who they are, why they are here, that they can speak (the headline feature), and where
+     anything is (the map needs the translation layer, which is off).
+   - Fix: the visitor default (C5, now owned); translation on by default, or at least overheard subtitles (lead, settings);
+     a look-at prompt "T speak" (C11); the start inside the residence (C13 / C1).
+
+## Faces and bodies (judged from the s17 crowd frame cov-042 at 3–10 m, and V3's report)
+
+At 3–10 m (cov-042, the Terrace at dawn, the court resident):
+- Guards wear grey cylinder caps that read as putty or clay, not felt.
+- The tunics are flat primary colours (yellow, cobalt blue, green) with blotchy patch decals that read as paint stains or
+  camouflage, not wear or pattern.
+- Every figure holds the same arms-forward pose.
+- They wear short tunics and trousers. Persian guards on the reliefs wear the pleated court robe and the fluted headdress: a
+  file of "Immortals" in riding dress, all in the same pose, reads as a mod, not as the court.
+
+At 0.3–3 m (V3, s17 report_people.md):
+- "Faces at 0.3-0.7 m still read as game NPCs": MakeHuman heads, painted-looking brows, flat eyes.
+- The rig has a jaw and no lips (`playing.ts`), so there are no mouth shapes while talking. Talking is the headline feature,
+  and the face the player talks to does not move its mouth.
+
+**Hole F1 (rank 6).** Faces, mouths and the guards' look.
+- Fix: L for faces (needs the GPU box). M for the guard dress (the court robe and headdress variant, no blotch decals, pose
+  variety).
+- Owner: C13 (dress and looks); faces and lips are Vagon V3 (no cloud agent owns humanRig or humanMaterial: unowned in the
+  cloud).
+
+## Delta ranking (how the second pass changes the top of the list)
+1. **C1** life simulated but not drawn (new; C5 + C6).
+2. Pass-1 #2 court timing (C13 / C1).
+3. Pass-1 #3 the Terrace colour (C10).
+4. **C2** the working land empty even in the simulation (new; C1 + C3).
+5. Pass-1 #4 and #5, town shape and colour (C2).
+6. **F1** faces, lips, guards' dress and pose (new; C13 + C14).
+7. Pass-1 #9 plus the newcomer's ten minutes: talk undiscoverable (C11, C8, C5).
+8. **P2-2** the delegations with their animals (new; C13, C9). (P2-1 retracted.)
+9. The stale "court absent default" text in 9 files (new; C13, lead).

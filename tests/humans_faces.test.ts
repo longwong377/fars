@@ -183,10 +183,15 @@ describe('garments and hair geometry (D-155)', () => {
     expect(Math.min(...P.map(p => p[1]))).toBeLessThan(calfY - 0.15);
     const second = Array.from(g.mat).filter(m => m === MAT.cloth_second).length; expect(second).toBeGreaterThan(20);
     // the sleeves: the last two tubes of the merge (cape, hang, sleeve L, sleeve R)
-    const sleeveVerts = P.slice(P.length - 2 * (12 * 10 + 2));
-    const midL = sleeveVerts.filter(p => p[0] > 0 && p[1] < v.joints[HB.spine_02 * 3 + 1] && p[1] > v.joints[HB.pelvis * 3 + 1]);
+    // (D-322 rev 4, 5ccd9bb0, after the Persepolis reliefs: the empty sleeves hang down the coat's back from behind the
+    // shoulders, no longer beside the arms; LOD0 sleeve tubes are 14 segments x 10 rings, capped: 14 x 11 + 2 vertices; D-710)
+    const sleeveVerts = P.slice(P.length - 2 * (14 * 11 + 2)), ys = v.joints[HB.spine_02 * 3 + 1], yp = v.joints[HB.pelvis * 3 + 1];
+    const midL = sleeveVerts.filter(p => p[0] > 0 && p[1] < ys && p[1] > yp);
     expect(midL.length).toBeGreaterThan(5);
-    expect(Math.min(...midL.map(p => p[0])), 'sleeve outside the arm').toBeGreaterThan(armX + 0.05);
+    let backZ = Infinity; for (let i = 0; i < A.NO; i++) if (Math.abs(v.pos[i * 3 + 1] - (ys + yp) / 2) < 0.03) backZ = Math.min(backZ, v.pos[i * 3 + 2]);
+    expect(Math.max(...midL.map(p => p[2])), 'sleeve behind the back, over the coat').toBeLessThan(backZ - 0.05);
+    expect(Math.min(...midL.map(p => p[0])), 'sleeve behind its own shoulder, not across the spine').toBeGreaterThan(0.05);
+    expect(Math.max(...midL.map(p => p[0])), 'sleeve within the shoulders\' width').toBeLessThan(armX + 0.05);
   });
   it('a seated skirt drops between the knees (slack, applied as the material does) instead of stretching into a disc', () => {
     const v = A.byId.m08, C = O.costumes.worker[0], rig = new RigSolver(A.meta.curlAxes), pal = new Float32Array(PALETTE_STRIDE);

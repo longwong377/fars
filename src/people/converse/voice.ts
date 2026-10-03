@@ -11,6 +11,8 @@
 // (heardReply) stays as the fallback when the model cannot run (PLACEHOLDER-QUALITY).
 import { FormantBackend } from '../../audio/speech';
 import { personVoice, unitsFor, voiceLang, WORDLESS, type Unit } from '../../audio/voices';
+import { tongueOf, tongueUnit } from '../../audio/tongues';
+import { reconstructedUnit } from '../../lang/reconstruct';
 import { neuralVoice, type NeuralVoice } from '../../audio/neural/identity';
 import { phonemesFor } from '../../audio/neural/kokoro';
 import type { NeuralVoices } from '../../audio/neural/client';
@@ -46,6 +48,15 @@ export function replyUnits(pop: Population, pid: number, day: number, english: s
   const r = new Rng((id.seed ^ hashString(english)) >>> 0, 'converse.heard');
   const want = Math.min(3, Math.max(1, Math.round(english.split(/\s+/).length / 7)));
   const units: Unit[] = [];
+  // D-720 (UD-24; the holes audit #15): the reply itself in reconstructed period speech (tier C): in the person's own language
+  // (lang/reconstruct.ts), or their own tongue where it has no lexicon here (audio/tongues.ts), a sentence or two of what the
+  // translation layer shows; a greeting, a blessing or a farewell keeps its published line first
+  const tg = lang ? null : tongueOf(id.lang); const ss = sentences(english).slice(0, 2).map(x => x.replace(/[.!?…]+$/, '')).filter(x => x.split(/\s+/).length >= 2);
+  if ((lang || tg) && ss.length && !/^(greet|pious|farewell)$/.test(intentsOf(english)[0])) {
+    for (const sn of ss) units.push(lang ? reconstructedUnit(sn, lang) : tongueUnit(tg!, sn));
+    return { units: units.filter(u => u.ipa), lang: lang ?? `tg:${tg}` };
+  }
+  if (tg) { units.push(...(ss.length ? ss : [english]).slice(0, 1).map(x => tongueUnit(tg, x))); return { units, lang: `tg:${tg}` }; }
   if (lang) {
     // the line: one of every line that fits what the reply does (all its intents' candidates together: the first intent
     // alone often has a single line, heard again and again in the first world run)
@@ -64,7 +75,7 @@ const join = (parts: Float32Array[], rate: number, gapS = 0.35) => {
 export function heardReply(pop: Population, pid: number, day: number, english: string, worldSeed: number, rate = 24000, agent: Agent | null = null): Heard {
   const { formant: v } = replyVoice(pop, pid, day, worldSeed, agent), { units, lang } = replyUnits(pop, pid, day, english, worldSeed, agent);
   const fb = new FormantBackend(rate);
-  const { data, rms } = join(units.map(u => fb.renderSync({ ipa: u.ipa, lang: (lang ?? undefined) as any, voice: v, intonation: u.intonation }).data), rate);
+  const { data, rms } = join(units.map(u => fb.renderSync({ ipa: u.ipa, lang: (lang && !lang.startsWith('tg:') ? lang : undefined) as any, voice: v, intonation: u.intonation }).data), rate);
   return { units, lang: lang ?? 'wordless', seconds: data.length / rate, data, rate, rms, layer: 'own', backend: 'formant' };
 }
 /** sentences of a reply for the opt-in layer (each one synthesis: short dispatches, and the first plays while the next renders) */

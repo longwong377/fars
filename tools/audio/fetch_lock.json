@@ -1,952 +1,583 @@
 {
  "note": "D-620: the recordings tools/audio/fetch.mjs resolved (re-runs download these; --refresh re-searches)",
  "items": {
-  "town_dawn": [],
-  "town_day": [],
-  "town_dusk": [],
-  "town_night": [],
-  "village_dawn": [],
-  "village_day": [],
-  "village_night": [],
-  "plain_spring_day": [],
-  "plain_summer_day": [],
-  "plain_autumn_day": [],
-  "plain_winter_day": [],
-  "plain_dawn": [],
-  "plain_dusk": [],
+  "town_dawn": [
+   {
+    "key": "town_dawn",
+    "section": "beds",
+    "src": "freesound",
+    "id": "341737",
+    "title": "Dawn chorus - Makvaneti by porporino",
+    "licence": "CC0",
+    "author": "porporino",
+    "page": "https://freesound.org/people/porporino/sounds/341737/",
+    "audio": "https://cdn.freesound.org/previews/341/341737_6105873-hq.mp3",
+    "sha256": "c2f121075615f19fb0186655121bfa629d11f2be4477cfeb8721488864f2ff50",
+    "dur": 191.32,
+    "q": "village dawn birds roosters",
+    "speechiness": 0.669
+   },
+   {
+    "key": "town_dawn",
+    "section": "beds",
+    "src": "freesound",
+    "id": "809219",
+    "title": "Grillons_Chateau_Matin by nicotep",
+    "licence": "CC0",
+    "author": "nicotep",
+    "page": "https://freesound.org/people/nicotep/sounds/809219/",
+    "audio": "https://cdn.freesound.org/previews/809/809219_7529214-hq.mp3",
+    "sha256": "455651a6cff56dfcf28841d508ba869c18a65acfc5c7adabde0b133fbc08b68a",
+    "dur": 453.98,
+    "q": "village dawn birds roosters",
+    "speechiness": 0.873
+   }
+  ],
+  "town_day": [
+   {
+    "key": "town_day",
+    "section": "beds",
+    "src": "freesound",
+    "id": "276946",
+    "title": "morning ambience of a small mountain village in the mountains of Kazakhstan by gladkiy",
+    "licence": "CC0",
+    "author": "gladkiy",
+    "page": "https://freesound.org/people/gladkiy/sounds/276946/",
+    "audio": "https://cdn.freesound.org/previews/276/276946_2364707-hq.mp3",
+    "sha256": "790c4093ff85e10e923a439378989b4024937be38fc4ec3b700db2d57f81b83c",
+    "dur": 924.96,
+    "q": "mountain village ambience",
+    "speechiness": 0.665
+   },
+   {
+    "key": "town_day",
+    "section": "beds",
+    "src": "freesound",
+    "id": "272458",
+    "title": "Nature sounds, bells, goats, cow, birds - Kardzhali, Bulgaria by vonfleisch",
+    "licence": "CC0",
+    "author": "vonfleisch",
+    "page": "https://freesound.org/people/vonfleisch/sounds/272458/",
+    "audio": "https://cdn.freesound.org/previews/272/272458_3658882-hq.mp3",
+    "sha256": "c10b0f4768a070d91a565a6f8e77cf4a38d041f8f3d942eec9e8b1978cc88972",
+    "dur": 216.04,
+    "q": "mountain village ambience",
+    "speechiness": 3.352
+   }
+  ],
+  "town_dusk": [
+   {
+    "key": "town_dusk",
+    "section": "beds",
+    "src": "freesound",
+    "id": "580947",
+    "title": "S_Amb_GrasshoopersBirdsFliesandDogs_Mono_01.wav by yake01",
+    "licence": "CC0",
+    "author": "yake01",
+    "page": "https://freesound.org/people/yake01/sounds/580947/",
+    "audio": "https://cdn.freesound.org/previews/580/580947_12600596-hq.mp3",
+    "sha256": "6490495725fe3f405340dc65a19910849e253a8a1e80bf14ee7513fd496cdb59",
+    "dur": 107.49,
+    "q": "village evening ambience birds dogs",
+    "speechiness": 0.748
+   }
+  ],
+  "town_night": [
+   {
+    "key": "town_night",
+    "section": "beds",
+    "src": "freesound",
+    "id": "47479",
+    "title": "Audiactiva_-_Night_silence.wav by Audiactiva",
+    "licence": "CC BY",
+    "author": "Audiactiva",
+    "page": "https://freesound.org/people/Audiactiva/sounds/47479/",
+    "audio": "https://cdn.freesound.org/previews/47/47479_423354-hq.mp3",
+    "sha256": "639e2aa0b708c2a2da7bc6090c17a6da4b79dda98cba8c29478240853a1cb8a5",
+    "dur": 187.74,
+    "q": "village night ambience crickets dogs distant",
+    "speechiness": 0.655
+   }
+  ],
+  "village_dawn": [
+   {
+    "key": "village_dawn",
+    "section": "beds",
+    "src": "freesound",
+    "id": "482927",
+    "title": "Farm at dawn, roosters and tawny owl by etienne.leplumey",
+    "licence": "CC0",
+    "author": "etienne.leplumey",
+    "page": "https://freesound.org/people/etienne.leplumey/sounds/482927/",
+    "audio": "https://cdn.freesound.org/previews/482/482927_997174-hq.mp3",
+    "sha256": "055c7a2e8c3e1bce422bdc5973e16cca9056987c5fd9b6469d2decaf2c429429",
+    "dur": 223.48,
+    "q": "countryside dawn rooster",
+    "speechiness": 1.584
+   }
+  ],
+  "village_day": [
+   {
+    "key": "village_day",
+    "section": "beds",
+    "src": "freesound",
+    "id": "221675",
+    "title": "Farmyard Sounds - Pig, Sheep, Donkey, Ducks, Chickens by nebulousflynn",
+    "licence": "CC BY",
+    "author": "nebulousflynn",
+    "page": "https://freesound.org/people/nebulousflynn/sounds/221675/",
+    "audio": "https://cdn.freesound.org/previews/221/221675_2962342-hq.mp3",
+    "sha256": "6adf8bd90d9ae85e0c2afdf9e6500c508500ec4354160efb211591d4727e3d01",
+    "dur": 229.12,
+    "q": "countryside farm ambience animals",
+    "speechiness": 2.713
+   }
+  ],
+  "village_night": [
+   {
+    "key": "village_night",
+    "section": "beds",
+    "src": "freesound",
+    "id": "178505",
+    "title": "night.aiff by patobottos",
+    "licence": "CC0",
+    "author": "patobottos",
+    "page": "https://freesound.org/people/patobottos/sounds/178505/",
+    "audio": "https://cdn.freesound.org/previews/178/178505_881494-hq.mp3",
+    "sha256": "393f8032d2cf5c90595623baf92c842480b8f5f399edbfa87d7ebbf3f8ee05a6",
+    "dur": 868.28,
+    "q": "countryside night crickets",
+    "speechiness": 0.89
+   }
+  ],
+  "plain_spring_day": [
+   {
+    "key": "plain_spring_day",
+    "section": "beds",
+    "src": "freesound",
+    "id": "852837",
+    "title": "skylarks and cisticola by bruno.auzet",
+    "licence": "CC0",
+    "author": "bruno.auzet",
+    "page": "https://freesound.org/people/bruno.auzet/sounds/852837/",
+    "audio": "https://cdn.freesound.org/previews/852/852837_11519060-hq.mp3",
+    "sha256": "31d7629d3d33a1f28d92b8c64277b299ad6bdf60ad7007c8dbb9d8f9c33908dd",
+    "dur": 183.62,
+    "q": "skylark field ambience",
+    "speechiness": 0.76
+   },
+   {
+    "key": "plain_spring_day",
+    "section": "beds",
+    "src": "freesound",
+    "id": "733467",
+    "title": "field Spring 719 AM NL EU 240425_0704 by klankbeeld",
+    "licence": "CC BY",
+    "author": "klankbeeld",
+    "page": "https://freesound.org/people/klankbeeld/sounds/733467/",
+    "audio": "https://cdn.freesound.org/previews/733/733467_1648170-hq.mp3",
+    "sha256": "104266bb8bad8af89adc1110f9f0f63aecfec75e252fb61924e1ec43caef0dae",
+    "dur": 79.68,
+    "q": "meadow spring birds skylark",
+    "speechiness": 0.682
+   }
+  ],
+  "plain_summer_day": [
+   {
+    "key": "plain_summer_day",
+    "section": "beds",
+    "src": "freesound",
+    "id": "564166",
+    "title": "Crashing Starship by Aemyn",
+    "licence": "CC0",
+    "author": "Aemyn",
+    "page": "https://freesound.org/people/Aemyn/sounds/564166/",
+    "audio": "https://cdn.freesound.org/previews/564/564166_1445263-hq.mp3",
+    "sha256": "3a1891eb212999283a89cef4da185dd0a91f2754b822ee33fda6c8e4c5b9ffe9",
+    "dur": 307.94,
+    "q": "cicadas field summer ambience",
+    "speechiness": 0.68
+   },
+   {
+    "key": "plain_summer_day",
+    "section": "beds",
+    "src": "freesound",
+    "id": "661435",
+    "title": "Defensible Twister by Brazilio123",
+    "licence": "CC0",
+    "author": "Brazilio123",
+    "page": "https://freesound.org/people/Brazilio123/sounds/661435/",
+    "audio": "https://cdn.freesound.org/previews/661/661435_14509684-hq.mp3",
+    "sha256": "d06687f1b3431e0d944bfa9f83b4aaf1ebe92c89a0a15e0f1d9a31448854cdba",
+    "dur": 432.98,
+    "q": "cicadas field summer ambience",
+    "speechiness": 0.668
+   }
+  ],
+  "plain_autumn_day": [
+   {
+    "key": "plain_autumn_day",
+    "section": "beds",
+    "src": "freesound",
+    "id": "650337",
+    "title": "LateSummer MP3   quiet woods and Leaves and Wind SEPT 13 2022 smaller file.mp3 by kvgarlic",
+    "licence": "CC0",
+    "author": "kvgarlic",
+    "page": "https://freesound.org/people/kvgarlic/sounds/650337/",
+    "audio": "https://cdn.freesound.org/previews/650/650337_1050391-hq.mp3",
+    "sha256": "71ecec23d83e65622f78b9deb63db89279b39836f5baf77851484d807855d806",
+    "dur": 572.11,
+    "q": "autumn field ambience crows",
+    "speechiness": 0.6
+   }
+  ],
+  "plain_winter_day": [
+   {
+    "key": "plain_winter_day",
+    "section": "beds",
+    "src": "freesound",
+    "id": "178136",
+    "title": "pineforest 0-2 bft winter130213_00.flac by klankbeeld",
+    "licence": "CC BY",
+    "author": "klankbeeld",
+    "page": "https://freesound.org/people/klankbeeld/sounds/178136/",
+    "audio": "https://cdn.freesound.org/previews/178/178136_1648170-hq.mp3",
+    "sha256": "7fbabf16186b07946eb3ef82c6936c2849111608e74999bb87672ce01e32615b",
+    "dur": 1927.03,
+    "q": "winter field wind ambience",
+    "speechiness": 1.414
+   }
+  ],
+  "plain_dawn": [
+   {
+    "key": "plain_dawn",
+    "section": "beds",
+    "src": "freesound",
+    "id": "426276",
+    "title": "Early Morning Birds at a Fazenda in Goiás, Brazil by marc.om",
+    "licence": "CC0",
+    "author": "marc.om",
+    "page": "https://freesound.org/people/marc.om/sounds/426276/",
+    "audio": "https://cdn.freesound.org/previews/426/426276_5417386-hq.mp3",
+    "sha256": "6ea09d36614d0839566d988436d0aca43728c167c27449a880d6012a4ab3d184",
+    "dur": 120.58,
+    "q": "dawn chorus countryside field",
+    "speechiness": 0.744
+   }
+  ],
+  "plain_dusk": [
+   {
+    "key": "plain_dusk",
+    "section": "beds",
+    "src": "freesound",
+    "id": "178136",
+    "title": "pineforest 0-2 bft winter130213_00.flac by klankbeeld",
+    "licence": "CC BY",
+    "author": "klankbeeld",
+    "page": "https://freesound.org/people/klankbeeld/sounds/178136/",
+    "audio": "https://cdn.freesound.org/previews/178/178136_1648170-hq.mp3",
+    "sha256": "7fbabf16186b07946eb3ef82c6936c2849111608e74999bb87672ce01e32615b",
+    "dur": 1927.03,
+    "q": "evening field ambience birds crickets",
+    "speechiness": 1.414
+   }
+  ],
   "plain_night_warm": [
    {
     "key": "plain_night_warm",
     "section": "beds",
-    "src": "esc50",
-    "id": "compose:crickets:plain_night_warm",
-    "title": "37 ESC-50 clips crossfaded",
-    "licence": "CC BY-NC",
-    "author": "J - Luc, Zozzy, mystiscool, sunsinger, LS, Christoff45, soundscalpel.com, truflabart, Tito Lahaye, becks77, rfhache, le_abbaye_Noirlac, FreethinkerAnon, ianjuby, thedogryan420, kslagerman, Mark_Ian, Leandros.Ntounis, Znalac, rhapsodize, frus, icuttv, cosmician, adneonlux, arseniiv, rayjensen, tagigobaso, Sclolex, john9, RSilveira_88",
-    "page": "https://github.com/karolpiczak/ESC-50",
-    "audio": "compose",
-    "sha256": "503fc27bff52d504b4969ede8b6f813616ab15c558c2f18d6a4c1ce99364643b",
-    "ext": "wav",
-    "dur": 130.83,
-    "provisional": true,
-    "clips": [
-     {
-      "id": "1-57316-A-13.wav",
-      "title": "Grillons1.WAV",
-      "author": "J - Luc",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/J%20-%20Luc/sounds/57316/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-57316-A-13.wav"
-     },
-     {
-      "id": "1-57318-A-13.wav",
-      "title": "Grillons3.WAV",
-      "author": "J - Luc",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/J%20-%20Luc/sounds/57318/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-57318-A-13.wav"
-     },
-     {
-      "id": "1-59102-A-13.wav",
-      "title": "emmentaler crickets.wav",
-      "author": "Zozzy",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/Zozzy/sounds/59102/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-59102-A-13.wav"
-     },
-     {
-      "id": "1-7456-A-13.wav",
-      "title": "crickets.wav",
-      "author": "mystiscool",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/mystiscool/sounds/7456/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-7456-A-13.wav"
-     },
-     {
-      "id": "1-80840-A-13.wav",
-      "title": "Night Crickets & Bullfrogs.wav",
-      "author": "sunsinger",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/sunsinger/sounds/80840/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-80840-A-13.wav"
-     },
-     {
-      "id": "1-80841-A-13.wav",
-      "title": "Night Crickets at Bosque Del Apache-2.wav",
-      "author": "sunsinger",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/sunsinger/sounds/80841/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-80841-A-13.wav"
-     },
-     {
-      "id": "1-9841-A-13.wav",
-      "title": "crickets near ftn2.mp3",
-      "author": "LS",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/LS/sounds/9841/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-9841-A-13.wav"
-     },
-     {
-      "id": "2-106019-A-13.wav",
-      "title": "crickets.wav",
-      "author": "Christoff45",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/Christoff45/sounds/106019/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-106019-A-13.wav"
-     },
-     {
-      "id": "2-110613-A-13.wav",
-      "title": "animals_insect_cricket_001.wav",
-      "author": "soundscalpel.com",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/soundscalpel.com/sounds/110613/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-110613-A-13.wav"
-     },
-     {
-      "id": "2-125821-A-13.wav",
-      "title": "Crickets in Pont de Gau.wav",
-      "author": "truflabart",
-      "licence": "CC BY-NC",
-      "page": "http://www.freesound.org/people/truflabart/sounds/125821/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-125821-A-13.wav"
-     },
-     {
-      "id": "2-125875-A-13.wav",
-      "title": "Crickets and frogs in Camargue.wav",
-      "author": "truflabart",
-      "licence": "CC BY-NC",
-      "page": "http://www.freesound.org/people/truflabart/sounds/125875/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-125875-A-13.wav"
-     },
-     {
-      "id": "2-80844-A-13.wav",
-      "title": "One Cricket Louder.wav",
-      "author": "sunsinger",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/sunsinger/sounds/80844/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-80844-A-13.wav"
-     },
-     {
-      "id": "2-83270-A-13.wav",
-      "title": "lonely cricket.wav",
-      "author": "Tito Lahaye",
-      "licence": "CC BY-NC",
-      "page": "http://www.freesound.org/people/Tito%20Lahaye/sounds/83270/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-83270-A-13.wav"
-     },
-     {
-      "id": "2-85139-A-13.wav",
-      "title": "crickets.wav.mp3",
-      "author": "becks77",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/becks77/sounds/85139/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-85139-A-13.wav"
-     },
-     {
-      "id": "2-96033-A-13.wav",
-      "title": "FR.AO.CricketsAmbience.3.1.mp3",
-      "author": "rfhache",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/rfhache/sounds/96033/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-96033-A-13.wav"
-     },
-     {
-      "id": "3-129338-A-13.wav",
-      "title": "Cricket 5.aif",
-      "author": "le_abbaye_Noirlac",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/le_abbaye_Noirlac/sounds/129338/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-129338-A-13.wav"
-     },
-     {
-      "id": "3-129678-A-13.wav",
-      "title": "crickets",
-      "author": "FreethinkerAnon",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/FreethinkerAnon/sounds/129678/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-129678-A-13.wav"
-     },
-     {
-      "id": "3-134802-A-13.wav",
-      "title": "barrage_of_crickets_chirping.wav",
-      "author": "ianjuby",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/ianjuby/sounds/134802/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-134802-A-13.wav"
-     },
-     {
-      "id": "3-146033-A-13.wav",
-      "title": "Crickets",
-      "author": "thedogryan420",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/thedogryan420/sounds/146033/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-146033-A-13.wav"
-     },
-     {
-      "id": "3-155766-A-13.wav",
-      "title": "Crickets and Other Insects",
-      "author": "kslagerman",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/kslagerman/sounds/155766/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-155766-A-13.wav"
-     },
-     {
-      "id": "3-162786-A-13.wav",
-      "title": "CricketFX.wav",
-      "author": "Mark_Ian",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/Mark_Ian/sounds/162786/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-162786-A-13.wav"
-     },
-     {
-      "id": "3-163607-A-13.wav",
-      "title": "Wind, Soft. Crickets.wav",
-      "author": "Leandros.Ntounis",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/Leandros.Ntounis/sounds/163607/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-163607-A-13.wav"
-     },
-     {
-      "id": "3-163607-B-13.wav",
-      "title": "Wind, Soft. Crickets.wav",
-      "author": "Leandros.Ntounis",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/Leandros.Ntounis/sounds/163607/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-163607-B-13.wav"
-     },
-     {
-      "id": "4-163697-A-13.wav",
-      "title": "Crickets Orchestra.flac",
-      "author": "Znalac",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/Znalac/sounds/163697/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-163697-A-13.wav"
-     },
-     {
-      "id": "4-171823-A-13.wav",
-      "title": "crickets_creek.wav",
-      "author": "rhapsodize",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/rhapsodize/sounds/171823/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-171823-A-13.wav"
-     },
-     {
-      "id": "4-172143-A-13.wav",
-      "title": "Crickets",
-      "author": "frus",
-      "licence": "CC BY-NC",
-      "page": "http://www.freesound.org/people/frus/sounds/172143/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-172143-A-13.wav"
-     },
-     {
-      "id": "4-181362-A-13.wav",
-      "title": "Crickets calling at night, UK",
-      "author": "icuttv",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/icuttv/sounds/181362/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-181362-A-13.wav"
-     },
-     {
-      "id": "4-194246-A-13.wav",
-      "title": "meadow, fly, horse, crickets.wav",
-      "author": "cosmician",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/cosmician/sounds/194246/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-194246-A-13.wav"
-     },
-     {
-      "id": "4-195707-A-13.wav",
-      "title": "Evening_crickets.wav",
-      "author": "adneonlux",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/adneonlux/sounds/195707/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-195707-A-13.wav"
-     },
-     {
-      "id": "4-195805-A-13.wav",
-      "title": "crickets-and-bg.wav",
-      "author": "arseniiv",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/arseniiv/sounds/195805/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-195805-A-13.wav"
-     },
-     {
-      "id": "4-202749-A-13.wav",
-      "title": "Soft, Chilled Crickets Field Recording",
-      "author": "rayjensen",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/rayjensen/sounds/202749/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-202749-A-13.wav"
-     },
-     {
-      "id": "5-204352-A-13.wav",
-      "title": "crickets.wav",
-      "author": "tagigobaso",
-      "licence": "CC BY-NC",
-      "page": "http://www.freesound.org/people/tagigobaso/sounds/204352/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-204352-A-13.wav"
-     },
-     {
-      "id": "5-204352-B-13.wav",
-      "title": "crickets.wav",
-      "author": "tagigobaso",
-      "licence": "CC BY-NC",
-      "page": "http://www.freesound.org/people/tagigobaso/sounds/204352/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-204352-B-13.wav"
-     },
-     {
-      "id": "5-210540-A-13.wav",
-      "title": "crickets.wav",
-      "author": "Sclolex",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/Sclolex/sounds/210540/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-210540-A-13.wav"
-     },
-     {
-      "id": "5-215172-A-13.wav",
-      "title": "Chip and the outdoor cricket.mp3",
-      "author": "john9",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/john9/sounds/215172/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-215172-A-13.wav"
-     },
-     {
-      "id": "5-215179-A-13.wav",
-      "title": "high park crickets.3.wav",
-      "author": "john9",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/john9/sounds/215179/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-215179-A-13.wav"
-     },
-     {
-      "id": "5-216213-A-13.wav",
-      "title": "Crickets_04.wav",
-      "author": "RSilveira_88",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/RSilveira_88/sounds/216213/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-216213-A-13.wav"
-     }
-    ],
-    "q": "esc50"
+    "src": "freesound",
+    "id": "175020",
+    "title": "AMBIENCE NIGHT FIELD CRICKET 01.wav by sengjinn",
+    "licence": "CC0",
+    "author": "sengjinn",
+    "page": "https://freesound.org/people/sengjinn/sounds/175020/",
+    "audio": "https://cdn.freesound.org/previews/175/175020_2979997-hq.mp3",
+    "sha256": "18da78264ed2ff12e74d1bc6ac17ce539a12568fd04a32c830f117fed31da8ea",
+    "dur": 60.43,
+    "q": "crickets night field",
+    "speechiness": 0.778
+   },
+   {
+    "key": "plain_night_warm",
+    "section": "beds",
+    "src": "freesound",
+    "id": "661435",
+    "title": "Defensible Twister by Brazilio123",
+    "licence": "CC0",
+    "author": "Brazilio123",
+    "page": "https://freesound.org/people/Brazilio123/sounds/661435/",
+    "audio": "https://cdn.freesound.org/previews/661/661435_14509684-hq.mp3",
+    "sha256": "d06687f1b3431e0d944bfa9f83b4aaf1ebe92c89a0a15e0f1d9a31448854cdba",
+    "dur": 432.98,
+    "q": "crickets night field",
+    "speechiness": 0.668
    }
   ],
-  "plain_night_cold": [],
+  "plain_night_cold": [
+   {
+    "key": "plain_night_cold",
+    "section": "beds",
+    "src": "freesound",
+    "id": "843781",
+    "title": "Neighborhood Cold winter sounds January 31 2026",
+    "licence": "CC0",
+    "author": "kvgarlic",
+    "page": "https://freesound.org/people/kvgarlic/sounds/843781/",
+    "audio": "https://cdn.freesound.org/previews/843/843781_1050391-hq.ogg",
+    "sha256": "3f57e0a9ff16ac16c6dff8ecc6617f512c4e0c708df29946512bf299e24874be",
+    "dur": 487.25,
+    "q": "cold night wind field",
+    "speechiness": 0.662
+   }
+  ],
   "orchard_day": [
    {
     "key": "orchard_day",
     "section": "beds",
-    "src": "esc50",
-    "id": "compose:chirping_birds:orchard_day",
-    "title": "34 ESC-50 clips crossfaded",
-    "licence": "CC BY-NC",
-    "author": "soundbytez, hanstimm, digifishmusic, cajo, inchadney, ducksingel, keweldog, urupin, dwareing, RSilveira_88, Julien Nicolas",
-    "page": "https://github.com/karolpiczak/ESC-50",
-    "audio": "compose",
-    "sha256": "e37736b76251e135823e67cbe77d244a153cbd5abb5e52588f56baa21df8c668",
-    "ext": "wav",
-    "dur": 118.84,
-    "provisional": true,
-    "clips": [
-     {
-      "id": "1-100038-A-14.wav",
-      "title": "saz_birds_hyena.wav",
-      "author": "soundbytez",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/soundbytez/sounds/100038/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-100038-A-14.wav"
-     },
-     {
-      "id": "1-34495-A-14.wav",
-      "title": "birdsWBD.A.aiff",
-      "author": "hanstimm",
-      "licence": "CC BY-NC",
-      "page": "http://www.freesound.org/people/hanstimm/sounds/34495/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-34495-A-14.wav"
-     },
-     {
-      "id": "1-34497-A-14.wav",
-      "title": "birdsWBD.C.aiff",
-      "author": "hanstimm",
-      "licence": "CC BY-NC",
-      "page": "http://www.freesound.org/people/hanstimm/sounds/34497/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-34497-A-14.wav"
-     },
-     {
-      "id": "1-38559-A-14.wav",
-      "title": "Daintree Rainforrest Birds 1.wav",
-      "author": "digifishmusic",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/digifishmusic/sounds/38559/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-38559-A-14.wav"
-     },
-     {
-      "id": "1-46040-A-14.wav",
-      "title": "birds_05.flac",
-      "author": "cajo",
-      "licence": "CC BY-NC",
-      "page": "http://www.freesound.org/people/cajo/sounds/46040/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-46040-A-14.wav"
-     },
-     {
-      "id": "1-54918-A-14.wav",
-      "title": "Wren and other birds.wav",
-      "author": "inchadney",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/inchadney/sounds/54918/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-54918-A-14.wav"
-     },
-     {
-      "id": "1-54918-B-14.wav",
-      "title": "Wren and other birds.wav",
-      "author": "inchadney",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/inchadney/sounds/54918/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-54918-B-14.wav"
-     },
-     {
-      "id": "2-108760-A-14.wav",
-      "title": "birds_evening.wav",
-      "author": "soundbytez",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/soundbytez/sounds/108760/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-108760-A-14.wav"
-     },
-     {
-      "id": "2-108760-B-14.wav",
-      "title": "birds_evening.wav",
-      "author": "soundbytez",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/soundbytez/sounds/108760/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-108760-B-14.wav"
-     },
-     {
-      "id": "2-108761-A-14.wav",
-      "title": "birds_late_morning.wav",
-      "author": "soundbytez",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/soundbytez/sounds/108761/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-108761-A-14.wav"
-     },
-     {
-      "id": "2-72547-A-14.wav",
-      "title": "BirdsWBD090509.NR.mp3",
-      "author": "hanstimm",
-      "licence": "CC BY-NC",
-      "page": "http://www.freesound.org/people/hanstimm/sounds/72547/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-72547-A-14.wav"
-     },
-     {
-      "id": "2-72547-B-14.wav",
-      "title": "BirdsWBD090509.NR.mp3",
-      "author": "hanstimm",
-      "licence": "CC BY-NC",
-      "page": "http://www.freesound.org/people/hanstimm/sounds/72547/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-72547-B-14.wav"
-     },
-     {
-      "id": "2-72547-C-14.wav",
-      "title": "BirdsWBD090509.NR.mp3",
-      "author": "hanstimm",
-      "licence": "CC BY-NC",
-      "page": "http://www.freesound.org/people/hanstimm/sounds/72547/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-72547-C-14.wav"
-     },
-     {
-      "id": "2-72547-D-14.wav",
-      "title": "BirdsWBD090509.NR.mp3",
-      "author": "hanstimm",
-      "licence": "CC BY-NC",
-      "page": "http://www.freesound.org/people/hanstimm/sounds/72547/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-72547-D-14.wav"
-     },
-     {
-      "id": "3-155577-A-14.wav",
-      "title": "Birds of the Weerribben-1.aiff",
-      "author": "ducksingel",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/ducksingel/sounds/155577/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-155577-A-14.wav"
-     },
-     {
-      "id": "3-155578-A-14.wav",
-      "title": "Birds of the Weerribben-2.aiff",
-      "author": "ducksingel",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/ducksingel/sounds/155578/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-155578-A-14.wav"
-     },
-     {
-      "id": "3-155579-A-14.wav",
-      "title": "Birds around the sandpit near Melissant.aiff",
-      "author": "ducksingel",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/ducksingel/sounds/155579/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-155579-A-14.wav"
-     },
-     {
-      "id": "3-155583-A-14.wav",
-      "title": "Birds of Tiengemeten-1.aiff",
-      "author": "ducksingel",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/ducksingel/sounds/155583/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-155583-A-14.wav"
-     },
-     {
-      "id": "3-155584-A-14.wav",
-      "title": "Birds of Tiengemeten-2.aiff",
-      "author": "ducksingel",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/ducksingel/sounds/155584/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-155584-A-14.wav"
-     },
-     {
-      "id": "3-181132-A-14.wav",
-      "title": "bird chirps.wav",
-      "author": "keweldog",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/keweldog/sounds/181132/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-181132-A-14.wav"
-     },
-     {
-      "id": "4-159609-A-14.wav",
-      "title": "Sylvia communis (slavka gray).",
-      "author": "urupin",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/urupin/sounds/159609/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-159609-A-14.wav"
-     },
-     {
-      "id": "4-159609-B-14.wav",
-      "title": "Sylvia communis (slavka gray).",
-      "author": "urupin",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/urupin/sounds/159609/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-159609-B-14.wav"
-     },
-     {
-      "id": "4-182795-A-14.wav",
-      "title": "bird chirps4.wav",
-      "author": "keweldog",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/keweldog/sounds/182795/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-182795-A-14.wav"
-     },
-     {
-      "id": "4-187769-A-14.wav",
-      "title": "binaural-birds-06-05-2013.flac",
-      "author": "dwareing",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/dwareing/sounds/187769/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-187769-A-14.wav"
-     },
-     {
-      "id": "4-187769-B-14.wav",
-      "title": "binaural-birds-06-05-2013.flac",
-      "author": "dwareing",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/dwareing/sounds/187769/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-187769-B-14.wav"
-     },
-     {
-      "id": "4-216211-A-14.wav",
-      "title": "Bird_01.wav",
-      "author": "RSilveira_88",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/RSilveira_88/sounds/216211/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-216211-A-14.wav"
-     },
-     {
-      "id": "4-223125-A-14.wav",
-      "title": "starlings2.wav",
-      "author": "keweldog",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/keweldog/sounds/223125/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-223125-A-14.wav"
-     },
-     {
-      "id": "4-223127-A-14.wav",
-      "title": "general birdsong.wav",
-      "author": "keweldog",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/keweldog/sounds/223127/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-223127-A-14.wav"
-     },
-     {
-      "id": "5-243448-A-14.wav",
-      "title": "Port d'Aula-Oiseaux - 1",
-      "author": "Julien Nicolas",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/Julien%20Nicolas/sounds/243448/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-243448-A-14.wav"
-     },
-     {
-      "id": "5-243449-A-14.wav",
-      "title": "Port d'Aula-Oiseaux - 2",
-      "author": "Julien Nicolas",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/Julien%20Nicolas/sounds/243449/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-243449-A-14.wav"
-     },
-     {
-      "id": "5-243450-A-14.wav",
-      "title": "Port d'Aula-Oiseaux - 3",
-      "author": "Julien Nicolas",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/Julien%20Nicolas/sounds/243450/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-243450-A-14.wav"
-     },
-     {
-      "id": "5-243459-A-14.wav",
-      "title": "BIRDS",
-      "author": "Julien Nicolas",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/Julien%20Nicolas/sounds/243459/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-243459-A-14.wav"
-     },
-     {
-      "id": "5-243459-B-14.wav",
-      "title": "BIRDS",
-      "author": "Julien Nicolas",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/Julien%20Nicolas/sounds/243459/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-243459-B-14.wav"
-     },
-     {
-      "id": "5-257839-A-14.wav",
-      "title": "Blackcap and other birds.wav",
-      "author": "inchadney",
-      "licence": "CC BY-NC",
-      "page": "http://www.freesound.org/people/inchadney/sounds/257839/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-257839-A-14.wav"
-     }
-    ],
-    "q": "esc50"
+    "src": "freesound",
+    "id": "523386",
+    "title": "Forest, quiet, birdsong, distant roar of trees branches in wind, could pass as a distant river.wav",
+    "licence": "CC0",
+    "author": "Anya_Media",
+    "page": "https://freesound.org/people/Anya_Media/sounds/523386/",
+    "audio": "https://cdn.freesound.org/previews/523/523386_2010973-hq.ogg",
+    "sha256": "0e689d3f3c05cd0280dbb5e1237848861225dbfd43873f86cd33ce094407e26c",
+    "dur": 156.15,
+    "q": "woodland birds ambience leaves wind",
+    "speechiness": 0.605
    }
   ],
-  "orchard_night": [],
-  "river_day": [],
-  "river_night": [],
-  "canal": [],
-  "terrace_day": [],
-  "terrace_night": [],
-  "hall_tone": [],
-  "hillside_day": [],
-  "hillside_night": [],
-  "room_tone": [],
+  "orchard_night": [
+   {
+    "key": "orchard_night",
+    "section": "beds",
+    "src": "freesound",
+    "id": "410357",
+    "title": "Small wood at night close to Rio de Janeiro (on the way to Pedra Bonita)",
+    "licence": "CC0",
+    "author": "felix.blume",
+    "page": "https://freesound.org/people/felix.blume/sounds/410357/",
+    "audio": "https://cdn.freesound.org/previews/410/410357_1661766-hq.ogg",
+    "sha256": "7c3bb1b64ae9ac58c5edb9577f5a90ec6a453bcd2a4acdfb6998f12dcb0725d9",
+    "dur": 262.51,
+    "q": "trees night ambience crickets",
+    "speechiness": 0.67
+   }
+  ],
+  "river_day": [
+   {
+    "key": "river_day",
+    "section": "beds",
+    "src": "freesound",
+    "id": "520972",
+    "title": "River",
+    "licence": "CC0",
+    "author": "Antonio_Lai",
+    "page": "https://freesound.org/people/Antonio_Lai/sounds/520972/",
+    "audio": "https://cdn.freesound.org/previews/520/520972_6891806-hq.ogg",
+    "sha256": "aff9242f42ad75b000318862f74af66fad29e556dbad2f827437ebf9f9ba7251",
+    "dur": 214.07,
+    "q": "river flowing ambience birds",
+    "speechiness": 3.347
+   },
+   {
+    "key": "river_day",
+    "section": "beds",
+    "src": "freesound",
+    "id": "519558",
+    "title": "waterfall",
+    "licence": "CC0",
+    "author": "Antonio_Lai",
+    "page": "https://freesound.org/people/Antonio_Lai/sounds/519558/",
+    "audio": "https://cdn.freesound.org/previews/519/519558_6891806-hq.ogg",
+    "sha256": "ab375e35c19801c0cfc4b7baa54511c24795af6117502d3bc0164d0d53bca6ff",
+    "dur": 394.47,
+    "q": "river flowing ambience birds",
+    "speechiness": 1.173
+   }
+  ],
+  "river_night": [
+   {
+    "key": "river_night",
+    "section": "beds",
+    "src": "freesound",
+    "id": "466955",
+    "title": "Night close to a river, crickets and frogs, bird sometimes.",
+    "licence": "CC0",
+    "author": "felix.blume",
+    "page": "https://freesound.org/people/felix.blume/sounds/466955/",
+    "audio": "https://cdn.freesound.org/previews/466/466955_1661766-hq.ogg",
+    "sha256": "f14cf03010a8fe8846ea391c912d9cbfd1d73778ffee6a1efdbde2e41199a2ee",
+    "dur": 171.59,
+    "q": "river night frogs",
+    "speechiness": 0.631
+   }
+  ],
+  "canal": [
+   {
+    "key": "canal",
+    "section": "beds",
+    "src": "commons",
+    "id": "File:Water flowing pouring trickling.ogg",
+    "title": "Water flowing pouring trickling.ogg",
+    "licence": "CC0",
+    "author": "stephan",
+    "page": "https://commons.wikimedia.org/wiki/File:Water_flowing_pouring_trickling.ogg",
+    "audio": "https://upload.wikimedia.org/wikipedia/commons/4/4f/Water_flowing_pouring_trickling.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "sha256": "39b32876bab48f0ed3626ffb88eb65c66f0b4d884332f7b5613d44ed62f7f924",
+    "dur": 96.26,
+    "q": "small stream trickle",
+    "speechiness": 4.307
+   }
+  ],
+  "terrace_day": [
+   {
+    "key": "terrace_day",
+    "section": "beds",
+    "src": "freesound",
+    "id": "454361",
+    "title": "wind light desert day steady eerie with crickets.flac",
+    "licence": "CC0",
+    "author": "kyles",
+    "page": "https://freesound.org/people/kyles/sounds/454361/",
+    "audio": "https://cdn.freesound.org/previews/454/454361_612689-hq.ogg",
+    "sha256": "251819983fd01839a7c1a35bf60b1227e2d72bc252ad21cf4e62d6f961ad75fa",
+    "dur": 118.76,
+    "q": "desert wind light",
+    "speechiness": 0.569
+   },
+   {
+    "key": "terrace_day",
+    "section": "beds",
+    "src": "freesound",
+    "id": "187756",
+    "title": "Wind in a tree in the Mojave Desert (California, USA)",
+    "licence": "CC0",
+    "author": "felix.blume",
+    "page": "https://freesound.org/people/felix.blume/sounds/187756/",
+    "audio": "https://cdn.freesound.org/previews/187/187756_1661766-hq.ogg",
+    "sha256": "309f00b8c17c593d332d41e32977756801980e36e656e957b7930db4f77eae42",
+    "dur": 239.11,
+    "q": "desert wind light",
+    "speechiness": 0.587
+   }
+  ],
+  "terrace_night": [
+   {
+    "key": "terrace_night",
+    "section": "beds",
+    "src": "freesound",
+    "id": "325501",
+    "title": "King's Hut Late Evening",
+    "licence": "CC0",
+    "author": "kangaroovindaloo",
+    "page": "https://freesound.org/people/kangaroovindaloo/sounds/325501/",
+    "audio": "https://cdn.freesound.org/previews/325/325501_1728127-hq.ogg",
+    "sha256": "ba64cdeceb7dd074eaa71a351c067ca4703487c3d004e4e8a5781f37bbaae412",
+    "dur": 797.08,
+    "q": "desert night ambience wind",
+    "speechiness": 0.588
+   }
+  ],
+  "hall_tone": [
+   {
+    "key": "hall_tone",
+    "section": "beds",
+    "src": "freesound",
+    "id": "451614",
+    "title": "room tone large convention hall vent large almost empty.flac",
+    "licence": "CC0",
+    "author": "kyles",
+    "page": "https://freesound.org/people/kyles/sounds/451614/",
+    "audio": "https://cdn.freesound.org/previews/451/451614_612689-hq.ogg",
+    "sha256": "9108233ab71a88f2b9e85fb28d981945f3c1a4ad1173c8383b897b111b0fa13b",
+    "dur": 426,
+    "q": "large hall room tone empty",
+    "speechiness": 0.712
+   }
+  ],
+  "hillside_day": [
+   {
+    "key": "hillside_day",
+    "section": "beds",
+    "src": "freesound",
+    "id": "393693",
+    "title": "Nature ambience_Cyprus_Troodos_Mountains_Mount_Olympus_OMNI_mics.wav",
+    "licence": "CC0",
+    "author": "gladkiy",
+    "page": "https://freesound.org/people/gladkiy/sounds/393693/",
+    "audio": "https://cdn.freesound.org/previews/393/393693_2364707-hq.ogg",
+    "sha256": "193fc42387f4e76993dc1ce5d3ef06fb089628fc1b7b2bb79e91c8230db0cd0f",
+    "dur": 780.83,
+    "q": "mountain wind ambience birds",
+    "speechiness": 0.73
+   }
+  ],
+  "hillside_night": [
+   {
+    "key": "hillside_night",
+    "section": "beds",
+    "src": "freesound",
+    "id": "647658",
+    "title": "Ambience - night atmosphere - mountains - provence - south France - insects - crickets - light wind.wav",
+    "licence": "CC0",
+    "author": "ValentinPetiteau",
+    "page": "https://freesound.org/people/ValentinPetiteau/sounds/647658/",
+    "audio": "https://cdn.freesound.org/previews/647/647658_10443988-hq.ogg",
+    "sha256": "6872a28835f8577c8e2903573183af93779fdab843a1071a7cd88661d1b32e5d",
+    "dur": 355,
+    "q": "mountain night wind",
+    "speechiness": 0.673
+   }
+  ],
+  "room_tone": [
+   {
+    "key": "room_tone",
+    "section": "beds",
+    "src": "freesound",
+    "id": "637807",
+    "title": "room tone small space dead quiet air tone.flac",
+    "licence": "CC0",
+    "author": "kyles",
+    "page": "https://freesound.org/people/kyles/sounds/637807/",
+    "audio": "https://cdn.freesound.org/previews/637/637807_612689-hq.ogg",
+    "sha256": "a06c55ccaceb6fa713fa860e6cdbd7541f19f8f736fc97f6055f561c23d43515",
+    "dur": 115.72,
+    "q": "small room tone quiet",
+    "speechiness": 0.618
+   }
+  ],
   "hearth": [
    {
     "key": "hearth",
     "section": "beds",
-    "src": "esc50",
-    "id": "compose:crackling_fire:hearth",
-    "title": "37 ESC-50 clips crossfaded",
-    "licence": "CC BY",
-    "author": "lgarrett, markfrancombe, Krisboruff, Everard, PhreaKsAccount, reinsamba, pcaeldries, Benboncan, dobroide, bogus, Glaneur de sons, sagetyrtle, andydonaldson6, SoundCollectah, Adam_N, matucha, MrAuralization, kingsrow, ReadeOnly, Vurca, amether, skyklan47, laribum, juskiddink",
-    "page": "https://github.com/karolpiczak/ESC-50",
-    "audio": "compose",
-    "sha256": "f7ed1f21098dfd4555374e3f2a225cbd98693009c99bfad33ca80ce8fcaa2129",
-    "ext": "wav",
-    "dur": 126.16,
-    "provisional": true,
-    "clips": [
-     {
-      "id": "1-17150-A-12.wav",
-      "title": "lg fire5.wav",
-      "author": "lgarrett",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/lgarrett/sounds/17150/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-17150-A-12.wav"
-     },
-     {
-      "id": "1-17565-A-12.wav",
-      "title": "fire.mp3",
-      "author": "markfrancombe",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/markfrancombe/sounds/17565/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-17565-A-12.wav"
-     },
-     {
-      "id": "1-17742-A-12.wav",
-      "title": "Fire_Crackles(No Room).wav",
-      "author": "Krisboruff",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/Krisboruff/sounds/17742/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-17742-A-12.wav"
-     },
-     {
-      "id": "1-17808-A-12.wav",
-      "title": "Foc.WAV",
-      "author": "Everard",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/Everard/sounds/17808/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-17808-A-12.wav"
-     },
-     {
-      "id": "1-17808-B-12.wav",
-      "title": "Foc.WAV",
-      "author": "Everard",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/Everard/sounds/17808/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-17808-B-12.wav"
-     },
-     {
-      "id": "1-46272-A-12.wav",
-      "title": "fire_medium_loop.wav",
-      "author": "PhreaKsAccount",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/PhreaKsAccount/sounds/46272/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-46272-A-12.wav"
-     },
-     {
-      "id": "2-18766-A-12.wav",
-      "title": "chimney fire.wav",
-      "author": "reinsamba",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/reinsamba/sounds/18766/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-18766-A-12.wav"
-     },
-     {
-      "id": "2-18766-B-12.wav",
-      "title": "chimney fire.wav",
-      "author": "reinsamba",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/reinsamba/sounds/18766/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-18766-B-12.wav"
-     },
-     {
-      "id": "2-28314-A-12.wav",
-      "title": "FireBurning.wav",
-      "author": "pcaeldries",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/pcaeldries/sounds/28314/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-28314-A-12.wav"
-     },
-     {
-      "id": "2-28314-B-12.wav",
-      "title": "FireBurning.wav",
-      "author": "pcaeldries",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/pcaeldries/sounds/28314/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-28314-B-12.wav"
-     },
-     {
-      "id": "2-30322-A-12.wav",
-      "title": "FireBurning_v2.wav",
-      "author": "pcaeldries",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/pcaeldries/sounds/30322/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-30322-A-12.wav"
-     },
-     {
-      "id": "2-30322-B-12.wav",
-      "title": "FireBurning_v2.wav",
-      "author": "pcaeldries",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/pcaeldries/sounds/30322/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-30322-B-12.wav"
-     },
-     {
-      "id": "2-61311-A-12.wav",
-      "title": "Fire In Woodburning Stove.wav",
-      "author": "Benboncan",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/Benboncan/sounds/61311/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-61311-A-12.wav"
-     },
-     {
-      "id": "2-65747-A-12.wav",
-      "title": "20081231.fire.01.wav",
-      "author": "dobroide",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/dobroide/sounds/65747/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-65747-A-12.wav"
-     },
-     {
-      "id": "3-104632-A-12.wav",
-      "title": "greve feu.wav",
-      "author": "bogus",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/bogus/sounds/104632/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-104632-A-12.wav"
-     },
-     {
-      "id": "3-104958-A-12.wav",
-      "title": "petit feu-little fire (2).wav",
-      "author": "Glaneur de sons",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/Glaneur%20de%20sons/sounds/104958/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-104958-A-12.wav"
-     },
-     {
-      "id": "3-120644-A-12.wav",
-      "title": "20110503_fireplace.00.wav",
-      "author": "dobroide",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/dobroide/sounds/120644/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-120644-A-12.wav"
-     },
-     {
-      "id": "3-145774-A-12.wav",
-      "title": "crackling_fire_021012.wav",
-      "author": "sagetyrtle",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/sagetyrtle/sounds/145774/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-145774-A-12.wav"
-     },
-     {
-      "id": "3-147965-A-12.wav",
-      "title": "Fire Burning",
-      "author": "andydonaldson6",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/andydonaldson6/sounds/147965/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-147965-A-12.wav"
-     },
-     {
-      "id": "3-158476-A-12.wav",
-      "title": "fire burning.mp3",
-      "author": "SoundCollectah",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/SoundCollectah/sounds/158476/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-158476-A-12.wav"
-     },
-     {
-      "id": "3-65748-A-12.wav",
-      "title": "20081231.fire.02.wav",
-      "author": "dobroide",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/dobroide/sounds/65748/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-65748-A-12.wav"
-     },
-     {
-      "id": "4-164661-A-12.wav",
-      "title": "Fire.wav",
-      "author": "Adam_N",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/Adam_N/sounds/164661/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-164661-A-12.wav"
-     },
-     {
-      "id": "4-164661-B-12.wav",
-      "title": "Fire.wav",
-      "author": "Adam_N",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/Adam_N/sounds/164661/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-164661-B-12.wav"
-     },
-     {
-      "id": "4-170247-A-12.wav",
-      "title": "campfire_01.wav",
-      "author": "matucha",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/matucha/sounds/170247/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-170247-A-12.wav"
-     },
-     {
-      "id": "4-170247-B-12.wav",
-      "title": "campfire_01.wav",
-      "author": "matucha",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/matucha/sounds/170247/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-170247-B-12.wav"
-     },
-     {
-      "id": "4-171207-A-12.wav",
-      "title": "Wood-burning stove",
-      "author": "MrAuralization",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/MrAuralization/sounds/171207/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-171207-A-12.wav"
-     },
-     {
-      "id": "4-181563-A-12.wav",
-      "title": "Fire Crackling 01.wav",
-      "author": "kingsrow",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/kingsrow/sounds/181563/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-181563-A-12.wav"
-     },
-     {
-      "id": "4-182368-A-12.wav",
-      "title": "Fire Crackling 02.mp3",
-      "author": "kingsrow",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/kingsrow/sounds/182368/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-182368-A-12.wav"
-     },
-     {
-      "id": "4-182369-A-12.wav",
-      "title": "Fire Crackling 01.mp3",
-      "author": "kingsrow",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/kingsrow/sounds/182369/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-182369-A-12.wav"
-     },
-     {
-      "id": "5-186924-A-12.wav",
-      "title": "Fire_Loop.wav",
-      "author": "ReadeOnly",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/ReadeOnly/sounds/186924/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-186924-A-12.wav"
-     },
-     {
-      "id": "5-189212-A-12.wav",
-      "title": "Burning Fire",
-      "author": "Vurca",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/Vurca/sounds/189212/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-189212-A-12.wav"
-     },
-     {
-      "id": "5-189237-A-12.wav",
-      "title": "Bonfire",
-      "author": "amether",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/amether/sounds/189237/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-189237-A-12.wav"
-     },
-     {
-      "id": "5-193473-A-12.wav",
-      "title": "RRMX SMALL FIRE.wav",
-      "author": "skyklan47",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/skyklan47/sounds/193473/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-193473-A-12.wav"
-     },
-     {
-      "id": "5-193473-B-12.wav",
-      "title": "RRMX SMALL FIRE.wav",
-      "author": "skyklan47",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/skyklan47/sounds/193473/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-193473-B-12.wav"
-     },
-     {
-      "id": "5-213802-A-12.wav",
-      "title": "burning-fire-steam.wav",
-      "author": "laribum",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/laribum/sounds/213802/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-213802-A-12.wav"
-     },
-     {
-      "id": "5-215658-A-12.wav",
-      "title": "Fireplace.wav",
-      "author": "juskiddink",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/juskiddink/sounds/215658/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-215658-A-12.wav"
-     },
-     {
-      "id": "5-215658-B-12.wav",
-      "title": "Fireplace.wav",
-      "author": "juskiddink",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/juskiddink/sounds/215658/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-215658-B-12.wav"
-     }
-    ],
-    "q": "esc50"
+    "src": "freesound",
+    "id": "501417",
+    "title": "Aachen_Burning Fireplace Crackling Fire Sounds.wav",
+    "licence": "CC0",
+    "author": "visionear",
+    "page": "https://freesound.org/people/visionear/sounds/501417/",
+    "audio": "https://cdn.freesound.org/previews/501/501417_10869493-hq.ogg",
+    "sha256": "a9b8fd3d4310d3b6af6f8a3bd501f700b2cd281d5ded306594f58f0f52edadc0",
+    "dur": 713.99,
+    "q": "fireplace crackling fire",
+    "speechiness": 1.691
+   },
+   {
+    "key": "hearth",
+    "section": "beds",
+    "src": "freesound",
+    "id": "145774",
+    "title": "crackling_fire_021012.wav",
+    "licence": "CC0",
+    "author": "moxobna",
+    "page": "https://freesound.org/people/moxobna/sounds/145774/",
+    "audio": "https://cdn.freesound.org/previews/145/145774_43834-hq.ogg",
+    "sha256": "8d13ead89477e99d50b69c260b6a27d60c52547b7ba452e104665d0be5eddd53",
+    "dur": 182.77,
+    "q": "fireplace crackling fire",
+    "speechiness": 2.137
    }
   ],
   "worksite": [],
@@ -954,1121 +585,478 @@
    {
     "key": "rain_light",
     "section": "beds",
-    "src": "esc50",
-    "id": "compose:rain:rain_light",
-    "title": "32 ESC-50 clips crossfaded",
+    "src": "freesound",
+    "id": "422052",
+    "title": "Light Rain - Atmosphere - Jungle Rain",
     "licence": "CC0",
-    "author": "cognito perceptu, uberhuberman, Walter_Odington, palem, vibe_crc, thammo, Q.K., liliangorini, nialldoran, bsyapril88, j1987, silencyo, sagetyrtle, Polmantz, klangfabrik, loopbasedmusic, Keygenerator, Mafon2, reelworldstudio, Zepp2010, Danjocross, pheiland, josephsardin, aumguy, asbestos bill, laura222, yzhamua, soundman9826, arseniiv, schafferdavid, jongrubbs, MrBoing",
-    "page": "https://github.com/karolpiczak/ESC-50",
-    "audio": "compose",
-    "sha256": "80a461daea450aeec32858fe6c041617c75ad0ee7b8b7ae39dd628a13876a729",
-    "ext": "wav",
-    "dur": 113.44,
-    "provisional": true,
-    "clips": [
-     {
-      "id": "1-17367-A-10.wav",
-      "title": "unlocki door to mod rain.wav",
-      "author": "cognito perceptu",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/cognito%20perceptu/sounds/17367/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-17367-A-10.wav"
-     },
-     {
-      "id": "1-21189-A-10.wav",
-      "title": "Louisiana Rain 1.wav",
-      "author": "uberhuberman",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/uberhuberman/sounds/21189/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-21189-A-10.wav"
-     },
-     {
-      "id": "1-26222-A-10.wav",
-      "title": "medium heavey rain.wav",
-      "author": "Walter_Odington",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/Walter_Odington/sounds/26222/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-26222-A-10.wav"
-     },
-     {
-      "id": "1-29561-A-10.wav",
-      "title": "rain.aif",
-      "author": "palem",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/palem/sounds/29561/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-29561-A-10.wav"
-     },
-     {
-      "id": "1-50060-A-10.wav",
-      "title": "rain_session_27sec_2006.wav",
-      "author": "vibe_crc",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/vibe_crc/sounds/50060/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-50060-A-10.wav"
-     },
-     {
-      "id": "1-54958-A-10.wav",
-      "title": "rain.ogg",
-      "author": "thammo",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/thammo/sounds/54958/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-54958-A-10.wav"
-     },
-     {
-      "id": "1-56311-A-10.wav",
-      "title": "Rain_06.wav",
-      "author": "Q.K.",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/Q.K./sounds/56311/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-56311-A-10.wav"
-     },
-     {
-      "id": "1-63871-A-10.wav",
-      "title": "rain.mp3",
-      "author": "liliangorini",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/liliangorini/sounds/63871/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-63871-A-10.wav"
-     },
-     {
-      "id": "2-101676-A-10.wav",
-      "title": "rain, sm57.wav",
-      "author": "nialldoran",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/nialldoran/sounds/101676/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-101676-A-10.wav"
-     },
-     {
-      "id": "2-72970-A-10.wav",
-      "title": "RAIN indoors.ogg",
-      "author": "bsyapril88",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/bsyapril88/sounds/72970/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-72970-A-10.wav"
-     },
-     {
-      "id": "2-73027-A-10.wav",
-      "title": "rain_on_greenhouse.mp3",
-      "author": "j1987",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/j1987/sounds/73027/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-73027-A-10.wav"
-     },
-     {
-      "id": "2-81731-A-10.wav",
-      "title": "Silencyo_RAIN_NIGHT_Village_Drips_Courtyard.aif",
-      "author": "silencyo",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/silencyo/sounds/81731/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-81731-A-10.wav"
-     },
-     {
-      "id": "2-87781-A-10.wav",
-      "title": "rain.wav",
-      "author": "sagetyrtle",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/sagetyrtle/sounds/87781/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-87781-A-10.wav"
-     },
-     {
-      "id": "3-143929-A-10.wav",
-      "title": "Driving in rain.wav",
-      "author": "Polmantz",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/Polmantz/sounds/143929/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-143929-A-10.wav"
-     },
-     {
-      "id": "3-157149-A-10.wav",
-      "title": "raininwoods.aiff",
-      "author": "klangfabrik",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/klangfabrik/sounds/157149/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-157149-A-10.wav"
-     },
-     {
-      "id": "3-157487-A-10.wav",
-      "title": "rain_near_smooth.aif",
-      "author": "loopbasedmusic",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/loopbasedmusic/sounds/157487/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-157487-A-10.wav"
-     },
-     {
-      "id": "3-157615-A-10.wav",
-      "title": "rain recording.mp3",
-      "author": "Keygenerator",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/Keygenerator/sounds/157615/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-157615-A-10.wav"
-     },
-     {
-      "id": "4-160999-A-10.wav",
-      "title": "rain.MP3",
-      "author": "Mafon2",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/Mafon2/sounds/160999/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-160999-A-10.wav"
-     },
-     {
-      "id": "4-161127-A-10.wav",
-      "title": "Heavy rain.wav",
-      "author": "reelworldstudio",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/reelworldstudio/sounds/161127/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-161127-A-10.wav"
-     },
-     {
-      "id": "4-163264-A-10.wav",
-      "title": "Light rain",
-      "author": "Zepp2010",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/Zepp2010/sounds/163264/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-163264-A-10.wav"
-     },
-     {
-      "id": "4-164206-A-10.wav",
-      "title": "Rain very heavy with thunder.wav",
-      "author": "Danjocross",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/Danjocross/sounds/164206/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-164206-A-10.wav"
-     },
-     {
-      "id": "4-166661-A-10.wav",
-      "title": "pheiland",
-      "author": "pheiland",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/pheiland/sounds/166661/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-166661-A-10.wav"
-     },
-     {
-      "id": "4-177250-A-10.wav",
-      "title": "Rain and Storm",
-      "author": "josephsardin",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/josephsardin/sounds/177250/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-177250-A-10.wav"
-     },
-     {
-      "id": "4-180380-A-10.wav",
-      "title": "rain.wav",
-      "author": "aumguy",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/aumguy/sounds/180380/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-180380-A-10.wav"
-     },
-     {
-      "id": "4-181286-A-10.wav",
-      "title": "Wind and Sprinkling Rain",
-      "author": "asbestos bill",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/asbestos%20bill/sounds/181286/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-181286-A-10.wav"
-     },
-     {
-      "id": "5-181766-A-10.wav",
-      "title": "rain.aiff",
-      "author": "laura222",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/laura222/sounds/181766/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-181766-A-10.wav"
-     },
-     {
-      "id": "5-188655-A-10.wav",
-      "title": "1 Minute Rain (Medium)",
-      "author": "yzhamua",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/yzhamua/sounds/188655/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-188655-A-10.wav"
-     },
-     {
-      "id": "5-193339-A-10.wav",
-      "title": "rain.mp3",
-      "author": "soundman9826",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/soundman9826/sounds/193339/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-193339-A-10.wav"
-     },
-     {
-      "id": "5-194892-A-10.wav",
-      "title": "lo-fi-rain-and-thunder.wav",
-      "author": "arseniiv",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/arseniiv/sounds/194892/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-194892-A-10.wav"
-     },
-     {
-      "id": "5-198321-A-10.wav",
-      "title": "rain.wav",
-      "author": "schafferdavid",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/schafferdavid/sounds/198321/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-198321-A-10.wav"
-     },
-     {
-      "id": "5-202898-A-10.wav",
-      "title": "EXT_RainInPuddle.wav",
-      "author": "jongrubbs",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/jongrubbs/sounds/202898/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-202898-A-10.wav"
-     },
-     {
-      "id": "5-203739-A-10.wav",
-      "title": "rain with occasional thunder.wav",
-      "author": "MrBoing",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/MrBoing/sounds/203739/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-203739-A-10.wav"
-     }
-    ],
-    "q": "esc50"
+    "author": "florianreichelt",
+    "page": "https://freesound.org/people/florianreichelt/sounds/422052/",
+    "audio": "https://cdn.freesound.org/previews/422/422052_6253486-hq.ogg",
+    "sha256": "2e0775d877574f4507b3eaa7d622930f5fadc939ce96e520ddf0ea66e2f4b10f",
+    "dur": 500.84,
+    "q": "light rain ambience",
+    "speechiness": 0.746
    }
   ],
   "rain_heavy": [
    {
     "key": "rain_heavy",
     "section": "beds",
-    "src": "esc50",
-    "id": "compose:thunderstorm:rain_heavy",
-    "title": "37 ESC-50 clips crossfaded",
-    "licence": "CC BY-NC",
-    "author": "raoul_slayer, csengeri, Erdie, Robinhood76, inchadney, kijjaz, chrscrwfrd18, daveincamas",
-    "page": "https://github.com/karolpiczak/ESC-50",
-    "audio": "compose",
-    "sha256": "46b26db3c8190d7503ffbcdef461af9884f740dfd9bca55f346c745c305b1759",
-    "ext": "wav",
-    "dur": 129.3,
-    "provisional": true,
-    "clips": [
-     {
-      "id": "1-101296-A-19.wav",
-      "title": "thunderstorm.wav",
-      "author": "raoul_slayer",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/raoul_slayer/sounds/101296/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-101296-A-19.wav"
-     },
-     {
-      "id": "1-101296-B-19.wav",
-      "title": "thunderstorm.wav",
-      "author": "raoul_slayer",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/raoul_slayer/sounds/101296/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-101296-B-19.wav"
-     },
-     {
-      "id": "1-115521-A-19.wav",
-      "title": "20100614thunder7.wav",
-      "author": "csengeri",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/csengeri/sounds/115521/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-115521-A-19.wav"
-     },
-     {
-      "id": "1-23222-A-19.wav",
-      "title": "thunderstorm2.flac",
-      "author": "Erdie",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/Erdie/sounds/23222/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-23222-A-19.wav"
-     },
-     {
-      "id": "1-23222-B-19.wav",
-      "title": "thunderstorm2.flac",
-      "author": "Erdie",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/Erdie/sounds/23222/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-23222-B-19.wav"
-     },
-     {
-      "id": "1-24524-A-19.wav",
-      "title": "thunderstorm-raw-data.flac",
-      "author": "Erdie",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/Erdie/sounds/24524/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-24524-A-19.wav"
-     },
-     {
-      "id": "1-24524-B-19.wav",
-      "title": "thunderstorm-raw-data.flac",
-      "author": "Erdie",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/Erdie/sounds/24524/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-24524-B-19.wav"
-     },
-     {
-      "id": "1-24524-C-19.wav",
-      "title": "thunderstorm-raw-data.flac",
-      "author": "Erdie",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/Erdie/sounds/24524/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-24524-C-19.wav"
-     },
-     {
-      "id": "2-104105-A-19.wav",
-      "title": "02139 rolling thunderstorm.wav",
-      "author": "Robinhood76",
-      "licence": "CC BY-NC",
-      "page": "http://www.freesound.org/people/Robinhood76/sounds/104105/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-104105-A-19.wav"
-     },
-     {
-      "id": "2-104105-B-19.wav",
-      "title": "02139 rolling thunderstorm.wav",
-      "author": "Robinhood76",
-      "licence": "CC BY-NC",
-      "page": "http://www.freesound.org/people/Robinhood76/sounds/104105/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-104105-B-19.wav"
-     },
-     {
-      "id": "2-39441-A-19.wav",
-      "title": "Vihar2.MP3",
-      "author": "csengeri",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/csengeri/sounds/39441/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-39441-A-19.wav"
-     },
-     {
-      "id": "2-39443-A-19.wav",
-      "title": "Vihar4.MP3",
-      "author": "csengeri",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/csengeri/sounds/39443/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-39443-A-19.wav"
-     },
-     {
-      "id": "2-39443-B-19.wav",
-      "title": "Vihar4.MP3",
-      "author": "csengeri",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/csengeri/sounds/39443/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-39443-B-19.wav"
-     },
-     {
-      "id": "2-39945-A-19.wav",
-      "title": "EQCloseLightningBolts20August2007.mp3",
-      "author": "csengeri",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/csengeri/sounds/39945/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-39945-A-19.wav"
-     },
-     {
-      "id": "2-39945-B-19.wav",
-      "title": "EQCloseLightningBolts20August2007.mp3",
-      "author": "csengeri",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/csengeri/sounds/39945/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-39945-B-19.wav"
-     },
-     {
-      "id": "2-39945-C-19.wav",
-      "title": "EQCloseLightningBolts20August2007.mp3",
-      "author": "csengeri",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/csengeri/sounds/39945/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-39945-C-19.wav"
-     },
-     {
-      "id": "3-103050-A-19.wav",
-      "title": "Storm1408201001.mp3",
-      "author": "csengeri",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/csengeri/sounds/103050/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-103050-A-19.wav"
-     },
-     {
-      "id": "3-103051-A-19.wav",
-      "title": "Storm1408201002.mp3",
-      "author": "csengeri",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/csengeri/sounds/103051/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-103051-A-19.wav"
-     },
-     {
-      "id": "3-103051-B-19.wav",
-      "title": "Storm1408201002.mp3",
-      "author": "csengeri",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/csengeri/sounds/103051/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-103051-B-19.wav"
-     },
-     {
-      "id": "3-103051-C-19.wav",
-      "title": "Storm1408201002.mp3",
-      "author": "csengeri",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/csengeri/sounds/103051/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-103051-C-19.wav"
-     },
-     {
-      "id": "3-123224-A-19.wav",
-      "title": "Thunderstorm.WAV",
-      "author": "inchadney",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/inchadney/sounds/123224/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-123224-A-19.wav"
-     },
-     {
-      "id": "3-124600-A-19.wav",
-      "title": "Thunderstorm.WAV",
-      "author": "inchadney",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/inchadney/sounds/124600/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-124600-A-19.wav"
-     },
-     {
-      "id": "3-144891-A-19.wav",
-      "title": "20120202 Bangkok Thunderstorm",
-      "author": "kijjaz",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/kijjaz/sounds/144891/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-144891-A-19.wav"
-     },
-     {
-      "id": "3-144891-B-19.wav",
-      "title": "20120202 Bangkok Thunderstorm",
-      "author": "kijjaz",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/kijjaz/sounds/144891/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-144891-B-19.wav"
-     },
-     {
-      "id": "4-125070-A-19.wav",
-      "title": "2011julius1901.wav",
-      "author": "csengeri",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/csengeri/sounds/125070/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-125070-A-19.wav"
-     },
-     {
-      "id": "4-125071-A-19.wav",
-      "title": "2011julius1902.wav",
-      "author": "csengeri",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/csengeri/sounds/125071/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-125071-A-19.wav"
-     },
-     {
-      "id": "4-125072-A-19.wav",
-      "title": "2011julius1903.wav",
-      "author": "csengeri",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/csengeri/sounds/125072/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-125072-A-19.wav"
-     },
-     {
-      "id": "4-125072-B-19.wav",
-      "title": "2011julius1903.wav",
-      "author": "csengeri",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/csengeri/sounds/125072/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-125072-B-19.wav"
-     },
-     {
-      "id": "4-156993-A-19.wav",
-      "title": "Thunder.wav",
-      "author": "chrscrwfrd18",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/chrscrwfrd18/sounds/156993/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-156993-A-19.wav"
-     },
-     {
-      "id": "4-161519-A-19.wav",
-      "title": "20120720Thunder.wav",
-      "author": "daveincamas",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/daveincamas/sounds/161519/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-161519-A-19.wav"
-     },
-     {
-      "id": "4-165813-A-19.wav",
-      "title": "120925_0011.mp3",
-      "author": "csengeri",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/csengeri/sounds/165813/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-165813-A-19.wav"
-     },
-     {
-      "id": "4-165813-B-19.wav",
-      "title": "120925_0011.mp3",
-      "author": "csengeri",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/csengeri/sounds/165813/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-165813-B-19.wav"
-     },
-     {
-      "id": "5-156999-A-19.wav",
-      "title": "Lightening.wav",
-      "author": "chrscrwfrd18",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/chrscrwfrd18/sounds/156999/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-156999-A-19.wav"
-     },
-     {
-      "id": "5-156999-B-19.wav",
-      "title": "Lightening.wav",
-      "author": "chrscrwfrd18",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/chrscrwfrd18/sounds/156999/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-156999-B-19.wav"
-     },
-     {
-      "id": "5-156999-C-19.wav",
-      "title": "Lightening.wav",
-      "author": "chrscrwfrd18",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/chrscrwfrd18/sounds/156999/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-156999-C-19.wav"
-     },
-     {
-      "id": "5-156999-D-19.wav",
-      "title": "Lightening.wav",
-      "author": "chrscrwfrd18",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/chrscrwfrd18/sounds/156999/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-156999-D-19.wav"
-     },
-     {
-      "id": "5-156999-E-19.wav",
-      "title": "Lightening.wav",
-      "author": "chrscrwfrd18",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/chrscrwfrd18/sounds/156999/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-156999-E-19.wav"
-     }
-    ],
-    "q": "esc50"
+    "src": "freesound",
+    "id": "501007",
+    "title": "Ambience - Living Room with Exterior Rain Falling",
+    "licence": "CC0",
+    "author": "RavenWolfProds",
+    "page": "https://freesound.org/people/RavenWolfProds/sounds/501007/",
+    "audio": "https://cdn.freesound.org/previews/501/501007_9619518-hq.ogg",
+    "sha256": "78eafc92733d9b5b85bbd4c5974a06d45d226f74d21c349fea7db52c72dd0024",
+    "dur": 268.75,
+    "q": "heavy rain ambience",
+    "speechiness": 0.808
    }
   ],
-  "rain_roof": [],
+  "rain_roof": [
+   {
+    "key": "rain_roof",
+    "section": "beds",
+    "src": "freesound",
+    "id": "864897",
+    "title": "Late Evening Thunderstorm 72826",
+    "licence": "CC BY",
+    "author": "BobVoldar",
+    "page": "https://freesound.org/people/BobVoldar/sounds/864897/",
+    "audio": "https://cdn.freesound.org/previews/864/864897_15745607-hq.ogg",
+    "sha256": "993d6f4239acbc1f899866189090e650c330e795eda13a9d24461d127707592c",
+    "dur": 3196.83,
+    "q": "rain heard indoors",
+    "speechiness": 0.891
+   }
+  ],
   "drips": [
    {
     "key": "drips",
     "section": "beds",
-    "src": "esc50",
-    "id": "compose:water_drops:drips",
-    "title": "27 ESC-50 clips crossfaded",
-    "licence": "CC BY-NC",
-    "author": "mich3d, dobroide, vibe_crc, alienistcog, hybu, reinsamba, Robinhood76, Adam_N, ultradust, toiletrolltube, willstepp, l3ardoc, rafael45, arseniiv, cpttatosa, heifara",
-    "page": "https://github.com/karolpiczak/ESC-50",
-    "audio": "compose",
-    "sha256": "a1b6ca80b3b45e1981cfea753b111ff78a8c631cd936fc06a06fbdeb55cbe48f",
-    "ext": "wav",
-    "dur": 86.85,
-    "provisional": true,
-    "clips": [
-     {
-      "id": "1-12653-A-15.wav",
-      "title": "Drop_Fast_Long_02.wav",
-      "author": "mich3d",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/mich3d/sounds/12653/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-12653-A-15.wav"
-     },
-     {
-      "id": "1-12654-A-15.wav",
-      "title": "Drop_Slow_Long_01.wav",
-      "author": "mich3d",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/mich3d/sounds/12654/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-12654-A-15.wav"
-     },
-     {
-      "id": "1-12654-B-15.wav",
-      "title": "Drop_Slow_Long_01.wav",
-      "author": "mich3d",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/mich3d/sounds/12654/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-12654-B-15.wav"
-     },
-     {
-      "id": "1-23094-A-15.wav",
-      "title": "20060915.drip.wav",
-      "author": "dobroide",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/dobroide/sounds/23094/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-23094-A-15.wav"
-     },
-     {
-      "id": "1-23094-B-15.wav",
-      "title": "20060915.drip.wav",
-      "author": "dobroide",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/dobroide/sounds/23094/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-23094-B-15.wav"
-     },
-     {
-      "id": "1-50623-A-15.wav",
-      "title": "water_splash_10shots.wav",
-      "author": "vibe_crc",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/vibe_crc/sounds/50623/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-50623-A-15.wav"
-     },
-     {
-      "id": "2-124564-A-15.wav",
-      "title": "water-drip-rhythm.aif",
-      "author": "alienistcog",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/alienistcog/sounds/124564/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-124564-A-15.wav"
-     },
-     {
-      "id": "2-139748-A-15.wav",
-      "title": "water dripping 1",
-      "author": "hybu",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/hybu/sounds/139748/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-139748-A-15.wav"
-     },
-     {
-      "id": "2-139748-B-15.wav",
-      "title": "water dripping 1",
-      "author": "hybu",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/hybu/sounds/139748/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-139748-B-15.wav"
-     },
-     {
-      "id": "2-139749-A-15.wav",
-      "title": "water dripping 2",
-      "author": "hybu",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/hybu/sounds/139749/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-139749-A-15.wav"
-     },
-     {
-      "id": "2-64962-A-15.wav",
-      "title": "1233_dripping_water_1.wav",
-      "author": "reinsamba",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/reinsamba/sounds/64962/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-64962-A-15.wav"
-     },
-     {
-      "id": "2-64963-A-15.wav",
-      "title": "1233_dripping_water_2.wav",
-      "author": "reinsamba",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/reinsamba/sounds/64963/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-64963-A-15.wav"
-     },
-     {
-      "id": "2-68595-A-15.wav",
-      "title": "00932 water drops in severe canals.wav",
-      "author": "Robinhood76",
-      "licence": "CC BY-NC",
-      "page": "http://www.freesound.org/people/Robinhood76/sounds/68595/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-68595-A-15.wav"
-     },
-     {
-      "id": "2-68595-B-15.wav",
-      "title": "00932 water drops in severe canals.wav",
-      "author": "Robinhood76",
-      "licence": "CC BY-NC",
-      "page": "http://www.freesound.org/people/Robinhood76/sounds/68595/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-68595-B-15.wav"
-     },
-     {
-      "id": "3-166324-A-15.wav",
-      "title": "Water dripping on metal.wav",
-      "author": "Adam_N",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/Adam_N/sounds/166324/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-166324-A-15.wav"
-     },
-     {
-      "id": "3-166326-A-15.wav",
-      "title": "Water_dripping_echoing.wav",
-      "author": "Adam_N",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/Adam_N/sounds/166326/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-166326-A-15.wav"
-     },
-     {
-      "id": "4-168155-A-15.wav",
-      "title": "Water Drops",
-      "author": "ultradust",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/ultradust/sounds/168155/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-168155-A-15.wav"
-     },
-     {
-      "id": "4-174797-A-15.wav",
-      "title": "120115_05 stones drop bath.WAV",
-      "author": "toiletrolltube",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/toiletrolltube/sounds/174797/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-174797-A-15.wav"
-     },
-     {
-      "id": "4-188293-A-15.wav",
-      "title": "Water Drop",
-      "author": "willstepp",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/willstepp/sounds/188293/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-188293-A-15.wav"
-     },
-     {
-      "id": "4-188293-B-15.wav",
-      "title": "Water Drop",
-      "author": "willstepp",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/willstepp/sounds/188293/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-188293-B-15.wav"
-     },
-     {
-      "id": "4-212604-A-15.wav",
-      "title": "Water droplets",
-      "author": "l3ardoc",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/l3ardoc/sounds/212604/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-212604-A-15.wav"
-     },
-     {
-      "id": "4-212604-B-15.wav",
-      "title": "Water droplets",
-      "author": "l3ardoc",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/l3ardoc/sounds/212604/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-212604-B-15.wav"
-     },
-     {
-      "id": "4-212604-C-15.wav",
-      "title": "Water droplets",
-      "author": "l3ardoc",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/l3ardoc/sounds/212604/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-212604-C-15.wav"
-     },
-     {
-      "id": "5-241846-A-15.wav",
-      "title": "Splashing Water.wav",
-      "author": "rafael45",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/rafael45/sounds/241846/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-241846-A-15.wav"
-     },
-     {
-      "id": "5-257349-A-15.wav",
-      "title": "small water drops",
-      "author": "arseniiv",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/arseniiv/sounds/257349/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-257349-A-15.wav"
-     },
-     {
-      "id": "5-261439-A-15.wav",
-      "title": "Birne.WAV",
-      "author": "cpttatosa",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/cpttatosa/sounds/261439/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-261439-A-15.wav"
-     },
-     {
-      "id": "5-262641-A-15.wav",
-      "title": "drops in a underground parking",
-      "author": "heifara",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/heifara/sounds/262641/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-262641-A-15.wav"
-     }
-    ],
-    "q": "esc50"
+    "src": "freesound",
+    "id": "628404",
+    "title": "Water dripping after the rain",
+    "licence": "CC0",
+    "author": "xkeril",
+    "page": "https://freesound.org/people/xkeril/sounds/628404/",
+    "audio": "https://cdn.freesound.org/previews/628/628404_13504080-hq.ogg",
+    "sha256": "591297ef5f6679f02024b3c6d6d6fa8def5020d5da1bb06a420fbb7698baa959",
+    "dur": 148.42,
+    "q": "water drips after rain",
+    "speechiness": 0.734
    }
   ],
   "wind_gusts": [
    {
     "key": "wind_gusts",
     "section": "beds",
-    "src": "esc50",
-    "id": "compose:wind:wind_gusts",
-    "title": "32 ESC-50 clips crossfaded",
-    "licence": "CC BY-NC",
-    "author": "Benboncan, eliasheuninck, Jovica, dobroide, kangaroovindaloo, klangfabrik, TheSoundcatcher, Bosk1, Leandros.Ntounis, inchadney, toiletrolltube",
-    "page": "https://github.com/karolpiczak/ESC-50",
-    "audio": "compose",
-    "sha256": "208b9b6f89413cc671c6df90205e2a4909cce07258ffd302b1e20e1bc1605d07",
-    "ext": "wav",
-    "dur": 113.5,
-    "provisional": true,
-    "clips": [
-     {
-      "id": "1-137296-A-16.wav",
-      "title": "Rain And Wind On Glass.flac",
-      "author": "Benboncan",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/Benboncan/sounds/137296/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-137296-A-16.wav"
-     },
-     {
-      "id": "1-29532-A-16.wav",
-      "title": "wind3.wav",
-      "author": "eliasheuninck",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/eliasheuninck/sounds/29532/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-29532-A-16.wav"
-     },
-     {
-      "id": "1-47709-A-16.wav",
-      "title": "Wind 02.flac",
-      "author": "Jovica",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/Jovica/sounds/47709/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-47709-A-16.wav"
-     },
-     {
-      "id": "1-47714-A-16.wav",
-      "title": "Wind 07.flac",
-      "author": "Jovica",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/Jovica/sounds/47714/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-47714-A-16.wav"
-     },
-     {
-      "id": "1-51035-A-16.wav",
-      "title": "20080322.wind.light.wav",
-      "author": "dobroide",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/dobroide/sounds/51035/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-51035-A-16.wav"
-     },
-     {
-      "id": "1-51036-A-16.wav",
-      "title": "20080322.wind.medium.wav",
-      "author": "dobroide",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/dobroide/sounds/51036/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-51036-A-16.wav"
-     },
-     {
-      "id": "1-51037-A-16.wav",
-      "title": "20080322.wind.strong.wav",
-      "author": "dobroide",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/dobroide/sounds/51037/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-51037-A-16.wav"
-     },
-     {
-      "id": "1-69760-A-16.wav",
-      "title": "Wind In Bamboo.wav",
-      "author": "Benboncan",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/Benboncan/sounds/69760/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-69760-A-16.wav"
-     },
-     {
-      "id": "2-109371-A-16.wav",
-      "title": "20101121.wind.howl.furious.01.wav",
-      "author": "dobroide",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/dobroide/sounds/109371/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-109371-A-16.wav"
-     },
-     {
-      "id": "2-109371-B-16.wav",
-      "title": "20101121.wind.howl.furious.01.wav",
-      "author": "dobroide",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/dobroide/sounds/109371/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-109371-B-16.wav"
-     },
-     {
-      "id": "2-109371-C-16.wav",
-      "title": "20101121.wind.howl.furious.01.wav",
-      "author": "dobroide",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/dobroide/sounds/109371/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-109371-C-16.wav"
-     },
-     {
-      "id": "2-109371-D-16.wav",
-      "title": "20101121.wind.howl.furious.01.wav",
-      "author": "dobroide",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/dobroide/sounds/109371/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-109371-D-16.wav"
-     },
-     {
-      "id": "2-109374-A-16.wav",
-      "title": "20101121.wind.howl.soft.01.wav",
-      "author": "dobroide",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/dobroide/sounds/109374/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-109374-A-16.wav"
-     },
-     {
-      "id": "2-205966-A-16.wav",
-      "title": "Medium Wind",
-      "author": "kangaroovindaloo",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/kangaroovindaloo/sounds/205966/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-205966-A-16.wav"
-     },
-     {
-      "id": "3-117504-A-16.wav",
-      "title": "winter wind 01a.aiff",
-      "author": "klangfabrik",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/klangfabrik/sounds/117504/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-117504-A-16.wav"
-     },
-     {
-      "id": "3-117504-B-16.wav",
-      "title": "winter wind 01a.aiff",
-      "author": "klangfabrik",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/klangfabrik/sounds/117504/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-117504-B-16.wav"
-     },
-     {
-      "id": "3-136608-A-16.wav",
-      "title": "Wind in small Forrest_01.wav",
-      "author": "TheSoundcatcher",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/TheSoundcatcher/sounds/136608/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-136608-A-16.wav"
-     },
-     {
-      "id": "3-246513-A-16.wav",
-      "title": "Pt. Lonsdale Wind #3",
-      "author": "kangaroovindaloo",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/kangaroovindaloo/sounds/246513/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-246513-A-16.wav"
-     },
-     {
-      "id": "3-246513-B-16.wav",
-      "title": "Pt. Lonsdale Wind #3",
-      "author": "kangaroovindaloo",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/kangaroovindaloo/sounds/246513/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-246513-B-16.wav"
-     },
-     {
-      "id": "4-144083-A-16.wav",
-      "title": "Wind Houling 1 .wav",
-      "author": "Bosk1",
-      "licence": "CC BY-NC",
-      "page": "http://www.freesound.org/people/Bosk1/sounds/144083/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-144083-A-16.wav"
-     },
-     {
-      "id": "4-144083-B-16.wav",
-      "title": "Wind Houling 1 .wav",
-      "author": "Bosk1",
-      "licence": "CC BY-NC",
-      "page": "http://www.freesound.org/people/Bosk1/sounds/144083/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-144083-B-16.wav"
-     },
-     {
-      "id": "4-144083-C-16.wav",
-      "title": "Wind Houling 1 .wav",
-      "author": "Bosk1",
-      "licence": "CC BY-NC",
-      "page": "http://www.freesound.org/people/Bosk1/sounds/144083/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-144083-C-16.wav"
-     },
-     {
-      "id": "4-144085-A-16.wav",
-      "title": "Wind Houling little 2.wav",
-      "author": "Bosk1",
-      "licence": "CC BY-NC",
-      "page": "http://www.freesound.org/people/Bosk1/sounds/144085/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-144085-A-16.wav"
-     },
-     {
-      "id": "4-163606-A-16.wav",
-      "title": "Wind, strong. through power cables.wav",
-      "author": "Leandros.Ntounis",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/Leandros.Ntounis/sounds/163606/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-163606-A-16.wav"
-     },
-     {
-      "id": "4-163608-B-16.wav",
-      "title": "Wind, strong. through rocks 2.wav",
-      "author": "Leandros.Ntounis",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/Leandros.Ntounis/sounds/163608/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-163608-B-16.wav"
-     },
-     {
-      "id": "4-163609-A-16.wav",
-      "title": "Wind, strong. through rocks 1.wav",
-      "author": "Leandros.Ntounis",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/Leandros.Ntounis/sounds/163609/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-163609-A-16.wav"
-     },
-     {
-      "id": "4-163609-B-16.wav",
-      "title": "Wind, strong. through rocks 1.wav",
-      "author": "Leandros.Ntounis",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/Leandros.Ntounis/sounds/163609/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-163609-B-16.wav"
-     },
-     {
-      "id": "5-117773-A-16.wav",
-      "title": "roaring wind.aiff",
-      "author": "klangfabrik",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/klangfabrik/sounds/117773/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-117773-A-16.wav"
-     },
-     {
-      "id": "5-157204-A-16.wav",
-      "title": "howling wind.WAV",
-      "author": "inchadney",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/inchadney/sounds/157204/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-157204-A-16.wav"
-     },
-     {
-      "id": "5-157204-B-16.wav",
-      "title": "howling wind.WAV",
-      "author": "inchadney",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/inchadney/sounds/157204/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-157204-B-16.wav"
-     },
-     {
-      "id": "5-179496-A-16.wav",
-      "title": "111224_04 wind.WAV",
-      "author": "toiletrolltube",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/toiletrolltube/sounds/179496/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-179496-A-16.wav"
-     },
-     {
-      "id": "5-179496-B-16.wav",
-      "title": "111224_04 wind.WAV",
-      "author": "toiletrolltube",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/toiletrolltube/sounds/179496/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-179496-B-16.wav"
-     }
-    ],
-    "q": "esc50"
+    "src": "freesound",
+    "id": "256125",
+    "title": "AMB_Bardenas_wind_birds_leaves_strong_MOD_2.wav",
+    "licence": "CC0",
+    "author": "PLukx",
+    "page": "https://freesound.org/people/PLukx/sounds/256125/",
+    "audio": "https://cdn.freesound.org/previews/256/256125_1944550-hq.ogg",
+    "sha256": "02e71ee0578d3d09c9a306f4fd70fd56a6cd7d1f12fc1ecaa88ebbbf06421875",
+    "dur": 297.21,
+    "q": "strong wind gusts",
+    "speechiness": 0.537
    }
   ],
-  "dust_wind": [],
-  "snow_hush": [],
+  "dust_wind": [
+   {
+    "key": "dust_wind",
+    "section": "beds",
+    "src": "freesound",
+    "id": "104319",
+    "title": "Desert Monolith.wav",
+    "licence": "CC0",
+    "author": "Proxima4",
+    "page": "https://freesound.org/people/Proxima4/sounds/104319/",
+    "audio": "https://cdn.freesound.org/previews/104/104319_382855-hq.ogg",
+    "sha256": "ec8fe5a48fba79e5c343f2563b073ebadf2032b38e96b79e795432e3e6144ebb",
+    "dur": 85.07,
+    "q": "desert wind sand",
+    "speechiness": 1.048
+   }
+  ],
+  "snow_hush": [
+   {
+    "key": "snow_hush",
+    "section": "beds",
+    "src": "freesound",
+    "id": "260634",
+    "title": "outdoor winter ambience birds light wind trees.wav",
+    "licence": "CC0",
+    "author": "lwdickens",
+    "page": "https://freesound.org/people/lwdickens/sounds/260634/",
+    "audio": "https://cdn.freesound.org/previews/260/260634_2663250-hq.ogg",
+    "sha256": "abc08112571a5133ed2db4a3ed12ed355286be33ca20cd4a1e0a8d545600dc71",
+    "dur": 113.83,
+    "q": "snow ambience quiet winter",
+    "speechiness": 0.633
+   }
+  ],
   "chisel": [],
-  "quern": [],
-  "dice": [],
-  "hoe": [],
-  "sickle": [],
+  "quern": [
+   {
+    "key": "quern",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "337619",
+    "title": "Thai_MorTar_Pestle.wav",
+    "licence": "CC0",
+    "author": "werapol",
+    "page": "https://freesound.org/people/werapol/sounds/337619/",
+    "audio": "https://cdn.freesound.org/previews/337/337619_5673132-hq.ogg",
+    "sha256": "69df366a96af1a470cb3606314f3227dbde81dbc45ff164bcee8675c18b162f5",
+    "dur": 10.58,
+    "q": "mortar pestle stone grinding"
+   },
+   {
+    "key": "quern",
+    "section": "oneshots",
+    "src": "commons",
+    "id": "File:WWS Quern-stones.ogg",
+    "title": "WWS Quern-stones.ogg",
+    "licence": "CC BY",
+    "author": "work with sounds museum of municipal engineering",
+    "page": "https://commons.wikimedia.org/wiki/File:WWS_Quern-stones.ogg",
+    "audio": "https://upload.wikimedia.org/wikipedia/commons/e/ef/WWS_Quern-stones.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "sha256": "2b281cec5a193a20e7c969d7cd79b990cd920822a2685087cd2ce18bf20557d7",
+    "dur": 57.47,
+    "q": "grinding stone mill hand"
+   }
+  ],
+  "dice": [
+   {
+    "key": "dice",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "94031",
+    "title": "Dice Roll.mp3",
+    "licence": "CC0",
+    "author": "LoafDV",
+    "page": "https://freesound.org/people/LoafDV/sounds/94031/",
+    "audio": "https://cdn.freesound.org/previews/94/94031_1554038-hq.ogg",
+    "sha256": "4760c45ff1959636c00d49c4688d56516dd1a416fa7ec919cbe5b1d353bb700c",
+    "dur": 2.96,
+    "q": "dice roll wooden table"
+   },
+   {
+    "key": "dice",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "235484",
+    "title": "dice roll_wooden table_1.wav",
+    "licence": "CC0",
+    "author": "ekfink",
+    "page": "https://freesound.org/people/ekfink/sounds/235484/",
+    "audio": "https://cdn.freesound.org/previews/235/235484_4255182-hq.ogg",
+    "sha256": "f1c601c03bb762dfd570d82d18e375fa81e67012741cccc44d5e6628b87042aa",
+    "dur": 2.54,
+    "q": "dice roll wooden table"
+   },
+   {
+    "key": "dice",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "545489",
+    "title": "d20 rolls.wav",
+    "licence": "CC0",
+    "author": "wardoctor17",
+    "page": "https://freesound.org/people/wardoctor17/sounds/545489/",
+    "audio": "https://cdn.freesound.org/previews/545/545489_7241582-hq.ogg",
+    "sha256": "ba0396e82488a70e2a77ee840673156dce2cd948ee87d903a2eaa303636a105a",
+    "dur": 24.72,
+    "q": "dice roll wooden table"
+   }
+  ],
+  "hoe": [
+   {
+    "key": "hoe",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "384362",
+    "title": "Digging a Hole and Shovelling Soil/Dirt 2",
+    "licence": "CC0",
+    "author": "Ali_6868",
+    "page": "https://freesound.org/people/Ali_6868/sounds/384362/",
+    "audio": "https://cdn.freesound.org/previews/384/384362_984733-hq.ogg",
+    "sha256": "0a1460f12071294e6089c2bafe741e412f5f576f9774314b7d47d2cef31966fc",
+    "dur": 27.28,
+    "q": "digging earth spade"
+   },
+   {
+    "key": "hoe",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "353907",
+    "title": "Shovel_dirt.wav",
+    "licence": "CC0",
+    "author": "dr19",
+    "page": "https://freesound.org/people/dr19/sounds/353907/",
+    "audio": "https://cdn.freesound.org/previews/353/353907_5984825-hq.ogg",
+    "sha256": "c4b9b510b96e91219569721c0e87ebe323f5e2dda7335d6301f52e7cb756cc81",
+    "dur": 9.05,
+    "q": "digging earth spade"
+   },
+   {
+    "key": "hoe",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "268056",
+    "title": "metal shovel into icy snow",
+    "licence": "CC0",
+    "author": "jobel0092",
+    "page": "https://freesound.org/people/jobel0092/sounds/268056/",
+    "audio": "https://cdn.freesound.org/previews/268/268056_2795042-hq.ogg",
+    "sha256": "cba246a8bb3d4ebbf3a7c134a05a6c7d572daca7a3eb594c693d7e5efb688abc",
+    "dur": 34.78,
+    "q": "shovel dirt dig"
+   }
+  ],
+  "sickle": [
+   {
+    "key": "sickle",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "422590",
+    "title": "Walking in medium length cut dry grass Ver01.wav",
+    "licence": "CC0",
+    "author": "thewebbster",
+    "page": "https://freesound.org/people/thewebbster/sounds/422590/",
+    "audio": "https://cdn.freesound.org/previews/422/422590_6289429-hq.ogg",
+    "sha256": "a6d1e753e9272a2d48b086f8a0e7577df9a9f28b88428fe13eb7cae6310a5e69",
+    "dur": 46.9,
+    "q": "cutting dry grass"
+   },
+   {
+    "key": "sickle",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "478387",
+    "title": "pine-forest--ww2-soldier--step-dry-leaves.wav",
+    "licence": "CC0",
+    "author": "elonen",
+    "page": "https://freesound.org/people/elonen/sounds/478387/",
+    "audio": "https://cdn.freesound.org/previews/478/478387_45914-hq.ogg",
+    "sha256": "9fcc4ec02b6094253ebe1404d864d3a2fadec05a5e6fd0d107965a7f763e36d7",
+    "dur": 18.13,
+    "q": "cutting dry grass"
+   },
+   {
+    "key": "sickle",
+    "section": "oneshots",
+    "src": "commons",
+    "id": "File:LL-Q1860 (eng)-Simplificationalizer-sickle.wav",
+    "title": "LL-Q1860 (eng)-Simplificationalizer-sickle.wav",
+    "licence": "CC0",
+    "author": "speaker simplificationalizer recorder simplificationalizer",
+    "page": "https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Simplificationalizer-sickle.wav",
+    "audio": "https://upload.wikimedia.org/wikipedia/commons/4/41/LL-Q1860_%28eng%29-Simplificationalizer-sickle.wav?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "sha256": "619c183813ad1c37853408def530b32ba8d90843711de91b26114e8f8d6b7625",
+    "dur": 0.85,
+    "q": "cutting grass sickle"
+   }
+  ],
   "loom": [],
   "trowel": [],
-  "adze": [],
-  "mould": [],
-  "wash": [],
-  "broom": [],
-  "bow": [],
+  "adze": [
+   {
+    "key": "adze",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "536736",
+    "title": "Chop.ogg",
+    "licence": "CC0",
+    "author": "egomassive",
+    "page": "https://freesound.org/people/egomassive/sounds/536736/",
+    "audio": "https://cdn.freesound.org/previews/536/536736_1415754-hq.ogg",
+    "sha256": "b03e2b7cfe33f92a87416f697689f6321c3bca04e937752a2437c9332abae34b",
+    "dur": 0.51,
+    "q": "axe chopping wood"
+   },
+   {
+    "key": "adze",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "753925",
+    "title": "Axe chopping wood",
+    "licence": "CC0",
+    "author": "xkeril",
+    "page": "https://freesound.org/people/xkeril/sounds/753925/",
+    "audio": "https://cdn.freesound.org/previews/753/753925_13504080-hq.ogg",
+    "sha256": "1dee838b9d194f36892b0bb4cf755b733455b626ff9911a8ab3bb4cf6a3aa8a0",
+    "dur": 12.9,
+    "q": "axe chopping wood"
+   },
+   {
+    "key": "adze",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "421928",
+    "title": "Chopping wood 01",
+    "licence": "CC0",
+    "author": "micahlg",
+    "page": "https://freesound.org/people/micahlg/sounds/421928/",
+    "audio": "https://cdn.freesound.org/previews/421/421928_8090574-hq.ogg",
+    "sha256": "f9b8bed28b53c941f42d8afadbbc8a4cdd5e0e9675ba712a6c2daaa7acc0b729",
+    "dur": 0.25,
+    "q": "axe chopping wood"
+   }
+  ],
+  "mould": [
+   {
+    "key": "mould",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "376809",
+    "title": "MUDDY AND WET FOOTSTEPS.wav",
+    "licence": "CC0",
+    "author": "Alex_hears_things",
+    "page": "https://freesound.org/people/Alex_hears_things/sounds/376809/",
+    "audio": "https://cdn.freesound.org/previews/376/376809_2309965-hq.ogg",
+    "sha256": "46e3523da19357a4635329b92f7338fa8499d1b56d1df350a86a8d21881022d1",
+    "dur": 46.1,
+    "q": "mud squelch"
+   },
+   {
+    "key": "mould",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "231317",
+    "title": "Footsteps-Mud&Grass",
+    "licence": "CC0",
+    "author": "jonccox",
+    "page": "https://freesound.org/people/jonccox/sounds/231317/",
+    "audio": "https://cdn.freesound.org/previews/231/231317_3261532-hq.ogg",
+    "sha256": "cf13b21e2a0215de39ab05a54f09cf1d177d35857a90474dc8a0a2cee8e80e09",
+    "dur": 14.94,
+    "q": "mud squelch"
+   },
+   {
+    "key": "mould",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "167927",
+    "title": "Squelch.flac",
+    "licence": "CC0",
+    "author": "billox30",
+    "page": "https://freesound.org/people/billox30/sounds/167927/",
+    "audio": "https://cdn.freesound.org/previews/167/167927_350703-hq.ogg",
+    "sha256": "d99c7eaa15d4471542006af9e5197f1d080532383fa4a1b57540f67abe361585",
+    "dur": 13.18,
+    "q": "mud squelch"
+   }
+  ],
+  "wash": [
+   {
+    "key": "wash",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "518475",
+    "title": "wringing wet cloth into water.WAV",
+    "licence": "CC0",
+    "author": "phonoflora",
+    "page": "https://freesound.org/people/phonoflora/sounds/518475/",
+    "audio": "https://cdn.freesound.org/previews/518/518475_401348-hq.ogg",
+    "sha256": "5bf399321314370e524d05cd40229d5fa231d822a0557f457229e0986746da43",
+    "dur": 11.96,
+    "q": "washing clothes river"
+   },
+   {
+    "key": "wash",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "104686",
+    "title": "Wet_Slaps.mp3",
+    "licence": "CC BY",
+    "author": "HerbertBoland",
+    "page": "https://freesound.org/people/HerbertBoland/sounds/104686/",
+    "audio": "https://cdn.freesound.org/previews/104/104686_129090-hq.ogg",
+    "sha256": "bb8e08cbc62bc24fd91dc0374698348dcd8c95433b542cb32e5354d6cfc73bce",
+    "dur": 26.63,
+    "q": "wet cloth slap"
+   },
+   {
+    "key": "wash",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "98187",
+    "title": "Simulated seaweed slap #2.wav",
+    "licence": "CC BY-NC",
+    "author": "Timbre",
+    "page": "https://freesound.org/people/Timbre/sounds/98187/",
+    "audio": "https://cdn.freesound.org/previews/98/98187_1015240-hq.ogg",
+    "sha256": "366d8c194a63d49883f7318f1b408179a3dea931e6ffb03fdbd1350cccac4405",
+    "dur": 29.11,
+    "q": "wet cloth slap"
+   }
+  ],
+  "broom": [
+   {
+    "key": "broom",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "138067",
+    "title": "sweeping_tile_floor_with_broom.wav",
+    "licence": "CC0",
+    "author": "daboy291",
+    "page": "https://freesound.org/people/daboy291/sounds/138067/",
+    "audio": "https://cdn.freesound.org/previews/138/138067_1839281-hq.ogg",
+    "sha256": "e0ed5f15113ab43ee19dcf68b0300615ac9e9037fd47fd68847fccdb5ead4af5",
+    "dur": 23.85,
+    "q": "sweeping floor broom"
+   },
+   {
+    "key": "broom",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "378313",
+    "title": "sweep",
+    "licence": "CC0",
+    "author": "13F_Panska_Koprivikova_Klara",
+    "page": "https://freesound.org/people/13F_Panska_Koprivikova_Klara/sounds/378313/",
+    "audio": "https://cdn.freesound.org/previews/378/378313_7020096-hq.ogg",
+    "sha256": "d873c9e131dd8aba3214408747191889f9da42a23b8dff72926372faf3789e75",
+    "dur": 28.15,
+    "q": "sweeping floor broom"
+   },
+   {
+    "key": "broom",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "118975",
+    "title": "Straw Broom Sweeping Gentle.wav",
+    "licence": "CC0",
+    "author": "esperri",
+    "page": "https://freesound.org/people/esperri/sounds/118975/",
+    "audio": "https://cdn.freesound.org/previews/118/118975_1990695-hq.ogg",
+    "sha256": "69aec8a27363fca6ee408f1e516b9992ef0a4fd9a868d58a755f8374c48c2239",
+    "dur": 4.53,
+    "q": "sweeping floor broom"
+   }
+  ],
+  "bow": [
+   {
+    "key": "bow",
+    "section": "oneshots",
+    "src": "commons",
+    "id": "File:Deep twang of loose bow string.ogg",
+    "title": "Deep twang of loose bow string.ogg",
+    "licence": "CC0",
+    "author": "stephan",
+    "page": "https://commons.wikimedia.org/wiki/File:Deep_twang_of_loose_bow_string.ogg",
+    "audio": "https://upload.wikimedia.org/wikipedia/commons/c/cd/Deep_twang_of_loose_bow_string.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "sha256": "e31e84c74253c4782e8ac19d79012c203240260bbe48adc88d469876d6015204",
+    "dur": 11.48,
+    "q": "bow string twang"
+   }
+  ],
   "bleat": [
    {
     "key": "bleat",
@@ -2151,7 +1139,50 @@
     "dur": 5
    }
   ],
-  "bray": [],
+  "bray": [
+   {
+    "key": "bray",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "157763",
+    "title": "A donkey is braying in his enclosure, in south of France.",
+    "licence": "CC0",
+    "author": "felix.blume",
+    "page": "https://freesound.org/people/felix.blume/sounds/157763/",
+    "audio": "https://cdn.freesound.org/previews/157/157763_1661766-hq.ogg",
+    "sha256": "9104e01b110c9f5e9190937f4cb3212dc819790f96d586f3e3ec4721149430ce",
+    "dur": 22.37,
+    "q": "donkey bray"
+   },
+   {
+    "key": "bray",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "152938",
+    "title": "Donkey braying in a field in the mountain of the High Atlas, Morocco.",
+    "licence": "CC0",
+    "author": "felix.blume",
+    "page": "https://freesound.org/people/felix.blume/sounds/152938/",
+    "audio": "https://cdn.freesound.org/previews/152/152938_1661766-hq.ogg",
+    "sha256": "cf59a9044b5093379eb2703dfe9a8e344a6480623dbd5d5dce920513f40f1327",
+    "dur": 15.66,
+    "q": "donkey bray"
+   },
+   {
+    "key": "bray",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "133761",
+    "title": "A donkey is braying in the field, close to the small village of La Preciosita",
+    "licence": "CC0",
+    "author": "felix.blume",
+    "page": "https://freesound.org/people/felix.blume/sounds/133761/",
+    "audio": "https://cdn.freesound.org/previews/133/133761_1661766-hq.ogg",
+    "sha256": "d55d4b9659203e68fdb7c60166215a99a7d45ba0ecfde83c94b290a694aedcb4",
+    "dur": 9.92,
+    "q": "donkey bray"
+   }
+  ],
   "bark": [
    {
     "key": "bark",
@@ -2316,18 +1347,393 @@
     "dur": 5
    }
   ],
-  "howl": [],
-  "roar": [],
-  "whoop": [],
-  "saw": [],
-  "hammer": [],
-  "bellows": [],
-  "quench": [],
-  "chase": [],
-  "clink": [],
+  "howl": [
+   {
+    "key": "howl",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "398430",
+    "title": "Wolf howl",
+    "licence": "CC0",
+    "author": "NaturesTemper",
+    "page": "https://freesound.org/people/NaturesTemper/sounds/398430/",
+    "audio": "https://cdn.freesound.org/previews/398/398430_3862281-hq.ogg",
+    "sha256": "74ab73334c4dbdb5e67955a401f6a2dabc20a0fc30a32a9e37f01c5c0eb30674",
+    "dur": 8.03,
+    "q": "wolf howl"
+   },
+   {
+    "key": "howl",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "158780",
+    "title": "wolves.wav",
+    "licence": "CC0",
+    "author": "Paresh",
+    "page": "https://freesound.org/people/Paresh/sounds/158780/",
+    "audio": "https://cdn.freesound.org/previews/158/158780_229952-hq.ogg",
+    "sha256": "8bf49edcd830ad5137d104977b6b041848e5717a7ad2b55a9bb08c5709aec160",
+    "dur": 33.28,
+    "q": "wolf howl"
+   },
+   {
+    "key": "howl",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "380156",
+    "title": "Howl_Echo.wav",
+    "licence": "CC0",
+    "author": "taure",
+    "page": "https://freesound.org/people/taure/sounds/380156/",
+    "audio": "https://cdn.freesound.org/previews/380/380156_2940947-hq.ogg",
+    "sha256": "65a97fb29392a0b91a822c278ef4927cb875712e70127fe4fcebc4d8cb0eb1b9",
+    "dur": 27.97,
+    "q": "wolf howl"
+   }
+  ],
+  "roar": [
+   {
+    "key": "roar",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "559600",
+    "title": "LION ROAR",
+    "licence": "CC0",
+    "author": "Podcapocalipsis",
+    "page": "https://freesound.org/people/Podcapocalipsis/sounds/559600/",
+    "audio": "https://cdn.freesound.org/previews/559/559600_11490791-hq.ogg",
+    "sha256": "4ef0e233d82fb6f4fa648d18a11c802952422da73edcc735be211bc47bbce4d9",
+    "dur": 14,
+    "q": "lion roar"
+   },
+   {
+    "key": "roar",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "69571",
+    "title": "Lions two.mp3",
+    "licence": "CC0",
+    "author": "Bidone",
+    "page": "https://freesound.org/people/Bidone/sounds/69571/",
+    "audio": "https://cdn.freesound.org/previews/69/69571_706955-hq.ogg",
+    "sha256": "77b33d27cf993a62dc958b574a6b0807065c6f568b45cf0d5580fc85ff3493f7",
+    "dur": 17.88,
+    "q": "lion roar"
+   },
+   {
+    "key": "roar",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "546391",
+    "title": "Dragon Roar.wav",
+    "licence": "CC0",
+    "author": "Dreeme",
+    "page": "https://freesound.org/people/Dreeme/sounds/546391/",
+    "audio": "https://cdn.freesound.org/previews/546/546391_6174371-hq.ogg",
+    "sha256": "f3f09665248bfc7a5fc0973f2eb9eb95a55b31aea3241043df4cadef00da962a",
+    "dur": 11.49,
+    "q": "lion roar"
+   }
+  ],
+  "whoop": [
+   {
+    "key": "whoop",
+    "section": "oneshots",
+    "src": "commons",
+    "id": "File:Giggling call of a spotted hyena (Crocuta crocuta) - 1472-6785-10-9-S4.oga",
+    "title": "Giggling call of a spotted hyena (Crocuta crocuta) - 1472-6785-10-9-S4.oga",
+    "licence": "CC BY",
+    "author": "mathevon n koralek a weldele m glickman s theunissen f",
+    "page": "https://commons.wikimedia.org/wiki/File:Giggling_call_of_a_spotted_hyena_(Crocuta_crocuta)_-_1472-6785-10-9-S4.oga",
+    "audio": "https://upload.wikimedia.org/wikipedia/commons/d/de/Giggling_call_of_a_spotted_hyena_%28Crocuta_crocuta%29_-_1472-6785-10-9-S4.oga?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "sha256": "1bde8b9e8a89c8f05f3add6620246d9ec7a1bb28cef56b687667620210bcae69",
+    "dur": 0.99,
+    "q": "hyena call"
+   },
+   {
+    "key": "whoop",
+    "section": "oneshots",
+    "src": "commons",
+    "id": "File:Giggling call of a spotted hyena (Crocuta crocuta) - 1472-6785-10-9-S8.oga",
+    "title": "Giggling call of a spotted hyena (Crocuta crocuta) - 1472-6785-10-9-S8.oga",
+    "licence": "CC BY",
+    "author": "mathevon n koralek a weldele m glickman s theunissen f",
+    "page": "https://commons.wikimedia.org/wiki/File:Giggling_call_of_a_spotted_hyena_(Crocuta_crocuta)_-_1472-6785-10-9-S8.oga",
+    "audio": "https://upload.wikimedia.org/wikipedia/commons/2/25/Giggling_call_of_a_spotted_hyena_%28Crocuta_crocuta%29_-_1472-6785-10-9-S8.oga?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "sha256": "0f092a27f19a04f64bb4a8e45aaf542c7cb51b8c0d4af0d49c70af63dbc4431a",
+    "dur": 0.99,
+    "q": "hyena call"
+   },
+   {
+    "key": "whoop",
+    "section": "oneshots",
+    "src": "commons",
+    "id": "File:Giggling call of a spotted hyena (Crocuta crocuta) - 1472-6785-10-9-S3.oga",
+    "title": "Giggling call of a spotted hyena (Crocuta crocuta) - 1472-6785-10-9-S3.oga",
+    "licence": "CC BY",
+    "author": "mathevon n koralek a weldele m glickman s theunissen f",
+    "page": "https://commons.wikimedia.org/wiki/File:Giggling_call_of_a_spotted_hyena_(Crocuta_crocuta)_-_1472-6785-10-9-S3.oga",
+    "audio": "https://upload.wikimedia.org/wikipedia/commons/9/96/Giggling_call_of_a_spotted_hyena_%28Crocuta_crocuta%29_-_1472-6785-10-9-S3.oga?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "sha256": "365b6a3417c8f0ff1fd3c263430e3a16aa9469bbfc9e59d2f5c894ebbb2be68b",
+    "dur": 0.99,
+    "q": "hyena call"
+   }
+  ],
+  "saw": [
+   {
+    "key": "saw",
+    "section": "oneshots",
+    "src": "commons",
+    "id": "File:Campbell's-Monkeys-Use-Affixation-to-Alter-Call-Meaning-pone.0007808.s003.ogg",
+    "title": "Campbell's-Monkeys-Use-Affixation-to-Alter-Call-Meaning-pone.0007808.s003.ogg",
+    "licence": "CC BY",
+    "author": "ouattara k lemasson a zuberb hler k",
+    "page": "https://commons.wikimedia.org/wiki/File:Campbell%27s-Monkeys-Use-Affixation-to-Alter-Call-Meaning-pone.0007808.s003.ogg",
+    "audio": "https://upload.wikimedia.org/wikipedia/commons/6/62/Campbell%27s-Monkeys-Use-Affixation-to-Alter-Call-Meaning-pone.0007808.s003.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "sha256": "9b98bca4dda06fe6265f6281cc407a3bf79d555d805c559e91c7636ca8321e18",
+    "dur": 1.04,
+    "q": "leopard call"
+   }
+  ],
+  "hammer": [
+   {
+    "key": "hammer",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "96132",
+    "title": "Bing1.wav",
+    "licence": "CC0",
+    "author": "BMacZero",
+    "page": "https://freesound.org/people/BMacZero/sounds/96132/",
+    "audio": "https://cdn.freesound.org/previews/96/96132_1554918-hq.ogg",
+    "sha256": "bee8f2853b4a6613f6ccb572244900846a4fee26a617166eb41a0085f89dd6dc",
+    "dur": 0.69,
+    "q": "blacksmith hammer anvil"
+   },
+   {
+    "key": "hammer",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "321889",
+    "title": "Hammer and anvil",
+    "licence": "CC0",
+    "author": "Duasun",
+    "page": "https://freesound.org/people/Duasun/sounds/321889/",
+    "audio": "https://cdn.freesound.org/previews/321/321889_5503971-hq.ogg",
+    "sha256": "1a7ce759602ddb313bd7bb2df0a7d3c87876c2f599dbdc58a0d3efe1e9c1ed4d",
+    "dur": 25.57,
+    "q": "blacksmith hammer anvil"
+   },
+   {
+    "key": "hammer",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "103071",
+    "title": "Anvil Strikes_5.wav",
+    "licence": "CC0",
+    "author": "alan3809",
+    "page": "https://freesound.org/people/alan3809/sounds/103071/",
+    "audio": "https://cdn.freesound.org/previews/103/103071_1703470-hq.ogg",
+    "sha256": "72edbadbf140705c0c534b267ecec56c06a713389ca7365dd851ac1c2c5f46e8",
+    "dur": 19.03,
+    "q": "blacksmith hammer anvil"
+   }
+  ],
+  "bellows": [
+   {
+    "key": "bellows",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "609757",
+    "title": "Blacksmith.wav",
+    "licence": "CC0",
+    "author": "LarsErikErtzgaardRingen",
+    "page": "https://freesound.org/people/LarsErikErtzgaardRingen/sounds/609757/",
+    "audio": "https://cdn.freesound.org/previews/609/609757_11576705-hq.ogg",
+    "sha256": "4f709ee854c221bb7051878e7f217530ef1807be5eb3dd52023a4cd2d9fa35c2",
+    "dur": 27.26,
+    "q": "bellows blacksmith"
+   },
+   {
+    "key": "bellows",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "567083",
+    "title": "20180327_Bellows.wav",
+    "licence": "CC0",
+    "author": "cabled_mess",
+    "page": "https://freesound.org/people/cabled_mess/sounds/567083/",
+    "audio": "https://cdn.freesound.org/previews/567/567083_5450487-hq.ogg",
+    "sha256": "3bf1083066e3b0672374a6b870ff0ba3b4c94f659aef202bb8979a0547b95dc5",
+    "dur": 11.29,
+    "q": "bellows air"
+   },
+   {
+    "key": "bellows",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "175077",
+    "title": "Pipe organ bellows 'dying'",
+    "licence": "CC0",
+    "author": "tomwilkinson",
+    "page": "https://freesound.org/people/tomwilkinson/sounds/175077/",
+    "audio": "https://cdn.freesound.org/previews/175/175077_1650856-hq.ogg",
+    "sha256": "dfe9304bdc5b4ca7a55ee4889ffb9afc5995965ed6b326cd6bcfba7ef034dddd",
+    "dur": 8.75,
+    "q": "bellows air"
+   }
+  ],
+  "quench": [
+   {
+    "key": "quench",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "395864",
+    "title": "Hot metal in water.wav",
+    "licence": "CC0",
+    "author": "jokallset",
+    "page": "https://freesound.org/people/jokallset/sounds/395864/",
+    "audio": "https://cdn.freesound.org/previews/395/395864_2808036-hq.ogg",
+    "sha256": "6fb38cfc776c4164edb94d1e028f157276907bf7654269f0375c7090215da443",
+    "dur": 36.84,
+    "q": "hot metal quench water"
+   },
+   {
+    "key": "quench",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "541035",
+    "title": "Hot Knife Quenched in Water",
+    "licence": "CC BY",
+    "author": "Clearwavsound",
+    "page": "https://freesound.org/people/Clearwavsound/sounds/541035/",
+    "audio": "https://cdn.freesound.org/previews/541/541035_11502151-hq.ogg",
+    "sha256": "63234cc0e503a9fec7498671c87de010fbf5f579209e76adca1601d584e6bdc4",
+    "dur": 1.59,
+    "q": "quench sizzle steam"
+   }
+  ],
+  "chase": [
+   {
+    "key": "chase",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "450874",
+    "title": "tap hammer small piece of metal gentle hits.wav",
+    "licence": "CC0",
+    "author": "kyles",
+    "page": "https://freesound.org/people/kyles/sounds/450874/",
+    "audio": "https://cdn.freesound.org/previews/450/450874_612689-hq.ogg",
+    "sha256": "b06c2d74f91ad824e3240bc497ca4570ad373f7bbcbfebd034349ea062ce3eb3",
+    "dur": 5.54,
+    "q": "metal tap small hammer"
+   }
+  ],
+  "clink": [
+   {
+    "key": "clink",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "452379",
+    "title": "Small Bell #2",
+    "licence": "CC0",
+    "author": "steffcaffrey",
+    "page": "https://freesound.org/people/steffcaffrey/sounds/452379/",
+    "audio": "https://cdn.freesound.org/previews/452/452379_1844073-hq.ogg",
+    "sha256": "1b33236e5cd2cfc0cd2a11f5367f40c3ed58d9abd43ca41ba0d96733c1226823",
+    "dur": 1.92,
+    "q": "metal clink small"
+   },
+   {
+    "key": "clink",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "624490",
+    "title": "Tin can - small - handle - tap - finge - metallic.wav",
+    "licence": "CC0",
+    "author": "ValentinPetiteau",
+    "page": "https://freesound.org/people/ValentinPetiteau/sounds/624490/",
+    "audio": "https://cdn.freesound.org/previews/624/624490_10443988-hq.ogg",
+    "sha256": "c596807247f3b3bffdae12225068182165c429e4c38977e4a56c83e0ca818a16",
+    "dur": 37.92,
+    "q": "metal clink small"
+   },
+   {
+    "key": "clink",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "452371",
+    "title": "Small Bell",
+    "licence": "CC0",
+    "author": "steffcaffrey",
+    "page": "https://freesound.org/people/steffcaffrey/sounds/452371/",
+    "audio": "https://cdn.freesound.org/previews/452/452371_1844073-hq.ogg",
+    "sha256": "abe19c4aa44345f3ecb201d6d3f374cc3395ab38ade911522daa4d36c9a54d43",
+    "dur": 2.08,
+    "q": "metal clink small"
+   }
+  ],
   "drill": [],
-  "scrape": [],
-  "pound": [],
+  "scrape": [
+   {
+    "key": "scrape",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "59965",
+    "title": "Scratch n' Scrape.wav",
+    "licence": "CC BY",
+    "author": "juskiddink",
+    "page": "https://freesound.org/people/juskiddink/sounds/59965/",
+    "audio": "https://cdn.freesound.org/previews/59/59965_649468-hq.ogg",
+    "sha256": "e8859ac6948d34bac4d81e6e70f9f93ec49bca124977f6b9eb1e822b4cff3646",
+    "dur": 9.2,
+    "q": "scraping leather"
+   },
+   {
+    "key": "scrape",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "40541",
+    "title": "Frottement 2 06.wav",
+    "licence": "CC BY",
+    "author": "hubertmichel",
+    "page": "https://freesound.org/people/hubertmichel/sounds/40541/",
+    "audio": "https://cdn.freesound.org/previews/40/40541_417293-hq.ogg",
+    "sha256": "8728116a34bde2de0ba6f68f61f4ff63cd07f2a5b0d6cd2397bcee4dbec676cd",
+    "dur": 2.26,
+    "q": "scraping leather"
+   },
+   {
+    "key": "scrape",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "40532",
+    "title": "Frottement 01.wav",
+    "licence": "CC BY",
+    "author": "hubertmichel",
+    "page": "https://freesound.org/people/hubertmichel/sounds/40532/",
+    "audio": "https://cdn.freesound.org/previews/40/40532_417293-hq.ogg",
+    "sha256": "e1efd3387bb13f66d53ba46ba98d7256499584b635b1cd298c815b63564cdc7a",
+    "dur": 7.94,
+    "q": "scraping leather"
+   }
+  ],
+  "pound": [
+   {
+    "key": "pound",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "388900",
+    "title": "Mortar and pestle cooking; loud",
+    "licence": "CC BY",
+    "author": "Australopithecusman",
+    "page": "https://freesound.org/people/Australopithecusman/sounds/388900/",
+    "audio": "https://cdn.freesound.org/previews/388/388900_4130102-hq.ogg",
+    "sha256": "e58fb8546fdff16bdd4056d1f6a80d85ce2b830b6e0510fe81651e699bf228df",
+    "dur": 13.46,
+    "q": "mortar pestle pounding"
+   }
+  ],
   "low": [
    {
     "key": "low",
@@ -2410,12 +1816,270 @@
     "dur": 5
    }
   ],
-  "swifts": [],
-  "hoof": [],
-  "snort": [],
-  "whinny": [],
-  "camel": [],
-  "wheel": [],
+  "swifts": [
+   {
+    "key": "swifts",
+    "section": "oneshots",
+    "src": "commons",
+    "id": "File:Wilhelm Scream.ogg",
+    "title": "Wilhelm Scream.ogg",
+    "licence": "CC0",
+    "author": "likely sheb wooley",
+    "page": "https://commons.wikimedia.org/wiki/File:Wilhelm_Scream.ogg",
+    "audio": "https://upload.wikimedia.org/wikipedia/commons/d/d9/Wilhelm_Scream.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "sha256": "360097c9715f55abcc26ab73f12f69b730c660fbf019fc63caa685bfa9b6585b",
+    "dur": 1.61,
+    "q": "swifts screaming"
+   },
+   {
+    "key": "swifts",
+    "section": "oneshots",
+    "src": "commons",
+    "id": "File:En-us-scream.ogg",
+    "title": "En-us-scream.ogg",
+    "licence": "CC0",
+    "author": "no machine readable author provided dvortygirl assumed based on copyright claims",
+    "page": "https://commons.wikimedia.org/wiki/File:En-us-scream.ogg",
+    "audio": "https://upload.wikimedia.org/wikipedia/commons/0/0e/En-us-scream.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "sha256": "7d569ef91e8ee70fd4804477cc2727dae1471d8969d63c70695bca911a3ce4d8",
+    "dur": 0.84,
+    "q": "swifts screaming"
+   },
+   {
+    "key": "swifts",
+    "section": "oneshots",
+    "src": "commons",
+    "id": "File:NOW screaming.ogg",
+    "title": "NOW screaming.ogg",
+    "licence": "CC0",
+    "author": "ranch",
+    "page": "https://commons.wikimedia.org/wiki/File:NOW_screaming.ogg",
+    "audio": "https://upload.wikimedia.org/wikipedia/commons/0/0d/NOW_screaming.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "sha256": "96526e5c1c61fe94b1425e1b0e339af25b705eac52efaf04288a5fa43247cff7",
+    "dur": 4.19,
+    "q": "swifts screaming"
+   }
+  ],
+  "hoof": [
+   {
+    "key": "hoof",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "233345",
+    "title": "Horses.WAV",
+    "licence": "CC0",
+    "author": "Ornery",
+    "page": "https://freesound.org/people/Ornery/sounds/233345/",
+    "audio": "https://cdn.freesound.org/previews/233/233345_737995-hq.ogg",
+    "sha256": "a1559ea505ade723742ae3e38e1bfbd139d3f13cac8a2e36762943c11647738e",
+    "dur": 36.85,
+    "q": "hooves walking"
+   },
+   {
+    "key": "hoof",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "538697",
+    "title": "horse snort.wav",
+    "licence": "CC0",
+    "author": "bruno.auzet",
+    "page": "https://freesound.org/people/bruno.auzet/sounds/538697/",
+    "audio": "https://cdn.freesound.org/previews/538/538697_11519060-hq.ogg",
+    "sha256": "09ff8a6edf396f061a70b049286bd5bbffb6e4640e8168cb0f8baf2afd8f8d24",
+    "dur": 10.11,
+    "q": "hooves walking"
+   },
+   {
+    "key": "hoof",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "264469",
+    "title": "Footsteps Dirt 01",
+    "licence": "CC0",
+    "author": "aglinder",
+    "page": "https://freesound.org/people/aglinder/sounds/264469/",
+    "audio": "https://cdn.freesound.org/previews/264/264469_1042839-hq.ogg",
+    "sha256": "9d05599982ca844f9221f7439f3ac6e9ea334dea84baf1f7278cb0c4204ffb2d",
+    "dur": 25.98,
+    "q": "hooves walking"
+   }
+  ],
+  "snort": [
+   {
+    "key": "snort",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "322454",
+    "title": "Horse Snort 2.wav",
+    "licence": "CC BY",
+    "author": "GoodListener",
+    "page": "https://freesound.org/people/GoodListener/sounds/322454/",
+    "audio": "https://cdn.freesound.org/previews/322/322454_5033007-hq.ogg",
+    "sha256": "de55410d661c31f7122f3e528b4f8b64cd388f96e53ab0f8bbdf725b9e520a45",
+    "dur": 4.78,
+    "q": "horse snort"
+   },
+   {
+    "key": "snort",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "32043",
+    "title": "horse snort 2.wav",
+    "licence": "CC BY",
+    "author": "ERH",
+    "page": "https://freesound.org/people/ERH/sounds/32043/",
+    "audio": "https://cdn.freesound.org/previews/32/32043_215874-hq.ogg",
+    "sha256": "2a0a150fd85dcd08bc81eb66ed0d28f3c322d66b3efdeaf1fba0916b4471a823",
+    "dur": 4.13,
+    "q": "horse snort"
+   },
+   {
+    "key": "snort",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "322443",
+    "title": "Stable Noises- Birds and Horses Neighing.wav",
+    "licence": "CC BY",
+    "author": "GoodListener",
+    "page": "https://freesound.org/people/GoodListener/sounds/322443/",
+    "audio": "https://cdn.freesound.org/previews/322/322443_5033007-hq.ogg",
+    "sha256": "9aa314e27aeda565c691f6bc9c58b888671843d26ae137b3793eecfaada38df6",
+    "dur": 46.2,
+    "q": "horse snort"
+   }
+  ],
+  "whinny": [
+   {
+    "key": "whinny",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "347036",
+    "title": "horse's whinny",
+    "licence": "CC0",
+    "author": "Kubuzz",
+    "page": "https://freesound.org/people/Kubuzz/sounds/347036/",
+    "audio": "https://cdn.freesound.org/previews/347/347036_1708499-hq.ogg",
+    "sha256": "18b05daecc56b30a23243f161f9c265885f16c6b35ee763d8e5e60ec77f7281b",
+    "dur": 10.71,
+    "q": "horse whinny"
+   },
+   {
+    "key": "whinny",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "149024",
+    "title": "Horse_Whinny.wav",
+    "licence": "CC0",
+    "author": "foxen10",
+    "page": "https://freesound.org/people/foxen10/sounds/149024/",
+    "audio": "https://cdn.freesound.org/previews/149/149024_2581089-hq.ogg",
+    "sha256": "b0f0b56f24d15e54b468854a008288991519ab9d7dbaafd1852c17fe1afdb570",
+    "dur": 6.87,
+    "q": "horse whinny"
+   },
+   {
+    "key": "whinny",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "59569",
+    "title": "horse.mp3",
+    "licence": "CC0",
+    "author": "3bagbrew",
+    "page": "https://freesound.org/people/3bagbrew/sounds/59569/",
+    "audio": "https://cdn.freesound.org/previews/59/59569_571436-hq.ogg",
+    "sha256": "92262135dccf2724e60c3f1f19f1b20b51d63f4b36d3e6d45993ade30401ab3d",
+    "dur": 10.02,
+    "q": "horse whinny"
+   }
+  ],
+  "camel": [
+   {
+    "key": "camel",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "437937",
+    "title": "G12-05-Camel Grunt.wav",
+    "licence": "CC0",
+    "author": "craigsmith",
+    "page": "https://freesound.org/people/craigsmith/sounds/437937/",
+    "audio": "https://cdn.freesound.org/previews/437/437937_2524442-hq.ogg",
+    "sha256": "f54e1be27e3c37ad7407a44f44f8bcf61604ceacb157e31185f930061bdae5ff",
+    "dur": 23.39,
+    "q": "camel grunt"
+   },
+   {
+    "key": "camel",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "693564",
+    "title": "Dromedaries mooing",
+    "licence": "CC0",
+    "author": "schots",
+    "page": "https://freesound.org/people/schots/sounds/693564/",
+    "audio": "https://cdn.freesound.org/previews/693/693564_954919-hq.ogg",
+    "sha256": "d0258a2eff2b4410df60aac86774bd7c0a4234f5dec26a776e88e628d16034a1",
+    "dur": 29.2,
+    "q": "camel growl"
+   },
+   {
+    "key": "camel",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "675449",
+    "title": "S30-27 Camels grunt and call; birds in bg.wav",
+    "licence": "CC0",
+    "author": "craigsmith",
+    "page": "https://freesound.org/people/craigsmith/sounds/675449/",
+    "audio": "https://cdn.freesound.org/previews/675/675449_2524442-hq.ogg",
+    "sha256": "affc1c7629433ff5332ba0123892dafe89ebef53f6781bfca88aa68126339187",
+    "dur": 27.59,
+    "q": "camel grunt"
+   }
+  ],
+  "wheel": [
+   {
+    "key": "wheel",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "538438",
+    "title": "horse with old cart.wav",
+    "licence": "CC0",
+    "author": "bruno.auzet",
+    "page": "https://freesound.org/people/bruno.auzet/sounds/538438/",
+    "audio": "https://cdn.freesound.org/previews/538/538438_11519060-hq.ogg",
+    "sha256": "f2f71b2e0c01212113fe1b96297b3fb1b5fb1cab369525971ec88dec2578b335",
+    "dur": 33.35,
+    "q": "cart wheel creaking"
+   },
+   {
+    "key": "wheel",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "438350",
+    "title": "G27-04-Wood Pulley Creak.wav",
+    "licence": "CC0",
+    "author": "craigsmith",
+    "page": "https://freesound.org/people/craigsmith/sounds/438350/",
+    "audio": "https://cdn.freesound.org/previews/438/438350_2524442-hq.ogg",
+    "sha256": "2be5d87ba26facd3baec6865fe019eff4b4609b6236aafd90b7d79ea9985cf46",
+    "dur": 51.43,
+    "q": "wooden cart creak"
+   },
+   {
+    "key": "wheel",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "321936",
+    "title": "06009 wheels on dirt road - looping.wav",
+    "licence": "CC BY-NC",
+    "author": "Robinhood76",
+    "page": "https://freesound.org/people/Robinhood76/sounds/321936/",
+    "audio": "https://cdn.freesound.org/previews/321/321936_321967-hq.ogg",
+    "sha256": "78c74509c618127b47b3d0b01efcabfe0bd3446919c0ffdff1fa92c451f071af",
+    "dur": 7.66,
+    "q": "cart wheel creaking"
+   }
+  ],
   "door": [
    {
     "key": "door",
@@ -2457,15 +2121,247 @@
     "dur": 5
    }
   ],
-  "door_shut": [],
-  "door_bar": [],
-  "see_see_partridge": [],
+  "door_shut": [
+   {
+    "key": "door_shut",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "402465",
+    "title": "Door Open Close Heavy Wooden Hard Loud Creak Seal Theatre",
+    "licence": "CC0",
+    "author": "LampEight",
+    "page": "https://freesound.org/people/LampEight/sounds/402465/",
+    "audio": "https://cdn.freesound.org/previews/402/402465_706234-hq.ogg",
+    "sha256": "58b0a22af0652ceadde8d0216e19e837a80675e1dd313369ff72dd14a253a13e",
+    "dur": 3.89,
+    "q": "wooden door close thud"
+   },
+   {
+    "key": "door_shut",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "275441",
+    "title": "Heavy steal door closing and locking.WAV",
+    "licence": "CC0",
+    "author": "Sandermotions",
+    "page": "https://freesound.org/people/Sandermotions/sounds/275441/",
+    "audio": "https://cdn.freesound.org/previews/275/275441_1402315-hq.ogg",
+    "sha256": "1c6724599a76691d98972194f119b194aa7d8f71fc869a35deaf7d069937a92b",
+    "dur": 7.72,
+    "q": "heavy door shut"
+   },
+   {
+    "key": "door_shut",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "367221",
+    "title": "Heavy_wooden_door_close_mansion.wav",
+    "licence": "CC0",
+    "author": "elliott.klein",
+    "page": "https://freesound.org/people/elliott.klein/sounds/367221/",
+    "audio": "https://cdn.freesound.org/previews/367/367221_2816253-hq.ogg",
+    "sha256": "dc88f1862bc193841df2d210aaafae6545df9505b81e9c2f3c39cb30107ef34a",
+    "dur": 3.1,
+    "q": "heavy door shut"
+   }
+  ],
+  "door_bar": [
+   {
+    "key": "door_bar",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "179728",
+    "title": "post_in_the_ground.flac",
+    "licence": "CC0",
+    "author": "wjoojoo",
+    "page": "https://freesound.org/people/wjoojoo/sounds/179728/",
+    "audio": "https://cdn.freesound.org/previews/179/179728_93137-hq.ogg",
+    "sha256": "d4724b41d98816002679fc5c30f7ebdd4714d056bdd245a195f55a2ebab7f0e4",
+    "dur": 1.8,
+    "q": "wooden beam drop"
+   }
+  ],
+  "see_see_partridge": [
+   {
+    "key": "see_see_partridge",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "153501",
+    "title": "20120429_caged_partridge_04.wav",
+    "licence": "CC BY",
+    "author": "dobroide",
+    "page": "https://freesound.org/people/dobroide/sounds/153501/",
+    "audio": "https://cdn.freesound.org/previews/153/153501_8043-hq.ogg",
+    "sha256": "f539183f9cffd1c838d1f3cece66e6d06f0020a2400a4b96088af464e6cb19cb",
+    "dur": 55.29,
+    "q": "partridge call"
+   }
+  ],
   "chukar": [],
-  "hoopoe": [],
-  "bee_eater": [],
-  "swallow": [],
-  "house_sparrow": [],
-  "golden_jackal": [],
+  "hoopoe": [
+   {
+    "key": "hoopoe",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "185512",
+    "title": "20130418_starling.02.flac",
+    "licence": "CC BY",
+    "author": "dobroide",
+    "page": "https://freesound.org/people/dobroide/sounds/185512/",
+    "audio": "https://cdn.freesound.org/previews/185/185512_8043-hq.ogg",
+    "sha256": "b9ea9c4c7ad5366ba680231561b1107c0cf5ccf77784e79c7314ea6aad57ce41",
+    "dur": 48.75,
+    "q": "hoopoe call"
+   },
+   {
+    "key": "hoopoe",
+    "section": "oneshots",
+    "src": "commons",
+    "id": "File:Green Wood Hoopoe (Phoeniculus purpureus) (022A-WA03044X0020-0009M0).ogg",
+    "title": "Green Wood Hoopoe (Phoeniculus purpureus) (022A-WA03044X0020-0009M0).ogg",
+    "licence": "CC BY",
+    "author": "Wikimedia Commons contributor",
+    "page": "https://commons.wikimedia.org/wiki/File:Green_Wood_Hoopoe_(Phoeniculus_purpureus)_(022A-WA03044X0020-0009M0).ogg",
+    "audio": "https://upload.wikimedia.org/wikipedia/commons/6/65/Green_Wood_Hoopoe_%28Phoeniculus_purpureus%29_%28022A-WA03044X0020-0009M0%29.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "sha256": "3ea82bcf53b4fbb79a7bf547342777ea48df99ab35c0f5efca5fa917065c0062",
+    "dur": 16.88,
+    "q": "hoopoe call"
+   },
+   {
+    "key": "hoopoe",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "15433",
+    "title": "HoopoeFiltered.wav",
+    "licence": "CC BY-NC",
+    "author": "acclivity",
+    "page": "https://freesound.org/people/acclivity/sounds/15433/",
+    "audio": "https://cdn.freesound.org/previews/15/15433_37876-hq.ogg",
+    "sha256": "d324c32c50313f4bff1389266eae058bf89999aeec1d00e41d0de10b2d2f6ad6",
+    "dur": 24.44,
+    "q": "hoopoe call"
+   }
+  ],
+  "bee_eater": [
+   {
+    "key": "bee_eater",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "587004",
+    "title": "Haunting melody",
+    "licence": "CC BY",
+    "author": "Victor_Natas",
+    "page": "https://freesound.org/people/Victor_Natas/sounds/587004/",
+    "audio": "https://cdn.freesound.org/previews/587/587004_10836957-hq.ogg",
+    "sha256": "8a8712178e023851873b1c9b89ad57bcb098cf8d7150dbc4f4a98ab798c94f0f",
+    "dur": 46.06,
+    "q": "bee-eater call"
+   },
+   {
+    "key": "bee_eater",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "17584",
+    "title": "20060328.bee-eaters.02.flac",
+    "licence": "CC BY",
+    "author": "dobroide",
+    "page": "https://freesound.org/people/dobroide/sounds/17584/",
+    "audio": "https://cdn.freesound.org/previews/17/17584_8043-hq.ogg",
+    "sha256": "a35def49988df56b3badb1e777ed5e349440207542a04850f948795d3206dfd1",
+    "dur": 24.39,
+    "q": "bee-eater call"
+   },
+   {
+    "key": "bee_eater",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "34575",
+    "title": "20070427.lamediana.corn.bunting.flac",
+    "licence": "CC BY",
+    "author": "dobroide",
+    "page": "https://freesound.org/people/dobroide/sounds/34575/",
+    "audio": "https://cdn.freesound.org/previews/34/34575_8043-hq.ogg",
+    "sha256": "604525296f423606d017cb754f888947beffea8b9f92037e8e6cac8e9de0f8ae",
+    "dur": 33.87,
+    "q": "bee-eater call"
+   }
+  ],
+  "swallow": [
+   {
+    "key": "swallow",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "580484",
+    "title": "20210624.cowbell.133.wav",
+    "licence": "CC BY",
+    "author": "dobroide",
+    "page": "https://freesound.org/people/dobroide/sounds/580484/",
+    "audio": "https://cdn.freesound.org/previews/580/580484_8043-hq.ogg",
+    "sha256": "39da47ea7bbbf24f3da8a1e29f36fae2db9f20a0b734e6a60e412634e6ebc8c9",
+    "dur": 11.98,
+    "q": "barn swallow call"
+   }
+  ],
+  "house_sparrow": [
+   {
+    "key": "house_sparrow",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "543827",
+    "title": "FXSaSc Sparrows Close Chirp Exterior Birds.wav",
+    "licence": "CC0",
+    "author": "Profispiesser",
+    "page": "https://freesound.org/people/Profispiesser/sounds/543827/",
+    "audio": "https://cdn.freesound.org/previews/543/543827_6667441-hq.ogg",
+    "sha256": "652bcf005859ffd5700a558c0a820f95e413687b70a3a586da09f89f6f7bc074",
+    "dur": 37.19,
+    "q": "sparrows chirping"
+   },
+   {
+    "key": "house_sparrow",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "628951",
+    "title": "Sparrows02.wav",
+    "licence": "CC0",
+    "author": "Kimskell",
+    "page": "https://freesound.org/people/Kimskell/sounds/628951/",
+    "audio": "https://cdn.freesound.org/previews/628/628951_3311539-hq.ogg",
+    "sha256": "14e4dc58b1f2e1d1fc05c6b0b9ded76c99550db4dd07e4fd08476ea9ef47fc9d",
+    "dur": 9.31,
+    "q": "sparrows chirping"
+   },
+   {
+    "key": "house_sparrow",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "427369",
+    "title": "birds swarm in bush.wav",
+    "licence": "CC0",
+    "author": "Douglas711",
+    "page": "https://freesound.org/people/Douglas711/sounds/427369/",
+    "audio": "https://cdn.freesound.org/previews/427/427369_3609277-hq.ogg",
+    "sha256": "4d53f17e0ef913622fdf3f5595c51f4b6a738df50c06905bcf3e41301e759590",
+    "dur": 29.25,
+    "q": "sparrows chirping"
+   }
+  ],
+  "golden_jackal": [
+   {
+    "key": "golden_jackal",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "737879",
+    "title": "Jackals howling in the mountains",
+    "licence": "CC0",
+    "author": "Babadeda",
+    "page": "https://freesound.org/people/Babadeda/sounds/737879/",
+    "audio": "https://cdn.freesound.org/previews/737/737879_4763885-hq.ogg",
+    "sha256": "74fc596d8827434ee82f2ededd10eed4fc27673df6748935e4415db3defcd773",
+    "dur": 33.98,
+    "q": "jackal howl"
+   }
+  ],
   "crickets": [
    {
     "key": "crickets",
@@ -2589,7 +2485,50 @@
     "dur": 5
    }
   ],
-  "a_donkey_braying": [],
+  "a_donkey_braying": [
+   {
+    "key": "a_donkey_braying",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "157763",
+    "title": "A donkey is braying in his enclosure, in south of France.",
+    "licence": "CC0",
+    "author": "felix.blume",
+    "page": "https://freesound.org/people/felix.blume/sounds/157763/",
+    "audio": "https://cdn.freesound.org/previews/157/157763_1661766-hq.ogg",
+    "sha256": "9104e01b110c9f5e9190937f4cb3212dc819790f96d586f3e3ec4721149430ce",
+    "dur": 22.37,
+    "q": "donkey bray"
+   },
+   {
+    "key": "a_donkey_braying",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "152938",
+    "title": "Donkey braying in a field in the mountain of the High Atlas, Morocco.",
+    "licence": "CC0",
+    "author": "felix.blume",
+    "page": "https://freesound.org/people/felix.blume/sounds/152938/",
+    "audio": "https://cdn.freesound.org/previews/152/152938_1661766-hq.ogg",
+    "sha256": "cf59a9044b5093379eb2703dfe9a8e344a6480623dbd5d5dce920513f40f1327",
+    "dur": 15.66,
+    "q": "donkey bray"
+   },
+   {
+    "key": "a_donkey_braying",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "133761",
+    "title": "A donkey is braying in the field, close to the small village of La Preciosita",
+    "licence": "CC0",
+    "author": "felix.blume",
+    "page": "https://freesound.org/people/felix.blume/sounds/133761/",
+    "audio": "https://cdn.freesound.org/previews/133/133761_1661766-hq.ogg",
+    "sha256": "d55d4b9659203e68fdb7c60166215a99a7d45ba0ecfde83c94b290a694aedcb4",
+    "dur": 9.92,
+    "q": "donkey bray"
+   }
+  ],
   "hooded_crows": [
    {
     "key": "hooded_crows",
@@ -2631,9 +2570,124 @@
     "dur": 5
    }
   ],
-  "black_kite": [],
-  "scops_owl": [],
-  "little_owl": [],
+  "black_kite": [
+   {
+    "key": "black_kite",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "38304",
+    "title": "20070722.pinar_1035am.wav",
+    "licence": "CC BY",
+    "author": "dobroide",
+    "page": "https://freesound.org/people/dobroide/sounds/38304/",
+    "audio": "https://cdn.freesound.org/previews/38/38304_8043-hq.ogg",
+    "sha256": "8560273f48dab11873af90471fe5012a6bd01a9902cc5c40b0d5ac1977bfdf00",
+    "dur": 32.98,
+    "q": "kite bird call"
+   },
+   {
+    "key": "black_kite",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "18598",
+    "title": "20060425.prey.bird.flac",
+    "licence": "CC BY",
+    "author": "dobroide",
+    "page": "https://freesound.org/people/dobroide/sounds/18598/",
+    "audio": "https://cdn.freesound.org/previews/18/18598_8043-hq.ogg",
+    "sha256": "4d2ecda87e2bf051cf90fa1ea6a9316fc1e05b3d34ccf0513e56ec122df33ffd",
+    "dur": 14.79,
+    "q": "black kite call"
+   },
+   {
+    "key": "black_kite",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "868531",
+    "title": "Birds of Prey: Red Kite, medium loud excited calls",
+    "licence": "CC BY",
+    "author": "MichiJung",
+    "page": "https://freesound.org/people/MichiJung/sounds/868531/",
+    "audio": "https://cdn.freesound.org/previews/868/868531_7372878-hq.ogg",
+    "sha256": "b7a41adc05064918666cfc64d46d12e9b3596f37c363e015f29ffffa331bd484",
+    "dur": 5.31,
+    "q": "kite bird call"
+   }
+  ],
+  "scops_owl": [
+   {
+    "key": "scops_owl",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "429185",
+    "title": "SCOPS OWL - 1",
+    "licence": "CC0",
+    "author": "SamuelGremaud",
+    "page": "https://freesound.org/people/SamuelGremaud/sounds/429185/",
+    "audio": "https://cdn.freesound.org/previews/429/429185_8031303-hq.ogg",
+    "sha256": "15522ee5d332cd3234ff927f5e59680650a5f783bd3ecab7758634cad9e119ef",
+    "dur": 20.56,
+    "q": "scops owl"
+   },
+   {
+    "key": "scops_owl",
+    "section": "oneshots",
+    "src": "commons",
+    "id": "File:Otus sunia.ogg",
+    "title": "Otus sunia.ogg",
+    "licence": "CC0",
+    "author": "raghu",
+    "page": "https://commons.wikimedia.org/wiki/File:Otus_sunia.ogg",
+    "audio": "https://upload.wikimedia.org/wikipedia/commons/8/86/Otus_sunia.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "sha256": "4c9e24d9e19d0604be82eb676f2b7bd1d37ddb597ef8c499cc22bb29d9de2d28",
+    "dur": 9.98,
+    "q": "scops owl"
+   },
+   {
+    "key": "scops_owl",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "38769",
+    "title": "Skops0607.wav",
+    "licence": "CC BY",
+    "author": "falconbeard",
+    "page": "https://freesound.org/people/falconbeard/sounds/38769/",
+    "audio": "https://cdn.freesound.org/previews/38/38769_88185-hq.ogg",
+    "sha256": "0faa5ee07c7544397da41ddb4e414c943ff8dfe2521e244589f0a17dca1739a3",
+    "dur": 47.37,
+    "q": "scops owl"
+   }
+  ],
+  "little_owl": [
+   {
+    "key": "little_owl",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "392883",
+    "title": "Hard Candy / Bone Crunch",
+    "licence": "CC0",
+    "author": "clif_creates",
+    "page": "https://freesound.org/people/clif_creates/sounds/392883/",
+    "audio": "https://cdn.freesound.org/previews/392/392883_3530854-hq.ogg",
+    "sha256": "1e924c7dd2b02fb12d4139f40d860aba5da8b31fb767f605851893403665479c",
+    "dur": 1.08,
+    "q": "little owl call"
+   },
+   {
+    "key": "little_owl",
+    "section": "oneshots",
+    "src": "commons",
+    "id": "File:Kcg-a̱nywan (little owl).ogg",
+    "title": "Kcg-a̱nywan (little owl).ogg",
+    "licence": "CC0",
+    "author": "danjuma anthony",
+    "page": "https://commons.wikimedia.org/wiki/File:Kcg-a%CC%B1nywan_(little_owl).ogg",
+    "audio": "https://upload.wikimedia.org/wikipedia/commons/9/9f/Kcg-a%CC%B1nywan_%28little_owl%29.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "sha256": "4eb929a77245f1a13be7474d5de375319e8797dc2262207e8558131b303ea453",
+    "dur": 1.11,
+    "q": "little owl call"
+   }
+  ],
   "marsh_frogs": [
    {
     "key": "marsh_frogs",
@@ -2675,10 +2729,182 @@
     "dur": 5
    }
   ],
-  "cicadas": [],
-  "common_quail": [],
-  "nightjar": [],
-  "reed_warbler": [],
+  "cicadas": [
+   {
+    "key": "cicadas",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "529572",
+    "title": "cicada sound",
+    "licence": "CC0",
+    "author": "cupido-1",
+    "page": "https://freesound.org/people/cupido-1/sounds/529572/",
+    "audio": "https://cdn.freesound.org/previews/529/529572_1030167-hq.ogg",
+    "sha256": "1a5b95d6d79bd27a2319c0c40d3d3a9fb733d4f9894043c91e50bf3693ced495",
+    "dur": 29.43,
+    "q": "cicada"
+   },
+   {
+    "key": "cicadas",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "268962",
+    "title": "Cicada Insects 8_26_13 8_06 PM.wav",
+    "licence": "CC0",
+    "author": "harryScary",
+    "page": "https://freesound.org/people/harryScary/sounds/268962/",
+    "audio": "https://cdn.freesound.org/previews/268/268962_2895986-hq.ogg",
+    "sha256": "37bf0a316809584e201330057e37ef2892f21dea7421972314be98037bb2da24",
+    "dur": 41.07,
+    "q": "cicada"
+   },
+   {
+    "key": "cicadas",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "468241",
+    "title": "Thailand Phangan Jungle Waterfall 2",
+    "licence": "CC0",
+    "author": "Archos",
+    "page": "https://freesound.org/people/Archos/sounds/468241/",
+    "audio": "https://cdn.freesound.org/previews/468/468241_652422-hq.ogg",
+    "sha256": "46a295cbcdded44e2e45b708e0052e7899727cb25193e7cfbcee04b7a32a6871",
+    "dur": 37.47,
+    "q": "cicada"
+   }
+  ],
+  "common_quail": [
+   {
+    "key": "common_quail",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "815875",
+    "title": "Fowl - Northern Bobwhite; Insects in Background",
+    "licence": "CC0",
+    "author": "TheKingOfGeeks360",
+    "page": "https://freesound.org/people/TheKingOfGeeks360/sounds/815875/",
+    "audio": "https://cdn.freesound.org/previews/815/815875_15895934-hq.ogg",
+    "sha256": "2ff25c2d56d192612bb39432a161f7f902ed7910cbdeb6f0aa5e615c4ed9f19c",
+    "dur": 1.55,
+    "q": "quail call"
+   },
+   {
+    "key": "common_quail",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "826096",
+    "title": "Fowl - Northern Bobwhite; Two Calls, Insects in Background",
+    "licence": "CC0",
+    "author": "TheKingOfGeeks360",
+    "page": "https://freesound.org/people/TheKingOfGeeks360/sounds/826096/",
+    "audio": "https://cdn.freesound.org/previews/826/826096_15895934-hq.ogg",
+    "sha256": "ba68ec36e2d47a7b55bedc1f0d50b1fa06948c4602c4ce5e423e30edfb58d66c",
+    "dur": 18.36,
+    "q": "quail call"
+   },
+   {
+    "key": "common_quail",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "19087",
+    "title": "20060517.unknownbird01.flac",
+    "licence": "CC BY",
+    "author": "dobroide",
+    "page": "https://freesound.org/people/dobroide/sounds/19087/",
+    "audio": "https://cdn.freesound.org/previews/19/19087_8043-hq.ogg",
+    "sha256": "b38b9714a8770f0347a04ec6fce745289c245fcb013fd352c9dc93dfd9e647dc",
+    "dur": 5.62,
+    "q": "quail call"
+   }
+  ],
+  "nightjar": [
+   {
+    "key": "nightjar",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "474859",
+    "title": "European nightjar Caprimulgus europaeus 16.6.2019.mp3",
+    "licence": "CC0",
+    "author": "jjbubo",
+    "page": "https://freesound.org/people/jjbubo/sounds/474859/",
+    "audio": "https://cdn.freesound.org/previews/474/474859_10058787-hq.ogg",
+    "sha256": "535e8ffb15b70d69c240e3837dea22a2d4cf09613009ac5ac10db814d063ecb4",
+    "dur": 49.24,
+    "q": "european nightjar"
+   },
+   {
+    "key": "nightjar",
+    "section": "oneshots",
+    "src": "commons",
+    "id": "File:Caprimulgus europaeus.ogg",
+    "title": "Caprimulgus europaeus.ogg",
+    "licence": "CC0",
+    "author": "elsadono",
+    "page": "https://commons.wikimedia.org/wiki/File:Caprimulgus_europaeus.ogg",
+    "audio": "https://upload.wikimedia.org/wikipedia/commons/d/d8/Caprimulgus_europaeus.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "sha256": "a9d9a8bdc5571f6cddff850b1c49db2098dece28be699488601e57f1831efab0",
+    "dur": 21.93,
+    "q": "european nightjar"
+   },
+   {
+    "key": "nightjar",
+    "section": "oneshots",
+    "src": "commons",
+    "id": "File:Kcg-a̱lyen (nightjar).ogg",
+    "title": "Kcg-a̱lyen (nightjar).ogg",
+    "licence": "CC0",
+    "author": "danjuma anthony",
+    "page": "https://commons.wikimedia.org/wiki/File:Kcg-a%CC%B1lyen_(nightjar).ogg",
+    "audio": "https://upload.wikimedia.org/wikipedia/commons/6/6c/Kcg-a%CC%B1lyen_%28nightjar%29.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "sha256": "3a904b5e2402481a653a89a7c6b43f57242cb955c1cc2bbe06213d6bfd9d0bea",
+    "dur": 1.07,
+    "q": "european nightjar"
+   }
+  ],
+  "reed_warbler": [
+   {
+    "key": "reed_warbler",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "701168",
+    "title": "Bird Great Reed Warbler",
+    "licence": "CC0",
+    "author": "arnasarnas",
+    "page": "https://freesound.org/people/arnasarnas/sounds/701168/",
+    "audio": "https://cdn.freesound.org/previews/701/701168_4818682-hq.ogg",
+    "sha256": "aba110ef73999b294d5e2998c35be84e7bb9cb5ba6c1c273d255c1f4ba6ba03e",
+    "dur": 25.58,
+    "q": "reed warbler"
+   },
+   {
+    "key": "reed_warbler",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "34594",
+    "title": "20070506.rubber.duckies.04.wav",
+    "licence": "CC BY",
+    "author": "dobroide",
+    "page": "https://freesound.org/people/dobroide/sounds/34594/",
+    "audio": "https://cdn.freesound.org/previews/34/34594_8043-hq.ogg",
+    "sha256": "89ae06a6821de91a109c1d1bc6e24f188f674c0915cbec5f0926e3c12cf7f014",
+    "dur": 0.88,
+    "q": "reed warbler"
+   },
+   {
+    "key": "reed_warbler",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "34598",
+    "title": "20070506.rubber.duckies.08.wav",
+    "licence": "CC BY",
+    "author": "dobroide",
+    "page": "https://freesound.org/people/dobroide/sounds/34598/",
+    "audio": "https://cdn.freesound.org/previews/34/34598_8043-hq.ogg",
+    "sha256": "8c037a6337bece5b90ea6e83b8296fef0717aabeebf31fc67f814eb7e5a94607",
+    "dur": 0.82,
+    "q": "reed warbler"
+   }
+  ],
   "wild_boar_grunting": [
    {
     "key": "wild_boar_grunting",
@@ -2720,7 +2946,22 @@
     "dur": 5
    }
   ],
-  "skylark": [],
+  "skylark": [
+   {
+    "key": "skylark",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "848753",
+    "title": "Eurasian Skylark",
+    "licence": "CC BY",
+    "author": "iainmccurdy",
+    "page": "https://freesound.org/people/iainmccurdy/sounds/848753/",
+    "audio": "https://cdn.freesound.org/previews/848/848753_3655844-hq.ogg",
+    "sha256": "e587d170150577e8f70ded70434b9df8337e3b3324e4ffb3ac90bfad6e640314",
+    "dur": 41.12,
+    "q": "eurasian skylark"
+   }
+  ],
   "thunder": [
    {
     "key": "thunder",
@@ -2803,9 +3044,138 @@
     "dur": 5
    }
   ],
-  "child_laugh": [],
-  "pot_clink": [],
-  "herd_bells": [],
+  "child_laugh": [
+   {
+    "key": "child_laugh",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "371342",
+    "title": "D2_kidslaughing.mp3",
+    "licence": "CC0",
+    "author": "Iamgiorgio",
+    "page": "https://freesound.org/people/Iamgiorgio/sounds/371342/",
+    "audio": "https://cdn.freesound.org/previews/371/371342_5302340-hq.ogg",
+    "sha256": "c6ca6b61902207c0d5713ee3c843349f36f5e854b5609636d90e36ecf3af6950",
+    "dur": 3.15,
+    "q": "children laughing"
+   },
+   {
+    "key": "child_laugh",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "342838",
+    "title": "young girls giggling and laughing.wav",
+    "licence": "CC0",
+    "author": "tuhinpaul",
+    "page": "https://freesound.org/people/tuhinpaul/sounds/342838/",
+    "audio": "https://cdn.freesound.org/previews/342/342838_1313542-hq.ogg",
+    "sha256": "65244c059f53a227b738dd158a5c09f6bfd42c0d5173f80b8b8c9dcc9530fac8",
+    "dur": 15.94,
+    "q": "children laughing"
+   },
+   {
+    "key": "child_laugh",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "506937",
+    "title": "Boy Laughing (5 y.o.)",
+    "licence": "CC0",
+    "author": "Nakhas",
+    "page": "https://freesound.org/people/Nakhas/sounds/506937/",
+    "audio": "https://cdn.freesound.org/previews/506/506937_717697-hq.ogg",
+    "sha256": "1eca9a3f83f0f5fc59342e04d62fadd160035298e2b1d9cf0d4e584eab654fcf",
+    "dur": 30.54,
+    "q": "children laughing"
+   }
+  ],
+  "pot_clink": [
+   {
+    "key": "pot_clink",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "453789",
+    "title": "ceramic clay pot lid hits.flac",
+    "licence": "CC0",
+    "author": "kyles",
+    "page": "https://freesound.org/people/kyles/sounds/453789/",
+    "audio": "https://cdn.freesound.org/previews/453/453789_612689-hq.ogg",
+    "sha256": "e642947ea32ad2bd3bc030286b267380dd8c9ae5048752f6784a0505f8d3b77c",
+    "dur": 47.96,
+    "q": "ceramic pot hit"
+   },
+   {
+    "key": "pot_clink",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "610269",
+    "title": "ceramic on ceramic.wav",
+    "licence": "CC0",
+    "author": "leffrank",
+    "page": "https://freesound.org/people/leffrank/sounds/610269/",
+    "audio": "https://cdn.freesound.org/previews/610/610269_1535532-hq.ogg",
+    "sha256": "da530635915b43aa57a725e40ff6483b6c9da1e6ae4f5db7abfa8ed7dd646e3b",
+    "dur": 26.17,
+    "q": "ceramic pot hit"
+   },
+   {
+    "key": "pot_clink",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "221954",
+    "title": "rock friction.wav",
+    "licence": "CC0",
+    "author": "kurono01",
+    "page": "https://freesound.org/people/kurono01/sounds/221954/",
+    "audio": "https://cdn.freesound.org/previews/221/221954_4129473-hq.ogg",
+    "sha256": "e54ffdd794b03051aeb8e0c6499748d5f89e68b9bed9c1c8b28ca99f9eebfe28",
+    "dur": 49.21,
+    "q": "ceramic pot hit"
+   }
+  ],
+  "herd_bells": [
+   {
+    "key": "herd_bells",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "397343",
+    "title": "Bell0003.WAV",
+    "licence": "CC0",
+    "author": "fmiramar_",
+    "page": "https://freesound.org/people/fmiramar_/sounds/397343/",
+    "audio": "https://cdn.freesound.org/previews/397/397343_7576250-hq.ogg",
+    "sha256": "ddcf2687ebe7e9dfa6e64f7e71ef096ab5b5bcfa599c01e22fe0104bf55e5c55",
+    "dur": 19.07,
+    "q": "goat bells"
+   },
+   {
+    "key": "herd_bells",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "397349",
+    "title": "Bell0005.WAV",
+    "licence": "CC0",
+    "author": "fmiramar_",
+    "page": "https://freesound.org/people/fmiramar_/sounds/397349/",
+    "audio": "https://cdn.freesound.org/previews/397/397349_7576250-hq.ogg",
+    "sha256": "d3bf90ba2c06e9d51f1a952d5862aa7053d74329279a43e034da444d51611e21",
+    "dur": 41.7,
+    "q": "goat bells"
+   },
+   {
+    "key": "herd_bells",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "397348",
+    "title": "Bell0006.WAV",
+    "licence": "CC0",
+    "author": "fmiramar_",
+    "page": "https://freesound.org/people/fmiramar_/sounds/397348/",
+    "audio": "https://cdn.freesound.org/previews/397/397348_7576250-hq.ogg",
+    "sha256": "4342a34a589d1ab50defabaf0d55583f09165985e96f480d82fc7c2d92f60a3f",
+    "dur": 30.77,
+    "q": "goat bells"
+   }
+  ],
   "stone_walk": [
    {
     "key": "stone_walk",
@@ -2847,7 +3217,50 @@
     "dur": 5
    }
   ],
-  "plaster_walk": [],
+  "plaster_walk": [
+   {
+    "key": "plaster_walk",
+    "section": "foot",
+    "src": "freesound",
+    "id": "437150",
+    "title": "Firm Footsteps_Rubber Sole on Quarry Tile",
+    "licence": "CC BY",
+    "author": "d.n.audio.uk",
+    "page": "https://freesound.org/people/d.n.audio.uk/sounds/437150/",
+    "audio": "https://cdn.freesound.org/previews/437/437150_147613-hq.ogg",
+    "sha256": "45d864e2d06c54365d52337eeb87c314141c767c11448a0c9ae4884c95264e89",
+    "dur": 23.9,
+    "q": "footsteps tile floor"
+   },
+   {
+    "key": "plaster_walk",
+    "section": "foot",
+    "src": "freesound",
+    "id": "269458",
+    "title": "footsteps walking toward and away.wav",
+    "licence": "CC BY",
+    "author": "paulmessier",
+    "page": "https://freesound.org/people/paulmessier/sounds/269458/",
+    "audio": "https://cdn.freesound.org/previews/269/269458_4930623-hq.ogg",
+    "sha256": "fb8d21f87731998a574834accb19bc71e59e7189d9cabc91f480ac449d0b8a28",
+    "dur": 14.48,
+    "q": "footsteps tile floor"
+   },
+   {
+    "key": "plaster_walk",
+    "section": "foot",
+    "src": "freesound",
+    "id": "18169",
+    "title": "Footsteps on hard floor indoors.wav",
+    "licence": "CC BY",
+    "author": "Jake Williams",
+    "page": "https://freesound.org/people/Jake%20Williams/sounds/18169/",
+    "audio": "https://cdn.freesound.org/previews/18/18169_40013-hq.ogg",
+    "sha256": "fd87598de3f265cbf2ce30cf5febfb9a1735cfc21fddfa3d8d190de0681541d9",
+    "dur": 3.48,
+    "q": "footsteps hard floor indoor"
+   }
+  ],
   "earth_walk": [
    {
     "key": "earth_walk",
@@ -2889,7 +3302,50 @@
     "dur": 5
    }
   ],
-  "dust_walk": [],
+  "dust_walk": [
+   {
+    "key": "dust_walk",
+    "section": "foot",
+    "src": "freesound",
+    "id": "854190",
+    "title": "Heavy Footsteps | Crunchy Thuds",
+    "licence": "CC0",
+    "author": "GammaGool",
+    "page": "https://freesound.org/people/GammaGool/sounds/854190/",
+    "audio": "https://cdn.freesound.org/previews/854/854190_8908475-hq.ogg",
+    "sha256": "4987e09de433ba110c5ea80caa28c76efaca4c3ca7a41cbdb036a52fa7c5f92f",
+    "dur": 2.89,
+    "q": "footsteps dry dirt"
+   },
+   {
+    "key": "dust_walk",
+    "section": "foot",
+    "src": "freesound",
+    "id": "636840",
+    "title": "Walking on stony dirt path.wav",
+    "licence": "CC0",
+    "author": "Alex_hears_things",
+    "page": "https://freesound.org/people/Alex_hears_things/sounds/636840/",
+    "audio": "https://cdn.freesound.org/previews/636/636840_2309965-hq.ogg",
+    "sha256": "562fae4d19ef0ad3b9214c2e4f5261ea1cb740669cc25299e476bf2559e04ec7",
+    "dur": 28.63,
+    "q": "footsteps dry dirt"
+   },
+   {
+    "key": "dust_walk",
+    "section": "foot",
+    "src": "freesound",
+    "id": "750046",
+    "title": "Forest Rock Sticks Footstep Montage 2 Mixed",
+    "licence": "CC BY",
+    "author": "Geoff-Bremner-Audio",
+    "page": "https://freesound.org/people/Geoff-Bremner-Audio/sounds/750046/",
+    "audio": "https://cdn.freesound.org/previews/750/750046_10643461-hq.ogg",
+    "sha256": "88ac26681b5b14714ed7b433c945da303aff146f1cce2ae7115ead1474bd3280",
+    "dur": 35.97,
+    "q": "footsteps dry dirt"
+   }
+  ],
   "gravel_walk": [
    {
     "key": "gravel_walk",
@@ -2944,6 +3400,34 @@
     "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-194979-A-25.wav",
     "sha256": "ef46de922532c82310795bd5bd705a1837eb051b73997cddd0d39c1d8283d8e9",
     "dur": 5
+   },
+   {
+    "key": "grass_walk",
+    "section": "foot",
+    "src": "freesound",
+    "id": "559082",
+    "title": "Foley_Movement_High_Grass_Mono.wav",
+    "licence": "CC0",
+    "author": "Nox_Sound",
+    "page": "https://freesound.org/people/Nox_Sound/sounds/559082/",
+    "audio": "https://cdn.freesound.org/previews/559/559082_9250976-hq.ogg",
+    "sha256": "cefe84ca6dc926b9543aa2e3c8d2ee8f9b08943958b5af6f24ccc5d53794387d",
+    "dur": 14.3,
+    "q": "footsteps grass"
+   },
+   {
+    "key": "grass_walk",
+    "section": "foot",
+    "src": "freesound",
+    "id": "384859",
+    "title": "Left Grass/Grassy Footstep 3",
+    "licence": "CC0",
+    "author": "Ali_6868",
+    "page": "https://freesound.org/people/Ali_6868/sounds/384859/",
+    "audio": "https://cdn.freesound.org/previews/384/384859_984733-hq.ogg",
+    "sha256": "ddc91731b3fdfe705e7a2235461f55c5605af14ced4e6c29180766e7ac8998a8",
+    "dur": 0.98,
+    "q": "footsteps grass"
    }
   ],
   "leaves_walk": [
@@ -2959,9 +3443,80 @@
     "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-94342-A-25.wav",
     "sha256": "aa5f165461dce46867d6be56a5362ea28e93574379041ba2395563b629aee3ea",
     "dur": 5
+   },
+   {
+    "key": "leaves_walk",
+    "section": "foot",
+    "src": "freesound",
+    "id": "420390",
+    "title": "walking the leaves",
+    "licence": "CC0",
+    "author": "Magdaadga",
+    "page": "https://freesound.org/people/Magdaadga/sounds/420390/",
+    "audio": "https://cdn.freesound.org/previews/420/420390_8376753-hq.ogg",
+    "sha256": "46fcbf5b8cf624d9dbfaa53921ce6d42871e8bda530e4cda2a6af0d69a4d8de9",
+    "dur": 21.43,
+    "q": "footsteps dry leaves"
+   },
+   {
+    "key": "leaves_walk",
+    "section": "foot",
+    "src": "freesound",
+    "id": "628400",
+    "title": "Animal footsteps on dry leaves",
+    "licence": "CC0",
+    "author": "melle_teich",
+    "page": "https://freesound.org/people/melle_teich/sounds/628400/",
+    "audio": "https://cdn.freesound.org/previews/628/628400_12013381-hq.ogg",
+    "sha256": "f0427a475964599cc839ae4418fd449c5b5c1237168115b006ad2147ad1238f4",
+    "dur": 57.43,
+    "q": "footsteps dry leaves"
    }
   ],
-  "mud_walk": [],
+  "mud_walk": [
+   {
+    "key": "mud_walk",
+    "section": "foot",
+    "src": "freesound",
+    "id": "376809",
+    "title": "MUDDY AND WET FOOTSTEPS.wav",
+    "licence": "CC0",
+    "author": "Alex_hears_things",
+    "page": "https://freesound.org/people/Alex_hears_things/sounds/376809/",
+    "audio": "https://cdn.freesound.org/previews/376/376809_2309965-hq.ogg",
+    "sha256": "46e3523da19357a4635329b92f7338fa8499d1b56d1df350a86a8d21881022d1",
+    "dur": 46.1,
+    "q": "footsteps mud"
+   },
+   {
+    "key": "mud_walk",
+    "section": "foot",
+    "src": "freesound",
+    "id": "579766",
+    "title": "MuddyFootsteps2.WAV",
+    "licence": "CC0",
+    "author": "OldGrump",
+    "page": "https://freesound.org/people/OldGrump/sounds/579766/",
+    "audio": "https://cdn.freesound.org/previews/579/579766_9435714-hq.ogg",
+    "sha256": "67ab43fae784b736afc7d88f9f81c5d06597a65eda5054844156a1df43925e44",
+    "dur": 48.01,
+    "q": "footsteps mud"
+   },
+   {
+    "key": "mud_walk",
+    "section": "foot",
+    "src": "freesound",
+    "id": "455057",
+    "title": "footsteps-mud.wav",
+    "licence": "CC0",
+    "author": "audioninja001",
+    "page": "https://freesound.org/people/audioninja001/sounds/455057/",
+    "audio": "https://cdn.freesound.org/previews/455/455057_2699264-hq.ogg",
+    "sha256": "0df39bee12ce310fd07d9175cb40d8a9beed72f34708d9fb9c452bbec7861139",
+    "dur": 50.54,
+    "q": "footsteps mud"
+   }
+  ],
   "snow_walk": [
    {
     "key": "snow_walk",
@@ -3057,13 +3612,299 @@
     "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-234855-A-25.wav",
     "sha256": "d1b33538a11d787c1f9ff9e33a9160a66570e0830b2e9b349df3d10d16179f8a",
     "dur": 5
+   },
+   {
+    "key": "rug_walk",
+    "section": "foot",
+    "src": "freesound",
+    "id": "371311",
+    "title": "C7_footsteps on carpet.mp3",
+    "licence": "CC0",
+    "author": "Iamgiorgio",
+    "page": "https://freesound.org/people/Iamgiorgio/sounds/371311/",
+    "audio": "https://cdn.freesound.org/previews/371/371311_5302340-hq.ogg",
+    "sha256": "90ebd1cb005d28996c2a101e28d3b694223294878542f829c816cdf1b10da26f",
+    "dur": 7.54,
+    "q": "footsteps carpet"
+   },
+   {
+    "key": "rug_walk",
+    "section": "foot",
+    "src": "freesound",
+    "id": "761118",
+    "title": "Footsteps on carpet",
+    "licence": "CC0",
+    "author": "izzylikesnoise",
+    "page": "https://freesound.org/people/izzylikesnoise/sounds/761118/",
+    "audio": "https://cdn.freesound.org/previews/761/761118_14361002-hq.ogg",
+    "sha256": "9ae9b0884d7813016d6efade6a69fbe87fa0f941d416d87d51613d62a5fc5e57",
+    "dur": 10.29,
+    "q": "footsteps carpet"
    }
   ],
-  "water_walk": [],
-  "stone_run": [],
-  "earth_run": [],
-  "gravel_run": [],
-  "grass_run": [],
-  "dust_run": []
+  "water_walk": [
+   {
+    "key": "water_walk",
+    "section": "foot",
+    "src": "freesound",
+    "id": "265582",
+    "title": "Footsteps Water 01",
+    "licence": "CC0",
+    "author": "aglinder",
+    "page": "https://freesound.org/people/aglinder/sounds/265582/",
+    "audio": "https://cdn.freesound.org/previews/265/265582_1042839-hq.ogg",
+    "sha256": "4f103c5b3a71889d40a8d664579bb37837ae0084f64a9f6acdf48b11ef908334",
+    "dur": 52.76,
+    "q": "footsteps shallow water"
+   },
+   {
+    "key": "water_walk",
+    "section": "foot",
+    "src": "freesound",
+    "id": "672205",
+    "title": "Footsteps_05.wav",
+    "licence": "CC0",
+    "author": "RomanKolachnik",
+    "page": "https://freesound.org/people/RomanKolachnik/sounds/672205/",
+    "audio": "https://cdn.freesound.org/previews/672/672205_14677358-hq.ogg",
+    "sha256": "3400f5e810b2a5394b7b763e5bc3c96083410a94b922db37513ddba395f6ea0f",
+    "dur": 0.76,
+    "q": "footsteps shallow water"
+   },
+   {
+    "key": "water_walk",
+    "section": "foot",
+    "src": "freesound",
+    "id": "672200",
+    "title": "Footsteps_03.wav",
+    "licence": "CC0",
+    "author": "RomanKolachnik",
+    "page": "https://freesound.org/people/RomanKolachnik/sounds/672200/",
+    "audio": "https://cdn.freesound.org/previews/672/672200_14677358-hq.ogg",
+    "sha256": "b8bfc7b01c63872c6f7f109436ac2c62bc871cf40706fa9d261e3d522a437f75",
+    "dur": 0.45,
+    "q": "footsteps shallow water"
+   }
+  ],
+  "stone_run": [
+   {
+    "key": "stone_run",
+    "section": "foot",
+    "src": "freesound",
+    "id": "584320",
+    "title": "Walking on gravel forest road.wav",
+    "licence": "CC0",
+    "author": "Vendarro",
+    "page": "https://freesound.org/people/Vendarro/sounds/584320/",
+    "audio": "https://cdn.freesound.org/previews/584/584320_4519159-hq.ogg",
+    "sha256": "202d88c36b97cf9553fbbd6d4ca63469258c0896900b39d195326dda608841e8",
+    "dur": 36.32,
+    "q": "running stone footsteps"
+   },
+   {
+    "key": "stone_run",
+    "section": "foot",
+    "src": "freesound",
+    "id": "584321",
+    "title": "Running on gravel forest road.wav",
+    "licence": "CC0",
+    "author": "Vendarro",
+    "page": "https://freesound.org/people/Vendarro/sounds/584321/",
+    "audio": "https://cdn.freesound.org/previews/584/584321_4519159-hq.ogg",
+    "sha256": "6cbb23e9a699d508f3f1cd33bf63815d69e154cbc89e9eae0d89325dde7b2a49",
+    "dur": 24.58,
+    "q": "running stone footsteps"
+   },
+   {
+    "key": "stone_run",
+    "section": "foot",
+    "src": "freesound",
+    "id": "475499",
+    "title": "Steps_stone_2(running).wav",
+    "licence": "CC0",
+    "author": "o_ciz",
+    "page": "https://freesound.org/people/o_ciz/sounds/475499/",
+    "audio": "https://cdn.freesound.org/previews/475/475499_7009965-hq.ogg",
+    "sha256": "426b6d84c7bbdc80698e98d677b7b9c459ba127a4c84dc072f07e6a4aff2e7be",
+    "dur": 10.57,
+    "q": "running stone footsteps"
+   }
+  ],
+  "earth_run": [
+   {
+    "key": "earth_run",
+    "section": "foot",
+    "src": "freesound",
+    "id": "750797",
+    "title": "Gravel Footsteps 1",
+    "licence": "CC0",
+    "author": "simonjeffery13",
+    "page": "https://freesound.org/people/simonjeffery13/sounds/750797/",
+    "audio": "https://cdn.freesound.org/previews/750/750797_1326393-hq.ogg",
+    "sha256": "59c8133d654380e1b87872301a3bce4c586668365c08503577354d9e5017aefc",
+    "dur": 37.26,
+    "q": "running dirt footsteps"
+   },
+   {
+    "key": "earth_run",
+    "section": "foot",
+    "src": "freesound",
+    "id": "264474",
+    "title": "Footsteps Dirt 02",
+    "licence": "CC0",
+    "author": "aglinder",
+    "page": "https://freesound.org/people/aglinder/sounds/264474/",
+    "audio": "https://cdn.freesound.org/previews/264/264474_1042839-hq.ogg",
+    "sha256": "f83a1a5388878608d8475d699bb03913637fff67b4c0a8a16784f9c95dc33ac3",
+    "dur": 52.38,
+    "q": "running dirt footsteps"
+   },
+   {
+    "key": "earth_run",
+    "section": "foot",
+    "src": "freesound",
+    "id": "319204",
+    "title": "Foot Drag Dirt 4.wav",
+    "licence": "CC0",
+    "author": "worthahep88",
+    "page": "https://freesound.org/people/worthahep88/sounds/319204/",
+    "audio": "https://cdn.freesound.org/previews/319/319204_3443504-hq.ogg",
+    "sha256": "741e544f1ad362f3acd9a52a0406cee0e7598e3bbf5ffc1d7a98d9f3168d0b7e",
+    "dur": 15.74,
+    "q": "running dirt footsteps"
+   }
+  ],
+  "gravel_run": [
+   {
+    "key": "gravel_run",
+    "section": "foot",
+    "src": "freesound",
+    "id": "584320",
+    "title": "Walking on gravel forest road.wav",
+    "licence": "CC0",
+    "author": "Vendarro",
+    "page": "https://freesound.org/people/Vendarro/sounds/584320/",
+    "audio": "https://cdn.freesound.org/previews/584/584320_4519159-hq.ogg",
+    "sha256": "202d88c36b97cf9553fbbd6d4ca63469258c0896900b39d195326dda608841e8",
+    "dur": 36.32,
+    "q": "running gravel footsteps"
+   },
+   {
+    "key": "gravel_run",
+    "section": "foot",
+    "src": "freesound",
+    "id": "750797",
+    "title": "Gravel Footsteps 1",
+    "licence": "CC0",
+    "author": "simonjeffery13",
+    "page": "https://freesound.org/people/simonjeffery13/sounds/750797/",
+    "audio": "https://cdn.freesound.org/previews/750/750797_1326393-hq.ogg",
+    "sha256": "59c8133d654380e1b87872301a3bce4c586668365c08503577354d9e5017aefc",
+    "dur": 37.26,
+    "q": "running gravel footsteps"
+   },
+   {
+    "key": "gravel_run",
+    "section": "foot",
+    "src": "freesound",
+    "id": "584321",
+    "title": "Running on gravel forest road.wav",
+    "licence": "CC0",
+    "author": "Vendarro",
+    "page": "https://freesound.org/people/Vendarro/sounds/584321/",
+    "audio": "https://cdn.freesound.org/previews/584/584321_4519159-hq.ogg",
+    "sha256": "6cbb23e9a699d508f3f1cd33bf63815d69e154cbc89e9eae0d89325dde7b2a49",
+    "dur": 24.58,
+    "q": "running gravel footsteps"
+   }
+  ],
+  "grass_run": [
+   {
+    "key": "grass_run",
+    "section": "foot",
+    "src": "freesound",
+    "id": "395562",
+    "title": "Jogging in a forest.MP3",
+    "licence": "CC0",
+    "author": "SoundsForHim",
+    "page": "https://freesound.org/people/SoundsForHim/sounds/395562/",
+    "audio": "https://cdn.freesound.org/previews/395/395562_7386498-hq.ogg",
+    "sha256": "d8296d0d5ab9ad182d7f8764b638cdc77ef0ca89b3cb84cdfb62d5db5bfd2706",
+    "dur": 14.95,
+    "q": "running grass footsteps"
+   },
+   {
+    "key": "grass_run",
+    "section": "foot",
+    "src": "freesound",
+    "id": "411148",
+    "title": "running in grass",
+    "licence": "CC0",
+    "author": "EvanSki",
+    "page": "https://freesound.org/people/EvanSki/sounds/411148/",
+    "audio": "https://cdn.freesound.org/previews/411/411148_5747941-hq.ogg",
+    "sha256": "90f7e529d8fa6480b2fcf3c7ce92332b4fecf9b6d8faafb7dbcc8bc01c4aad2e",
+    "dur": 2.17,
+    "q": "running grass footsteps"
+   },
+   {
+    "key": "grass_run",
+    "section": "foot",
+    "src": "freesound",
+    "id": "319208",
+    "title": "Hitting Tall Grass.wav",
+    "licence": "CC0",
+    "author": "worthahep88",
+    "page": "https://freesound.org/people/worthahep88/sounds/319208/",
+    "audio": "https://cdn.freesound.org/previews/319/319208_3443504-hq.ogg",
+    "sha256": "f3a37cd2b9d99c03de43b07b09ddfff62e2db6860b0ce902098594bd5550f96c",
+    "dur": 21.45,
+    "q": "running grass footsteps"
+   }
+  ],
+  "dust_run": [
+   {
+    "key": "dust_run",
+    "section": "foot",
+    "src": "freesound",
+    "id": "244590",
+    "title": "Gravel/Sand Walking 1",
+    "licence": "CC0",
+    "author": "Cornwallis89",
+    "page": "https://freesound.org/people/Cornwallis89/sounds/244590/",
+    "audio": "https://cdn.freesound.org/previews/244/244590_1740002-hq.ogg",
+    "sha256": "312feb669c8653e5c84381934979ead7ab7e67c882ab8981cbebeb1cd0228938",
+    "dur": 36.75,
+    "q": "running sand footsteps"
+   },
+   {
+    "key": "dust_run",
+    "section": "foot",
+    "src": "freesound",
+    "id": "750797",
+    "title": "Gravel Footsteps 1",
+    "licence": "CC0",
+    "author": "simonjeffery13",
+    "page": "https://freesound.org/people/simonjeffery13/sounds/750797/",
+    "audio": "https://cdn.freesound.org/previews/750/750797_1326393-hq.ogg",
+    "sha256": "59c8133d654380e1b87872301a3bce4c586668365c08503577354d9e5017aefc",
+    "dur": 37.26,
+    "q": "running dirt path"
+   },
+   {
+    "key": "dust_run",
+    "section": "foot",
+    "src": "freesound",
+    "id": "264474",
+    "title": "Footsteps Dirt 02",
+    "licence": "CC0",
+    "author": "aglinder",
+    "page": "https://freesound.org/people/aglinder/sounds/264474/",
+    "audio": "https://cdn.freesound.org/previews/264/264474_1042839-hq.ogg",
+    "sha256": "f83a1a5388878608d8475d699bb03913637fff67b4c0a8a16784f9c95dc33ac3",
+    "dur": 52.38,
+    "q": "running sand footsteps"
+   }
+  ]
  }
 }

@@ -94,8 +94,8 @@ function mixCue(cue: Cue) {
   let L = new Float32Array(len), R = new Float32Array(len);
   for (let k = 0; k < len; k++) { L[k] = dryL[k] + wet * (wl[k] + 0.45 * xl[k]); R[k] = dryR[k] + wet * (wr[k] + 0.45 * xr[k]); }
   // the master: a warm tilt, the glue, the level, the ceiling
-  L = biquad(biquad(L, SR, 'lowshelf', 90, 0.7, 1.5), SR, 'highshelf', 9000, 0.7, 1.0); R = biquad(biquad(R, SR, 'lowshelf', 90, 0.7, 1.5), SR, 'highshelf', 9000, 0.7, 1.0);
-  L = biquad(L, SR, 'hp', 24, 0.7); R = biquad(R, SR, 'hp', 24, 0.7);
+  L = <any>biquad(biquad(L, SR, 'lowshelf', 90, 0.7, 1.5), SR, 'highshelf', 9000, 0.7, 1.0); R = <any>biquad(biquad(R, SR, 'lowshelf', 90, 0.7, 1.5), SR, 'highshelf', 9000, 0.7, 1.0);
+  L = <any>biquad(L, SR, 'hp', 24, 0.7); R = <any>biquad(R, SR, 'hp', 24, 0.7);
   let ch = compress([L, R], SR, { thr: -20, ratio: 1.8, att: 0.03, rel: 0.35, knee: 8 });
   const target = cue.lufs ?? -18, now = lufs(ch, SR), gain = db(target - now);
   ch = ch.map(c => c.map(x => x * gain));
