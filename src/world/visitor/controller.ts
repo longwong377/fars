@@ -23,6 +23,8 @@ export interface VisitorWorld {
 const place = (id: string): P2 => ((placesJson as any).places.find((p: any) => p.id === id)?.at ?? [NaN, NaN]) as P2;
 /** minutes until an escort comes (C: "a guard goes for an escort; the visitor waits on the bench", access.json stop_procedure) */
 export const ESCORT_WAIT_H = 4 / 60;
+/** D-696: how far the stranger is walked back from a post's line (m) and how far each frame (m: ~1.2 m/s at 30 frames a second) */
+export const PUSH_M = 0.8, PUSH_STEP = 0.04;
 /** within this distance of a step's place, the interact key does that step's business (m) */
 const AT_PLACE = 6;
 
@@ -37,6 +39,7 @@ export interface VisitorState {
 export class Visitor {
   s: VisitorState = { step: 1, halmi: true, letter: 'carried', admitted: [], escortFrom: null, escorted: false, answerAt: null, stop: null, log: [] };
   private lastOk: { x: number; z: number } | null = null;
+  private push: { x: number; z: number } | null = null; private pushAt: { x: number; z: number } | null = null;
   constructor(private W: VisitorWorld, private town: TownIndex | null) {}
   /** the zone and the decision for a world position (x, z) now */
   check(x: number, z: number, t: number, night: boolean, court: boolean) {
@@ -62,7 +65,7 @@ export class Visitor {
     // (D-696: the escort walks at your right shoulder, a little ahead, not 1.4 m before your eyes)
     if (this.s.escorted) this.W.escort({ x: p.x + Math.cos(p.yaw) * 0.45 + Math.sin(p.yaw) * 0.9, z: p.z - Math.sin(p.yaw) * 0.45 + Math.cos(p.yaw) * 0.9, yaw: p.yaw });
     if (d.allowed) {
-      this.lastOk = { x: p.x, z: p.z };
+      this.lastOk = { x: p.x, z: p.z }; this.push = null; this.pushAt = null;
       if (this.s.escorted && !['gate_nations', 'terrace_courts', 'treasury_street', 'treasury_desk'].includes(zone)) { this.s.escorted = false; this.s.escortFrom = null; this.W.escort(null); }
       this.progress(zone, p, t);
       return { x: p.x, z: p.z, blocked: false };
@@ -78,8 +81,15 @@ export class Visitor {
         : d.needs === 'escort' ? `stopped at ${zone.replace(/_/g, ' ')}: you may not walk here alone`
         : `turned back at ${zone.replace(/_/g, ' ')}: closed to you`);
     }
+    // (s18 C5, D-696; C12 4-3: not an invisible wall) turned back bodily: the stranger is walked back from the post's line
+    // PUSH_M m the way they came, at a walking pace over the next frames, the guard's arm out (W.react above), rather
+    // than held dead at the line
     const back = this.lastOk ?? { x: p.x, z: p.z };
-    return { x: back.x, z: back.z, blocked: true };
+    if (!this.push || Math.hypot(this.push.x - back.x, this.push.z - back.z) > PUSH_M + 0.5) { const ax = back.x - p.x, az = back.z - p.z, L = Math.hypot(ax, az);
+      const ux = L > 1e-4 ? ax / L : -Math.cos(p.yaw), uz = L > 1e-4 ? az / L : Math.sin(p.yaw); this.push = { x: back.x + ux * PUSH_M, z: back.z + uz * PUSH_M }; }
+    const q = this.pushAt ?? back, dx = this.push.x - q.x, dz = this.push.z - q.z, dd = Math.hypot(dx, dz), k = dd > PUSH_STEP ? PUSH_STEP / dd : 1;
+    this.pushAt = { x: q.x + dx * k, z: q.z + dz * k }; if (k === 1) { this.lastOk = { ...this.push }; this.push = null; this.pushAt = null; return { x: this.lastOk.x, z: this.lastOk.z, blocked: true }; }
+    return { x: this.pushAt.x, z: this.pushAt.z, blocked: true };
   }
   /** the interact key: show the halmi to the guard who stopped you; or do the current step's business where you stand */
   interact(p: { x: number; z: number }, t: number, night: boolean, court: boolean): string | null {

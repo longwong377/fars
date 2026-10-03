@@ -21,7 +21,7 @@ describe('visitor mode', () => {
     const f = fake(), v = new Visitor(f.world, null); v.s.step = 3; const t0 = 24 * 30 + 10;
     const outside = W('stair_foot'); expect(v.update(outside, t0, false, false).blocked).toBe(false);
     const inGate = W('gate_hall');
-    const r = v.update(inGate, t0, false, false); expect(r.blocked).toBe(true); expect(r.x).toBeCloseTo(outside.x); // back to the last allowed point
+    const r = v.update(inGate, t0, false, false); expect(r.blocked).toBe(true); expect(Math.hypot(r.x - outside.x, r.z - outside.z)).toBeLessThanOrEqual(0.04 + 1e-6); // back at the last allowed point, being walked back from it (D-696: a step a frame, not a wall)
     expect(f.reacted.some(([, i]) => i === 'ask_document')).toBe(true);
     expect(v.interact(inGate, t0, false, false)).toMatch(/sealed letter/); // (D-696, W18)
     expect(v.update(inGate, t0 + 0.001, false, false).blocked).toBe(false);
