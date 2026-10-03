@@ -23,6 +23,16 @@ New observations:
 - **Walkers are now counted with the clock running, and they are rare everywhere:** 1 at q_s1 at 10:00, 5 on the Terrace at noon, 0 in every town view. People sit, stand and work, but nobody goes anywhere at the moments sampled. For a busy city that is the next gap after the lanes (C1: errands; C5: the view's walks).
 - **The crowd's attach cap is saturated in two views:** at the fields (attached 401, skinned 400, all LOD3) and the night Terrace (400). POOL_MAX 400 is full there, so in a busier scene far people may take the slots of near ones (C5).
 
+## After run 5: C13's answer (07:54): the Apadana and night forecourt counts are a time-jump fault
+
+- C13 checked in node (seed 1): no plan holds anyone at 'apadana_hall' or 'forecourt_wait' on day 200 at 08:48 or day 5 at
+  22:30. The residence is days 14-117.
+- The page shows them because the views share one load: day 200 comes right after the day-40 court view. People the view
+  placed before a setTime jump stay at their places after it, even with sim.catchingUp false.
+- Sent to C5 (popview) and C1 (the jump).
+- Until it is fixed, pagecheck's counts at a view that follows a jump across the residence can carry stale people (the
+  Apadana and night-Terrace rows of runs 4 and 5).
+
 ## Flags
 
 - none
