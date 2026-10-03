@@ -412,7 +412,7 @@ export function buildNaqsh(terrain: Terrain, ancientFootAsl: number): NaqshBuild
   group.add(kw, kd); tris += ntri(kw.geometry) + ntri(kd.geometry);
   // s18 C15 (D-800): the ground in use: the second tomb's scaffold, spoil and the cutters' lean-to, the keepers' house, the offering table
   const life = buildNaqshLife({ terrain, toWorld: (x, h, d) => toWorld(f, x, h, d), rockD: (x, h) => faceDepth(x, Math.min(h, crestH(x, H)), H, holes), cut: tombs[1].x, darius: tombs[0].x,
-    top: NR().facade.foot_above_ground_m + NR().facade.height_m, house: KEEPERS_HOUSE });
+    top: NR().facade.foot_above_ground_m + NR().facade.height_m, house: KEEPERS_HOUSE, kaba: feature('nr_kaba').xy as [number, number] });
   group.add(life.mesh); tris += life.info.tris;
   group.userData.paint = paintInfo; group.userData.life = life.info;
   return { group, tris, texts,
