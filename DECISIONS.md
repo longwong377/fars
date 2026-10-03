@@ -10045,6 +10045,13 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   pass and restores them in a finally (a throw inside it left NoToneMapping, and the next frame rebuilt the output without
   AgX: toneMapping 0 on the live T4 page); a throwing pass is logged (window.__frameFaults) and the frame goes on. (3) main.ts:
   a meter readback pending over 2 s is abandoned and an all-zero or non-finite one rejected; both fall back to the lux law.
+- (4) TRAA on the WebGL backend copied the scene depth into its history depth every frame; a depth copy there needs the texture
+  bound as a framebuffer once, which the history never was, so it threw ("Invalid value used as weak map key") inside the
+  post quad's draw and the frame was black at quality high on ?webgl=1. pipeline.ts binds and depth-clears the history target
+  when its depth has no framebuffer (cloud: the fault at 94 s before, none through 493 s after). (5) A black-frame watchdog
+  (pipeline.ts watchMeter/enterSafe, WATCHDOG; tests/black_watchdog_d680.test.ts): after a 20 s grace, 3 black meter samples
+  in a row (target unwritten or log-luminance < -20) in daylight with the scene drawing, 10 readback timeouts, or 3 frames of
+  a throwing post pass switch to the renderer's own tone-mapped output without post passes (window.__safeMode; ?nosafe off).
 - Unseen: the cloud cannot draw Q=high (WebGL2: program validation failures and a lost device with the cascade on AND off;
   WebGPU: SwiftShader's 16-texture cap), so the far cascade is verified node-side only; it needs a T4 frame.
 
