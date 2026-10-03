@@ -224,10 +224,10 @@
     },
     {
       "id": "E-24", "kind": "delegation", "name": "gift-bearing delegation",
-      "months": [], "rule": { "type": "never" },
-      "participants": [], "place_kind": "-", "goods": [], "preconditions": ["court_resident"], "effects": [],
-      "default": false, "setting": "court_resident", "tier": "C", "src": "RECON",
-      "note": "none while the king is absent (D-003). Whether the Apadana reliefs show a real annual procession is debated (brief section 2); even with the court resident, no delegation is scheduled unless evidence is found"
+      "months": [1, 2, 3, 4], "rule": { "type": "court_programme", "see": "src/people/ceremony.ts (gift_day, audience)" },
+      "participants": [{ "role": "delegations of the peoples, each behind its usher, with their gifts and animals", "count": [2, 24] }, { "role": "ushers", "count": "one a party" }, { "role": "the king, the chiliarch", "count": 2 }], "place_kind": "Gate -> forecourt -> the Apadana's stair -> before the throne", "goods": [], "preconditions": ["court_resident"], "effects": ["the gifts handed over"],
+      "default": false, "setting": "court_resident", "tier": "C", "src": "APA-RELIEF;KING2022;RECON",
+      "note": "none while the king is absent (D-003). D-780 (UD-09, UD-10, UD-29 overrule the old 'no delegation is scheduled'): the Apadana reliefs are the programme: parties come on their own days and are led up on an audience morning; on the days of the peoples' gifts (the first a few days after the king comes, the New Year: KING2022, B pattern; then every ten to sixteen days) every delegation at Persepolis goes up in the reliefs' order. Whether the reliefs show one real annual procession stays debated (brief section 2): the days are C"
     },
     {
       "id": "E-25", "kind": "court_movement", "name": "the court arrives",
@@ -306,17 +306,17 @@
     },
     {
       "id": "E-35", "kind": "feast", "name": "the king's birthday feast (tukta)",
-      "months": [], "rule": { "type": "never", "if_court_resident": "once a year, date unknown" },
+      "months": [1, 2, 3, 4], "rule": { "type": "court_programme", "see": "src/people/ceremony.ts (birthday)", "if_court_resident": "once a year, the date drawn from the seed within the residence (D-780, C)" },
       "participants": [{ "role": "king and court", "count": "all" }], "place_kind": "wherever the king is", "goods": [],
       "preconditions": ["court_resident"], "effects": ["the king anoints his head and gives gifts to the Persians (claim)"],
-      "default": false, "setting": "court_resident", "tier": "B", "src": "HDT", "note": "HDT 9.110 (FT, Greek claim); the date is unknown, so it is not scheduled"
+      "default": false, "setting": "court_resident", "tier": "B", "src": "HDT", "note": "HDT 9.110 (FT, Greek claim); the date is unknown: D-780 draws it from the seed within the residence (C): the king gives gifts in the Apadana in the morning and a great banquet is held at night"
     },
     {
       "id": "E-36", "kind": "offering", "name": "the king sacrifices and gives gifts when he comes to Persia",
       "months": [1], "rule": { "type": "trigger", "on": "E-25" },
       "participants": [{ "role": "king", "count": 1 }, { "role": "Persians, men and women (gift recipients)", "count": "many" }], "place_kind": "C", "goods": [],
       "preconditions": ["court_resident"], "effects": ["gift distribution (C)"],
-      "default": false, "setting": "court_resident", "tier": "B", "src": "XEN-CYR", "note": "Cyropaedia 8.5.21, 8.5.26 (FT, Greek claim; written of Cyrus, 'even to this day the great king ...')"
+      "default": false, "setting": "court_resident", "tier": "B", "src": "XEN-CYR", "note": "Cyropaedia 8.5.21, 8.5.26 (FT, Greek claim; written of Cyrus, 'even to this day the great king ...'). D-780: the morning after the court comes the king stands before the magi's fire at first light and gives gifts to the Persians of rank in the Apadana; a great banquet that night (C)"
     },
     {
       "id": "E-37", "kind": "household", "name": "birthday meal",
