@@ -348,6 +348,15 @@ export function deformAnimal(sp: Species, p: ArrayLike<number>, leg: ArrayLike<n
   out[0] = x; out[1] = y; out[2] = z; return out;
 }
 
+/** s18 C14 (D-790): where an animal's bit is at time t (the mouth's corner, a little behind the muzzle tip), in the
+ *  performer's frame as `a` is placed (x, z, yaw, y): the reins' and the lead rope's far end (crowd draws the line from the
+ *  hand). Follows the head's carriage, grazing and the walk's nod, as the vertex shader moves it */
+export function bitAt(a: AnimalInst, time: number, out: number[] = [0, 0, 0]): number[] {
+  const F = animalFrame(a.sp), m = F.muzzle, back = F.hd.clone().multiplyScalar(-0.06 * ANIMAL_BUILD[a.sp].head / 0.5);
+  deformAnimal(a.sp, [m.x, m.y + back.y, m.z + back.z], [0, 0, 0, 0], [0, 0, 0, 0], [1, -1, F.base.y, F.base.z], { phase: a.phase, walk: a.walk, graze: a.graze, lie: a.lie, gait: a.gait }, time, out);
+  const c = Math.cos(a.yaw), sn = Math.sin(a.yaw), x = out[0], z = out[2];
+  out[0] = a.x + c * x + sn * z; out[1] = out[1] + (a.y ?? 0); out[2] = a.z - sn * x + c * z; return out;
+}
 /** an animal to draw: species, place in the performer's frame (x, z, yaw; y offset), state; roll: lying on its side */
 export interface AnimalInst { sp: Species; x: number; z: number; yaw: number; y?: number; roll?: number; phase: number; walk: number; graze: number; lie: number; coat: number;
   /** placed relative to the performer's own path (the plough team) instead of the simulation's spot */ follow?: boolean;
