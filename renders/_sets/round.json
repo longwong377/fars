@@ -1,6 +1,20 @@
 {
 "extra": [
 {
+"id": "intro-town-a",
+"e": -215,
+"n": 745,
+"eye": 17,
+"az": 150,
+"pitch": -13,
+"fov": 45,
+"day": 0,
+"hour": 5.97,
+"w": "clear",
+"why": "C11 opening shot 'town', first key",
+"owner": "C11"
+},
+{
 "id": "town-20m",
 "e": -320,
 "n": 862,
@@ -267,16 +281,16 @@
 },
 {
 "id": "intro-town",
-"e": -320,
-"n": 862,
-"eye": 20,
+"e": -250,
+"n": 728,
+"eye": 15,
 "az": 154,
-"pitch": -11,
+"pitch": -12,
 "fov": 45,
 "day": 0,
-"hour": 5.93,
+"hour": 5.97,
 "w": "clear",
-"why": "C11 opening shot 'town' (92d6a6bf), middle key: sunrise+0.35 h, the town waking",
+"why": "C11 opening shot 'town' (moved ~150 m S over the lanes, 1babe236), middle key: sunrise+0.35 h",
 "owner": "C11"
 },
 {
