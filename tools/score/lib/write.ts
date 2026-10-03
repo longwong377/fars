@@ -5,7 +5,7 @@
 // from the cue's seed.
 import type { MidiPart, Note } from './midi';
 import { rng } from './dsp';
-import { ORCH, type Art, type InstId } from '../orchestra';
+import { ORCH, type Art, type Inst, type InstId } from '../orchestra';
 
 // ------------------------------------------------------------------------------------------------------------- pitches
 const NAMES: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
@@ -67,7 +67,7 @@ const dynAt = (dyn: [number, number][], b: number) => { if (!dyn.length) return 
 const ONE_SHOT_LEGATO = new Set<InstId>(['tpt', 'tbn', 'btbn', 'tuba', 'hnSolo', 'fl', 'afl', 'ob', 'eh', 'cl', 'bcl', 'bsn', 'cbsn']);
 
 export function perform(part: Part, tempo: Tempo, seed: number): MidiPart {
-  const I = ORCH[part.inst], R = rng(seed), gauss = () => { let a = 0; for (let i = 0; i < 4; i++) a += R(); return (a - 2) * 0.866; };
+  const I: Inst = ORCH[part.inst], R = rng(seed), gauss = () => { let a = 0; for (let i = 0; i < 4; i++) a += R(); return (a - 2) * 0.866; };
   const legato = part.art === 'leg', short = part.art === 'stac' || part.art === 'pizz' || part.art === 'hit' || part.art === 'mar';
   const notes: Note[] = [], breaths: [number, number, number][] = [], vibPts: [number, number][] = [[0, 0]];
   const sorted = [...part.notes].sort((a, b) => a.b - b.b || a.p - b.p);

@@ -78,7 +78,7 @@ function mixCue(cue: Cue) {
     const I: Inst = ORCH[p.inst], s = stem(p, cue, 1000 + i * 7919 + cue.id.length);
     const pan = p.pan ?? I.pan, depth = p.depth ?? I.depth, width = I.width;
     // distance: a little less level and air the further back; the hall send grows with it
-    let L = s.L, Rr = s.R;
+    let L: Float32Array = s.L, Rr: Float32Array = s.R;
     if (depth > 0.2) { L = biquad(L, SR, 'highshelf', 6000, 0.7, -5 * depth); Rr = biquad(Rr, SR, 'highshelf', 6000, 0.7, -5 * depth); }
     const g = db((p.gain ?? 0) + I.trim - 4 * depth + 26), a = ((pan + 1) * Math.PI) / 4, gl = Math.cos(a) * Math.SQRT2, gr = Math.sin(a) * Math.SQRT2;
     const send = 0.18 + 0.75 * depth, n = Math.min(len, L.length); let pk = 0;
@@ -91,12 +91,12 @@ function mixCue(cue: Cue) {
   });
   const [ia, ib, ic, id] = [11, 23, 37, 41].map(s => hallIR(s));
   const wl = convolve(sendL, ia), wr = convolve(sendR, ib), xl = convolve(sendR, ic), xr = convolve(sendL, id), wet = 0.55;
-  let L = new Float32Array(len), R = new Float32Array(len);
+  let L: Float32Array = new Float32Array(len), R: Float32Array = new Float32Array(len);
   for (let k = 0; k < len; k++) { L[k] = dryL[k] + wet * (wl[k] + 0.45 * xl[k]); R[k] = dryR[k] + wet * (wr[k] + 0.45 * xr[k]); }
   // the master: a warm tilt, the glue, the level, the ceiling
   L = biquad(biquad(L, SR, 'lowshelf', 90, 0.7, 1.5), SR, 'highshelf', 9000, 0.7, 1.0); R = biquad(biquad(R, SR, 'lowshelf', 90, 0.7, 1.5), SR, 'highshelf', 9000, 0.7, 1.0);
   L = biquad(L, SR, 'hp', 24, 0.7); R = biquad(R, SR, 'hp', 24, 0.7);
-  let ch = compress([L, R], SR, { thr: -20, ratio: 1.8, att: 0.03, rel: 0.35, knee: 8 });
+  let ch: Float32Array[] = compress([L, R], SR, { thr: -20, ratio: 1.8, att: 0.03, rel: 0.35, knee: 8 });
   const target = cue.lufs ?? -18, now = lufs(ch, SR), gain = db(target - now);
   ch = ch.map(c => c.map(x => x * gain));
   ch = limit(ch, SR, -1.5);
