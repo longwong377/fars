@@ -1,6 +1,8 @@
 # PĀRSA s18 status board (lead 4 from 11:55 UTC; one page; replaces the scattered notes for "where are we")
 Updated 12:05 UTC, s17-int fd762af7 (C2 decals off + C10 kit merged) (= cloud-s17-int). Plan and finish line: handoff/s18/reset.md. Lost work: lost_work.md.
 
+## Finish (UD-40): presentable by 93 % weekly usage. Feature freeze now; agents land only green review fixes; the lead deploys the best DEPLOY OK head and stops work in flight before 93 %.
+
 ## Broken or unknown, first
 - LOOK: two blind reviewers 3/10 (cycle 0). Review cycle 1 rendering on e1520f63 (~12:20); cycle 2 after C4's light + C2's decals.
 - MEMORY: JS heap ~3.5 GB at the 4 GB tab cap: players may crash on a long walk. C9's geometry release merged, unmeasured.
