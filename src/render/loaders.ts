@@ -4,6 +4,7 @@
 // transcoder's target format: the renderer's when the first caller has one, else the WebGPU adapter's features (as before,
 // render/models.ts D-306: the world loads before it has a renderer). Never dispose them (shared).
 import { BASE } from '../core/base';
+import { lowFirstKTX2 } from './lowfirst';
 
 // D-463: dispose() on a shared loader is a no-op. scans.ts still disposed the KTX2 loader after the scans: three's dispose
 // terminates the pool and revokes its worker's blob URL, and every later load in the page waited forever (the boot hung).
@@ -36,7 +37,7 @@ export function sharedKTX2(base = BASE, renderer?: any): Promise<any> {
     // (the pool is idle when no worker is busy and nothing is queued)
     const wp = (k as any).workerPool, arm = reapWhenIdle(() => wp.workerStatus !== 0 || wp.queue.length > 0, () => { if (wp.workers.length) { wp.dispose(); loaderStats.ktx2Reaped++; } });
     wrap(wp, 'postMessage', arm);
-    return keep(k);
+    return keep(lowFirstKTX2(k, base)); // (D-740: the scans' ETC1S twins first, their UASTC after the world is up)
   })());
 }
 /** the page's DRACOLoader (three's) */
