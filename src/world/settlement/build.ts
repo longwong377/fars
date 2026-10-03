@@ -278,6 +278,7 @@ export class Settlement {
       switch (f.kind) {
         case 'hearth': addFire('hearth', g[0], g[1], y, plots[f.plot]?.kind === 'official' || plots[f.plot]?.kind === 'station' || plots[f.plot]?.kind === 'store' || plots[f.plot]?.kind === 'stable' ? 'night' : 'home'); break;
         case 'oven': addFire('oven', g[0], g[1], y + 0.55, 'bake'); break;
+        case 'shrine': addFire('lamp', g[0], g[1], y + 0.82, 'home'); break; // (s18 C2, D-672: the shrine's lamp)
         case 'forge': addFire('hearth', g[0], g[1], y + 0.45, 'day'); break;
         case 'kiln': addFire('kiln', g[0], g[1], y, 'day'); break;
         default: break; // (the colliders: siteFootprints above)
@@ -429,7 +430,7 @@ export class Settlement {
 function kindLabel(p: Plot) {
   switch (p.kind) {
     case 'house': return 'courtyard house'; case 'house_large': return 'large courtyard house'; case 'workshop': return `workshop (${p.craft}) with rooms`;
-    case 'yard': return 'walled yard (garden or orchard)'; case 'pen': return 'animal pen'; case 'garden': return 'walled garden'; case 'elite': return 'elite estate';
+    case 'yard': return 'walled yard (garden or orchard)'; case 'pen': return 'animal pen'; case 'garden': return 'walled garden'; case 'elite': return 'elite estate'; case 'shrine': return 'neighbourhood shrine';
     default: return p.kind;
   }
 }
@@ -448,6 +449,11 @@ export function fittingGeom(s: Site, f: Site['fittings'][0], mud: Batch, H: (e: 
       for (const [cu, cv, hu, hv] of [[0, Wd - kt / 2, L, kt / 2], [0, -Wd + kt / 2, L, kt / 2], [L - kt / 2, 0, kt / 2, Wd - kt], [-L + kt / 2, 0, kt / 2, Wd - kt]] as const) { const q = at(cu, cv); mud.box(q[0], q[1], th, hu, hv, y - 0.1, y + kh, sh(kerb, 0.85), kerb, d); }
       const q0 = at(0, 0); mud.box(q0[0], q0[1], th, L - kt, Wd - kt, y - 0.1, y + kh - 0.05, soilD, soil, d, false, 1);
       for (let k = 1; k < 5; k++) { const fv = -Wd + kt + (2 * (Wd - kt) * k) / 5, q = at(0, fv); mud.box(q[0], q[1], th, L - kt - 0.1, 0.05, y + kh - 0.05, y + kh - 0.035, soilD, sh(soilD, 0.8), d, false, 1); }
+      break; }
+    case 'shrine': { // s18 C2 (D-672): the offering table of dressed stone, bowls of the offerings, clay figurines, the lamp
+      mud.box(g[0], g[1], th, 0.5, 0.32, y - 0.1, y + 0.78, sh(st, 0.85), sh(st, 1.05), d);
+      if (!far && model('bowl')) { for (let k = 0; k < 3; k++) putModel(mud, 'bowl', ...at(-0.3 + 0.3 * k, 0.05 * (k % 2)), y + 0.78, th + k, { '*': sh(pot, 0.9 + 0.1 * k) }, d, [0.2, 0.065, 0.2], 1);
+        if (model('wo_toy_wheeled')) for (let k = 0; k < 2; k++) putModel(mud, 'wo_toy_wheeled', ...at(-0.15 + 0.3 * k, -0.18), y + 0.78, th + 0.4 * k, { '*': sh(pot, 1.05) }, d, [0.12, 0.09, 0.07], 1); }
       break; }
     case 'sluice': { // s18 C2 (D-671): two dressed stone cheeks either side of the channel, a timber board in their slots, its lifting bar
       const wd = 0.3, tb = lin([0.4, 0.33, 0.25]);
