@@ -9948,3 +9948,16 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   town 40/40 seed 1, 39/40 seed 2 (an animal lying in a lane). The s17 town misses: q_s2's pen 180 holds walled-off ground no
   body reaches (walkers.ts now samples plot cells reachable from their door), and a person stepping across the walker's way in
   q_s2's 1.4 m lanes (fixed).
+
+## D-691 Carried props sit on the body, seated poses clear their props (s18 cloud C5)
+- tools/dev/prop_clip.ts: every activity and variant that holds a prop, and the goods in the plan's words (basket, sack, jar,
+  head jar, tablet) under walking, standing, talking, sitting, eating and resting, over a man's and a woman's body at 8 phases:
+  the prop's surface sampled, a sample inside the body when under the skin along the nearest body vertex's normal (the
+  holding hands excepted). Deeper than 3 cm 10 -> 0, deeper than 6 cm 7 -> 0 (the worst left: the hoe's handle 2.5 cm at the
+  chest, the shoulder jar 2.2 cm at the upper arm: the grip and the seat).
+- props.ts: goods held in a pose not made for them (GOODS_POSES) are set down on the ground beside the right hip (setDown;
+  seated: farther out and behind, clear of the legs); a population walker with goods walks in the carrying pose (CARRY_POSE:
+  the basket before the body, the sack and jar on the shoulder, the head jar on the head; crowd.ts resolve). The lap basket is
+  set down beside the seated (it sank into the chest and calves); the hip basket rides outside the hip at the hand's height
+  (6.6 cm into the pelvis before); the sack sits out over the shoulder's point; the hauling rope ends in the rear hand and
+  bows round the body between the hands (8 cm into the belly before); the towel hangs on the hand's outer side. All C.
