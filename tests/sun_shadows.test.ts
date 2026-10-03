@@ -2,7 +2,10 @@
 // hall air-light and the people's shadow casters rely on, and that main.ts and the human lab install the same cascades.
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { SUN_CASCADES, cascadeTexel, pcfRadius } from '../src/render/sunShadows';
+import * as THREE from 'three/webgpu';
+import { SUN_CASCADES, cascadeTexel, pcfRadius, FAR_CASCADE, fitFarCascade } from '../src/render/sunShadows';
+import { TERRACE_BOX } from '../src/world/plain/townGround';
+import plots from '../src/data/town_plots.json';
 import { AIR_LIGHT_RANGE } from '../src/render/airlight';
 import { SHADOW_CASCADE_REACH } from '../src/people/humanGPU';
 
@@ -30,5 +33,34 @@ describe('sun cascades (D-309)', () => {
     expect(readFileSync('src/main.ts', 'utf8')).toMatch(/installSunCascades\(sky\.sun, settings\.quality\)/);
     expect(readFileSync('src/dev/humanLab.ts', 'utf8')).toMatch(/installSunCascades\(sky\.sun, quality\)/);
     expect(readFileSync('src/main.ts', 'utf8')).not.toMatch(/new CSMShadowNode/);
+  });
+  // D-473 addendum (s17 V11): the static far cascade past 600 m
+  it("the far cascade box holds the Terrace and the town's quarters", () => {
+    const B = FAR_CASCADE.box;
+    expect(B.e0).toBeLessThanOrEqual(TERRACE_BOX.e0); expect(B.e1).toBeGreaterThanOrEqual(TERRACE_BOX.e1);
+    expect(B.n0).toBeLessThanOrEqual(TERRACE_BOX.n0); expect(B.n1).toBeGreaterThanOrEqual(TERRACE_BOX.n1);
+    const town = (plots as any).plots.filter((p: any) => /lower_town_south|persepolis_west/.test(p.zone));
+    expect(town.length).toBeGreaterThan(1000);
+    for (const p of town) { expect(p.c[0]).toBeGreaterThan(B.e0); expect(p.c[0]).toBeLessThan(B.e1); expect(p.c[1]).toBeGreaterThan(B.n0); expect(p.c[1]).toBeLessThan(B.n1); }
+    for (const q of ['high', 'ultra'] as const) expect(SUN_CASCADES[q]!.far).toBe(2048);
+    expect(FAR_CASCADE.full).toBeLessThanOrEqual(SUN_CASCADES.high!.breaks[3]); // handed over before the last cascade ends
+  });
+  it('the far cascade fits the box from any sun above the horizon, at ≤ 1.7 m a texel', () => {
+    const B = FAR_CASCADE.box;
+    for (const [alt, az] of [[2, 70], [10, 100], [35, 150], [60, 200], [83, 180], [5, 290]]) {
+      const a = THREE.MathUtils.degToRad(alt), z = THREE.MathUtils.degToRad(az);
+      const sun = new THREE.Vector3(Math.sin(z) * Math.cos(a), Math.sin(a), -Math.cos(z) * Math.cos(a)).normalize();
+      const lw: any = new THREE.Object3D(); lw.target = new THREE.Object3D(); const cam = new THREE.OrthographicCamera();
+      const tex = fitFarCascade(lw, cam, sun, 2048);
+      expect(tex, `alt ${alt}`).toBeLessThanOrEqual(1.7);
+      const m = new THREE.Matrix4().multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse), v = new THREE.Vector3();
+      for (const e of [B.e0, B.e1]) for (const n of [B.n0, B.n1]) for (const h of [B.y0, B.y1]) {
+        v.set(e, h, -n).applyMatrix4(m);
+        expect(Math.abs(v.x)).toBeLessThanOrEqual(1); expect(Math.abs(v.y)).toBeLessThanOrEqual(1); expect(Math.abs(v.z)).toBeLessThanOrEqual(1);
+      }
+      // a caster 300 m up-sun of the box's top still lies in front of the near plane (Kuh-e Rahmat's slope over the Terrace)
+      v.set((B.e0 + B.e1) / 2, B.y1, -(B.n0 + B.n1) / 2).addScaledVector(sun, 300).applyMatrix4(m);
+      expect(v.z).toBeGreaterThanOrEqual(-1);
+    }
   });
 });
