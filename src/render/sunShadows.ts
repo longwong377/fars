@@ -153,6 +153,7 @@ class SunCSM extends (CSMShadowNode as any) {
     if (FAR_ON.on) {
       const light = Object.assign(new THREE.Object3D(), { target: new THREE.Object3D() });
       const shadow = ((this as any).light as THREE.DirectionalLight).shadow.clone(); shadow.mapSize.set(FAR_CASCADE.size, FAR_CASCADE.size); shadow.autoUpdate = false;
+      (light as any).shadow = shadow; (light as any).castShadow = true; // (as CSM's cascade lights: the shadow pass reads light.shadow)
       (shadow as any).filterNode = loadPCF(FAR_CASCADE.size, !!builder.renderer?.reversedDepthBuffer);
       const node = new (FarShadowNode as any)(light, shadow);
       this.far = { light, shadow, node, sun: new THREE.Vector3(0, -1, 0), drawn: false };
