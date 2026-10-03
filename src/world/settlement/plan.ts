@@ -29,7 +29,7 @@ export type Mat = 'mud' | 'stone' | 'brick' | 'timber' | 'glaze' | 'refuse';
 /** a box or cylinder prop (grid frame; heights above a base sampled from the terrain: its group's lowest corner) */
 /** (D-325) `model`: a modelled prop drawn in this prop's place (at c, theta, the group's base) when loaded, instead of its
  *  shape; `inModel`: this prop's shape is part of that model (not drawn when it is loaded; its collider stays) */
-export interface Prop { model?: string; inModel?: string; shape: 'box' | 'cyl'; mat: Mat; c: P2; theta: number; hu: number; hv: number; y0: number; y1: number; group: string; collide: boolean; row: string; feature: string; note: string; colour?: [number, number, number]; r1?: number }
+export interface Prop { model?: string; inModel?: string; shape: 'box' | 'cyl'; mat: Mat; c: P2; theta: number; hu: number; hv: number; y0: number; y1: number; group: string; collide: boolean; row: string; feature: string; note: string; colour?: [number, number, number]; r1?: number; bottom?: boolean }
 export interface TreeSpot { c: P2; species: string; size: number; row: string; feature: string }
 export interface WaterPiece { kind: 'pool' | 'channel' | 'well' | 'canal' | 'ditch'; pts: P2[]; width: number; level: number; row: string; feature: string; note?: string }
 export interface Road { id: string; feature: string; row: string; pts: P2[]; width: number; note: string }
@@ -73,7 +73,8 @@ export const QUARTERS: QDef[] = [
   // s18 C2 (D-661): the lower-city belt at the Terrace's foot and along the roads (C: the town that served the court, its
   // workshops, stores, stables and markets, as dense as the quarters further out; Persepolis West's surveys show occupation
   // spread over the plain W of the Terrace, B; its layout C)
-  { id: 'q_b1', feature: 'zone_persepolis_west', zone: 'zone_persepolis_west', popZone: 'town', c: [-522, 235], theta: 2 * deg, W: 105, H: 80, mains: 1, crafts: ['wood', 'bakery', 'brewery'], ws: 0.1, squares: 1, note: 'lower city at the Terrace\'s foot, N of the road west: stores, workshops and houses of those who served the court; kept S of the line from the stair foot to q_w1, the walk from the spawn (C)' },
+  // (q_b1, N of the road west by q_w1, removed in D-675: q_b10 fronts the road there, and q_b1's worn path to the stair ran
+  // through it straight at the stair's camera: tests/plain_d223)
   { id: 'q_b3', feature: 'zone_persepolis_west', zone: 'zone_persepolis_west', popZone: 'town', c: [-742, -40], theta: 6 * deg, W: 200, H: 200, mains: 2, crafts: ['metal', 'textile', 'bakery', 'pottery'], ws: 0.1, squares: 2, note: 'lower city between Persepolis West and the Terrace\'s foot (C)' },
   { id: 'q_b4', feature: 'zone_persepolis_west', zone: 'zone_persepolis_west', popZone: 'town', ...besideRoad(sRoad, 445, -72), W: 130, H: 130, mains: 1, crafts: ['wood', 'bakery', 'brewery', 'textile'], ws: 0.1, squares: 1, note: 'lower city beside the road south, between the stores and the lower town: inns, stables, stores and houses on the road (C)' },
   { id: 'q_b5', feature: 'zone_persepolis_west', zone: 'zone_persepolis_west', popZone: 'town', c: [-420, 652], theta: 0, W: 130, H: 120, mains: 1, crafts: ['wood', 'bakery'], ws: 0.06, squares: 1, note: 'lower city between Persepolis West and the officials\' houses (C)', shape: { p: 4, noise: 0.08 } },

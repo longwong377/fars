@@ -48,11 +48,11 @@ export interface HouseLife {
 }
 
 export const HOUSE_KINDS = new Set(['house', 'house_large', 'workshop']);
-/** s18 C2 (D-665): the house being built in the town: in q_b1 (on the walk from the Grand Stair's foot), the house plot of
+/** s18 C2 (D-665): the house being built in the town: in q_b10 (fronting the road west below the Terrace; q_b1 until D-675), the house plot of
  *  60-160 m² nearest the quarter's middle; its walls stand at mid-height, no roof yet, scaffold poles, brick stacks and a
  *  mixing pit round it (houses.ts, fillPlan.ts; C1 puts a household and a brick squad there). Its plot index, or -1 */
 export function buildingPlot(s: Site): number {
-  if (s.id !== 'q_b1') return -1; const cached = BUILDING.get(s); if (cached !== undefined) return cached; let best = -1, bd = 1e9;
+  if (s.id !== 'q_b10') return -1; const cached = BUILDING.get(s); if (cached !== undefined) return cached; let best = -1, bd = 1e9;
   for (const p of s.plots) { if ((p.kind !== 'house' && p.kind !== 'house_large') || p.area < 60 || p.area > 160 || !p.door) continue; const [i0, j0, i1, j1] = p.rect, d = Math.hypot((i0 + i1) / 2 - s.W / 2, (j0 + j1) / 2 - s.H / 2); if (d < bd) { bd = d; best = p.idx; } }
   BUILDING.set(s, best); return best; }
 const BUILDING = new WeakMap<Site, number>();

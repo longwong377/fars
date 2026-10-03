@@ -66,7 +66,7 @@ export function partDesc(desc: Desc[], o: number, far: boolean): Desc | null {
   return base;
 }
 /** s18 C2 (D-665): the lower-city belt's quarters (plan.ts q_b*) drawn in the mesh of the quarter beside them */
-const BELT_WITH: Record<string, string> = { q_b1: 'q_w1', q_b3: 'q_w3', q_b4: 'q_s1', q_b5: 'q_n1', q_b6: 'q_w1', q_b8: 'q_w3', q_b9: 'q_w3', q_b10: 'q_w1' };
+const BELT_WITH: Record<string, string> = { q_b3: 'q_w3', q_b4: 'q_s1', q_b5: 'q_n1', q_b6: 'q_w1', q_b8: 'q_w3', q_b9: 'q_w3', q_b10: 'q_w1' };
 /** town meshes farther than this from the camera cast no shadows (they would only fill the Terrace's far cascades) */
 export const SHADOW_RANGE = 150;
 /** the town's trodden ground over the terrain (m): the terrain's coarser LODs must not poke through (fillPlan.ts TOWN_LIFT) */
@@ -147,7 +147,7 @@ export class Settlement {
       const cc = p.colour ? lin(p.colour) : p.mat === 'timber' ? lin(TIMBER) : p.mat === 'stone' ? lin(STONE) : lin(MUD);
       const mdl = p.model ?? p.inModel, parts = mdl ? modelParts(mdl, 0) : null; // (D-325: a prop drawn from its model)
       if (parts) { if (p.model) for (const [k, g] of Object.entries(parts)) b.geo(p.c[0], p.c[1], base, g, p.theta, k === 'ash' ? lin([0.16, 0.15, 0.14]) : cc, d); }
-      else if (p.shape === 'box') b.box(p.c[0], p.c[1], p.theta, p.hu, p.hv, base + p.y0, base + p.y1, p.mat === 'mud' ? shade(cc, 0.75) : cc, cc, d);
+      else if (p.shape === 'box') b.box(p.c[0], p.c[1], p.theta, p.hu, p.hv, base + p.y0, base + p.y1, p.mat === 'mud' ? shade(cc, 0.75) : cc, cc, d, !!p.bottom);
       else b.cyl(p.c[0], p.c[1], p.hu, p.hu * (p.r1 ?? 1), base + p.y0, base + p.y1, 12, cc, cc, d);
       if (p.collide) { let pc = propCol.get(p.group); if (!pc) { pc = { id: 'props:' + p.group, c: p.c, r: 60, boxes: [], live: null }; propCol.set(p.group, pc); this.cols.push(pc); }
         pc.boxes.push({ x: p.c[0], y: base + (p.y0 + p.y1) / 2, z: -p.c[1], hx: p.hu, hy: (p.y1 - p.y0) / 2, hz: p.hv, rot: p.theta }); }

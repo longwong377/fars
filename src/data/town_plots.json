@@ -19,9 +19,9 @@
    "src": "src/data/population.json zones.town (C derivation)"
   },
   "capacity": {
-   "town": 10785,
+   "town": 10638,
    "plain": 135,
-   "total": 10920
+   "total": 10773
   },
   "by_zone": {
    "town:zone_lower_town_south": {
@@ -30,9 +30,9 @@
     "capacity": 3396
    },
    "town:zone_persepolis_west": {
-    "plots": 1501,
-    "homes": 1444,
-    "capacity": 7075
+    "plots": 1463,
+    "homes": 1409,
+    "capacity": 6928
    },
    "town:zone_bagh_e_firuzi": {
     "plots": 40,
@@ -55,8 +55,8 @@
     "capacity": 12
    }
   },
-  "homes": 2117,
-  "plots": 2202,
+  "homes": 2082,
+  "plots": 2164,
   "sites": [
    {
     "id": "q_s1",
@@ -1495,86 +1495,6 @@
      [
       -225.5,
       784.5
-     ]
-    ]
-   },
-   {
-    "id": "q_b1",
-    "kind": "quarter",
-    "zone": "zone_persepolis_west",
-    "c": [
-     -522,
-     235
-    ],
-    "theta_deg": 2,
-    "size_m": [
-     105,
-     80
-    ],
-    "exits": [
-     [
-      -518.8,
-      201.6
-     ],
-     [
-      -529,
-      205.2
-     ],
-     [
-      -484.4,
-      219.8
-     ],
-     [
-      -560.5,
-      219.1
-     ],
-     [
-      -481.6,
-      223.9
-     ],
-     [
-      -479,
-      235
-     ],
-     [
-      -477.2,
-      242.1
-     ],
-     [
-      -567.3,
-      243.9
-     ],
-     [
-      -568.4,
-      245.9
-     ],
-     [
-      -569.6,
-      250.8
-     ],
-     [
-      -550.7,
-      253.5
-     ],
-     [
-      -478.8,
-      259
-     ],
-     [
-      -568.8,
-      256.9
-     ],
-     [
-      -523.9,
-      259.5
-     ],
-     [
-      -502.1,
-      266.2
-     ],
-     [
-      -541.2,
-      267.9
      ]
     ]
    },
@@ -4469,44 +4389,6 @@
   {"id":"q_n1-0087","site":"q_n1","zone":"zone_persepolis_west","pop_zone":"town","kind":"pen","c":[-307,742.5],"door":[-304.5,741.5],"door_in":[-305.5,741.5],"area_m2":196,"roofed_m2":0,"capacity":0,"tier":"C","row":"town_pens"},
   {"id":"q_n1-0088","site":"q_n1","zone":"zone_persepolis_west","pop_zone":"town","kind":"pen","c":[-267,783.5],"door":[-266.5,789.5],"door_in":[-266.5,788.5],"area_m2":110,"roofed_m2":0,"capacity":0,"tier":"C","row":"town_pens"},
   {"id":"q_n1-0089","site":"q_n1","zone":"zone_persepolis_west","pop_zone":"town","kind":"pen","c":[-209.5,784.5],"door":[-209.5,789.5],"door_in":[-209.5,788.5],"area_m2":99,"roofed_m2":0,"capacity":0,"tier":"C","row":"town_pens"},
-  {"id":"q_b1-0001","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"house","c":[-533.4,202.1],"door":[-537,206],"door_in":[-536,206],"area_m2":66,"roofed_m2":42,"capacity":3,"tier":"C","row":"town_houses"},
-  {"id":"q_b1-0002","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"house","c":[-541,205.3],"door":[-537.8,199.9],"door_in":[-538.8,199.9],"area_m2":70,"roofed_m2":49,"capacity":4,"tier":"C","row":"town_houses"},
-  {"id":"q_b1-0003","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"house","c":[-504,206.6],"door":[-510,207.9],"door_in":[-509,207.9],"area_m2":88,"roofed_m2":64,"capacity":5,"tier":"C","row":"town_houses"},
-  {"id":"q_b1-0004","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"workshop","craft":"wood","c":[-520.1,210.1],"door":[-528,205.3],"door_in":[-527,205.3],"area_m2":293,"roofed_m2":56,"capacity":2,"tier":"C","row":"town_workshops"},
-  {"id":"q_b1-0005","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"house","c":[-532.2,212.1],"door":[-537.3,215],"door_in":[-536.3,215],"area_m2":81,"roofed_m2":36,"capacity":3,"tier":"C","row":"town_houses"},
-  {"id":"q_b1-0006","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"house","c":[-500.8,214.7],"door":[-510.2,211.9],"door_in":[-509.2,211.9],"area_m2":146,"roofed_m2":58,"capacity":4,"tier":"C","row":"town_houses"},
-  {"id":"q_b1-0007","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"house","c":[-548.3,215.6],"door":[-538.3,214.9],"door_in":[-539.3,214.9],"area_m2":133,"roofed_m2":49,"capacity":4,"tier":"C","row":"town_houses"},
-  {"id":"q_b1-0008","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"house","c":[-497.8,230.3],"door":[-501,236.2],"door_in":[-500,236.3],"area_m2":75,"roofed_m2":54,"capacity":4,"tier":"C","row":"town_houses"},
-  {"id":"q_b1-0009","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"house","c":[-487.7,228.2],"door":[-490.5,222.6],"door_in":[-490.6,223.6],"area_m2":110,"roofed_m2":86,"capacity":7,"tier":"C","row":"town_houses"},
-  {"id":"q_b1-0010","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"house","c":[-556.9,232.3],"door":[-560.6,222.1],"door_in":[-560.6,223.1],"area_m2":209,"roofed_m2":118,"capacity":9,"tier":"C","row":"town_houses"},
-  {"id":"q_b1-0011","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"house","c":[-545.7,227.2],"door":[-549.8,228.5],"door_in":[-548.8,228.6],"area_m2":56,"roofed_m2":32,"capacity":3,"tier":"C","row":"town_houses"},
-  {"id":"q_b1-0012","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"house_large","c":[-531.9,232.7],"door":[-536.6,223],"door_in":[-536.6,224],"area_m2":270,"roofed_m2":149,"capacity":11,"tier":"C","row":"town_houses"},
-  {"id":"q_b1-0013","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"house","c":[-518.8,228.1],"door":[-522.8,229.5],"door_in":[-521.8,229.5],"area_m2":56,"roofed_m2":24,"capacity":3,"tier":"C","row":"town_houses"},
-  {"id":"q_b1-0014","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"house","c":[-505.8,230.1],"door":[-502.7,226.2],"door_in":[-503.7,226.1],"area_m2":60,"roofed_m2":27,"capacity":3,"tier":"C","row":"town_houses"},
-  {"id":"q_b1-0015","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"shrine","c":[-511.9,232.9],"door":[-512.6,224.8],"door_in":[-512.7,225.8],"area_m2":105,"roofed_m2":49,"capacity":0,"tier":"C","row":"town_houses"},
-  {"id":"q_b1-0016","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"house","c":[-546.2,239.2],"door":[-550.3,244.5],"door_in":[-549.3,244.6],"area_m2":112,"roofed_m2":76,"capacity":6,"tier":"C","row":"town_houses"},
-  {"id":"q_b1-0017","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"house","c":[-519,236.1],"door":[-523,234.5],"door_in":[-522,234.5],"area_m2":56,"roofed_m2":32,"capacity":3,"tier":"C","row":"town_houses"},
-  {"id":"q_b1-0018","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"workshop","craft":"bakery","c":[-487.1,239.2],"door":[-494.2,242.5],"door_in":[-493.2,242.5],"area_m2":156,"roofed_m2":75,"capacity":3,"tier":"C","row":"town_workshops"},
-  {"id":"q_b1-0019","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"house","c":[-506.3,243.6],"door":[-503.5,249.2],"door_in":[-504.5,249.1],"area_m2":80,"roofed_m2":50,"capacity":4,"tier":"C","row":"town_houses"},
-  {"id":"q_b1-0020","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"house","c":[-498.3,243.8],"door":[-501.4,247.2],"door_in":[-500.4,247.3],"area_m2":60,"roofed_m2":36,"capacity":3,"tier":"C","row":"town_houses"},
-  {"id":"q_b1-0021","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"house","c":[-515.8,244.7],"door":[-523.3,242.5],"door_in":[-522.3,242.5],"area_m2":126,"roofed_m2":72,"capacity":6,"tier":"C","row":"town_houses"},
-  {"id":"q_b1-0022","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"house","c":[-532.4,246.1],"door":[-540.3,243.9],"door_in":[-539.3,243.9],"area_m2":135,"roofed_m2":54,"capacity":4,"tier":"C","row":"town_houses"},
-  {"id":"q_b1-0023","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"workshop","craft":"brewery","c":[-559.4,246.2],"door":[-551.5,249.5],"door_in":[-552.5,249.4],"area_m2":135,"roofed_m2":36,"capacity":2,"tier":"C","row":"town_workshops"},
-  {"id":"q_b1-0024","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"house","c":[-483,249.4],"door":[-479.4,247],"door_in":[-480.4,247],"area_m2":48,"roofed_m2":24,"capacity":3,"tier":"C","row":"town_houses"},
-  {"id":"q_b1-0025","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"workshop","craft":"wood","c":[-491.2,256.6],"door":[-493.4,246.5],"door_in":[-493.4,247.5],"area_m2":190,"roofed_m2":100,"capacity":4,"tier":"C","row":"town_workshops"},
-  {"id":"q_b1-0026","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"house","c":[-546.6,251.2],"door":[-550.7,253.5],"door_in":[-549.7,253.5],"area_m2":56,"roofed_m2":24,"capacity":3,"tier":"C","row":"town_houses"},
-  {"id":"q_b1-0027","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"house","c":[-516.1,253.7],"door":[-523.7,255.5],"door_in":[-522.7,255.5],"area_m2":126,"roofed_m2":63,"capacity":5,"tier":"C","row":"town_houses"},
-  {"id":"q_b1-0028","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"house","c":[-498.8,257.3],"door":[-501.9,262.2],"door_in":[-500.9,262.3],"area_m2":75,"roofed_m2":39,"capacity":3,"tier":"C","row":"town_houses"},
-  {"id":"q_b1-0029","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"house","c":[-532.7,254.6],"door":[-540.8,256.9],"door_in":[-539.8,256.9],"area_m2":124,"roofed_m2":60,"capacity":5,"tier":"C","row":"town_houses"},
-  {"id":"q_b1-0030","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"house","c":[-506.8,258.5],"door":[-504,264.1],"door_in":[-505,264.1],"area_m2":70,"roofed_m2":46,"capacity":4,"tier":"C","row":"town_houses"},
-  {"id":"q_b1-0031","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"house","c":[-559.7,255.2],"door":[-567.8,257.9],"door_in":[-566.8,257.9],"area_m2":135,"roofed_m2":63,"capacity":5,"tier":"C","row":"town_houses"},
-  {"id":"q_b1-0032","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"house","c":[-483.3,257.4],"door":[-479.7,255],"door_in":[-480.7,255],"area_m2":48,"roofed_m2":24,"capacity":3,"tier":"C","row":"town_houses"},
-  {"id":"q_b1-0033","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"house","c":[-545.9,261.2],"door":[-543.1,264.8],"door_in":[-544.1,264.7],"area_m2":60,"roofed_m2":36,"capacity":3,"tier":"C","row":"town_houses"},
-  {"id":"q_b1-0034","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"house","c":[-534,263.6],"door":[-540.9,260.9],"door_in":[-539.9,260.9],"area_m2":130,"roofed_m2":95,"capacity":7,"tier":"C","row":"town_houses"},
-  {"id":"q_b1-0035","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"house","c":[-523.5,264],"door":[-520.9,260.6],"door_in":[-520.9,261.6],"area_m2":48,"roofed_m2":24,"capacity":3,"tier":"C","row":"town_houses"},
-  {"id":"q_b1-0036","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"house","c":[-488.8,215.6],"door":[-488.4,219.7],"door_in":[-488.4,218.7],"area_m2":42,"roofed_m2":18,"capacity":3,"tier":"C","row":"town_houses"},
-  {"id":"q_b1-0037","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"pen","c":[-493.4,203.5],"door":[-493.1,208.5],"door_in":[-493,207.5],"area_m2":90,"roofed_m2":0,"capacity":0,"tier":"C","row":"town_pens"},
-  {"id":"q_b1-0038","site":"q_b1","zone":"zone_persepolis_west","pop_zone":"town","kind":"pen","c":[-564.6,265],"door":[-572.1,264.8],"door_in":[-571.1,264.8],"area_m2":154,"roofed_m2":0,"capacity":0,"tier":"C","row":"town_pens"},
   {"id":"q_b3-0001","site":"q_b3","zone":"zone_persepolis_west","pop_zone":"town","kind":"house","c":[-776.8,-129.6],"door":[-782.3,-130.2],"door_in":[-781.3,-130.1],"area_m2":50,"roofed_m2":35,"capacity":3,"tier":"C","row":"town_houses"},
   {"id":"q_b3-0002","site":"q_b3","zone":"zone_persepolis_west","pop_zone":"town","kind":"house","c":[-704.5,-119],"door":[-702.4,-115.8],"door_in":[-702.3,-116.8],"area_m2":40,"roofed_m2":16,"capacity":3,"tier":"C","row":"town_houses"},
   {"id":"q_b3-0003","site":"q_b3","zone":"zone_persepolis_west","pop_zone":"town","kind":"house","c":[-690.1,-117.5],"door":[-687.4,-114.2],"door_in":[-687.3,-115.2],"area_m2":55,"roofed_m2":34,"capacity":3,"tier":"C","row":"town_houses"},
