@@ -22,3 +22,21 @@ describe('turning wheels', () => {
     expect(a.equals(b)).toBe(false);
   });
 });
+describe('reins (s18 C14)', () => {
+  it('a rider holds reins from both hands to the bit; a leader of a string a rope to the first animal', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { decodeHumanAssets, meshoptSimplify } = await import('../src/people/humanAssets');
+    const { buildOutfits } = await import('../src/people/outfits'); const { HumanGPU } = await import('../src/people/humanGPU'); const { Crowd } = await import('../src/people/crowd');
+    const b = readFileSync('public/generated/humans/humans.bin'), A = decodeHumanAssets(JSON.parse(readFileSync('public/generated/humans/humans.json', 'utf8')), b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength));
+    const { MeshoptSimplifier } = await import('three/addons/libs/meshopt_simplifier.module.js'); await MeshoptSimplifier.ready; const O = buildOutfits(A, { simplify: meshoptSimplify(MeshoptSimplifier) });
+    const img = () => new THREE.DataTexture(new Uint8Array(4), 1, 1), humans = { A, O, gpu: new HumanGPU(A, O, { skin: img(), eye: img() }, { capacity: 16 }), ms: { load: 0, outfits: 0, gpu: 0, worker: false } };
+    const cam = new THREE.PerspectiveCamera(60, 1, 0.1, 1000); cam.position.set(4, 2, 8);
+    for (const [why, n] of [['riding on horseback with the king', 2], ['leading the king’s horses back to the stable', 1]] as const) {
+      const crowd = new Crowd(null, 1, humans as any); crowd.addExtra('x', { id: 1, sex: 'm', role: 'groom', dress: 'persian', seed: 5, x: 0, y: 0, z: 0, yaw: 0, act: 'walk' as any, why, look: null } as any);
+      crowd.update(1, cam.position, null, undefined); crowd.update(1.1, cam.position, null, undefined);
+      const M = crowd.reins.mesh; expect(M.count, why).toBeGreaterThanOrEqual(2 * n);
+      const m = new THREE.Matrix4(), s = new THREE.Vector3(); let L = 0; for (let i = 0; i < M.count; i++) { M.getMatrixAt(i, m); s.setFromMatrixScale(m); L += s.z; }
+      expect(L / n, `${why}: a rein's length`).toBeGreaterThan(0.3); expect(L / n).toBeLessThan(4);
+    }
+  }, 240_000);
+});
