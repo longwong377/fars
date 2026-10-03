@@ -335,7 +335,8 @@ export class DeedWorld {
       // (D-720: a stretch its deed already walks to or from (deeds/joint.ts lays its own walks) is cut in as it is)
       const walked = (s: Seg) => L.some(w => w !== s && (w.act === 'walk' || w.where === 'road') && (Math.abs(w.t1 - s.t0) < 1e-6 || Math.abs(w.t0 - s.t1) < 1e-6));
       const isWalk = (x: Seg) => x.act === 'walk' || x.where === 'road', next = (s: Seg) => L.find(w => !isWalk(w) && (Math.abs(w.t1 - s.t0) < 1e-6 || Math.abs(w.t0 - s.t1) < 1e-6));
-      for (const s of L) out = walked(s) ? this.keepDay(out, cutIn(out, s), s, isWalk(s) ? next(s) : s) : this.walkedIn(pid, day, out, s); return out; },
+      const wx = this.w.pop.cal?.ctx(day).wx, dressed = (s: Seg) => { if (!wx) return s; const r = [{ ...s }]; coldWear(r, wx); dustWear(r, wx); return r[0]; }; // (dressed by their own hours)
+      for (const s of L) out = walked(s) ? this.keepDay(out, cutIn(out, dressed(s)), s, isWalk(s) ? next(s) : s) : this.walkedIn(pid, day, out, s); return out; },
   };
 
   // ---------------------------------------------------------------- the law, promises (day by day)
