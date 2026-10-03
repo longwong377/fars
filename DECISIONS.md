@@ -9572,6 +9572,10 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   far-bank reflection follows SEASON (was a hard-coded green).
 - Third pass: the footings take 75 % of the scan's buff (sunlit they read cold white-grey); the palaces' plaster bays 1σ 0.07 -> 0.09
   and rain wash 0.13 -> 0.17 (the Gate's 20 m wall read as one flat plane). Frames: shots/a4, t4.
+- KTX2 (the lead): dirt_floor, raked_dirt, stone_wall, clay_block_wall encoded by tools/bake_world/ktx_scans.ts (UASTC+RDO, zstd, mips;
+  public/textures/ktx.json lists them, scans.ts loads them through sharedKTX2; the jpgs stay as the fallback): 9 maps, 24 MB jpg ->
+  32 MB ktx2 on disk, GPU memory a quarter of RGBA8 and no decode on the page. House lab frames identical (shots/a5). The
+  20-80 m ground tiling: no visible repeat in the plain probe frames (shots/p1 stair-top, drum-road).
 
 ## D-480 (s17, V1 light): light v1, the art direction's light and tone
 - Tone (toneLook.ts): the fitted AgX look re-graded for the art direction (AC Origins / RDR2: rich, warm, controlled highlights,
