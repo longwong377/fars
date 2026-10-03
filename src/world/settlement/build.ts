@@ -66,7 +66,7 @@ export function partDesc(desc: Desc[], o: number, far: boolean): Desc | null {
   return base;
 }
 /** s18 C2 (D-665): the lower-city belt's quarters (plan.ts q_b*) drawn in the mesh of the quarter beside them */
-const BELT_WITH: Record<string, string> = { q_b3: 'q_w3', q_b4: 'q_s1', q_b5: 'q_n1', q_b6: 'q_w1', q_b8: 'q_w3', q_b9: 'q_w3', q_b10: 'q_w1', q_b11: 'q_w3' };
+const BELT_WITH: Record<string, string> = { q_b3: 'q_w3', q_b4: 'q_s1', q_b5: 'q_n1', q_b8: 'q_w3', q_b9: 'q_w3', q_b10: 'q_w1' };
 /** town meshes farther than this from the camera cast no shadows (they would only fill the Terrace's far cascades) */
 export const SHADOW_RANGE = 150;
 /** the town's trodden ground over the terrain (m): the terrain's coarser LODs must not poke through (fillPlan.ts TOWN_LIFT) */
@@ -278,7 +278,7 @@ export class Settlement {
       switch (f.kind) {
         case 'hearth': addFire('hearth', g[0], g[1], y, plots[f.plot]?.kind === 'official' || plots[f.plot]?.kind === 'station' || plots[f.plot]?.kind === 'store' || plots[f.plot]?.kind === 'stable' ? 'night' : 'home'); break;
         case 'oven': addFire('oven', g[0], g[1], y + 0.55, 'bake'); break;
-        case 'shrine': addFire('lamp', g[0], g[1], y + 0.82, 'home'); break; // (s18 C2, D-672: the shrine's lamp)
+        case 'shrine': this.fire.add('lamp', new THREE.Vector3(g[0], y + 0.82, -g[1]), { ...fireMeta('home'), group: undefined, body: false }); this.info.lamps++; break; // (s18 C2, D-672: the shrine's lamp; no group like the houses' lamps: a saucer's light, not the town's fire light on the smoke)
         case 'forge': addFire('hearth', g[0], g[1], y + 0.45, 'day'); break;
         case 'kiln': addFire('kiln', g[0], g[1], y, 'day'); break;
         default: break; // (the colliders: siteFootprints above)

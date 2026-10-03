@@ -75,6 +75,26 @@ settlement/plan.ts (+ new settlement/estates.ts).
   Naqsh ground. Nothing floats or is buried. The halts read as boxes (the town kit, D-802, is the fix).
 - **The village gates are painted** by C2's towndoors change: no change from C15.
 
+## Round 3 (lead 3): the town kit (D-802), batch 1
+- **What it is:** tools/blender/kit_town.py builds it (Blender 5.0.1; the cloud runs it through `pip bpy`, which is
+  reproducible: the same hash on two builds). It writes public/models/kit/town/kit.json, manifest.json and town_kit.glb:
+  19 pieces, each in 3 LODs. The loader is src/render/townKit.ts; tests/town_kit.test.ts is green (frames, tiling seams, LOD
+  order, AO range, budget). Contact sheets: handoff/s18/c15/kit_kit_town_0.jpg and kit_kit_town_1.jpg (Cycles, a raking sun).
+- **Not yet in the game:** C2 places the pieces. The interface is the house kit's (kitFrame unit frames), sent to C2.
+- **Departures from the ask:**
+  - **No KTX2 texture maps.** The town's surfaces are world-space scanned materials (Plaster001/007 and the rest through
+    scans.ts), and new maps would cost samplers under the T4's 16-sampler cap. The pieces carry their geometry, baked AO and a
+    per-vertex shade instead.
+  - **No ladder piece.** The house kit's log and rung pieces already build the ladders, and a round member does not survive a
+    non-uniform scale.
+  - **The awning is in metres, not scaled**, for the same reason.
+- **Weak:** on a plain plastered run the relief (batter, ~3 cm undulation, runnels) shows only under raking light. The plaster's
+  grain is left to the game's scanned material.
+
+## Stop (lead 3, 11:27)
+C15 has stopped: the agent count was cut. Town kit batch 1 is merged; C2 places it and extends the pieces if needed. Head
+at the stop: this commit. Nothing is left uncommitted or running.
+
 ## Frames (crude, SwiftShader, `?webgl=1`, 1280 × 720, day 25 10:00 clear)
 
 Before: `origin/s17-int` 803a0e76 (06:00). After: this branch at 4f3ab187. Since then: the village yards are trodden earth

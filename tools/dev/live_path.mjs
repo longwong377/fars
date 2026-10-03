@@ -36,6 +36,13 @@ await p.waitForTimeout(30000); await step('entered+30s');
 await p.evaluate(() => window.__parsa.setInput({ forward: 1 }));
 for (let i = 1; i <= 3; i++) { await p.waitForTimeout(20000); await step(`walk+${i * 20}s`); }
 await p.evaluate(() => window.__parsa.setInput({ forward: 0 }));
+// talk to the nearest person (their own line comes at once, while any model streams in)
+R.talk = await p.evaluate(async () => { const P = window.__parsa.people?.(), a = P?.agents?.find(x => !x.offmap); if (!a || !window.__converse) return { none: !a ? 'no person' : 'no __converse' };
+  window.__parsa.teleport(a.e + 0.8, a.n); await window.__parsa.step?.(2);
+  const r = await Promise.race([window.__converse.say('Greetings. What is your work?'), new Promise(res => setTimeout(() => res({ timeout: true }), 60000))]);
+  return { to: a.name, reply: r?.reply?.slice?.(0, 160) ?? null, own: !!r?.own, timeout: !!r?.timeout }; }).catch(e => ({ error: String(e).slice(0, 200) }));
+console.log('talk', JSON.stringify(R.talk));
+R.release = await p.evaluate(() => window.__parsa.releaseStats ?? null).catch(() => null); console.log('release', JSON.stringify(R.release));
 R.errors = [...new Set(errs)].slice(0, 30); writeFileSync(join(out, 'live.json'), JSON.stringify(R, null, 1));
 console.log('backend', R.backend, 'ready', R.readyS, 's; errors', errs.length); for (const e of R.errors.slice(0, 12)) console.log(' ', e.slice(0, 300));
 await b.close(); srv?.kill(); process.exit(0);

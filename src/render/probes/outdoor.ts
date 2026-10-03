@@ -154,6 +154,23 @@ export function outIrradiance(s: OutSample, n: [number, number, number], wPm: nu
   const U = s.Uam.map((v, i) => v * (1 - wPm) + s.Upm[i] * wPm);
   return { sky: cubeAt(s.S, n, s.theta), sun: cubeAt(U, n, s.theta) };
 }
+/** D-680 (s18 reset, "house-interior cov-204 ~90 % black at 10:00"): the eye's ambient relative to the open field from the
+ *  outdoor field, as field.ts fieldVisibility does for the halls (the mean over up and the four horizontal axes of the
+ *  field's irradiance over the open field's, `open(ny)` its law), and the weight with which the eye's adaptation takes it:
+ *  the field's own weight × how enclosed the point is (0 in an open lane or court, where the upward rays and the outdoor law
+ *  stay as they were; 1 under a roof or deep in a doorway, where the eye used to keep the outdoor exposure in every town
+ *  room: the rays test only the Terrace's architecture). `roofed` (0..1): how far the sky straight up is shut off (the +y
+ *  sky face), for the eye's test of direct sun (C). */
+/** the least eye visibility the field answers (a room whose bake saw no opening: a door it missed, a probe at a wall): the
+ *  eye in such a room opens ~6.6 EV, as in a dim interior, not without bound */
+export const VIS_MIN = 0.01;
+export function outdoorEyeVisibility(s: OutSample | null, S: number, U: number, wPm: number, open: (ny: number) => number): { vis: number; w: number; roofed: number } {
+  if (!s || s.w <= 0) return { vis: 1, w: 0, roofed: 0 };
+  let e = 0, o = 0;
+  for (const n of [[0, 1, 0], [1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1]] as [number, number, number][]) { const r = outIrradiance(s, n, wPm); e += S * r.sky + U * r.sun; o += open(n[1]); }
+  const vis = o > 0 ? Math.min(1, Math.max(VIS_MIN, e / o)) : 1, t = Math.min(1, Math.max(0, (0.55 - vis) / 0.3)), enc = t * t * (3 - 2 * t);
+  return { vis, w: s.w * enc, roofed: Math.min(1, Math.max(0, (0.7 - s.S[4]) / 0.4)) };
+}
 /** the afternoon weight from the direction toward the sun (world): 0 with the sun east, 1 west, ½ on the meridian */
 export function afternoonWeight(dx: number, dz: number, am: [number, number] = [1, 0], pm: [number, number] = [-1, 0]): number {
   const ax = pm[0] - am[0], az = pm[1] - am[1], l = Math.hypot(ax, az) || 1, h = Math.hypot(dx, dz);

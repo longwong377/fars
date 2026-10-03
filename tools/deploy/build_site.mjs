@@ -39,6 +39,16 @@ run(`npx vite build${process.env.NOMINIFY ? ' --minify false' : ''}${process.env
   const mf = join(dist, 'ktx_maps.json'); if (existsSync(mf)) for (const k of Object.keys(JSON.parse(readFileSync(mf, 'utf8')).maps ?? {})) if (existsSync(join(dist, k.replace(/\.(jpg|png|webp)$/, '.ktx2')))) rm(join(dist, k));
   const H = join(dist, 'generated/humans/scans'); if (existsSync(join(H, 'scans.ktx2'))) { for (const f of readdirSync(H)) if (/^(skin|cloth)_.*\.jpg$/.test(f)) rm(join(H, f)); rm(join(dist, 'models/people/people_cloth_folds.png')); }
   const BK = join(dist, 'models/trees/bark'); if (existsSync(join(BK, 'bark.ktx2'))) for (const f of readdirSync(BK)) if (f.endsWith('.jpg')) rm(join(BK, f));
+  // (and the scans no code loads: a textures/<id> whose id no source file under src/ names apart from the scans' metadata
+  // (src/data/scans.json), and the ground-only layers' other maps (the array takes diff and disp only))
+  { const walk = d => readdirSync(d, { withFileTypes: true }).flatMap(e => e.isDirectory() ? walk(join(d, e.name)) : /\.ts$/.test(e.name) ? [join(d, e.name)] : []);
+    const code = walk(join(root, 'src')).map(f => readFileSync(f, 'utf8')).join('\n'), body = /export const GROUND = \{([\s\S]*?)\} as const/.exec(code)?.[1] ?? '';
+    const groundIds = new Set([...body.matchAll(/:\s*'([^']+)'/g)].map(m => m[1])), codeNoGround = code.replace(body, '');
+    for (const id of existsSync(T) ? readdirSync(T) : []) { const d = join(T, id); if (!lstatSync(d).isDirectory()) continue;
+      const named = new RegExp(`['"/]${id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}['"/]`).test(codeNoGround);
+      if (named) continue; // (used by a material, a bake or a loader)
+      if (groundIds.has(id) && !existsSync(join(T, 'ground/ground.ktx2'))) continue; // (the jpg ground path needs diff/disp)
+      for (const f of readdirSync(d)) if (/\.(jpg|ktx2)$/.test(f) && !(groundIds.has(id) && f.endsWith('.ktx2'))) rm(join(d, f)); } } // (an unused scan's KTX2 too: the ktx.json step below drops its entry)
   lap(`jpgs with a KTX2 left out: ${n} files, ${(b / 1048576).toFixed(1)} MB`); }
 // textures low first (src/render/lowfirst.ts): a 512-px copy of every scan jpg beside it, and textures/low.json (each full
 // file's size): a first visit loads the copies before it can walk and the full scans after (sharp, in the lockfile)

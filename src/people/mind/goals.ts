@@ -308,7 +308,7 @@ export class Goals {
       const bride = me.sex === 'f' ? g.pid : w, groom = me.sex === 'm' ? g.pid : w;
       this.act(g, { verb: 'promise', actor: speaker, target: wHead >= 0 && wHead !== speaker ? wHead : w, about: `the betrothal of ${this.name(groom)} and ${this.name(bride)}`, aim: 'the betrothal' }, day, 18);
       const wday = Math.min(REGNAL_DAYS - 2, day + 25 + Math.floor(this.u(g.id, day, 3) * 35)), to = this.hid(groom, day);
-      if (wday > day + 10 && P.addWedding(bride, groom, wday, to)) this.weds.push([bride, groom, wday, to]);
+      if (wday > day + 10 && P.addWedding(bride, groom, wday, to, true)) this.weds.push([bride, groom, wday, to]);
       else this.weds.push([bride, groom, -1, to]); // (betrothed; the wedding after the year's end)
       this.host.mood(g.pid, day, 0.7, 'glad'); this.host.mood(w, day, 0.5, 'glad');
       this.finish(g, day, 'achieved', `betrothed to ${this.name(w)}`); return; }
@@ -474,7 +474,7 @@ export class Goals {
     for (const [k, v] of s.p) this.places.set(k, v); for (const [k, v] of s.t) this.learned.set(k, v); this.ended.push(...s.e); for (const g of s.e) this.depth.set(g.id, g.depth);
     Object.assign(this.stats, s.s);
     // the world as the minds changed it: their weddings and their leavers put into the fresh population again
-    const P = this.P; for (const w of s.w) { this.weds.push(w); if (w[2] > 0) P.addWedding(w[0], w[1], w[2], w[3]); }
+    const P = this.P; for (const w of s.w) { this.weds.push(w); if (w[2] > 0) P.addWedding(w[0], w[1], w[2], w[3], true); }
     for (const [pid, d] of s.l) { this.left.push([pid, d]); P.deedLeave(pid, d, true); }
   }
 }

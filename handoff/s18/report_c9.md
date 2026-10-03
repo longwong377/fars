@@ -1,5 +1,11 @@
 # s18 C9 (the budget, D-740): report
 
+## Round 3, broken first
+- **The geometry release (4b6fdbe2) is unmeasured where uploads happen** (the cloud's SwiftShader rejects or stalls): needs a T4 or a real-GPU heap reading; ?keepgeo turns it off.
+- **The JS heap is still ~3.3 GB at ready** (target 2.5): backing stores 2,637 MB after the settlement cuts.
+- **The cloud cannot finish a 60 s walk at quality high** (WebGPU: sampled-texture cap; WebGL: frames > 2 min, then the browser closes).
+- Dist 897.4 MiB (941 MB) after the unused-scan prune; the deploy ceiling is 950 MiB.
+
 ## Round 2, broken first
 - **The T4 black screen:** fixed at its cause (the jpg ground array re-uploaded null after release) with a safety net; seen in the cloud (0 page errors, 0 skips) but NOT yet on the T4: Vagon's player_probe on 1c288a99 or later.
 - **The 'writeMask' pipeline error:** not fixed; ?shaderlog now records the failing pipeline's targets and outputs (window.__pipeFail) for the next T4 run.

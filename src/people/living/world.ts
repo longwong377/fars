@@ -21,6 +21,7 @@ import type { ActivityId } from '../activities';
 import type { Intent, NeedKind } from '../economy/api';
 import type { Economy } from '../economy/world';
 import { splice } from '../talk';
+import { relabelHousehold } from '../deeds/engine';
 import { MINDING, reasonOk } from '../planCheck';
 import { dateOf } from '../calendar';
 import { nobodyWith } from '../wardrobe/washing';
@@ -114,7 +115,7 @@ export class LivingWorld {
       const over = base.filter(s => s.t1 > L.h0 + 1e-9 && s.t0 < L.h1 - 1e-9); if (!over.length || !over.every(slotOk) || !nobodyWith(this.pop, pid, day, L.h0, L.h1)) continue; // (D-347: nor while a little one is with the doer)
       // (D-347: the errand dressed against the cold and the dust by its own hours, as the day's stretches are; was: the base
       // stretch's dress copied, so a walk back into the dust went unwrapped)
-      const mid = L.segs.map(x => ({ ...x })), wx = this.pop.cal.ctx(day).wx; dustWear(mid, wx); coldWear(mid, wx); const next = splice(segs, L.h0, L.h1, mid);
+      const mid = L.segs.map(x => ({ ...x })), wx = this.pop.cal.ctx(day).wx; dustWear(mid, wx); coldWear(mid, wx); const next = relabelHousehold(this.pop, pid, day, segs, splice(segs, L.h0, L.h1, mid));
       if (shortHeat(next) > shortHeat(segs)) continue; segs = next; // (D-458: nor where it would cut a rest through the heat to a scrap: planCheck's label)
     }
     this.overlaid.set(k, segs); return segs;

@@ -37,7 +37,7 @@ const link = (a: RegExp, b: RegExp) => evs.filter(e => b.test(e.kind) && e.cause
 const links = {
   'harvest/price -> hunger': link(/harvest_poor|blight|grain_dear|tithe_short|ration_cut/, /^hunger$/), 'hunger -> petition/relief': link(/^hunger$/, /petition|relief/),
   'hunger -> theft': link(/^hunger$/, /^theft$/), 'hunger -> help (kin, neighbours)': link(/^hunger$/, /kin_help|neighbours_help|given|food/),
-  'hunger -> sale/loan': link(/^hunger$/, /^sell$|loan|land_sold/), 'theft -> arrest/suit': link(/^theft$|robbed/, /arrest|suit/), 'arrest/suit -> punishment': link(/arrest|suit/, /beaten|fined|debt_labour|acquitted|time_granted/),
+  'hunger -> sale/loan': link(/^hunger$/, /^sell$|loan|land_sold/), 'theft -> arrest/suit': link(/^theft$|robbed/, /arrest|suit/) + evs.filter(e => /arrest|suit/.test(e.kind) && e.causes.some(c => { const a = byId.get(c); return !!a && a.kind === 'accusation' && a.causes.some(x => /^theft$|robbed/.test(byId.get(x)?.kind ?? '')); })).length, // (by way of the accusation) 'arrest/suit -> punishment': link(/arrest|suit/, /beaten|fined|debt_labour|acquitted|time_granted/),
   'loan -> default/pledge/repaid': link(/^loan$/, /default|pledge_seized|repaid|debt_labour/), 'illness -> nursing/death': link(/illness/, /nursed_by_kin|death/),
 };
 // the deeds' own chains

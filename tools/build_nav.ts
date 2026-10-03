@@ -27,8 +27,13 @@ buildMeshes(parts, P);
 // s18 C5 (D-694): the town's colliders where its quarters reach into the grid (q_b1 at the Terrace foot, q_b3's E edge): the
 // houses' walls, with C2's doors in them (every house enterable), so the grid's routes neither pass through a house nor
 // miss its door. Streamed over the grid's box, every box
-{ const town = new Settlement(P, T, new FireSystem(2), 'test'), E1 = NAV.e0 + NAV.w * NAV.cell, N1 = NAV.n0 + NAV.h * NAV.cell;
-  for (let e = NAV.e0; e <= E1 + 1; e += 150) for (let n = NAV.n0; n <= N1 + 1; n += 150) town.streamColliders(e, -n, Infinity); }
+// (every box of every site reaching into the grid, added once: streamColliders drops sites 300 m from its point, so a sweep
+// of it kept only the last area's)
+{ const town = new Settlement(P, T, new FireSystem(2), 'test'), E1 = NAV.e0 + NAV.w * NAV.cell, N1 = NAV.n0 + NAV.h * NAV.cell; let sites = 0, boxes = 0;
+  for (const c of (town as any).cols as { c: [number, number]; r: number; boxes: { x: number; y: number; z: number; hx: number; hy: number; hz: number; rot?: number }[] }[]) {
+    if (c.c[0] + c.r < NAV.e0 || c.c[0] - c.r > E1 || c.c[1] + c.r < NAV.n0 || c.c[1] - c.r > N1) continue; sites++;
+    for (const b of c.boxes) { P.addBox({ x: b.x, y: b.y, z: b.z }, { x: b.hx, y: b.hy, z: b.hz }, b.rot as any); boxes++; } }
+  console.log(`the town's colliders in the grid: ${boxes} boxes of ${sites} sites`); }
 P.step(1 / 60);
 const R = P.R, world = P.world;
 
@@ -102,6 +107,18 @@ for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
   if (i + 1 < w && out[idx(i + 1, j)] !== NAV.blocked) { if (legal(i, j, i + 1, j)) edges[idx(i, j)] |= 1; else cut++; }
   if (j + 1 < h && out[idx(i, j + 1)] !== NAV.blocked) { if (legal(i, j, i, j + 1)) edges[idx(i, j)] |= 2; else cut++; }
 }
+// s18 C5 (D-694): on the approach, only what a body reaches from the seeds over the final grid's legal moves (the erosion
+// after the flood fill leaves pockets: the inside of a house whose door the clearance closed); a pocket is blocked
+{ const seen = new Uint8Array(w * h), q: number[] = [];
+  for (const [e, n] of NAV.seeds) { const i = Math.floor((e - e0) / cell), j = Math.floor((n - n0) / cell), k = idx(i, j); if (out[k] !== NAV.blocked && !seen[k]) { seen[k] = 1; q.push(k); } }
+  for (let x = 0; x < q.length; x++) { const k = q[x], i = k % w, j = (k / w) | 0;
+    const go = (kk: number, ok: boolean) => { if (ok && !seen[kk] && out[kk] !== NAV.blocked) { seen[kk] = 1; q.push(kk); } };
+    if (i + 1 < w) go(k + 1, (edges[k] & 1) !== 0); if (i > 0) go(k - 1, (edges[k - 1] & 1) !== 0);
+    if (j + 1 < h) go(k + w, (edges[k] & 2) !== 0); if (j > 0) go(k - w, (edges[k - w] & 2) !== 0); }
+  // (on the approach only, west of the Terrace's W face, where the town's quarters now stand: the Terrace's own rooms no
+  // route reaches are places people are put in (the Tachara's, the Apadana's towers) and stay as they were)
+  let pocket = 0; for (let k = 0; k < w * h; k++) if (out[k] !== NAV.blocked && !seen[k] && e0 + (k % w + 0.5) * cell < -45) { out[k] = NAV.blocked; edges[k] = 0; pocket++; walk--; }
+  console.log(`pockets no body reaches from the seeds, blocked: ${pocket} cells`); }
 writeFileSync('public/generated/nav_edges.u8', Buffer.from(edges.buffer));
 const hash = createHash('sha1').update(partsKey(parts)).digest('hex').slice(0, 16);
 writeFileSync('public/generated/nav.i16', Buffer.from(out.buffer));

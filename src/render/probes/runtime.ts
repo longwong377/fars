@@ -14,14 +14,15 @@ import * as THREE from 'three/webgpu';
 import { HemisphereLightNode } from 'three/webgpu';
 import { uniform, uniformArray, texture, vec2, vec3, vec4, float, int, mix, max, min, clamp, floor, smoothstep, step, normalWorld, positionWorld, dot, length, Fn, Loop } from 'three/tsl';
 import { geometricNormalWorld } from '../envmap';
-import { ProbeField, ProbeVolume, atlasData, decodeField, encodeField, fieldVisibility, gridExtent, volumeAt, openAmbientMean, VALID_LO, VALID_HI, ATLAS_BANDS, PROBE_STRIDE, REACH_SOFT, L1_FLOOR, L1_ONESIDED } from './field';
+import { ProbeField, ProbeVolume, atlasData, decodeField, encodeField, fieldVisibility, gridExtent, volumeAt, openAmbientMean, openField, VALID_LO, VALID_HI, ATLAS_BANDS, PROBE_STRIDE, REACH_SOFT, L1_FLOOR, L1_ONESIDED } from './field';
 import { SURFACES } from '../materials';
 import { srgbToLinear, lum, sceneFromParts, TraceScene } from './trace';
 import type { Part } from '../../arch/parts';
 import { SPEC } from '../../arch/spec';
 import { EYE_SKY } from '../../sky/aerial';
 import { setRoofBoxes, ROOFS_PRESENT, roofsPresent } from './roofs';
-import { loadOutdoor, outdoorAmbient, setOutdoorSun, outdoorSummary } from './outdoor_runtime';
+import { loadOutdoor, outdoorAmbient, setOutdoorSun, outdoorSummary, outdoorMeta, outdoorData, outdoorPm } from './outdoor_runtime';
+import { sampleOutdoor, outdoorEyeVisibility } from './outdoor';
 import { BASE } from '../../core/base';
 
 let FIELD: ProbeField | null = null;
@@ -118,12 +119,22 @@ export function probeSkyVisibility(p: { x: number; y: number; z: number }, fallb
  *  probe field's weight at p (0 outside the volumes, 1 inside, fading across their edges). The interior exposure uses
  *  `eye` where w > 0 (D-141). */
 export function probeEyeVisibility(p: { x: number; y: number; z: number }): { eye: number; w: number } {
-  if (!FIELD || !roofsPresent()) return { eye: 1, w: 0 }; // no roofs (the Now view, D-201): no probe volumes
-  const S = Math.max(current.S, 1e-4), U = current.U, r = fieldVisibility(FIELD, p.x, p.y, p.z, S, U, RHO_OPEN);
-  if (r.w <= 0) return { eye: 1, w: 0 };
+  if (!roofsPresent()) return { eye: 1, w: 0 }; // no roofs (the Now view, D-201): no probe volumes
+  const S = Math.max(current.S, 1e-4), U = current.U, r = FIELD ? fieldVisibility(FIELD, p.x, p.y, p.z, S, U, RHO_OPEN) : { vis: 1, w: 0 };
+  if (r.w <= 0) return outdoorEye(p, S, U); // D-680: a town room (outside the halls' volumes): the outdoor field's answer
   const d = current.sun, sunlit = U > 0 && !(OCC?.occluded(p.x, p.y, p.z, d.x, d.y, d.z, 0.05, 2000) ?? false) ? EYE_SKY.sunVisibilityAt(p.x, p.y, p.z) : 0;
   const A = openAmbientMean(S, U, RHO_OPEN), eye = (r.vis * A + U * sunlit) / (A + U);
   return { eye, w: r.w };
+}
+
+/** D-680: the eye in an enclosed place of the outdoor field (a town house, a deep doorway; outdoor.ts outdoorEyeVisibility):
+ *  the same law as the halls', the direct sun at the eye shut off under a roof */
+function outdoorEye(p: { x: number; y: number; z: number }, S: number, U: number): { eye: number; w: number } {
+  const M = outdoorMeta(), D = outdoorData(); if (!M || !D) return { eye: 1, w: 0 };
+  const o = outdoorEyeVisibility(sampleOutdoor(M, D, [p.x, p.y, p.z]), S, U, outdoorPm.value, ny => openField(ny, S, U, RHO_OPEN));
+  if (o.w <= 0) return { eye: 1, w: 0 };
+  const sunlit = U > 0 ? (1 - o.roofed) * EYE_SKY.sunVisibilityAt(p.x, p.y, p.z) : 0, A = openAmbientMean(S, U, RHO_OPEN);
+  return { eye: (o.vis * A + U * sunlit) / (A + U), w: o.w };
 }
 
 /** the horizontal diagonal (m) of the roofed footprint of the probe volume containing p (the hall around the eye), or 0

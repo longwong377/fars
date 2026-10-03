@@ -863,7 +863,9 @@
         "women": [
          "belt"
         ]
-       }
+       },
+       "seeds": 1,
+       "seeds_note": "s18 C14 (D-790): one cut: the second (over robe s1) settled 25 cm off its fitted place after the women's costume changed (people_models' sanity bound 20 cm); every woman wears cut 0's veil"
       },
       "belt": {
        "kind": "sash",
