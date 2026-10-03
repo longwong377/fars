@@ -9946,6 +9946,12 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
 - The plain from the Terrace read as one sheet past ~300 m: every plot fades to its zone's mean there. Holdings (~260 m, wandering
   edges) now vary the far mean (+-40 % green cover, -25 % straw, +-14 % shade) while a holding spans pixels (terrainPlain.ts;
   colour only, the plot hashes, crops and CPU mirror unchanged; C).
+- The fields 4-7 km out stood empty at working hours (C12): fieldWork.ts gives the people layer each plot's village (nearest
+  within 2.5 km), use, crop, season stage (ploughing, growing, reaping, stubble, fallow, vines, orchard) and its workers' spots
+  (ploughman and sower at the furrow front, reapers in a line with binders behind, carriers and gleaners, waterer at the head,
+  weeders, pruners, pickers, a herder), fronts moving along the strip through the work's days; plain.fieldWork(e, n, r, day) (C).
+- The open ground before the Terrace drew one even sheet to 700 m (noon frame): the range now in 100-300 m patches, grazed
+  bare or thick (+-45 % herb cover), and grey-green Artemisia stands 150-400 m across (terrainPlain.ts; C).
 
 ## D-720 Follow thirty: the people answer from their own lives without the model, and the town's deeds and yesterday reach their talk (session 18, cloud C8; UD-07, UD-08, UD-11, UD-21, UD-24, UD-32)
 - Measured (tools/dev/follow30.ts; REVIEWS/follow30.json): thirty people drawn by seed across the town, the villages, the Terrace's
