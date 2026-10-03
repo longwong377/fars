@@ -61,6 +61,7 @@ import { voiceIdentity, nearPerson, type VoiceIdentity } from './talkers';
 import { Reactions, reactPose, SIGHT_POLL_S } from './react';
 import { Prints } from '../player/prints';
 import { SIGHT_M, type Near } from './converse/sight';
+import { childHead } from './bodyShape'; // (s18 C14: a young child's head)
 /** poses in which people sit, kneel or lie (the seat pass rests them on the ground; coats and back-carried weapons are
  *  laid aside) */
 const SEATED = new Set<AnimId>(['sit', 'write', 'eat', 'dice', 'sleep', 'grind', 'knead', 'bake', ...(Object.keys(WORK_META) as WorkAnim[]).filter(k => WORK_META[k].ground === 'seat')]);
@@ -421,7 +422,7 @@ export class Crowd {
   attachPop(pid: number): Person {
     const hit = this.byPid.get(pid); if (hit) return hit;
     const inp = this.view!.lookInput(pid), look = lookFor(this.humans.A, inp, this.seed), h = this.view!.childStature(pid);
-    if (h) { const v = this.humans.A.variants[look.variant]; look.scale = h / v.height; look.stature = h; } // a child's size by age (C)
+    if (h) { const v = this.humans.A.variants[look.variant]; look.scale = h / v.height; look.stature = h; if (look.body) childHead(look.body, v, look.scale); } // a child's size by age (C); (s18 C14: its head not shrunk with it)
     const p = this.newPerson(`p${pid}`, null, look, inp.seed); p.pid = pid; this.byPid.set(pid, p);
     { const age = (this.view!.pop as any).ageOn?.(pid, Math.floor((this.sim?.t ?? 0) / 24)) ?? 99; if (age < 4) p.gait.toddler = age <= 2 ? 1 : 3.5 - age; } // (s18 C14 D-790: a toddler's walk, anim.ts toddle)
     const day = Math.floor((this.sim?.t ?? 0) / 24); this.setBelly(p, this.view!.pop.gravid?.(pid, day) ?? 0); this.setMarks(p, pid, day); return p; // (gravid?.: a view built on a partial population, as the tests' stand-ins, draws no belly)

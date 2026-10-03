@@ -520,12 +520,17 @@ export class EconPlans {
       const mo = +st.from!, mp = this.pop.plan(mo, st.day), runs: [number, number][] = [];
       for (const s of mp) if (s.ev?.startsWith('D-340')) { const l = runs[runs.length - 1]; if (l && s.t0 - l[1] < 0.5) l[1] = s.t1; else runs.push([s.t0, s.t1]); } // (two stretches close together are one outing: the little one stays with her between them)
       let out = segs, any = false;
-      for (const [a, b0] of runs) { let b = b0; if (segAt(segs, a + 1e-4).with !== mo && segAt(segs, Math.max(a, b - 1e-4)).with !== mo) continue;
+      for (const [a0, b0] of runs) { let a = a0, b = b0; if (segAt(segs, a + 1e-4).with !== mo && segAt(segs, Math.max(a, b - 1e-4)).with !== mo) continue;
         const copy: Seg[] = mp.filter(s => s.t1 > a && s.t0 < b).map(s => ({ ...s, t0: Math.max(a, s.t0), t1: Math.min(b, s.t1), with: mo, ev: `D-340 economy: with_mother (C)`,
           act: (s.where === 'road' ? 'walk' : s.act === 'sleep' ? 'sleep' : 'play') as ActivityId,
           why: s.where === 'road' ? 'carried along with the mother' : s.act === 'sleep' ? 'asleep beside the mother' : 'playing beside the mother while she is busy there' }));
         // (D-383: the little one is where the mother's run ends; when its own day goes on elsewhere, it walks there, as the
         // walk the run replaced did)
+        // (D-720: and when the run begins where the little one was not, it is taken there first: no step without a walk)
+        const first = copy[0], pv = segAt(out, Math.max(0, a - 1e-4));
+        if (first && a > 1e-6 && first.where !== 'road' && pv.where !== 'road' && !pv.place.startsWith('@') && pv.place !== first.place) {
+          const w = Math.min(this.walk(pv.place, first.place, st.day), a - pv.t0 - 0.05);
+          if (w > 0) { copy.unshift({ ...this.seg(a - w, a, this.road(pv.place, first.place), 'walk', 'taken along to the mother', st, 'road') }); a -= w; } }
         const last = [...copy].reverse().find(s => s.where !== 'road'), nx = segAt(out, Math.min(24 - 1e-4, b + 1e-4));
         if (last && b < 24 - 1e-6 && nx.where !== 'road' && !nx.place.startsWith('@') && nx.place !== last.place) {
           const w = Math.min(this.walk(last.place, nx.place, st.day), nx.t1 - b - 0.05);
