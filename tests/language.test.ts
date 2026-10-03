@@ -636,6 +636,7 @@ describe('language lint: every source that can reach the canvas', () => {
     'public/models/land/cover_nor.thumb.jpg': 'a 128-px thumbnail of the checked models/land/cover_nor.jpg, read for its mean colour (C9 D-740, tools/bake_world/ktx_maps.ts; no text)',
     'public/models/land/cover_arm.ktx2': 'the checked models/land/cover_arm.jpg as KTX2, format only (C9 D-740, tools/bake_world/ktx_maps.ts; the same picture: no text)',
     'public/models/land/cover_arm.thumb.jpg': 'a 128-px thumbnail of the checked models/land/cover_arm.jpg, read for its mean colour (C9 D-740, tools/bake_world/ktx_maps.ts; no text)',
+    'public/models/trees/bark/bark.ktx2': 'the checked bark scans (bark/*_diff.jpg, *_nor.jpg) packed by the page\'s own barkTexels as one KTX2 array, format only (C9 D-740, tools/bake_world/ktx_bark.ts; the same pictures: no text)',
     'public/generated/humans/scans/scans.ktx2': 'the checked skin, cloth and fold layers (skin_*.jpg, cloth_*.jpg, people_cloth_folds.png) packed as one KTX2 array, format only (C9 D-740, tools/bake_world/ktx_humans.ts; the same pictures: no text)',
     'public/textures/Fabric043/arm.low.ktx2': 'ETC1S low-first twin (smaller, fewer bits) of the checked Fabric043/arm.jpg (C9 D-740, tools/bake_world/ktx_low.ts; the same picture: no text; registered by C7 D-710)',
     'public/textures/Fabric043/diff.ktx2': 'KTX2 encoding of the checked Fabric043/diff.jpg (C9 D-740, ktx; the same picture: no text; registered by C7 D-710)',
