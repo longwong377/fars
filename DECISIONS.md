@@ -9958,6 +9958,9 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   whitened, and a patchy drift line of foam and chaff at the water's edge (rivers.ts; C).
 - Triangle margin (lead 3: <= 1.9 M): far orchard plots (> 10 km) keep only the tree lines facing the plain's middle (every tree
   still drawn once), the static field-tree set to 6.5 km (was 8), near river sections 9-24 m (were 8-20): 1.99 -> 1.88 M (C).
+- Blind review (s18, 3/10: "fields in hard-edged colour strips with sparse weed sprites"): every plot's crop thins over 3-8 m into
+  the headland's weeds (one shared band between plots), plot shades +-12 % (were +-17 %); the near cover denser (wild herbs x1.3,
+  weeds in the crops x1.25, caps up), paid for by nearer LODs (4/12 m, were 5.5/16), within the 0.35 M cover budget (C).
 - The plain's static triangles went over 2 M (2.009 M: the merged Naqsh relief figures, 0.5 M): the rivers' sections beyond 12 km
   from the Apadana every 20-45 m (were 12-45 m), 1.99 M (C).
 - Millet (W19): a summer crop row after flax, 3 % of the irrigated plots taken from the fallow (17 %), sown June, cut mid-September
