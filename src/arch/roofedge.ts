@@ -32,7 +32,24 @@ export const ROOFEDGE = { ...RE_ROW.v, proud: 0.006, sample: 0.25, tier: 'C' as 
 /** an instanced modelled piece at a place: grid position of its back centre (e, n), height of its foot, the outward normal
  *  (grid azimuth, radians CCW from grid east), and its scale along the normal (a spout's length) */
 export interface Piece { kind: 'dentil' | 'spout'; building: string; e: number; n: number; y: number; az: number; len: number }
-export interface RoofEdges { boxes: Box[]; pieces: Piece[]; stats: { edges: number; free: number; wall: number; open: number; metres: number; tops: number } }
+/** D-750: a stepped merlon standing on a parapet's coping (grid centre, foot height, the run's grid azimuth, depth across) */
+export interface Crown { building: string; e: number; n: number; y: number; az: number; depth: number }
+/** D-750: a wall run's face under its string course (grid centre on the face line, outward normal, length, the band's top) */
+export interface BandFace { building: string; c: [number, number]; n: [number, number]; length: number; y1: number }
+export interface RoofEdges { boxes: Box[]; pieces: Piece[]; crowns: Crown[]; bands: BandFace[]; stats: { edges: number; free: number; wall: number; open: number; metres: number; tops: number } }
+
+/** D-750 (C): which roofs carry the stepped merlons. The stone stepped merlons found on the Terrace (the Apadana's, the stair
+ *  parapets') crowned the palaces' roof lines in every reconstruction since Chipiez and Krefter (the Naqsh-e Rustam facades
+ *  and the Ka'ba-ye Zartosht carry the same motif): every palace roof here; the fortification keeps its mud-brick merlons
+ *  (FORT_MERLON), and the working ranges (the garrison, the Treasury's store blocks) their plain coping, as plain roofs of
+ *  the working town. The merlon is the stair parapets' (global.r_stair_crenellation: width, height, pitch, depth). */
+export const CROWN_SKIP = /^(fortification|garrison|treasury)/;
+/** D-750 (C): the palaces whose wall runs carry a glazed-brick band under the string course (the Apadana towers' frieze,
+ *  apadana.r_glazed_frieze, by the same hand round the other halls' outer walls: glazed brick at Persepolis B, its place C) */
+export const BAND_BUILDINGS = ['gate_nations', 'tachara', 'hadish', 'hall100', 'tripylon'];
+/** m (C): the gap between the band's top and the string course */
+export const BAND_GAP = 0.12;
+const CACHE = new WeakMap<Part[], RoofEdges>();
 
 const inBox = (b: Box, e: number, n: number, y: number, pad = 0) => {
   if (y < b.y0 - 1e-6 || y > b.y1 + 1e-6) return false;
@@ -81,7 +98,9 @@ function runBox(base: Omit<Box, 'type' | 'kind' | 'c' | 'size' | 'y0' | 'y1' | '
 /** the wall heads and roof edges of these parts (render geometry: boxes to merge with the building's own materials, and
  *  the modelled pieces' placements) */
 export function roofEdges(parts: Part[]): RoofEdges {
-  const R = ROOFEDGE, boxes: Box[] = [], pieces: Piece[] = [], stats = { edges: 0, free: 0, wall: 0, open: 0, metres: 0, tops: 0 };
+  const hit = CACHE.get(parts); if (hit) return hit;
+  const CR = row<any>('global', 'r_stair_crenellation').v as { width: number; height: number; pitch: number; max_depth: number };
+  const R = ROOFEDGE, boxes: Box[] = [], pieces: Piece[] = [], crowns: Crown[] = [], bands: BandFace[] = [], stats = { edges: 0, free: 0, wall: 0, open: 0, metres: 0, tops: 0 };
   const solid = parts.filter(p => p.type === 'box' && !p.door && !p.sculpt && p.kind !== 'floor_finish' && p.kind !== 'frieze' && !(p.kind || '').startsWith('ceiling')) as Box[];
   const grid = new Grid(solid);
   const roofs = solid.filter(p => p.kind === 'roof');
@@ -92,7 +111,7 @@ export function roofEdges(parts: Part[]): RoofEdges {
   for (const { b, roof } of heads) {
     const base = { building: b.building, material: 'mudbrick' as Material, tier: R.tier, src: R.src, placeholder: false };
     const thin = !roof && Math.min(b.size[0], b.size[1]) < R.thinWall;
-    const fort = b.building.startsWith('fortification');
+    const fort = b.building.startsWith('fortification'), crowned = !CROWN_SKIP.test(b.building);
     if (!roof) { // the exposed top: its earth (a roof) or its coping (a wall)
       stats.tops++;
       boxes.push(thin ? { ...base, type: 'box', kind: 'coping', c: b.c, size: [b.size[0] + 2 * R.parapet.coping.over, b.size[1] + 2 * R.parapet.coping.over], rot: b.rot, y0: b.y1 - 0.02, y1: b.y1 + R.parapet.coping.h, solid: false, note: 'mud coping of an exposed wall top (D-334, C)' } as Box
@@ -145,11 +164,24 @@ export function roofEdges(parts: Part[]): RoofEdges {
         if (fort) {
           const M = R.fortMerlon, per = M.w + M.gap, nM = Math.floor((s1 - s0 + M.gap) / per), pad = (s1 - s0 - (nM * per - M.gap)) / 2;
           for (let q = 0; q < nM; q++) { const a0 = s0 + pad + q * per; boxes.push(runBox(base, sd, a0, a0 + M.w, R.proud, T, topY + P.h + P.coping.h - 0.02, topY + P.h + P.coping.h + M.h, 'merlon', 'plastered mud-brick merlon of the fortification (D-334, C)')); }
+        } else if (crowned) { // D-750: the stepped stone merlons on the coping, kept a parapet's thickness clear of the run's ends
+          const a = s0 + T, z = s1 - T, len = z - a, off = R.proud - T / 2;
+          if (len >= CR.width) {
+            const nM = Math.floor((len - CR.width) / CR.pitch) + 1, m0 = a + (len - (nM - 1) * CR.pitch) / 2;
+            for (let q = 0; q < nM; q++) { const s = m0 + q * CR.pitch;
+              crowns.push({ building: b.building, e: sd.a[0] + ux * s + sd.n[0] * off, n: sd.a[1] + uy * s + sd.n[1] * off, y: topY + P.h + P.coping.h, az: Math.atan2(uy, ux), depth: Math.min(T, CR.max_depth) }); }
+          }
+        }
+        // D-750: the glazed band's face on a palace's wall run
+        if (k === 'wall' && roof && BAND_BUILDINGS.includes(b.building) && s1 - s0 > 2) {
+          const m = (s0 + s1) / 2;
+          bands.push({ building: b.building, c: [sd.a[0] + ux * m, sd.a[1] + uy * m], n: [sd.n[0], sd.n[1]], length: s1 - s0, y1: topY - R.string.h - BAND_GAP });
         }
       }
     }
   }
-  return { boxes, pieces, stats };
+  const out = { boxes, pieces, crowns, bands, stats }; CACHE.set(parts, out);
+  return out;
 }
 
 /** whether another part stands on this box's top (samples over its top face) */
