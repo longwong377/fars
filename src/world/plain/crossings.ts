@@ -173,10 +173,13 @@ export function buildCrossings(terrain: Terrain, rivers: RiverProfile[], seed = 
   if (all.length) {
     const mat = surfaceMaterial('rubble', { vertexColors: true, variant: 'ford', modify: (L: Layer) => { const sf = attribute('soft', 'float');
       return { alb: L.alb, rough: mix(L.rough, float(0.75), sf), height: L.height ? L.height.mul(float(1).sub(sf)) : null, tilt: L.tilt }; } });
-    const m = new THREE.Mesh(mergeGeometries(all)!, mat); m.name = 'plain-fords'; m.castShadow = m.receiveShadow = true;
+    const m = new THREE.Mesh(mergeGeometries(all)!, mat); m.name = 'plain-fords'; m.receiveShadow = true;
+    // D-670 (the T4's black screen, Vagon's culprit probe): the stone casts no sun shadow (its shadow pass bound a released buffer;
+    // the cobbles and blocks are low, and 361 k shadow triangles a frame were the village frames' budget) and is never re-flagged
+    m.castShadow = false;
     const own = { tier: 'C', src: FORD_TAG.src, note: note(crossings.length), placeholder: false };
     if (share) { const sd = share.userData; m.name = 'plain-stone'; m.userData = { ...own, note: `${own.note}; with ${sd.note}`, describe: (hit: any) => (hit?.faceIndex ?? Infinity) < sharedFaces ? (sd.describe?.(hit) ?? sd) : own };
-      share.parent?.remove(share); share.geometry.dispose(); }
+      share.parent?.remove(share); share.visible = false; } // (D-670: not disposed: a renderer that met it may still hold its buffers)
     else m.userData = own;
     group.add(m);
   }
