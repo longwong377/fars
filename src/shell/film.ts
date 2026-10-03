@@ -78,5 +78,5 @@ if (typeof document !== 'undefined' && !document.getElementById('film-css')) { c
 // and ?nofilm go without it
 if (typeof location !== 'undefined' && typeof document !== 'undefined') {
   const q = new URLSearchParams(location.search);
-  if (!q.has('test') && !q.has('nointro') && !q.has('nofilm')) { if (document.body) mountTitleFilm(); else addEventListener('DOMContentLoaded', () => mountTitleFilm(), { once: true }); }
+  if (!q.has('test') && !q.has('nointro') && !q.has('nofilm') && !q.has('loadsave') && !(navigator as any).webdriver) { // (loadsave: the page reloaded itself to restore a save; webdriver: the project's drivers, budget and first-minutes, measure the world, not the film) if (document.body) mountTitleFilm(); else addEventListener('DOMContentLoaded', () => mountTitleFilm(), { once: true }); }
 }
