@@ -13,7 +13,7 @@
 // Tier C throughout (DECISIONS D-459): the law's fines and the elder's hearing are reconstructed from the Achaemenid evidence of
 // royal judges and fines in silver (B for the institution, C for the amounts and the village elder's part).
 import type { Population, Seg, Where } from '../population';
-import { segAt, OPEN_PLACE, wetHours } from '../population';
+import { segAt, OPEN_PLACE, wetHours, coldWear, dustWear } from '../population';
 import type { Economy } from '../economy/world';
 import type { RumourNet } from '../asks/rumour';
 import type { ActivityId } from '../activities';
@@ -294,6 +294,8 @@ export class DeedWorld {
     if (seg.act !== 'lie_ill') { if (P.ageOn(pid, day) < 3 || (P.persons[pid].job === 'child' && P.hday(P.home(pid, day), day).minder === pid)) return false; // (the minder is a child of the house)
       const wx = P.cal?.ctx(day).wx, open = OPEN_PLACE.test(seg.place) || /^(offering_place|hills|river|mountain|road:)/.test(seg.place) || OUTDOOR_ACT.has(seg.act);
       if (wx && open && (wetHours(wx, seg.t0, seg.t1) > 0 || (wx.dustH && wx.dustH[0] < seg.t1 && wx.dustH[1] > seg.t0))) return false; }
+    // (D-720, C7's planCheck: a laid stretch is dressed against the cold and the dust as the day's own are: fishing at dawn in winter)
+    { const wx = P.cal?.ctx(day).wx; if (wx) { const run = [{ ...seg }]; coldWear(run, wx); dustWear(run, wx); seg = run[0]; } }
     const k = `${pid}:${day}`; const l = this.lays.get(k) ?? []; l.push(seg); this.lays.set(k, l); return true; }
   /** take back the segments laid from a day on whose reason matches (a hire ended: D-462) */
   private unlay(pid: number, from: number, why: RegExp) { for (const [k, l] of this.lays) { const [p, d] = k.split(':').map(Number); if (p !== pid || d < from) continue; const r = l.filter(s => !why.test(s.why)); if (r.length) this.lays.set(k, r); else this.lays.delete(k); } }
