@@ -10454,3 +10454,14 @@ touched; the budget baseline is not re-accepted from such a head.
   the court's waiting keep facing what they wait on (no group facing for FACING_ACTS). Terrace bots seed 1: stuck time 4.8-6.6 %
   -> 0.47 % (gate 0.5 %), 40/40; seed 2: 1.56 %, 40/40, the rest at the Hall of 100's site where detailed agents (masons,
   sim.ts) stand in the way: they do not make way yet (sim.ts, C1). tools/dev/walkers.ts --stuck: where the time is spent.
+## D-697 After a jump nobody stays where the old state put them; the walks traced (s18 cloud C5)
+- popview.ts collect: a state more than STALE_H (0.05 h) out of date (not yet re-evaluated after a jump, over the plan budget)
+  is not drawn (C12's T1: 489 people stood at the court's places for seconds after a jump from day 40 to day 200; now 0 at
+  the first update). The catch-up after a jump runs longer (CATCH_UP 60 ms, then 8 ms for 90 updates): three seconds after
+  a jump the view places >= 80 % of a settle (tests/people_drawn.test.ts); a second after, cov-266 had 25 of 45 (the earlier
+  "104 of 116" counted stale states from before the jump).
+- tools/dev/walktrace.ts: the plans' walks at a moment against the view. At cov-142 (d88 13:48) the errands' walks are lost to
+  routes: TownWalk finds no route out of most of q_w3 eastward (261 of 537 lane cells; 58 of 67 homes without a route out),
+  sent to C2 with a repro. At q_s1 (d0 10:00) 53 of 75 people on the move walk; the walks are short (3-5 min), and only 6 of
+  303 drawn within 60 m walk: more and longer trips are the plans' (C1).
+- The doorstep shares a little higher (spin 50 %, play 65 %, talk 55 %, rest 40 %, craft 35 %, clean 45 %, eat 20 %).
