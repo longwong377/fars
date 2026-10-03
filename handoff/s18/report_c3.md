@@ -1,6 +1,8 @@
 # s18 C3 report: the river and the plain (D-670, branch cloud-s18-c3-plain)
 
 ## Broken, placeholder or unseen (first)
+- **The T4 black screen** (plain-stone in the sun shadow pass bound a released buffer) is fixed in 37b7b52c but unverified on the
+  T4: the stone mesh never casts and is never disposed. plain-tracks' null texture data is in the shared ground scans (C9).
 - **Everything here is unseen on the T4.** Judged only in crude SwiftShader WebGL2 frames (handoff/s18/c3_frames, before_ vs
   after_) and by node measurement. Check on the T4: the terrain shader's new field work (vigour, headlands, irrigation basins,
   drill rows, soil moisture) for compile time and frame cost; the wind's vertex cost on crops, reeds and trees.
