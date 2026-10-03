@@ -19,7 +19,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-ASSETS = sys.argv[1] if len(sys.argv) > 1 else r'C:\Users\Administrator\fars-assets'
+ASSETS = next((a for a in sys.argv[1:] if not a.startswith('--') and ',' not in a and os.path.isdir(a)), r'C:\Users\Administrator\fars-assets')
 MH = os.path.join(ASSETS, 'humans', 'makehuman_cc0', 'skins')
 TX = os.path.join(ASSETS, 'textures')
 OUT = os.path.join(ROOT, 'public', 'generated', 'humans', 'scans')
@@ -49,9 +49,9 @@ SKINS = [
 # cloth layers: (id, scan dir, fabric, threads per metre the garment should show: humanMaterial DRAPE.weave.fq)
 CLOTH = [
   ('linen', 'polyhaven/rough_linen', 'linen', 1500),
-  ('wool', 'ambientcg/Fabric031', 'wool', 700),
+  ('wool', 'ambientcg/Fabric030', 'wool', 700),  # (D-780: Fabric 030's tabby, from the lead's ambientCG sets; was Fabric 031)
   ('felt', 'ambientcg/Fabric034', 'felt', 0),
-  ('leather', 'ambientcg/Leather014', 'leather', 0),
+  ('leather', 'ambientcg/Leather037', 'leather', 0),  # (D-780: Leather 037's finer grain for the guards' gear; was Leather 014)
 ]
 
 def body_mask():
@@ -137,9 +137,10 @@ def threads_per_tile(g):
     i = np.unravel_index(np.argmax(F), F.shape)
     return float(R[i])
 
-def build_cloth():
+def build_cloth(only=None):
     rows = []
     for k, (cid, d, fab, fq) in enumerate(CLOTH):
+        if only is not None and cid not in only: continue
         base = os.path.join(TX, d)
         info = json.load(open(os.path.join(base, '_info.json'), encoding='utf8'))
         im = Image.open(os.path.join(base, 'diff.jpg')).convert('RGB')
@@ -165,6 +166,16 @@ def build_cloth():
                      'url': (f"https://polyhaven.com/a/{os.path.basename(d)}" if d.startswith('polyhaven') else f"https://ambientcg.com/view?id={os.path.basename(d)}")})
         print('cloth', k, cid, rows[-1])
     return rows
+
+if __name__ == '__main__' and '--cloth' in sys.argv:
+    # D-780: rebuild only the named cloth layers (`--cloth wool,leather [assets dir]`), keeping the skins and the other layers
+    # (the MakeHuman skins are on the GPU machine only); then run tools/bake_world/ktx_humans.ts
+    only = sys.argv[sys.argv.index('--cloth') + 1].split(',')
+    meta = json.load(open(os.path.join(OUT, 'scans.json')))
+    new = {r['id']: r for r in build_cloth(only)}
+    meta['cloth'] = [new.get(r['id'], r) for r in meta['cloth']]
+    json.dump(meta, open(os.path.join(OUT, 'scans.json'), 'w'), indent=1)
+    sys.exit(0)
 
 if __name__ == '__main__':
     os.makedirs(OUT, exist_ok=True)

@@ -56,7 +56,7 @@ const talks = sim.living.talks.filter(t => t.day >= D0 && t.day < D0 + N), tk: R
 const debts = ['loan', 'default', 'pledge_seized', 'suit', 'debt_labour', 'repaid', 'time_granted', 'bound_labour', 'redeemed'].reduce((o, k) => ({ ...o, [k]: kinds[k] ?? 0 }), {} as Record<string, number>);
 const out = { tool: 'tools/dev/chain_census.ts', seed: SEED, day0: D0, days: N, econChains: C.length, families, longest, links, events: kinds,
   deeds: { n: recs.length, byVerb: dv, lawCases: cases.length, ruled, goalsDeep, favoursRepaid: repaid }, rumours: { born: rumN, tellings: R ? R.stats.tellings - tell0 : 0, carriedPastFirstHand: carried, changedInTheCarrying: changed },
-  debtsCalled: debts, houseTalk: tk, hosted: (tk['visit'] ?? 0) };
+  debtsCalled: debts, houseTalk: tk, visits: (tk['visit'] ?? 0), guestsHosted: kinds['hosted_guest'] ?? 0 };
 const chainCount = C.length + cases.length + goalsDeep + repaid + carried; (out as any).chainCount = chainCount;
 if (OUT) { mkdirSync(dirname(OUT), { recursive: true }); writeFileSync(OUT, JSON.stringify(out, null, 1) + '\n'); }
 console.log(JSON.stringify(out, null, 1));

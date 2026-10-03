@@ -173,7 +173,8 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
     variants: [{ when: /in Aramaic/, prop: 'leather', prop2: 'pen', note: 'writing Aramaic with a reed pen and ink on a sheet of leather on the left palm (Aramaic ink epigraphs on Persepolis tablets: B; leather documents in the chancery: B by analogy; posture C; the writing on the sheet is not drawn: D-221)' }] },
   eat: { anim: 'eat', sound: 'murmur', tier: 'C', note: 'sitting and eating bread (rations: B)',
     // D-359: the bread brought along on an errand or a summons (economy/plans.ts feed)
-    variants: [{ when: /at the king’s banquet/, anim: 'sit', prop: 'bowl', note: 'seated at a low table at the king’s banquet, eating and drinking (Heracleides in Athenaeus 4.145: a claim, B; C: D-780)' },
+    variants: [{ when: /reclining on a couch at the king’s banquet/, anim: 'recline', prop: 'bowl', work: [{ kind: 'feast_couch', at: [0, 0, 0] }], note: 'reclining on a gilded couch at the king’s banquet, nearest the throne, propped on the left elbow on the bolster, the cup in hand (Herodotus 9.80-82: the couches, B claim; reclining: the Assurbanipal garden relief and the Greek banquet of the period, analogy; C: D-780)' },
+      { when: /at the king’s banquet/, anim: 'sit', prop: 'bowl', note: 'seated at a low table at the king’s banquet, eating and drinking (Heracleides in Athenaeus 4.145: a claim, B; C: D-780)' },
       { when: /^bread and water brought along/, prop: 'bread', note: 'eating a flat loaf brought along from home, wrapped in a cloth, where the day’s business holds them (C: D-359)' }] },
   sleep: { anim: 'sleep', tier: 'C', note: 'lying asleep on a mat (C)',
     variants: [

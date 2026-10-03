@@ -1,48 +1,70 @@
-# s18 cloud C2: town roofs, lane fill, doors, the last shut houses, the lower-city belt, washes (D-660, D-661)
+# s18 cloud C2: the town (D-660..D-675)
 
-Branch cloud-s18-c2-town. Frames: crude cloud software frames (SwiftShader WebGL2, quality=test), in handoff/s18/c2_frames/.
+Branch cloud-s18-c2-town. Frames: crude cloud software frames (SwiftShader WebGL2, quality=test, 1280x720 at the player's
+lens), in handoff/s18/c2_frames/: `_base` = d2ef51b (the session's start), `_after2` = 9522767b (D-660..D-662). The head's
+frames (the plaster, D-668/669; the life objects, D-670) are rendering; they are added below when done.
 
 ## Broken, placeholder or unseen (read first)
-- **Unseen at the T4's look.** Every frame here is the cloud's WebGL2 software path at test quality: placement and presence only.
-  The washes, the roof coat and the painted doors need a T4 frame to judge tone; the belt quarters (q_b*) have one cloud frame each
-  at most (see the frames table for which views show them).
-- **The town's courts still read as dark holes from afar** (they are open courts in shadow: correct, but heavy); not addressed.
-- **Lanes in shade read dark and bare even with the fill drawn** (c2-lane): the fill along the walls is mostly thin tools,
-  pegs and fodder that vanish in shadow; the light (exposure in narrow lanes) is not mine. The feet-level frame shows the things.
-- **The nav grid holds none of the new doors or the belt** (public/generated/nav.i16 is built from the Terrace only; the town's
-  own walk graph covers the quarters). The belt was kept outside the nav grid's box (e −620…262, n −245…185) for that reason:
-  moving the town into the Terrace's immediate foot needs build_nav.ts to take the town's colliders (asked of the lead).
-- **Cost.** The town plan (baked in the browser, live in node tests, the bake and CI) went 19 s → ~37 s on this box (739 more
-  plots and the access passes); tests/settlement_build's mesh-count check (≤ 45) already failed on the base (51) and now reads 55
-  (the belt's cluster meshes); its triangle check holds (1.14 M ≤ 1.2 M, base 0.968 M) only because the far level's wall crests
-  were thinned (stations 3 m → 6 m). tests/settlement.test.ts's 60 s setup hook timed out once on the loaded box (plan time).
-- The population is unchanged: households move to the nearest houses of their zone, so the belt fills from the existing quarters
-  and more houses further out stand empty.
-- The ask-c7-1 court eye lands against a wall in deep shadow: no court frame worth judging.
+- **The plastered town is unseen.** D-668 (the wash as a coat: 94.7 % of street faces plastered, was 0 %) and D-669 (the
+  material's damp foot no longer pulls the lower half of every wall back to tan) have no frame yet; every frame below still
+  shows the tan walls. The T4 must confirm the colour reads in noon sun.
+- **The first frame is still an empty field.** The lower-city belt (D-661) has to stay outside the people's nav grid box
+  round the Terrace (e −620…262, n −245…185: the nav grid holds no town walls, so houses inside it would be walked through),
+  so from the stair top the belt is a line on the horizon 450 m+ out (c2-approach-high). Bringing the town to the Terrace's
+  foot needs tools/build_nav.ts to take the town's colliders (asked of the lead), then the belt can move in.
+- **The nav grid holds none of the new doors** (the B580 cut corners, the belt): people do not route into those houses
+  until it is rebuilt (asked).
+- **The neighbourhood shrine is not built** (C12 row 19): src/world/settlement/precinct.ts is locked by
+  tests/religion.test.ts:47 (not mine); the household niches are in (D-670).
+- **Fewer, busier market squares** (C12 4-12) not done; the seasonal goods are (D-670).
+- **The kit's repair patches and rain rills** stay as drawn (D-660 feathered them); whether the T4's black streaks
+  (cov-037) are those, the material's streaks (halved, D-667) or something else is unseen.
+- **Cost:** the town plan builds in ~37 s in node (19 s at the start; baked in the browser, live in tests and the bake);
+  plots 1,505 → 2,016.
+- **tests/population.test.ts was not seen to pass after the belt**: it ran past its 50-min timeout twice on this loaded 4-core box (a render alongside); CI (C7) must run it. The belt changes which houses households take (the nearest of their zone), not their number.
+- **Vagon's Poly Haven props** (s18-face-assets) not converted: the lane and court fill draws the project's own modelled props (m_*.glb), which already hold hand-made stools, brooms, ladders and baskets; the scan-prop system already holds the wicker baskets, the bowl and the crate; the buckets (coopered, iron-hooped) read modern. Plaster001 is taken (D-674).
 
-## What a player now meets (measured)
-- **Roofs.** The town was never roofless: a ray down every house room hits a roof on the far level for 92 % of 6,878 rooms (the
-  rest carry roof fuel on top) and on both near levels for ~97 % of a 982-room sample. It read as open boxes because the roof top
-  was the walls' own plaster tone, parapets hide flat roofs at low angles and nothing of a roof's life was drawn beyond 120 m.
-  Now each roof carries a straw-and-clay coat (paler, warmer, varied roof to roof, both levels) and the roofs' jars, mats, fleeces
-  and dung cakes stand on the far level too. Frame c2-town20: the roofs read as roofs with their things on them.
-- **Lane fill.** It was drawn but under the lane's earth: the trodden ground was draped 10 cm over the terrain while the fill and
-  the people stand on the terrain. Before: 1,250 of 1,273 litter pieces and 709 mats and flat things wholly under it, every other
-  item (14,155) sunk 10 cm. After: the ground 1 cm over the terrain within 30 m of the eye (10 cm by 140 m), litter lifted 1.2 cm:
-  0 buried in every class (town fill census, node). Frame c2-lanefeet: dung cakes, cloth, a broom, firewood at the wall foot.
-- **Street doors.** No street door leaf had been drawn since s15 (eacb1e4 put the instance write inside a comment): every
-  doorway stood open. Drawn again, and 40 % of them now painted (red ochre, blue-grey, green-grey).
-- **Repairs.** Patches step a third as far from the wall's tone with a wider rim; brick losses get an irregular halo of
-  thinned, damp plaster fading into the wall. Unseen at the T4.
-- **Every house can be entered.** reach_census: shut houses 6 → 0, quarter plot cells reached 99.437 → 99.84 %, lane cells
-  99.742 → 100 %. Cut-back corners for landlocked houses (q_s4-0074 100/100 cells, q_s4-0161 91/141, q_w3-0122, one more) and a
-  lane pocket's one-cell exit widened into the yard beside it (q_w2-0077, q_w2-0082).
-- **The lower-city belt.** Five quarters (q_b1, q_b3, q_b4 on the road south, q_b5, q_b6 on the road west with a 14 m
-  processional street) join the quarters toward the Terrace's foot: plots 1,505 → ~2,240, all reached.
-- **Washes.** Houses washed white (12-52 % by standing), yellow ochre (10-18 %), red ochre (4-10 %), the rest bare mud; full in
-  the court, thinner on the lane, fading since the last renewal. Five more dyes in the cloth palette.
-- C5's q_w1 plot 141 (B691): not a collider fault; plot index 141 is q_w1-0142, a pen whose door opens onto a one-cell strip of
-  the pen with its own wall 0.8 m behind.
+- **C7's plain_d223 fields share is red: 0.177 < 0.4 (not loosened).** The lower town (D-675) now fills the stair view's
+  200-1,000 m foreground (town site ~13,400 px, trodden ground ~11,100 px), which the test counts as plain ground. It is the
+  direction itself, not a bug: the lead decides whether the test's ground excludes the town's site, or the 200-500 m natural
+  ground (~7,300 px) becomes fields (C3).
 
-## Frames
-(frames: rendering; this table is filled when the before/after renders finish)
+## What a player now meets (measured, node)
+- **Roofs** (D-660, D-662): the town was never roofless (a ray down every house room: the far level roofs 92 % of 6,878
+  rooms, the near levels ~97 %); it read as open boxes because the roofs were the walls' tone inside 0.22-0.62 m parapets.
+  Now a straw-and-clay coat on every roof, a lip of 0.05-0.39 m, the roofs' jars, mats, fleeces and dung cakes on the far
+  level too (c2-town20_after2: roofs read as roofs with their things on them).
+- **The lanes' things above ground** (D-660, D-662): the lane's earth is drawn 10 cm over the terrain while the fill stood on
+  the terrain: 1,250 of 1,273 litter pieces and 709 mats wholly under it, every other item 10 cm sunk; now the town's fill
+  is lifted onto it: 0 buried (c2-lanefeet_after2: dung cakes, cloth, broom, jars, sacks at the wall foot).
+- **Street doors drawn again** (D-660: no leaf had been drawn since s15, the draw sat inside a comment), 40 % painted.
+- **Every house entered** (D-660, D-666): shut houses 6 → 0, lane cells reached 100 %, plot cells 99.83 %.
+- **The lower-city belt** (D-661, D-666): five quarters (q_b1, q_b3, q_b4 beside the road south, q_b5, q_b6 along the road
+  west), 2,016 plots, all reached, settlement.test 11/11.
+- **The town plastered** (D-668, D-669): every walled plot washed (lime white, cream, warm ochre, pink, red ochre by
+  standing; estates and compounds gypsum-white), the court faces full and the street faces 0.84-0.95; a painted dado and
+  framed windows on the better houses; painted doors; the mud at the worn foot only. Unseen.
+- **Houses lived in** (D-664, D-665, D-670): a hearth in 1,711 of 1,931 houses (1,259 indoors), a quern in 1,889, an oven
+  (own or a neighbour's) in 1,929; interiors/ring.ts houseWorkObjects(plotId) for the people; a house being built in q_b1
+  (q_b1-0015); summer bedding and harvest fruit on the roofs, an ash heap and a latrine screen in every court, a niche lamp
+  and offering in every living room, seasonal stall goods, washing in the courts not across the lanes.
+- **The paradise garden** (D-666, D-671): raised beds under every tree, an understorey, stone-edged walks, an inlet and sluice.
+- **Neighbourhood shrines** (D-672): one walled shrine court per quarter (15), offering table, bowls, figurines, a lamp lit at night.
+- **Dawn view census** (D-672): at C6's intro-town camera no ray reaches a room's floor: every room roofed; the dark holes are the courts' inner faces (washed full now, D-668).
+- **Walls** (D-673, D-674): the footing's ledge toned so it no longer floats; the plaster's grain a lime-plaster scan (ambientCG Plaster001, CC0).
+- **The town to the Terrace's foot** (D-675): q_b8 under the Terrace's west foot, q_b9 west of it, q_b10 along the road to
+  the Gate; q_b1 removed (it stood on the stair forecourt's approach); the house being built is q_b10-0027 (-342.2, 136.4);
+  2,164 plots, capacity 10,638 <= 11,000; 0 houses shut. tests/settlement.test.ts keeps houses out of the Terrace and the
+  stair forecourt only (the nav grid takes the town's colliders, C5's D-694). Desire lines pointing at the stair are no
+  longer drawn (C7's radial red: 1 -> 0). Town props take a bottom face on request (Prop.bottom, C15's estates use it).
+- **Budgets:** settlement_build 5/5 (meshes 45, was 51 at the start; 1.04 M triangles ≤ 1.2 M), houses 9/9 (far level
+  < 800 k), the village P22 frame inside 2.0 M (no halos in villages).
+
+## Frames (crude, cloud)
+| view | camera (e, n, eye, az true, pitch; day 0 10 h) | base (d2ef51b) | after (9522767b) |
+|---|---|---|---|
+| town from 20 m | -478,-870,20,189,-28 | c2-town20_base.jpg | c2-town20_after2.jpg: roofs read, things on them |
+| town from afar | -320,862,20,135,-11 | c2-townfar_base.jpg | c2-townfar_after2.jpg |
+| a lane | -478,-881,1.6,189,-4 | c2-lane_base.jpg: empty | c2-lane_after2.jpg: people, jars, sacks, baskets |
+| a lane at the feet | -478,-881,1.6,189,-25 | c2-lanefeet_base.jpg | c2-lanefeet_after2.jpg: the fill at the wall foot |
+| the approach from the stair top | -70,60,25,251,-9 | c2-approach-high_base.jpg | c2-approach-high_after2.jpg: still empty (see above) |

@@ -10048,6 +10048,35 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   after (tests/cloud_slits_d680.test.ts; fails unwarped). The cover calibration tests pass unchanged. C.
 - Kuh-e Rahmat's bright streak: road_pasargadae's first segment (settlement.json [250,250] -> [2600,1900]) runs ruler-straight
   from 2 m up to ~290 m over the mountain behind the Terrace; a data fix (reroute round the north end) asked of the lead.
+- The live page's black frames (s18, the lead's urgent ask; the T4 and the cloud alike): (1) progressive.ts deferred, once the
+  frame's 40 ms build budget was spent, every draw never built before, and the full-screen quads are drawn last: the post
+  pipeline's (composite, TRAA, bloom, the meter's render-to-texture) at high, the renderer's own output quad (tone mapping
+  and sRGB to the canvas) at low; while the world streamed in they were deferred every frame, so the canvas stayed black and
+  the meter read an unwritten target (meterLn 0, EV -1 on the T4). A QuadMesh is never deferred now. Cloud live probe
+  (?webgl=1, low, Enter and the film skipped, no ?test): black at 54-93 draws before, the sky, clouds and ground from the
+  first sampled frame after. (2) pipeline.ts pins the renderer's tone mapping and colour space before three's RenderPipeline
+  pass and restores them in a finally (a throw inside it left NoToneMapping, and the next frame rebuilt the output without
+  AgX: toneMapping 0 on the live T4 page); a throwing pass is logged (window.__frameFaults) and the frame goes on. (3) main.ts:
+  a meter readback pending over 2 s is abandoned and an all-zero or non-finite one rejected; both fall back to the lux law.
+- (4) TRAA on the WebGL backend copied the scene depth into its history depth every frame; a depth copy there needs the texture
+  bound as a framebuffer once, which the history never was, so it threw ("Invalid value used as weak map key") inside the
+  post quad's draw and the frame was black at quality high on ?webgl=1. pipeline.ts binds and depth-clears the history target
+  when its depth has no framebuffer (cloud: the fault at 94 s before, none through 493 s after). (5) A black-frame watchdog
+  (pipeline.ts watchMeter/enterSafe, WATCHDOG; tests/black_watchdog_d680.test.ts): after a 20 s grace, 3 black meter samples
+  in a row (target unwritten or log-luminance < -20) in daylight with the scene drawing, 10 readback timeouts, or 3 frames of
+  a throwing post pass switch to the renderer's own tone-mapped output without post passes (window.__safeMode; ?nosafe off).
+- The night list (s18, leads 2-3): (a) the stars (skySystem.ts): soft round sprites sized and weighted by magnitude, B-V
+  colour 1.5x saturated, coming out through the twilight by a limiting magnitude (starLimitMag: none above -2 deg, the
+  brightest at -6, mag 3 at -9, 6.5 at -18; the full moon takes ~2.2), extinction (~0.25 mag per air mass) and twinkle near
+  the horizon; (b) the moonless night dome x2.5 at the zenith, x4 at the horizon, so the land (NIGHT_GREY fill) stands dark
+  against the sky instead of glowing brown under a black one; (c) the Moon's maria, mottle and Tycho; (d) the night's
+  fires (firePlaces.ts occasionalFires): a brazier per night-watch line (court.ts COURT_NIGHT_FIRES) on the court's nights,
+  16 banquet braziers in the Apadana on banquet nights, a torch in each jamb of the halls' real doors on the court's nights;
+  the fire occlusion re-baked (183 fires, none in a solid); FireSystem.setDay needs world.ts's call (asked); (e) the town's
+  dusk smoke (hearthSmoke.ts): dung-cake emission factors, the inversion's 60 min, a 0.35 m/s drainage floor (tau toward the
+  town from the Terrace 0.23 -> 0.34); (f) the soundscape: the nightingale on spring nights, the dawn chorus, the summer noon
+  hush; (g) ledges.ts disposes a swapped strip geometry two updates later. Dusk measured: sunset 18.36 h on day 0, the sun
+  sinks 12.6 deg/h (30 N), so 19.25 h is the end of nautical twilight. All C.
 - Unseen: the cloud cannot draw Q=high (WebGL2: program validation failures and a lost device with the cascade on AND off;
   WebGPU: SwiftShader's 16-texture cap), so the far cascade is verified node-side only; it needs a T4 frame.
 
@@ -10166,9 +10195,6 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   rings for a share of working men; gold plaques on a third of the court robes (drawn as the rosette motif in gold-yellow).
   people_look's rank test: court chroma > 1.5x the working dress's (was 2x; rank still shows).
 - Furnishings (furnish_palaces.ts): the Apadana laid for the banquets (a carpet and a table in each seated bay, lamp stands,
-  hangings on the W, E and N walls); with the court away the halls keep their hangings, and the Apadana a keeper's corner and lamps.
-
-
   hangings on the W, E and N walls: dropped in the second pass for the 450 k budget, the tables then drawn at the model's lowest
   level); with the court away the halls keep their hangings, and the Apadana a keeper's corner and lamps.
 - Second pass (the lead's go-ahead and C12's passes 2-4): the asks applied in activities.ts, calendar.ts (E-28, E-29) and
@@ -10180,10 +10206,22 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   (seats round tables, the servers by the tables, the lamp tenders by the walls, a phiale and a jug on each table); the royal
   women's outing to the paradise; bead necklaces; barefoot labourers and stripping to the waist in the heat (lookInput.tempC);
   fewer look-alikes in a crowd (12.8 % -> 2-3 %); the gifts drawn as a prop class of their own.
+- Fourth pass (the lead's list): night on the Terrace (palace servants keep the lamps and braziers at the halls and the Gate from
+  dusk to the late watch; COURT_NIGHT_FIRES, a brazier per night-watch line, for C4); the top ranks recline on couches at the six
+  tables nearest the throne (workObjects 'feast_couch', the furnishings' couch model as one instanced work object; workAnims
+  'recline', measured on the rig); UD-27 at the court (court.json houses): the Persians of rank as 55 great houses married into
+  one another and into the king's house, with rivals, and the king's favour drifting by the season, shown in the banquet's
+  seats, the audience's places and who talks with whom (all C); court.test's sealed-letter test cut to the court's residence.
+- Fifth pass (the lead's ambientCG sets, branch s18-face-assets): the court's textiles take CC0 scans in bulk: Fabric 030's tabby
+  for the woven wool of couches, cushions, hangings and covers (furn_textile; Fabric 043 was a felt), Carpet 012's cut pile for
+  the carpets (a furn_carpet surface of their own), Leather 037 for leather props; the people's wool and leather layers
+  (build_humans_scans.py --cloth, for the dress weave and the guards' gear) rebuilt from Fabric 030 and Leather 037, the dyes
+  unchanged; KTX2 baked with KTX-Software 4.4.2 on Linux. people_drape's far-mean test on a plain robe (the rosettes' far mean
+  is the impostor's, people_look).
 
 ## D-760 An original score, out of world: recorded orchestra, a main theme, an hour for the world, and a director that leaves silence (session 18, cloud C11; UD-38, UD-39)
 - The user's words (UD-38, UD-39) add non-diegetic music to the out-of-world layer, at a Hollywood bar and never recognisable as AI: the brief's "no background score" (§11) gives way to them; its ban on the "ancient Persia" cliché stands and binds the score (blocklist 'music-cliche': no duduk, oud or santur, no augmented-second "exotic" modes, no bent ethnic solo as the theme's identity; after C12's fourth pass the first draft's cor-anglais "duduk", alto-flute "ney" and Phrygian/Hijaz cues were rewritten for solo cello, horn, clarinet and flute in minor, Dorian and Aeolian). Majesty comes from harmony, brass, choir and rhythm; the period's colour (harp, frame drum) is used lightly. Equal temperament is the orchestra's own: the brief's tuning rule governs the world's players (src/audio/music.ts), not the out-of-world score. C.
-- Composed, not generated: every note is written (tools/score/cues/*.ts; the arranger's kit lib/kit.ts voice-leads pads and basses but never invents a tune), performed with expression (lib/write.ts: CC1 hairpins with each long note's own swell, vibrato blooming on held notes, section onsets spread, rubato tempo maps, legato overlaps), rendered through recorded instruments only (Sonatina Symphonic Orchestra, CC Sampling Plus 1.0; VSCO-2 Community Edition, CC0; MuseScore General, MIT; via sfizz and fluidsynth: tools/score/fetch.sh), mixed on a stage (pan, depth, a hall, glue compression, a look-ahead limiter) and mastered to BS.1770 loudness (-16 LUFS the theme, -18 to -22 the world's cues, true peak under -1 dBTP). The composer checks by measurement (tools/score/analyze.ts loudness curve and spectrogram; the build's semitone-clash check of long notes against the harmony): nobody in the cloud can listen. The hall is synthetic (no recorded hall IR is reachable here: a Vagon fetch can replace it).
+- Composed, not generated: every note is written (tools/score/cues/*.ts; the arranger's kit lib/kit.ts voice-leads pads and basses but never invents a tune), performed with expression (lib/write.ts: CC1 hairpins with each long note's own swell, vibrato blooming on held notes, section onsets spread, rubato tempo maps, legato overlaps), rendered through recorded instruments only (Sonatina Symphonic Orchestra, CC Sampling Plus 1.0; VSCO-2 Community Edition, CC0; MuseScore General, MIT; via sfizz and fluidsynth: tools/score/fetch.sh), mixed on a stage (pan, depth, a hall, glue compression, a look-ahead limiter) and mastered to BS.1770 loudness (-16 LUFS the theme, -18 to -22 the world's cues, true peak under -1 dBTP). The composer checks by measurement (tools/score/analyze.ts loudness curve and spectrogram; the build's semitone-clash check of long notes against the harmony): nobody in the cloud can listen. The hall is measured: the Nordea concert hall's impulse response (Tallinn; Freesound 423803, CC0, fetched by Vagon), ~1.2 s decay; the modelled hall remains the fallback. Of Vagon's other fetched samples none is used: the harp and lyre files are phrases and ambiences, not note-by-note instruments (SSO's sampled harp stays), the one frame-drum file is a loop, and duduk, ney, oud, santur and tombak stay out by §11's ban.
 - The main theme "Pārsa" (2:25, D minor, its bars the title film's cuts); 21 cues for the world (64 min: dawn, day, dusk, night, rain, the Terrace and its court, the roads, the town, the plain), each 2:15-3:45, Opus in WebM at 80 kbps (the opening's cue also AAC): public/audio/score/, catalogue manifest.json.
 - In the world (src/audio/score.ts): after the opening (or at once on a continued visit, 4-7 min of silence first), one cue at a time fitting the hour, place and weather, never the last one, nothing heard in the last 8 cues or the last hour while a fresh one fits, 5-12 min of silence between, 6 s in, 8 s out. Settings › Sound: "Score" On/Off and "Score volume" of its own ("Music in the world" stays the people's playing). Streams on demand: nothing of the score loads before the walk but the opening's.
 
@@ -10262,6 +10300,14 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   four horses abreast, CHARIOT_YOKE 2.95 m, the car's floor 0.55 m); the royal women's curtained litter (workObjects 'litter',
   carry_bier on a why naming it; Plutarch Them. 26, HDT 7.83 claims B, the form C); household donkeys tied at lane doors by
   day and hens out at the door (fauna.json donkey 0.08 of lane-door houses; all C).
+- D-790 round 4: the toddler held where it plopped (crowd.ts hold, Gait.plop; a held hand keeps it up) and hurrying after;
+  carried biers and litters walk in formation with their crews (crowd.ts CREW: the anchor bearer's place the centre, the
+  bearers at 0.46 m / 1.0 m by their pole's shoulder; Q-196 closed for moving crews); the royal women's litter carried by
+  C13's bearers (C13's model). The face assets (branch s18-face-assets, Vagon): the Lee Perry-Smith scan's normal map (CC BY
+  3.0) integrated to height, fitted to hm08 by an affine and thin-plate warp on six landmarks, cast onto its UV and blended
+  over the procedural creases (tools/blender/face_scan.py; skin.ts applyFaceRelief); its albedo is not used (one man's
+  stubble and brows on every face). The hair atlas's curls loosened (curly, court and beard rows: more irregular radius,
+  pitch and phase, more strays and fray: the elder's "bubble wrap"), rebuilt in the cloud (ktx_cli.mjs takes given levels).
 
 ## D-691 Carried props sit on the body, seated poses clear their props (s18 cloud C5)
 - tools/dev/prop_clip.ts: every activity and variant that holds a prop, and the goods in the plan's words (basket, sack, jar,
@@ -10286,7 +10332,7 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
 - interiors/ring.ts houseWorkObjects(plotId, day): a house's work objects in world terms (kind, e, n, y, rot, room or −1 for the court, inside, shared, note) from the same room plans the ring draws and the court's fittings, for C1 to put people at real work objects.
 - C12 W12: a tray-table only in the better-off houses (standing > 0.6); the rest eat from a tray of flat bread on the mat.
 ## D-800 Beyond the Terrace in 467: Naqsh-e Rustam painted and in use, the estates porticoed, the villages washed (s18 cloud C15; holes.md row 20)
-- Naqsh-e Rustam (plain/naqsh.ts, naqsh_paint.ts, naqsh_life.ts): the façades' architecture painted and gilded per vertex over the Blender model's baked maps (column bases' tori blue, astragals red, bull capitals a warm wash with gilded horns and a gold-studded red harness, fasciae red/blue/green, dentils blue, cornice red, the doorway's bands, the throne's beams and slab, its legs gilded; the recess's back, the lower arm and the shafts bare: the reliefs' ground is the stone, D-030); the Ka'ba's white fresh (albedo 0.79, finer grain); DNc, DNd and DNe carved in Old Persian from ARIo Q007154-6 (CC0; tools/build_naqsh_captions.ts writes their entries in inscriptions.json from data/corpus/ario_dn_captions.catf; 18 of DNe's 30 lines, the rest lost and uncut; lines 29-30 under each tier's last bearer), moved from the programme's 'missing' to 'carved', with the project's translations (the lead's go; no pick rectangles: the plain's mesh cap); the Elamite and Babylonian of DNa/DNb stay uncut (Q-1730: no licensed digital text exists); the second tomb's scaffold (16 standards, 4 decks, ladders), its spoil of fresh chips and the cutters' lean-to; the keepers' whitewashed courtyard house at D-640's NAQSH.house; the offering table before Darius' tomb (bowls of flour, wine and water, the barsom, flowers). One extra draw (nr-life, 7.8 k tris); the DNa/DNb panels now draw with the Elamite relief's panel (the plain stays at 40 meshes).
+- Naqsh-e Rustam (plain/naqsh.ts, naqsh_paint.ts, naqsh_life.ts): the façades' architecture painted and gilded per vertex over the Blender model's baked maps (column bases' tori blue, astragals red, bull capitals a warm wash with gilded horns and a gold-studded red harness, fasciae red/blue/green, dentils blue, cornice red, the doorway's bands, the throne's beams and slab, its legs gilded; the recess's back, the lower arm and the shafts bare: the reliefs' ground is the stone, D-030); the Ka'ba's white fresh (albedo 0.79, finer grain); DNc, DNd and DNe carved in Old Persian from ARIo Q007154-6 (CC0; tools/build_naqsh_captions.ts writes their entries in inscriptions.json from data/corpus/ario_dn_captions.catf; 18 of DNe's 30 lines, the rest lost and uncut; lines 29-30 under each tier's last bearer), moved from the programme's 'missing' to 'carved', with the project's translations (the lead's go; no pick rectangles: the plain's mesh cap); the Elamite and Babylonian of DNa/DNb stay uncut (Q-1730: no licensed digital text exists); the second tomb's scaffold (16 standards, 4 decks, ladders), its spoil of fresh chips and the cutters' lean-to; the keepers' whitewashed courtyard house at D-640's NAQSH.house; the offering table before Darius' tomb (bowls of flour, wine and water, the barsom, flowers). The keepers' working ground: a sheepfold with a reed-roofed shelter, a well with posts and a trough, a kitchen garden, a fuel stack of brushwood and dung cakes, and trodden paths from the house along the cliff foot to the offering table and the Ka'ba's stair, to the works, and S toward the road (C); the spoil's chips paler (fresh). One extra draw (nr-life, 7.8 k tris); the DNa/DNb panels now draw with the Elamite relief's panel (the plain stays at 40 meshes).
 - The estates, the pavilion, the Dasht-e Gohar hall (settlement/estates.ts; plan.ts estateSite, pavilionProps, the hall block): Achaemenid columns (stone plinth, bell and torus, a plastered timber shaft painted red ochre with blue and yellow bands, a blue bracket capital), painted architraves over glazed-brick friezes of white, turquoise and yellow, roofs with painted eave boards; each estate a nine-column garden porch, a four-column talar in the court, a gatehouse, and a four-part garden of stone-lined channels crossing at its pool; the estates' columns and piers stand as the town's 'column' fittings (colliders, far level) under the painted props. All C by analogy with Pasargadae (Palace P, the pavilions, the garden) and the Terrace's paint. +1 settlement mesh (the estates' prop batch), +34 k triangles.
 - The villages (plain/villagehouses.ts): the far level takes each household's wash by C2's draw (D-661), so villages read from afar as they do near; 38 % of households a cloth or two drying over the eave, 30 % dung cakes drying on the lane wall (C). +~60 k far triangles (the plain 1.87 M of 2.0 M).
 
@@ -10377,3 +10423,67 @@ touched; the budget baseline is not re-accepted from such a head.
 - Every living room's niche with a saucer lamp and a little of the meal set out (interiors/plan.ts; C: household offerings in wall niches; no words or images of a named god). The neighbourhood shrine waits on precinct.ts's lock (tests/religion.test.ts).
 - The stalls by season (fillPlan.ts): fresh fruit at the harvest only; in the warm and cold months the same spreads sell dried fruit and nuts (C; the PF rations' dried fruit, B).
 - (D-671, s18 C2, C12 row 16) The paradise garden fed: a stone-lined inlet from the plain's side (NNE) through the wall into the first cross channel, 48 m, and a sluice where it enters (two dressed stone cheeks, a timber board in their slots, its lifting bar; build.ts 'sluice'). C: the Pasargadae garden's channels fed by an inlet, B by analogy; the source beyond the inlet's end is not drawn.
+- The villages (plain/villagehouses.ts): the far level takes each household's wash by C2's draw (D-661), so villages read from afar as they do near; 38 % of households a cloth or two drying over the eave, 45 % a straw and fodder stack on the roof, 30 % of wings brushwood (C); the estates' porches with pile carpets, cushions and a brazier, jars by the pool, benches. The dung cakes on the lane walls were cut again: s17-int already stood at 2.01 M plain triangles (cap 2.0 M), and this branch brings it back under.
+
+## D-672 The neighbourhood shrines; warmer roofs; the dawn roof census (s18 cloud C2, the lead and C12 row 19; C6's intro-town)
+- Each quarter's neighbourhood shrine (plan.ts neighbourhoodShrine; the lead: in the settlement, not the fire precinct): the house plot of 50-150 m² whose door opens on a square (else the one nearest the middle) kept as a walled shrine court (kind 'shrine', no household), its room the cella, in the court an offering table of dressed stone with bowls of offerings, clay figurines and a lamp kept burning at night (build.ts 'shrine', the fire system's lamp; a collider). C: the town's local and foreign households' small sanctuaries; no image or words of a named god. 15 shrines, homes 1,947 → 1,932.
+- C6's intro-town (−320, 862, 20 m, az 154, pitch −11, 45°, at dawn) measured in node: of the town's pixels no ray reaches a room's floor (nor a court's): every room is roofed; the "open tops with dark floors" are the courts' inner faces in shadow (1,589 wall pixels against 188 roof at ~300 m and 20 m up). D-668's full wash on the court faces lifts them; the roofs' coat warmer (ROOF_COAT 0.8/0.64/0.44, 65-85 % over the plot's earth).
+- Market goods kept off the plots by 6 cm (a bowl on a cell's edge rounded into a workshop: fill.test), the open-ground market's goods checked too.
+- (D-673, s18 C2, C6's cov-037) The "floating wall-foot strip over a black gap": the stone footing's 3.5 cm ledge, its lit top over its own shaded face and the damp band; the ledge's top toned down (0.78) and the face lifted (0.94-1.06, ao +0.1). cov-037's large hatched brick loss on c7dcb652 is V9's material loss, capped at 1.5 % by D-663 (after that head).
+- (D-674, s18 C2, the lead's assets ask) The town's walls in a lime-plaster grain: ambientCG Plaster001 (CC0, Vagon's s18-face-assets; hand-laid lime plaster with trowel marks) as house_plaster's scan (src/render/scans.ts; public/textures/plaster001 diff and arm, scans.json, ASSET_LEDGER), was Poly Haven's Dirt Floor: the households' washes keep their colour (the scan is a ratio over it), the walls now read as plaster, not earth. Plaster007 (greenish stains) and PaintedPlaster017 (a modern painted finish) not taken.
+
+## D-675 The lower town up to the Terrace's foot (s18 cloud C2, the lead: build_nav takes the town's colliders, C5's D-694)
+- Three quarters inside the old nav box (plan.ts): q_b8 against the Terrace's west foot south of the Grand Stair (e −240…−134; the zone stops at e −100, and the way along the foot between the two roads stays open: traffic.ts courierOut), q_b9 between the road west and the road south at the foot (300 x 180 m), q_b10 fronting the road west, the way to the Gate. Open: the stair's forecourt, the walk from the stair's foot to Persepolis West (settlement_build), the roads. The town's capacity kept under population.json's night 10,000 + 10 %: the farthest quarters smaller (q_s2 190², q_s3 170 x 190, q_s4 160 x 150, q_b5 130 x 120): plots 2,202, homes 2,117, capacity 10,785; every house reached (0 shut, lanes 100 %, plot cells 99.92 %).
+- Draws and triangles held: the three in their neighbours' far meshes (settlement_build 45 meshes), the far roofs' things the jars and mats only (houses.test's far level < 800 k).
+- tests/settlement.test.ts's "no plot inside the nav box" (the old rule) now fails by design: asked of the lead to narrow it to the Terrace and the stair forecourt; the nav grid wants C5's rebuild with the town's colliders.
+- Addendum (lead 2, lead 3): tests/settlement.test.ts's nav check narrowed to the Terrace (e −65…262, n −245…240) and the stair forecourt (e −250…−60, n 40…200), houses only kept out of those; q_b1 removed (it sat on the forecourt's approach), the house being built moved to q_b10-0027 (centre −342.2, 136.4); 2,164 plots, capacity 10,638 ≤ 11,000. C7's red "no run points at the camera" (plain/townGround.ts, not mine, lead 3's mandate): a desire line longer than ~12 m whose midpoint bearing from the stair lies within 15° of its own is not drawn (radial runs 1 → 0). Town props take `bottom?: boolean` (C15's ask, plan.ts Prop, build.ts passes it to Batch.box); the town's own props all stand on the ground, so none set it. The plain_d223 fields share (0.177 < 0.4) is NOT fixed: the town now fills the stair view's 200–1,000 m foreground, a conflict put to the lead, the test not loosened.
+## D-751 The cloud frames' black walls: the KTX2 target from the WebGL2 context (s18 cloud C10)
+- The cloud's eyes draw through WebGL2 (?webgl=1) while sharedKTX2 (render/loaders.ts) took its transcode target from the WebGPU
+  adapter's features: BC7, which SwiftShader's WebGL2 cannot upload (compressedTexSubImage2D 'invalid format'), so every KTX2
+  scan sampled black (the Terrace's walls in every cloud frame since D-354). With ?webgl=1 the target now comes from a WebGL2
+  context's extensions. The T4 (WebGPU) path is unchanged. Probe frames before and after (handoff/s18/c10).
+
+## D-752 The Terrace in residence: the polychromy pass (s18 cloud C10; holes.md #3, #6, P2-3; D-771; UD-14, UD-29)
+- Palace walls and towers draw in palace_plaster (meshes.ts renderMaterial): the interior scheme inside (global.r_interior_paint)
+  and PALACE_OUTER_PAINT outside (a yellow-ochre lime ground, a red ochre dado 1.4 m edged by white, Egyptian blue and white
+  bands, a red frieze 1.1 m under the wall's head with a white edge); kept by the court (PALACE_KEPT: no fallen plaster, faint
+  wash and damp). The Treasury keeps its clay paint; the fortification and the working ranges keep PALACE_WEATHER. Pigments B
+  (RELIEFS_AND_COLOUR §3a), layout and tones C.
+- The frames (limestone_dark parts) draw in frame_coat: the whitish fluorapatite-and-calcite coat over the dark stone (Askari
+  Chaverdi et al. 2016, B), burnished (C). limestone_dark itself (the Now view, the Ka'ba) is unchanged (UD-20).
+- 467 stone fresh: no lichen on the Terrace's own stone (grime.ts LICHEN), the boulder scan's mottle at 20 % chroma and two
+  thirds of its weight (scans.ts; ALB_MIN kept). Royal cedar planed and painted red ochre (timber, roof_timber).
+- The protome capitals, the volutes and the Gate's colossi painted and gilded (src/arch/model_paint.ts: zones in each model's own
+  space, vertex colour plus a gilt mask on its own baked material; ~5 new pipelines). Every relief figure painted: flesh, leather,
+  the eye's white with a dark pupil, the animals' coats, the Elamite worshippers (relief_figures.ts); the paint atlas rebuilt
+  alone by tools/blender/relief_paint.ts (same layout, nao.ktx2 as baked; all 221 definitions checked against the index's grid).
+  The inscriptions' signs in Egyptian blue (C). Tests that pinned the ruin changed (polychromy, surfaces_s6, roofedge).
+- The relief triangle gate held: the cypress's error bound x1.6 on the vertex-painted levels (reliefs.ts ERR_K): 1.57 M -> 1.39 M.
+- Not done: the relief backgrounds (the façade stone) bare; the ceilings plain red.
+
+## D-753 The Apadana's tower stairs and walkable roofs (s18 cloud C10; holes.md P2-5, Q-630, D-771)
+- Each corner tower hollow (src/arch/tower_stairs.ts): 2.4 m walls carrying the tower's envelope, a door from its portico, a
+  stair of plastered mud brick climbing round the inside in flights with corner landings to a hatch in the tower's slab; a short
+  flight from the hall roof up to each tower top; the Apadana's roofs solid (walkable where the stairs reach them). The frieze,
+  the standards and the windows read the envelopes (glazed.ts towerEnvelopes). All sizes C.
+- roofedge.ts: an edge where a part continues the top flush at its own level is not free (no parapet between a tower's slab and
+  its walls' heads; also the doubled parapet where a wall's top is flush with a roof). arris_slabs.ts: a stair joint just past a
+  tread's end (under the parapet it abuts) grooved at the end, and clipped joints kept down to 4 mm (was 2 cm): a latent hole at
+  the Tripylon and Hadish stairs that the new faces' resampling of tests/arris_slabs exposed.
+- nav, probes and fire occlusion rebaked (parts hash).
+
+## D-754 The drums' sledge road and ramp (s18 cloud C10; holes.md P2-6, Q-710, D-771)
+- From the drum ground (traffic.ts DRUM_GROUND) south 104 m to the Terrace's N edge, on the ground as the heightfield gives it
+  (src/arch/drum_road_profile.json from tools/blender/drum_road_profile.ts): a packed-earth bed with the runners' ruts, timber
+  sleepers every 0.9 m, fieldstone kerbs; at the drum ground 18 drums on chocks and two sledges. The heightfield's bank stands
+  ~4 m over the court along the whole N edge, so an earth ramp (parts, walkable) comes down westward from a head against the
+  edge (e 146-154) to the court along the strip between the edge and the garrison. All C; the movers (traffic.ts) still stop at
+  the drum ground: their last 250 m onto the ramp is C1's.
+- (D-696, the walk) a post held keeps its place, but two people of a post are never on one spot (SEP_POST 0.1 m: a shared spot
+  is spread, the court's files keep their own spacing), and a guard at his post gives half a step (0.5 m) to the stranger;
+  the court's waiting keep facing what they wait on (no group facing for FACING_ACTS). Terrace bots seed 1: stuck time 4.8-6.6 %
+  -> 0.47 % (gate 0.5 %), 40/40; seed 2: 1.56 %, 40/40, the rest at the Hall of 100's site where detailed agents (masons,
+  sim.ts) stand in the way: they do not make way yet (sim.ts, C1). tools/dev/walkers.ts --stuck: where the time is spent.
+## D-801 The roads of the plain in use: wells, halts, carts, field shrines, the road's dung (s18 cloud C15, lead 3's round 2)
+- src/world/plain/wayside.ts, drawn in Naqsh-e Rustam's nr-life mesh (no new draw): along the first 9 km of every road present in 467 (settlement.json; the Naqsh-e Rustam road its whole length), a well every ~2.2 km (fieldstone kerb, posts and beam, a stone trough), a halt every ~2.6 km (a mud-brick shelter open to the road, a bench, jars, a tethering post and dung, an ox-cart stood by it with solid wheels, shafts and sacks), a field shrine every ~3.1 km on the far side (a small stepped altar of the Naqsh reliefs' form, its ash heap and stacked wood; the fire is the people's action, not drawn), nothing in a settlement zone or on steep ground. Measured: 4 roads, 12 wells, 12 halts and carts, 10 shrines, ~6.7 k triangles (the road's droppings are roadLitter.ts's, session 10: not repeated). Way-stations and travel rations B (the Fortification texts); the spacing and the forms C. To pay for it inside the plain's 2.0 M: the threshing floors' kerbs 12 larger stones (were 26), the roof stacks three faces.
+| D-811 | s18 lead 3 | Deployed s17-int e8e271e8 to s14-int (Pages): C9's live path (a) WebGL low lit, 0 faults; the live site was black (c3bde8ab). The user: the lead is the director and deploys without asking. |

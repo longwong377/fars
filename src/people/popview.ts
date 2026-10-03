@@ -132,6 +132,8 @@ export const IMPAIR = { lame: { share: 0.006, ages: [22, 60] as [number, number]
  *  courts read as grids and stopped the walk), in a room or tent 0.7 m (shoulder to shoulder); an arriving walker takes
  *  STEP_S to step aside */
 export const SEP = 1.0, SEP_IN = 0.7; const STEP_S = 2;
+/** D-696: two people of a post or a file of the court's order are never on one spot (m: only a shared spot is spread; the files keep their own spacing) */
+export const SEP_POST = 0.1;
 /** D-690: a door opening and the apron before it (m from the opening's middle, either side) are kept clear of anyone standing */
 export const DOOR_CLEAR = 1.5;
 /** D-690: how far from its spot a person standing is spread at most (m; in a room or tent, out of doors) */
@@ -475,8 +477,8 @@ export class PopView {
    *  YIELD_STEP m aside, off the stranger's way (to the side of it they stand on; away when the stranger stands), to a
    *  clear place (nobody there, the same court or open ground, not a doorway), turned toward the stranger; past the
    *  radius they step back. How far is a function of the distance, so the step follows the stranger's own pace and a
-   *  person never jumps; the side is chosen as the step begins (again while it is young, when the stranger turns onto it). A post held (Spot.fixed) does not move but turns its head
-   *  (the crowd's glance, ViewPerson.glance) */
+   *  person never jumps; the side is chosen as the step begins (again while it is young, when the stranger turns onto it). A post held (Spot.fixed) gives half a step
+   *  (D-696) and turns its head (the crowd's glance, ViewPerson.glance) */
   private makeWay(s: PS, o: ViewPerson, sp: Spot) {
     const de = s.sepE - this.eye[0], dn = s.sepN - this.eye[1], d = Math.hypot(de, dn);
     const R = this.inDoor(sp, s.sepE, s.sepN) || this.nearDoor(sp, s.sepE, s.sepN) ? YIELD_DOOR_R : YIELD_R;
@@ -492,7 +494,7 @@ export class PopView {
       // turned, rather than stepping into the gap left; s18: a child in q_s2's 1.4 m lane pinned the walker so)
       const cands: P2[] = moving ? [[-fy * side, fx * side], [(-fy * side + fx) * 0.7071, (fx * side + fy) * 0.7071], [(-fy * side - fx) * 0.7071, (fx * side - fy) * 0.7071], ...(Math.abs(lat) < 0.3 ? [[fy * side, -fx * side] as P2] : [])]
         : [[de / (d || 1), dn / (d || 1)], [-dn / (d || 1), de / (d || 1)], [dn / (d || 1), -de / (d || 1)]];
-      if (!sp.fixed) for (let c = 0; c < cands.length; c++) { const [ux, uy] = cands[c]; for (const L of [YIELD_STEP, YIELD_STEP * 0.6, YIELD_STEP * 0.4]) {
+      for (let c = 0; c < cands.length; c++) { const [ux, uy] = cands[c]; for (const L of sp.fixed ? [0.5, 0.3] : [YIELD_STEP, YIELD_STEP * 0.6, YIELD_STEP * 0.4]) { // (a guard at his post gives half a step, D-696)
         const e2 = s.sepE + ux * L, n2 = s.sepN + uy * L;
         if (!this.freeAt(e2, n2, s.pid, 0.55) || this.inDoor(sp, e2, n2) || !this.geo.stepClear({ ...sp, e: s.sepE, n: s.sepN }, [e2, n2])) continue;
         const score = L - c * 0.3; if (score > best) { best = score; be = ux * L; bn = uy * L; } break; } }
@@ -555,9 +557,10 @@ export class PopView {
    *  (the spot). Counted: `stats.spread`, `stats.crowded` when no ring has room, `stats.doorKept` off a doorway */
   private separate(s: PS, t: number, arriving: boolean) {
     this.release(s); const sp = s.spot!; let e = sp.e, n = sp.n, h = sp.heading;
-    const sep = sp.inside ? SEP_IN : SEP, door = this.inDoor(sp, e, n);
+    const sep = sp.fixed ? SEP_POST : sp.inside ? SEP_IN : SEP, door = this.inDoor(sp, e, n); // (D-696: posts and the court's files keep their own close order)
     // (D-221: a post or a place in the court's order is held where it stands, unless it is in a doorway: D-690)
-    if (door || (!sp.fixed && !this.freeAt(e, n, s.pid, sep))) { let found = false; const ph = h32(this.seed, S.sep, s.pid) / 4294967296 * Math.PI * 2;
+    // (D-696: a post held is held, but by one: the second guard of a post stands beside the first, not in him)
+    if (door || !this.freeAt(e, n, s.pid, sep)) { let found = false; const ph = h32(this.seed, S.sep, s.pid) / 4294967296 * Math.PI * 2;
       // (to SPREAD_R m: a court's gathering spreads over its court rather than packing closer)
       for (const g of [sep]) { const rings = Math.floor((sp.inside ? SPREAD_R.inside : SPREAD_R.out) / (g * 1.17));
         for (let ring = 1; ring <= rings && !found; ring++) { const m = 6 * ring; for (let k = 0; k < m && !found; k++) {
@@ -565,7 +568,7 @@ export class PopView {
           if (this.freeAt(e2, n2, s.pid, g) && !this.inDoor(sp, e2, n2) && this.geo.stepClear(sp, [e2, n2])) { e = e2; n = n2; found = true; } } }
         if (found) break; }
       if (door) this.stats.doorKept++;
-      if (found) { this.stats.spread++; if (SOCIAL.has(s.act) && !door) h = headingOf(sp.e - e, sp.n - n); } else this.stats.crowded++;
+      if (found) { this.stats.spread++; if (SOCIAL.has(s.act) && !door && !(this.pop.court && FACING_ACTS.test(s.act))) h = headingOf(sp.e - e, sp.n - n); /* (not the court's waiting, who face what they wait on: D-221) */ } else this.stats.crowded++;
       s.full = !found; } else s.full = false;
     s.sepE = e; s.sepN = n; s.sepH = h; s.sepFor = sp; s.sepT = arriving ? t : -1e9; s.occ = this.occKey(e, n); s.yK = 0; s.yOn = false;
     const L = this.occ.get(s.occ); if (L) L.push(s.pid); else this.occ.set(s.occ, [s.pid]);

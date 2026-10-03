@@ -103,7 +103,7 @@ export const IMP_MAP: Partial<Record<AnimId, [string] | [string, string, string]
   smith: ['smith@28.5'], bellows: ['pat@52.2'], chasing: ['chasing@54.2'], weigh: ['harp_h@30.9'], seal: ['reed_pipe@16.5'], seal_jar: ['seal_jar@41.6'],
   drill: ['chasing@54.2'], scrape: ['scrape@31.3'], pound: ['pound@41.8'],
   // D-292 (the nearest frames by tools/dev/imp_keys.ts)
-  wash_face: ['wash_face@13.1'], delouse: ['delouse@6.6'], shave: ['shave@30.9'], sling: ['sling@27'], proskynesis: ['harp_h@30.9'], pour: ['pour@34.7'], serve: ['serve@50.5'], fan: ['fan@15.9'], charioteer: ['pour@34.7'],
+  wash_face: ['wash_face@13.1'], delouse: ['delouse@6.6'], shave: ['shave@30.9'], sling: ['sling@27'], proskynesis: ['harp_h@30.9'], recline: ['sit'], pour: ['pour@34.7'], serve: ['serve@50.5'], fan: ['fan@15.9'], charioteer: ['pour@34.7'],
   hoe: ['hoe@44.5', 'hoe@5.8', '3e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f'],
   winnow: ['winnow@36.4', 'winnow@16.4', '000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fff'],
   plough: ['plough@6.4', 'plough@31', 'ff803fe00ff807fc01ff007fc01fe00ff803fe00ff807fc01ff007fc01ff000007fffff000003ff803fe00ff803fe01ff007fc01ff007f803fe00ff803fe01ff007fc01ff007fc0000ffff'],

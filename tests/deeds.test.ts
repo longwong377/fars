@@ -84,7 +84,7 @@ describe('D-459 deeds in the world (a real town, seed 1, day 60)', () => {
     expect(b.deeds.log.length).toBe(0); expect(b.deeds.cases.length).toBe(sim.deeds.cases.length);
     // (D-720: the ids go on from the saved count, and the last day's deeds are read back: a memory reads its own deed)
     expect(b.deeds.next).toBe(sim.deeds.next);
-    const last = sim.deeds.log.filter(r => /^(attack|steal|break|curse|accuse|threaten|insult|mock|push|court|reconcile|heal|forgive|apologize|intercede|comfort)$/.test(r.deed.verb) && r.day >= sim.deeds.log[sim.deeds.log.length - 1].day - 9).slice(-1)[0];
+    const last = sim.deeds.log.filter(r => /^(attack|steal|break|curse|accuse|threaten|insult|push|court|reconcile)$/.test(r.deed.verb) && r.day >= sim.deeds.log[sim.deeds.log.length - 1].day - 9).slice(-1)[0];
     if (last) { expect(b.deeds.rec(last.id)?.deed.verb).toBe(last.deed.verb); expect(b.deeds.rec(last.id)?.deed.actor).toBe(last.deed.actor); }
     const v = sim.deeds.cases.find(c => c.accused === 'player')!.victim as number; expect(b.deeds.minds.feelOf(v, 'player', day + 1).anger).toBeCloseTo(sim.deeds.minds.feelOf(v, 'player', day + 1).anger, 6);
   });
@@ -107,4 +107,28 @@ describe('D-720 (C7\'s CI): the deeds\' save round trip', () => {
     const s1 = JSON.stringify(a.deeds.save()), b = new PeopleSim(1, nav(), envOf(1), { asks: true }); b.load(JSON.parse(JSON.stringify(a.save())));
     expect(JSON.stringify(b.deeds.save())).toBe(s1);
   }, 600_000);
+});
+
+describe('D-720 (the lead\'s ask): the asks and the rumours survive a save', () => {
+  it('saved, loaded and run on, the world goes the way the unbroken run goes: the asks, the rumours, the economy, the minds', async () => {
+    const { PeopleSim } = await import('../src/people/sim'); const { nav, envOf } = await import('./sim_fixture');
+    const A = new PeopleSim(1, nav(), envOf(1), { asks: true }); A.jumpTo(12 * 24 + 10);
+    const B = new PeopleSim(1, nav(), envOf(1), { asks: true }); B.load(JSON.parse(JSON.stringify(A.save())));
+    A.econTo(20); B.econTo(20);
+    const st = (S: InstanceType<typeof PeopleSim>) => { const R = S.asksWorld.rumours!, K = S.asksWorld.asks as any, E = S.econTo(20);
+      return JSON.stringify({ asks: K.asks.slice(-200), open: [...K.open], ru: R.rumours.length, tell: R.stats.tellings, ev: E.events.length, last: E.events.slice(-300),
+        hh: [...E.hh.values()].map(h => [h.grain, h.cash]), minds: S.deeds.minds.save(), goals: S.deeds.agency.save() }); };
+    const a = st(A); expect(st(B)).toBe(a); expect((A.asksWorld.asks as any).asks.length).toBeGreaterThan(100);
+  }, 900_000);
+});
+
+describe('D-720 (C7\'s determinism): a day reads the same however far the world has gone past it', () => {
+  it('two fresh worlds: A runs to day 30 then reads day 10, B reads day 10: the same plans for everyone the deeds laid a stretch on', async () => {
+    const { PeopleSim } = await import('../src/people/sim'); const { nav, envOf } = await import('./sim_fixture');
+    const B = new PeopleSim(1, nav(), envOf(1), { asks: true }); B.jumpTo(10 * 24 + 10);
+    const pids = B.pop.persons.map(p => p.id).filter(x => B.deeds.overlay.touches(x, 10)).slice(0, 400); expect(pids.length).toBeGreaterThan(20);
+    const pb = pids.map(x => JSON.stringify(B.pop.plan(x, 10)));
+    const A = new PeopleSim(1, nav(), envOf(1), { asks: true }); A.jumpTo(30 * 24 + 10);
+    const diff = pids.filter((x, i) => JSON.stringify(A.pop.plan(x, 10)) !== pb[i]); expect(diff).toEqual([]);
+  }, 900_000);
 });

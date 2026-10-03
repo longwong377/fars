@@ -75,7 +75,7 @@ describe('the court beard in rows of curls (D-225)', () => {
 
 describe('cloth that reads as woven, dyes that are uneven (D-225, CPU mirror)', () => {
   const L = () => lookFor(A, { id: 1, sex: 'm', role: 'official', dress: 'persian', seed: 11 }, 1);
-  const frag = (look: ReturnType<typeof L>, P: V3, uv: [number, number]): Frag => ({ color: [...look.col.main] as V3, hair: [...look.col.trim] as V3, mat: [MAT.cloth_main, PRM_ROBE, look.pattern, 0], bind: P, aux: [0.9, 1, 0, 0.3], ext: [0, 1, 0, 0], wear: [0, 0, 1.3, 0], uv, posV: [0, 0, -1], nrmV: [0, 0, 1] });
+  const frag = (look: ReturnType<typeof L>, P: V3, uv: [number, number]): Frag => ({ color: [...look.col.main] as V3, hair: [...look.col.trim] as V3, mat: [MAT.cloth_main, PRM_ROBE, look.pattern & ~1 /* D-780: a plain robe: since the court's dyes the seed's official wears rosettes, whose far mean is the impostor's to carry (people_look) */, 0], bind: P, aux: [0.9, 1, 0, 0.3], ext: [0, 1, 0, 0], wear: [0, 0, 1.3, 0], uv, posV: [0, 0, -1], nrmV: [0, 0, 1] });
   /** rms (m) of the cloth's height field above 300 cycles/m along a line on the skirt, at a pixel footprint fw */
   function fine(fw: number) { const look = L(), N = 512, step = 0.00025, h: number[] = [];
     for (let i = 0; i < N; i++) h.push(surface(frag(look, [0.1 + i * step * 0.37, 0.5 + i * step, 0.16], [0.2, 0.6]), fw, [0, 0, 1], 0, null).h);

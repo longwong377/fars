@@ -18,6 +18,7 @@ describe('the elite architecture of the plain (D-800)', () => {
     for (const g of ['pavilion', 'hall_gohar']) { const P = plan.props.filter(p => p.group === g);
       expect(P.filter(p => p.colour && p.colour.join() === EST.shaft.join()).length, g).toBe(g === 'pavilion' ? 8 : 20);
       expect(P.some(p => p.mat === 'glaze'), g).toBe(true); expect(P.filter(p => p.colour?.join() === EST.white.join()).length, g).toBeGreaterThan(2);
-      expect(P.filter(p => p.collide).length, g).toBeGreaterThan(8); }
+      expect(P.filter(p => p.collide).length, g).toBeGreaterThan(8);
+      expect(P.filter(p => p.shape === 'box' && p.y0 > 1.5).every(p => p.bottom), `${g}: overhead boxes draw their bottom face`).toBe(true); }
   });
 });

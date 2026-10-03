@@ -383,6 +383,24 @@ describe('population people perform too (the D-142 × D-143 merge)', () => {
     expect(Math.min(...B.map(v => v.distanceTo(new THREE.Vector3(-34, 0, -38)))), 'household 6\'s bier at bearer p12').toBeLessThan(0.5);
     console.log(rows.join('\n'));
   }, 120_000);
+  it('a carried litter walks with its four bearers in formation: each at his corner by the shoulder his pole is on, the litter at their centre (s18 C14)', () => {
+    const crowd = makeCrowd(), frame = () => (crowd as any).frame as number;
+    const cam = new THREE.PerspectiveCamera(70, 16 / 9, 0.1, 5000); cam.position.set(0, 1.6, 0); cam.lookAt(0, 1.2, -20); cam.updateMatrixWorld();
+    const W = 'carrying a royal woman’s curtained litter down to the paradise', WL = W + ', the pole on his left shoulder';
+    // the plan puts the four anywhere along the road (Q-196): here metres apart and abreast
+    const V = [vpOf(30, -3, 18, 'carry_bier', W, { place: 'garden_pw', hh: 9, moving: true, heading: 0 }), vpOf(31, 2, 21, 'carry_bier', WL, { place: 'garden_pw', hh: 9, moving: true, heading: 0 }),
+      vpOf(32, 4, 17, 'carry_bier', W, { place: 'garden_pw', hh: 9, moving: true, heading: 0 }), vpOf(33, -1, 24, 'carry_bier', WL, { place: 'garden_pw', hh: 9, moving: true, heading: 0 })];
+    const P = V.map(v => [crowd.attachPop(v.pid), v] as const);
+    for (let k = 0; k < 3; k++) { for (const [p, v] of P) { p.vp = v; p.vpFrame = frame() + 1; } crowd.update(0.1 * (k + 1), cam.position, null, cam); }
+    const m = crowd.group.getObjectByName('work:litter') as THREE.InstancedMesh, M = new THREE.Matrix4(); expect(m.count, 'one litter').toBe(1);
+    m.getMatrixAt(0, M); const L = new THREE.Vector3().setFromMatrixPosition(M);
+    const roots = P.map(([p]) => new THREE.Vector3(p.root[0], 0, p.root[2])), c = roots.reduce((a, r) => a.add(r), new THREE.Vector3()).multiplyScalar(1 / 4);
+    expect(c.distanceTo(new THREE.Vector3(L.x, 0, L.z)), 'the litter at the crew\'s centre').toBeLessThan(1e-3);
+    const d = roots.map(r => [Math.abs(r.x - c.x), Math.abs(r.z - c.z)]).sort((x, y) => x[0] - y[0]);
+    for (const [dx, dz] of d) { expect(dx).toBeCloseTo(0.46, 3); expect(dz).toBeCloseTo(1.0, 3); }
+    // the left-shoulder pair on one side, the others on the other
+    const side = (i: number) => Math.sign(roots[i].x - c.x); expect(side(1)).toBe(side(3)); expect(side(0)).toBe(side(2)); expect(side(0)).not.toBe(side(1));
+  }, 120_000);
   it('no shared work object moves when the camera turns, the field of view changes or the drawn set changes (performers culled, turned to impostors, leaving, arriving, stepping aside, the LOD caps): each within 3 cm of where it first stood (session 6)', () => {
     const crowd = makeCrowd(), frame = () => (crowd as any).frame as number;
     crowd.imp = { begin() { this.count = 0; }, end() {}, count: 0, atlas: { refStature: {} }, packLook: () => new Float32Array(6), push() { this.count++; } } as any; crowd.drawnKeys = new Set();
