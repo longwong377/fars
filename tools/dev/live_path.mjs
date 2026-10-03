@@ -9,18 +9,20 @@ import { join, resolve } from 'node:path';
 import sharp from 'sharp';
 const a = process.argv.slice(2), opt = (k, d) => { const i = a.indexOf(k); return i >= 0 ? a[i + 1] : d; };
 const dist = resolve(a[0] ?? 'dist'), out = resolve(a[1] ?? 'live'), webgl = a.includes('--webgl'), extra = opt('--params', ''), q = opt('--q', 'high'), port = +opt('--port', 4186); mkdirSync(out, { recursive: true });
-const srv = spawn(process.execPath, [join(new URL('.', import.meta.url).pathname, '../deploy/serve.mjs'), dist, String(port), '/fars/'], { stdio: 'ignore' });
-process.on('exit', () => { try { srv.kill(); } catch {} }); await new Promise(r => setTimeout(r, 1500));
-const b = await chromium.launch({ headless: true, args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--enable-unsafe-webgpu', '--enable-features=Vulkan', '--use-vulkan=swiftshader', '--use-webgpu-adapter=swiftshader'] });
+const URLARG = opt('--url', '');
+const srv = URLARG ? null : spawn(process.execPath, [join(new URL('.', import.meta.url).pathname, '../deploy/serve.mjs'), dist, String(port), '/fars/'], { stdio: 'ignore' });
+process.on('exit', () => { try { srv?.kill(); } catch {} }); if (srv) await new Promise(r => setTimeout(r, 1500));
+const proxy = URLARG && process.env.HTTPS_PROXY ? { server: process.env.HTTPS_PROXY } : undefined;
+const b = await chromium.launch({ headless: true, proxy, args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--enable-unsafe-webgpu', '--enable-features=Vulkan', '--use-vulkan=swiftshader', '--use-webgpu-adapter=swiftshader'] });
 const p = await b.newPage({ viewport: { width: 1280, height: 720 } }), errs = [], t0 = Date.now(), s = () => +((Date.now() - t0) / 1000).toFixed(0);
 p.on('pageerror', e => errs.push(`${s()}s PAGEERROR ${String(e.stack ?? e).slice(0, 400)}`));
 p.on('console', m => { if (m.type() === 'error') errs.push(`${s()}s ${m.text().slice(0, 300)}`); });
-await p.goto(`http://127.0.0.2:${port}/fars/?quality=${q}&seed=1${webgl ? '&webgl=1' : ''}${extra}`);
+await p.goto(`${URLARG || `http://127.0.0.2:${port}/fars/`}?quality=${q}&seed=1${webgl ? '&webgl=1' : ''}${extra}`);
 await p.waitForFunction(() => window.__parsa?.ready === true || window.__parsa?.error, null, { timeout: 2_400_000, polling: 1000 });
 const R = { dist, webgl, backend: await p.evaluate(() => window.__parsa.backend), readyS: s(), error: await p.evaluate(() => window.__parsa.error ?? null), steps: [] };
 const step = async (label) => { const png = await p.screenshot({ timeout: 120000 }).catch(e => null); if (png) writeFileSync(join(out, `${label}.png`), png);
   let sum = 0, data = [0]; if (png) { data = (await sharp(png).removeAlpha().raw().toBuffer({ resolveWithObject: true })).data; for (let i = 0; i < data.length; i++) sum += data[i]; }
-  const st = await p.evaluate(() => { const s = window.__parsa.stats(); return { draws: s.drawCalls, tris: +(s.triangles / 1e6).toFixed(2), exposure: window.__parsa.exposureInfo?.() ?? null, faults: window.__renderFaults ?? null, top: (() => { const e = document.elementFromPoint(innerWidth / 2, innerHeight / 2); return e ? `${e.tagName.toLowerCase()}${e.id ? '#' + e.id : ''}${typeof e.className === 'string' && e.className ? '.' + e.className.split(' ')[0] : ''}` : null; })(), live: window.__liveDisposals ?? null, deferred: window.__deferredDisposals ?? null }; });
+  const st = await p.evaluate(() => { const s = window.__parsa.stats(); return { draws: s.drawCalls, tris: +(s.triangles / 1e6).toFixed(2), exposure: window.__parsa.exposureInfo?.() ?? null, faults: window.__renderFaults ?? null, safeMode: window.__safeMode ?? null, heapMB: Math.round((performance.memory?.usedJSHeapSize ?? 0) / 1048576), heapLimitMB: Math.round((performance.memory?.jsHeapSizeLimit ?? 0) / 1048576), top: (() => { const e = document.elementFromPoint(innerWidth / 2, innerHeight / 2); return e ? `${e.tagName.toLowerCase()}${e.id ? '#' + e.id : ''}${typeof e.className === 'string' && e.className ? '.' + e.className.split(' ')[0] : ''}` : null; })(), live: window.__liveDisposals ?? null, deferred: window.__deferredDisposals ?? null }; });
   // the canvas alone: every element that is not the canvas or one of its ancestors hidden for one screenshot, then restored
   const hid = await p.evaluate(() => { const c = document.querySelector('canvas'), keep = new Set(); for (let x = c; x; x = x.parentElement) keep.add(x); const H = [];
     for (const e of document.body.querySelectorAll('*')) if (!keep.has(e) && !e.contains(c) && getComputedStyle(e).visibility !== 'hidden') { H.push([e, e.style.visibility]); e.style.visibility = 'hidden'; } window.__hid = H; return H.length; });
@@ -36,4 +38,4 @@ for (let i = 1; i <= 3; i++) { await p.waitForTimeout(20000); await step(`walk+$
 await p.evaluate(() => window.__parsa.setInput({ forward: 0 }));
 R.errors = [...new Set(errs)].slice(0, 30); writeFileSync(join(out, 'live.json'), JSON.stringify(R, null, 1));
 console.log('backend', R.backend, 'ready', R.readyS, 's; errors', errs.length); for (const e of R.errors.slice(0, 12)) console.log(' ', e.slice(0, 300));
-await b.close(); srv.kill(); process.exit(0);
+await b.close(); srv?.kill(); process.exit(0);

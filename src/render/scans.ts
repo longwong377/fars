@@ -57,6 +57,8 @@ export const SCAN_USE: Record<string, ScanUse> = {
   mudbrick: { scan: 'clay_floor_001', scale: 2.2, scale2: 9.7, alb: 0.6, height: 0.003, rough: 0.4, nor: 2.0 },
   mudbrick_painted: { scan: 'clay_floor_001', scale: 2.2, scale2: 9.7, alb: 0.5, height: 0.003, rough: 0.4, nor: 2.0 },
   palace_plaster: { scan: 'clay_floor_001', scale: 2.2, scale2: 9.7, alb: 0.45, height: 0.0025, rough: 0.4, nor: 1.6 }, // D-752
+  palace_crest: { scan: 'clay_floor_001', scale: 2.2, scale2: 9.7, alb: 0.45, height: 0.0025, rough: 0.4, nor: 1.6 }, // D-755
+  relief_ground: { scan: 'rock_boulder_dry', chroma: 0.2, hue: 0.2, scale: 1.3, scale2: 5.9, alb: 0.3, height: 0.0015, rough: 0.4, nor: 0.5 }, // D-755
   mudbrick_bare: { scan: 'clay_block_wall', scale: 1.9, alb: 0.5, height: 0.003, rough: 0.4 }, // D-334: the walls under construction
   // D-334: the palaces' roofs and exposed tops: the rolled clay-and-straw coat (a clay plaster scan; the roller, straw and cracks baked)
   roof_earth: { scan: 'clay_plaster', scale: 2.4, scale2: 10.3, alb: 0.6, height: 0.003, rough: 0.4 },
@@ -69,7 +71,7 @@ export const SCAN_USE: Record<string, ScanUse> = {
   // foot), its colour led by the scan; the flat roofs and wall tops the rolled kahgel coat (Raked Dirt: clay with chopped
   // straw, the roller's lines)
   mud_plaster: { scan: 'dirt_floor', scale: 2.07, scale2: 9.1, alb: 0.75, chroma: 0.45, height: 0.003, rough: 0.4 },
-  house_plaster: { scan: 'dirt_floor', scale: 2.07, scale2: 9.1, alb: 0.75, chroma: 0.45, height: 0.003, rough: 0.4 },
+  house_plaster: { scan: 'plaster001', scale: 2.07, scale2: 9.1, alb: 0.8, chroma: 0.3, height: 0.003, rough: 0.4 }, // (s18 C2, D-674: ambientCG Plaster001, hand-laid lime plaster, the lead's ask: the walls read plastered; was the Dirt Floor scan's earth)
   house_socle: { scan: 'stone_wall', scale: 2.0, alb: 1.0, hue: 0.75, chroma: 0.8, height: 0.01, rough: 0.6, nor: 1.4 },
   house_roof: { scan: 'raked_dirt', scale: 1.1, scale2: 6.3, alb: 0.85, chroma: 0.6, height: 0.004, rough: 0.4 },
   mud_roof: { scan: 'raked_dirt', scale: 1.1, scale2: 6.3, alb: 0.85, chroma: 0.6, height: 0.004, rough: 0.4 },
@@ -100,7 +102,11 @@ export const SCAN_USE: Record<string, ScanUse> = {
   matting: { scan: 'Wicker010B', scale: 0.6, alb: 0.75, height: 0.002, rough: 0.4 },
   bronze: { scan: 'Metal013', scale: 0.6, alb: 0.45, height: 0.0004, rough: 0.6 },
   // the palaces' furnishings (world/furnish_palaces.ts FURNISH_SURFACES, D-212): textiles as felted wool, clay, the metals
-  furn_textile: { scan: 'Fabric043', scale: 0.5, alb: 0.55, height: 0.0008, rough: 0.4 },
+  // D-780 (s18 C13, the lead's ambientCG sets): the court's woven wool (couch mattresses and bolsters, cushions, hangings, covers)
+  // takes Fabric 030's tabby weave (Fabric 043 was a felt); the pile carpets Carpet 012's dense cut pile; both at a low chroma
+  // so the scans' own grey-blue fibres do not speckle the madder and indigo (C)
+  furn_textile: { scan: 'Fabric030', scale: 0.35, alb: 0.6, height: 0.0007, rough: 0.4, chroma: 0.3 },
+  furn_carpet: { scan: 'Carpet012', scale: 0.4, alb: 0.65, height: 0.0015, rough: 0.45, chroma: 0.25 },
   furn_clay: { scan: 'clay_floor_001', scale: 0.7, alb: 0.8, height: 0.0008, rough: 0.6 },
   furn_silver: { scan: 'Metal013', scale: 0.4, alb: 0.3, height: 0.0002, rough: 0.5 },
   furn_gilt: { scan: 'Metal013', scale: 0.4, alb: 0.3, height: 0.0002, rough: 0.5 },
@@ -112,7 +118,7 @@ export const SCAN_USE: Record<string, ScanUse> = {
   tent_cloth: { scan: 'hessian_230', scale: 0.5, alb: 0.45, height: 0.001, rough: 0.4 }, // D-330: the court tents' woven wool, linen and goat hair (the weave; the colour is the tent's)
   prop_clay: { scan: 'clay_floor_001', scale: 0.6, alb: 0.9, height: 0.0008, rough: 0.6 },
   prop_stone: { scan: 'rock_surface', scale: 0.7, alb: 0.8, height: 0.0015, rough: 0.5 },
-  prop_leather: { scan: 'Leather014', scale: 0.5, alb: 0.5, height: 0.0005, rough: 0.5 },
+  prop_leather: { scan: 'Leather037', scale: 0.4, alb: 0.55, height: 0.0005, rough: 0.5, chroma: 0.35 }, // (D-780: a finer grain than Leather 014's)
   prop_metal: { scan: 'Metal013', scale: 0.4, alb: 0.35, height: 0.0003, rough: 0.6 },
   prop_wood: { scan: 'rough_wood', scale: 0.8, alb: 0.6, height: 0.0015, rough: 0.5 },
   prop_mud: { scan: 'brown_mud_dry', scale: 1.0, alb: 0.6, height: 0.003, rough: 0.4 },
@@ -132,6 +138,7 @@ export const WALL_BAKE: Record<string, { tex: string; scale: number; nor: number
   mudbrick: { tex: 'palacewall_bake', scale: 2.61, nor: 2.2, cav: 0.25, ktx: true },
   mudbrick_painted: { tex: 'palacewall_bake', scale: 2.61, nor: 2.2, cav: 0.25, ktx: true },
   palace_plaster: { tex: 'palacewall_bake', scale: 2.61, nor: 2.2, cav: 0.25, ktx: true }, // D-752
+  palace_crest: { tex: 'palacewall_bake', scale: 2.61, nor: 2.2, cav: 0.25, ktx: true }, // D-755
   roof_earth: { tex: 'palaceroof_bake', scale: 3.13, nor: 1.8, cav: 0.3, ktx: true },
 };
 const BAKE = new Map<string, THREE.Texture>();
@@ -140,7 +147,7 @@ const BAKE = new Map<string, THREE.Texture>();
  *  timber). Drawn without one (no SCAN_USE entry, or a blend under ALB_MIN) such a surface is a procedural stand-in. Not here
  *  (no fitting scan: judged by T-A4): bronze, the glazed brick, the red-painted floors, reed matting, cloth */
 export const ALB_MIN = 0.3;
-export const SCANNABLE: Record<string, true> = Object.fromEntries(['limestone', 'limestone_merlon', 'limestone_carved', 'limestone_dark', 'frame_coat', 'palace_plaster',
+export const SCANNABLE: Record<string, true> = Object.fromEntries(['limestone', 'limestone_merlon', 'limestone_carved', 'limestone_dark', 'frame_coat', 'palace_plaster', 'palace_crest', 'relief_ground',
   'terrace', 'terrace_now', 'terrace_foot', 'stone_rough', 'stone_plain', 'takht_stone', 'nr_dressed', 'nr_rock', 'rubble', 'kaba_white', 'mudbrick', 'mudbrick_painted', 'roof_earth', 'mudbrick_bare',
   'house_brick', 'baked_brick', 'mud_plaster', 'house_plaster', 'house_socle', 'house_roof', 'mud_roof', 'plaster', 'village_mud', 'earth', 'court_fill', 'road', 'bank',
   'refuse', 'timber', 'roof_timber', 'house_timber', 'door_planks', 'scaffold'].map(k => [k, true]));

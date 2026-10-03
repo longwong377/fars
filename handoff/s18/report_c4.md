@@ -20,6 +20,9 @@
   post pipeline's at high, the renderer's own output quad at low) every frame while the world streamed in: black canvas,
   unwritten meter. Also 824e2238: tone mapping restored around the post pass however it ends; meter readback timeout and
   zero-readback rejection, falling back to the lux law. Frames: c4_frames/live_black_before.png, live_after_quadfix.png.
+- e8e271e8: TRAA's depth-history copy threw every frame on WebGL (black at quality high, ?webgl=1): fixed; and a black-frame
+  watchdog switches to the renderer's own output (window.__safeMode) if the post output stays black, times out or throws.
+  Unseen on a real GPU; the cloud's SwiftShader gives out at ~500 s at quality high.
 - NOT fixed by me: the T4's "[Buffer] used in submit while destroyed" in ShadowMaterial pipelines (C9's deferred-dispose
   work); the far cascade disposes nothing (?farcsm=0 rules it out on the T4).
 

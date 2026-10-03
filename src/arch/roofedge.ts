@@ -133,7 +133,8 @@ export function roofEdges(parts: Part[]): RoofEdges {
       const kind: ('wall' | 'open' | null)[] = [];
       for (let i = 0; i < nS; i++) {
         const s = (i + 0.5) * st, e = sd.a[0] + ux * s, n = sd.a[1] + uy * s, eo = e + sd.n[0] * 0.15, no = n + sd.n[1] * 0.15;
-        const cov = grid.at(eo, no, (b.y0 + topY) / 2, b) || grid.at(eo, no, topY + 0.3, b);
+        // (D-753: or a part continues the top flush at its own level: a hollow tower's slab against its walls' heads)
+        const cov = grid.at(eo, no, (b.y0 + topY) / 2, b) || grid.at(eo, no, topY + 0.3, b) || grid.at(eo, no, topY - 0.2, b, q => q.y1 >= topY - 0.05 && q.y1 <= topY + 0.25);
         if (cov) { kind.push(null); continue; }
         const ei = e - sd.n[0] * 0.25, ni = n - sd.n[1] * 0.25;
         kind.push(!roof || grid.at(ei, ni, b.y0 - 0.4, b, isWallish) ? 'wall' : 'open');

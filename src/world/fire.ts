@@ -141,6 +141,12 @@ export const LEGACY_FIRE_LIGHTS = 12;
 /** D-355 A/B switch at run time (tests/e2e/dbg_perf.spec.ts): legacy = the session-13 fire lights (12 forward, no deferred term) */
 export const FIRE_AB = { legacy: false };
 if (typeof globalThis !== 'undefined') (globalThis as any).__parsaFire = FIRE_AB;
+/** D-680: the world's day for the occasional fires (firePlaces.ts: the night watch's braziers on the court's residence
+ *  nights, the banquet's lights, the palaces' doorway torches): set by FireSystem.setDay (day -1 = unknown: the watch's
+ *  braziers burn every night, the banquet's never) and the hour by update */
+export const FIRE_DAY = { day: -1, seed: 1, hour: 12 };
+/** the day a night belongs to: before noon, the night began the evening before */
+export const nightOf = (day: number, hour: number) => (hour < 12 ? day - 1 : day);
 export class FireSystem {
   readonly group = new THREE.Group();
   readonly fires: FireSource[] = [];
@@ -375,7 +381,10 @@ export class FireSystem {
     this.group.add(this.smoke);
   }
   /** lit state: fires burn from dusk (sun < 4° and falling or night) until after sunrise (C schedule) */
+  /** D-680: the world's day and seed (the occasional fires' nights) */
+  setDay(day: number, seed: number) { FIRE_DAY.day = day; FIRE_DAY.seed = seed; }
   update(dt: number, camera: THREE.Camera, sunAlt: number, windMs: number, windDirDeg: number, rain: number, t: number, hour?: number) {
+    if (hour !== undefined) FIRE_DAY.hour = hour;
     const lit = sunAlt < 4;
     const SL = this.simLit;
     this.fires.forEach((f, i) => { const sl = SL ? SL[i] : -1;

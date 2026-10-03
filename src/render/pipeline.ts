@@ -103,6 +103,10 @@ export function ssrBlurLod(dHit: number, rough: number, viewDist: number, pxAngl
 export function reflectionClass(m: any): 0 | 1 | 2 { return !m ? 0 : m.userData?.ssr === false ? 2 : m.skySpecular ? 1 : 0; }
 
 /** D-680: a post pass that throws, logged once per message (window.__frameFaults: message -> count) */
+/** D-680, the black-frame watchdog (pipeline.watchMeter): armed at the first meter sample, then after a grace at most one
+ *  check a second; this many black samples in a row (in daylight, with the scene drawing), or meter timeouts, or post passes
+ *  throwing frames in a row, switch to the safe path. ?nosafe: off */
+export const WATCHDOG = { on: !(typeof location !== 'undefined' && new URLSearchParams(location.search).has('nosafe')), graceMs: 20000, everyMs: 1000, black: 3, timeouts: 10, faults: 3, lux: 50, draws: 50, lnBlack: -20 };
 function frameFault(e: unknown) {
   const F: Record<string, number> = ((globalThis as any).__frameFaults ??= {}), k = String((e as any)?.message ?? e).slice(0, 200);
   if (!F[k]) console.error('[pipeline] the post pass threw (the frame goes on):', e); F[k] = (F[k] ?? 0) + 1;
@@ -145,6 +149,30 @@ export class Pipeline {
   setPostScale(o: { ssgi?: number; ssr?: number; sss?: number }) { for (const k of ['ssgi', 'ssr', 'sss'] as const) { const n = this.post[k], v = o[k]; if (n && v) n.resolutionScale = v; } return { ssgi: this.post.ssgi?.resolutionScale, ssr: this.post.ssr?.resolutionScale, sss: this.post.sss?.resolutionScale }; }
   /** the renderer's tone mapping and output colour space when the pipeline was made (main.ts: AgX, sRGB): D-680 */
   private toneMapping: THREE.ToneMapping; private outputColorSpace: string;
+  /** D-680, the black-frame watchdog: set (with the reason) when the post pipeline is given up for the safe path */
+  safeMode: string | null = null;
+  private wd = { armedAt: 0, lastT: 0, black: 0, timeouts: 0, faults: 0 };
+  /** a meter sample, from main.ts: its log-mean luminance, or 'unwritten' (an all-zero readback: the post pass never drew)
+   *  or 'timeout' (no readback in 2 s); with the frame's draw calls and the illuminance at the eye */
+  watchMeter(sample: number | 'unwritten' | 'timeout', drawCalls: number, lux: number) {
+    if (this.safeMode || !this.rp || !WATCHDOG.on) return;
+    const now = performance.now(), W = this.wd;
+    if (!W.armedAt) { W.armedAt = now || 1e-3; return; }
+    if (now - W.armedAt < WATCHDOG.graceMs || now - W.lastT < WATCHDOG.everyMs) return;
+    W.lastT = now;
+    const day = lux > WATCHDOG.lux && drawCalls > WATCHDOG.draws;
+    if (sample === 'timeout') { W.timeouts = day ? W.timeouts + 1 : 0; if (W.timeouts >= WATCHDOG.timeouts) this.enterSafe(`no meter readback for ${W.timeouts} s (${drawCalls} draws, ${lux | 0} lx)`); return; }
+    W.timeouts = 0;
+    const black = sample === 'unwritten' || sample < WATCHDOG.lnBlack;
+    if (black && day) { if (++W.black >= WATCHDOG.black) this.enterSafe(`the post output stayed black (${sample === 'unwritten' ? 'its meter target unwritten' : `meter ln ${sample.toFixed(1)}`}; ${drawCalls} draws, ${lux | 0} lx)`); }
+    else W.black = 0;
+  }
+  /** give up the post pipeline for the renderer's own output (logged once: window.__safeMode) */
+  enterSafe(reason: string) {
+    if (this.safeMode) return; this.safeMode = reason; this.meterTarget = null;
+    (globalThis as any).__safeMode = { reason, at: new Date().toISOString() };
+    console.warn(`[pipeline] SAFE MODE (no post passes) after: ${reason}`);
+  }
   constructor(private renderer: THREE.WebGPURenderer, private scene: THREE.Scene, private camera: THREE.PerspectiveCamera, readonly quality: Quality, private hemi?: THREE.HemisphereLight) {
     this.toneMapping = renderer.toneMapping; this.outputColorSpace = renderer.outputColorSpace;
     installProbeLight(renderer); // before any material is built
@@ -334,6 +362,14 @@ export class Pipeline {
     }
     if (!raw) composite = addAirLight(composite, dep, camera, this.sun); // D-156 (item 15): sunlit dust in the halls' air, before TRAA — src/render/airlight.ts
     let out: any = traa(composite, dep, vel, camera);
+    // D-680 (s18, ?webgl=1 black frames): on the WebGL backend a depth texture can only be copied once it has been bound as a
+    // framebuffer (WebGLTextureUtils.copyTextureToTexture reads its render target's data); TRAA only ever copies INTO its
+    // history depth, so the copy threw "Invalid value used as weak map key" every frame and aborted the post quad's draw.
+    // Bound (and its depth cleared) once, and again after a resize re-creates it
+    if (!(renderer.backend as any).isWebGPUBackend) { const T: any = out, ub = T.updateBefore.bind(T);
+      T.updateBefore = (frame: any) => { const H = T._historyRenderTarget, R: any = renderer;
+        if (H?.depthTexture && !R.backend.get(H.depthTexture)?.renderTarget) { const prev = R.getRenderTarget(); R.setRenderTarget(H); R.clear(false, true, false); R.setRenderTarget(prev); }
+        return ub(frame); }; }
     if (raw) { this.rp = new THREE.RenderPipeline(renderer, out); (this.rp as any).outputColorTransform = false; return; }
     const bin = vec4(min(out.rgb, vec3(float(BLOOM_SAT).div(this.expAbs.max(1e-6)))), float(1)); // sensor-like saturation (display terms)
     const b = bloom(bin, BLOOM_STRENGTH, BLOOM_RADIUS, BLOOM_THRESHOLD); this.bloomNode = b;
@@ -380,6 +416,9 @@ export class Pipeline {
     { const H = this.renderer.getDrawingBufferSize(new THREE.Vector2()).y || 540; this.pxAngle.value = 2 * Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2) / H; }
     this.env?.update(this.hemi); // the sky environment, re-captured when the sun or the light has changed (D-157)
     if (!this.built) this.build();
+    if (this.safeMode) { // D-680: the watchdog's safe path: the renderer's own tone-mapped output, no post passes
+      this.renderer.toneMapping = this.toneMapping; this.renderer.outputColorSpace = this.outputColorSpace; this.renderer.render(scene, camera); return;
+    }
     if (this.rp) {
       // D-680 (s18, the live page's black frames): three's RenderPipeline sets the renderer to NoToneMapping and the working
       // colour space around its pass and restores them after it; a throw in between left NoToneMapping behind, and the next
@@ -389,7 +428,9 @@ export class Pipeline {
       const R = this.renderer;
       if (R.toneMapping !== this.toneMapping) R.toneMapping = this.toneMapping;
       if (R.outputColorSpace !== this.outputColorSpace) R.outputColorSpace = this.outputColorSpace;
-      try { this.rp.render(); } catch (e) { frameFault(e); } finally { R.toneMapping = this.toneMapping; R.outputColorSpace = this.outputColorSpace; }
+      try { this.rp.render(); this.wd.faults = 0; } catch (e) { frameFault(e);
+        if (++this.wd.faults >= WATCHDOG.faults) this.enterSafe(`the post pass threw ${this.wd.faults} frames running: ${String((e as any)?.message ?? e).slice(0, 120)}`);
+      } finally { R.toneMapping = this.toneMapping; R.outputColorSpace = this.outputColorSpace; }
     } else this.renderer.render(scene, camera);
     // after the frame: the first render of the scene initialises the sun's cascades with ITS camera (CSMShadowNode keeps the
     // camera it first sees), so the height map's top-down camera must never render first

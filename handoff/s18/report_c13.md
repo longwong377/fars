@@ -33,8 +33,12 @@
 - The banquet uses the place `court_audience`, an ORDERED place in popgeo.ts, so diners get seats.
 - **Pre-existing failures, also on the base commit:** humans_faces "the kandys hangs past the knee" and court_view "no pop-in"
   (a forecourt talker at 41.7 m).
-- **court.test's sealed-letter test still exceeds 600 s** on this 4-core box (909 s with the court's sim cut to its residence
-  plus 30 days). Each day's first plan advances the town's economy to that day, and the year of it is the cost; see Tests.
+- **court.test's sealed-letter test checks less of the year than its title says.** It now passes in 436 s (it was 1,120 s,
+  over its 600 s limit). The cost was the town's economy: the first plan of each day advances the economy to that day, about
+  600 s for the court-less year alone. So the plans and the desk's receipts are now read only:
+  - for the court's sim: through the residence and a month after;
+  - for the court-less town: through the first half of the year.
+  Every letter's hour is still checked against the desk on every day of the year, from the calendar.
 - **Favour, houses and rivalries are words and places only.** Nothing in the view shows a rival's glance or a kinsman's
   greeting beyond who stands with whom. The talk lines name the ally house's head; the dialogue system (C8) does not read
   them yet.
@@ -171,10 +175,50 @@ See handoff/s18/c13_frames/ (if present): the forecourt and N stair at 09:12 on 
     near the throne, and the head of a king-kin house stands near the king "whose wife is of his house";
   - **talk:** the men of a house gather at one place each day. A man meets the house he is married into, its head named
     (165 such talks that morning). Rivals' places are avoided, and 48 men talk low about their rival house.
-- **Sealed-letter test:** see Tests.
+- **Sealed-letter test:** see the first section. Combined with C7's letter-day sampling (D-710) in the merge of s17-int.
+
+## Fifth pass: textiles from the lead's CC0 sets, and the dress test
+- **The court's textiles take ambientCG scans** (from branch s18-face-assets):
+  - Fabric 030's tabby weave for the woven wool: couch mattresses and bolsters, cushions, hangings and covers (`furn_textile`;
+    it was the felt Fabric 043);
+  - Carpet 012's cut pile for the palaces' carpets, the banquet's among them (a `furn_carpet` surface of their own);
+  - Leather 037 for leather props;
+  - the people's wool layer (the dress weave) now Fabric 030, measured at 700 threads per metre as the weave asks, and their
+    leather layer (the guards' belts, gorytoi and shoes) Leather 037.
+  The dyes are unchanged: each scan is laid over its own mean, at low chroma so the scans' grey-blue fibres do not speckle the
+  madder. KTX2 baked here with KTX-Software 4.4.2 (Linux). ASSET_LEDGER rows added. **Not seen in any frame.**
+- **What was not used:** Fabric 061, 062 and 083 (modern knits and a checker), 028 (velvet) and 019/081C/082A (plain white).
+  Concrete, plaster, tiles, wood and wicker are other owners' surfaces.
+- **people_drape's red** ("keeps its mean at a distance", ΔE 12): the test's official, seed 11, has worn rosettes since the
+  court's dyes. The rosettes' far mean is already carried by the impostor (people_look checks it within ΔE 3, and fails at
+  ΔE 16 if the motif is faded out with distance), so there is no near-to-far pop. The noise test now runs on a plain robe.
+- **people_belly times out alone here** (360 s against its 240 s). Like the sealed-letter test, it reads plans across the whole
+  year, so the town's economy runs a year. Not my change; reported.
+
+## Reset (lead 3): the banquet hall
+- C6's frame showed "a standing queue in the hall, no tables or seats". I cannot render here. Node-side, on s17-int d8b00661
+  merged in, the hall at 20:00 on days 15 and 19 (seed 1) holds:
+  - 256 diners seated at the tables and 12 reclining on couches;
+  - 150 servers by the tables and about 30 lamp tenders by the walls;
+  - 217-249 more diners in the portico;
+  - no one queueing.
+  All 268 seats stay walkable after the laid tables are stamped into the walk grid (world.ts blockDisc), so none is snapped
+  into an aisle. The halls are laid ('use') whenever the court is in residence (courtCalendar 'seasonal'; cal.ctx(d).court
+  true on days 14-117). **If C6's frame still shows no tables, the cause is in the view or the render setup, not the plans:**
+  - `?test` without `&court=seasonal` gives courtCalendar 'evidence', which lays nothing;
+  - the palace groups are culled 90 m from the hall's centre.
+  Unseen.
+- Added: a flat madder cushion (the interiors' cushion model at 6 cm, one instanced work object, `feast_cushion`) under every
+  seated diner, so a seat has a visible form. The sitter's capture rests on the floor, so he sinks into the cushion's 6 cm.
+  The tables stay at the model's lowest level (237 triangles each; the next level would put the halls 21 k over their 450 k
+  budget).
 
 ## Tests
 - tests/court_ceremony.test.ts (new, 5 tests): the programme, the seats, the people on the programme's days, well-formed plans.
 - tests/palace_furnish.test.ts: updated for the stored state (hangings stay up).
 - tests/people_look.test.ts: updated so court chroma must be > 1.5× the working dress's (it was 2×).
 - tests/court.test.ts: see the run below.
+- Fourth pass, on the merged tree (s17-int at 1c746135), targeted files: court_ceremony (7, including the couches' clearance
+  and the reclining pose on the rig), court_fill, people_children, performances (including the 300 performers' CPU budget,
+  alone on the box) and palace_furnish: 64 passed. model_props: the work object kinds, all modelled. court.test's sealed-letter
+  test passes in 436 s alone.

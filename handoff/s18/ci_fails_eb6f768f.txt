@@ -1,0 +1,78 @@
+adult_only.test.ts :: the population, every seed :: AssertionError: expected [ 'wife 48765 aged 16', …(4) ] to deeply equal []
+asks.test.ts :: rides the sim: PeopleSim with asks on derives asks and rumours day by  :: AssertionError: expected 2138 to be 2145 // Object.is equality
+blender_assets.test.ts :: reproducible: a second build from the same inputs gave the same bytes, :: AssertionError: not yet reproduced: run node tools/blender/build.mjs --verify capital_protome: expected undefi
+blender_assets.test.ts :: reproducible: a second build from the same inputs gave the same bytes, :: AssertionError: not yet reproduced: run node tools/blender/build.mjs --verify colossus_bull: expected undefine
+blender_assets.test.ts :: current: its inputs (data, model code, bake settings) hash as when it  :: AssertionError: expected '7823451aa34d673893386c940d02fdfd3db50…' to be '570ec21128a2e09637293eb0dc6554169db9b
+blender_assets.test.ts :: each level carries UVs, normals, tangents (Draco) and its packed norma :: AssertionError: expected 1 to be less than 0.99
+camp_life.test.ts :: the court’s baggage train: a string per tented household in along the  :: AssertionError: ctt_north:156:in through a tent: expected true to be false // Object.is equality
+converse.test.ts :: every class of person has a record from the simulation: name, work, ho :: AssertionError: pid 49567: a map id or a modern place name: expected 'You are Umanna, a boy of thirteen, a …' 
+converse.test.ts :: catches every bad reply :: AssertionError: Pay me in coins at the market.: expected 0 to be greater than 0
+court_order.test.ts :: each day’s order: the parties called go up in turn, each with its own  :: AssertionError: d33 party 101: expected false to be true // Object.is equality
+coverage.test.ts :: is deterministic by seed; the committed sample is the sampler's output :: AssertionError: expected [ { id: 'cov-000', …(22) }, …(514) ] to deeply equal [ { id: 'cov-000', …(22) }, …(51
+coverage_board.test.ts :: is exactly what tools/dev/coverage_report.ts --board-only generates fr :: AssertionError: expected 'line 7: - **0 of 184 ids PASS.** NOT-…' to be 'line 7: - **1 of 184 ids PASS.** NOT-
+crafts.test.ts :: the day plans give each craft to named people at its places and hours  :: AssertionError: expected [ …(2) ] to deeply equal []
+crafts.test.ts :: in the built town the smith stands at his workshop’s forge with its fi :: AssertionError: expected 62.27501564113493 to be less than 25
+day_jump.test.ts :: the day turned with tomorrow made ready each step is the day turned on :: AssertionError: expected 'd4d0de9c75ff88f7071f0807e78fdc9ace634…' to be 'a575ba7dba6846cbc10d1b57ab506973af057
+determinism.test.ts :: no Math.random anywhere in src (use a named Rng stream from the world  :: AssertionError: expected [ 'src/audio/score.ts:126' ] to deeply equal []
+drinking.test.ts :: men drink beer or wine of an evening, the young never, Persian houses  :: AssertionError: expected 1283 to be 1289 // Object.is equality
+econ_plans.test.ts :: every laid stretch is performed, the day stays whole, and nobody moves :: AssertionError: expected [ …(101) ] to deeply equal []
+exchanges.test.ts :: the running world produces every situation within the first eight days :: AssertionError: gate_check: expected 0 to be greater than 0
+fauna.test.ts :: the routes keep to the roads, off the Terrace and every town plot :: AssertionError: storeIn at 3648 m (-218,-545) in a plot of q_b4: expected false to be true // Object.is equali
+humans_runtime.test.ts :: every dress builds at three LODs within triangle budgets; every piece  :: AssertionError: persian LOD3: expected 804 to be less than or equal to 800
+humans_runtime.test.ts :: are deterministic, within the stature range, and wear only their costu :: AssertionError: expected [ 'brows', 'tunic_upper', …(16) ] to include 'robe_upper'
+impostor_assets.test.ts :: current: its inputs hash as when it was built (else node tools/blender :: AssertionError: expected '5f66bd513466a6ee52f4f5726a5dea4d6df76…' to be '22e99fe192a770f522050998b76607167d8b9
+impostor_assets.test.ts :: laid out for this build: the frames, dresses, views and cell box of im :: AssertionError: expected [ 'stand', 'walk0', 'walk1', …(68) ] to deeply equal [ 'stand', 'walk0', 'walk1', …(7
+impostor_assets.test.ts :: the same people as the CPU bake: every cell drawn, coverage per cell c :: AssertionError: expected 3408 to be 3552 // Object.is equality
+indoor_truth.test.ts :: seed 1, the court coming and going :: AssertionError: seed 1: T-D3 people drawn out of doors whose plan says indoors {"town:q_b4":58}: expected 58 t
+indoor_truth.test.ts :: seed 1, no court :: AssertionError: seed 1 (no court): T-D3 people drawn out of doors whose plan says indoors {"town:q_b4":59}: ex
+indoor_truth.test.ts :: seed 7, the court coming and going :: AssertionError: seed 7: T-D3 people drawn out of doors whose plan says indoors {"town:q_b4":17}: expected 17 t
+indoor_truth.test.ts :: seed 151124 (fresh, T-E7), the court coming and going :: AssertionError: seed 151124: T-D3 people drawn out of doors whose plan says indoors {"town:q_b4":16,"town:ways
+land_work.test.ts :: a sample of plain households takes up the new work in its season, and  :: AssertionError: expected [ …(5) ] to deeply equal []
+language.test.ts :: every raster or vector image shipped is registered as looked at and fr :: AssertionError: public/models/animals/cat_albedo.ktx2: an image nobody has checked for text: expected undefine
+language.test.ts :: what the carving code cuts (Terrace and Naqsh-e Rustam, read back from :: AssertionError: nr-inscriptions-carved: DNc op has no text: expected null to be truthy
+minds.test.ts :: saved small and loaded, the goals, the places and the weddings go on :: AssertionError: expected 626416 to be less than 614400
+people_belly.test.ts :: only the women who give birth, 3-6 % of women 15-44 visibly on the sam :: Error: Test timed out in 240000ms.
+people_body_more.test.ts :: the groom is at the bride's well while she draws water, on days before :: AssertionError: expected [ Array(1) ] to deeply equal []
+people_care.test.ts :: everyone of three and over in the town and the plain washes at rising, :: Error: Test timed out in 240000ms.
+people_care.test.ts :: the pairs are together: the woman and the child on the doorstep, the b :: AssertionError: expected [ …(3) ] to deeply equal []
+people_care.test.ts :: the care spells add no fault to the plans (checkPlan) and none to the  :: AssertionError: expected [ { kind: 'apart', pid: 2860, …(1) } ] to deeply equal []
+people_children.test.ts :: the shares by dress follow the table (JEWELS); working men and childre :: AssertionError: median cap_soft: expected true to be false // Object.is equality
+people_days.test.ts :: girls of 9-13 do the work of their age: hours of work a day, play in s :: Error: Test timed out in 120000ms.
+people_days_d211.test.ts :: on both festival days nobody whose day off it is works, everyone's pla :: AssertionError: expected [ …(8) ] to deeply equal []
+people_days_r10.test.ts :: 27094, 4 and ill on Arahsamnu 23 (day 229), lies ill at home beside hi :: AssertionError: expected false to be true // Object.is equality
+people_days_r11.test.ts :: guard #76 on Nisanu 9 (index 8): the jar ends at the hearth; nothing c :: AssertionError: expected -1 to be greater than -1
+people_days_r3.test.ts :: a shadowed day is a day the person is alive and here; a dead man's day :: Error: Test timed out in 120000ms.
+people_days_r3.test.ts :: water carried home was drawn; a feed never takes the place of drawing  :: Error: Test timed out in 120000ms.
+people_days_r4.test.ts :: households on sampled days: every child with its mother, minder or hos :: AssertionError: expected '23091 d300 0.0000 h:5423 (sleep) but …' to be null
+people_days_r5.test.ts :: an able farming man rests at most about 3.75 h in daylight on a day wi :: AssertionError: 17380 day 163: expected 5.559334841636239 to be less than or equal to 3.75
+people_days_r5.test.ts :: a guard's bread and water in the gap between meals is eaten at his hea :: Error: Test timed out in 120000ms.
+people_days_r7.test.ts :: year-wide: hides are received only on a delivery day, from the carrier :: Error: Test timed out in 600000ms.
+people_days_r7.test.ts :: 1888 on Nisanu 7 (day 6) does his own trade, and the day's 9 hides are :: AssertionError: expected 0 to be greater than or equal to 2
+people_days_r8.test.ts :: year-wide: no roof chore overlaps rain or a storm, and none is "before :: AssertionError: 38113 d187: expected 'replastering the roof of the house wi…' not to match /before the rains/
+people_days_r9.test.ts :: 44216 on Ululu 23 (day 171, index 170): a stage of a few hours from th :: TypeError: Cannot read properties of undefined (reading 't0')
+people_drape.test.ts :: one garment's colour varies (saturation sd ≥ 0.01 up close) and keeps  :: AssertionError: expected 11.903207232695049 to be less than 1.5
+people_models.test.ts :: current: its inputs hash as when it was built (else node tools/blender :: AssertionError: expected 'c5cc55814e5598d76743b350f943dba99b59a…' to be 'a28e812e6bbf2bb2e133979c9e254b61038f6
+people_models.test.ts :: current: its inputs hash as when it was built (else node tools/blender :: AssertionError: expected '643df1e66c2eec53b4a25bdb034414d8f34a9…' to be '6be9f019f715abf9cf7922fa091610e8a197a
+people_models.test.ts :: the costumes with their cards keep the triangle budgets [42000, 7000,  :: AssertionError: persian LOD0: expected 42828 to be less than or equal to 42000
+performances.test.ts :: 300 performers of every activity: props, work objects and animals are  :: AssertionError: expected 16.21597400000246 to be less than 10
+plain.test.ts :: the plain is a fixed handful of meshes (<= 40), whatever the view; the :: AssertionError: expected 2007439 to be less than 2000000
+plain_d223.test.ts :: in the stair-noon-plain view (grid W ±33° from the landing) no run poi :: AssertionError: expected 1 to be +0 // Object.is equality
+plain_d223.test.ts :: fields hold most of the plain's ground out to 2.5 km and keep their pl :: AssertionError: expected 0.3901734104046243 to be greater than 0.4
+popview.test.ts :: resolves the places of the plans to spots in the built world (sampled  :: Error: Test timed out in 300000ms.
+relations_econ.test.ts :: a wedding moves the bride into the groom’s house from its day :: AssertionError: expected 58 to be greater than or equal to 69.60000000000001
+religion.test.ts :: every day a magus feeds the fire before first light and banks it at du :: AssertionError: d2 dawn: expected false to be true // Object.is equality
+religion.test.ts :: the households' sacrifices: 120-300 a year; the offerer and his magus  :: AssertionError: expected false to be true // Object.is equality
+scribes_room.test.ts :: the Aramaic secretary writes in Aramaic at the desk; his son is his pu :: Error: Test timed out in 120000ms.
+scribes_room.test.ts :: each sits at his place round the desk: the scribes (detailed agents) a :: AssertionError: expected 'ws:1' to be 'treasury_desk' // Object.is equality
+settlement.test.ts :: every plot lies inside its zone polygon or within the stated uncertain :: AssertionError: expected [ …(178) ] to deeply equal []
+settlement.test.ts :: keeps the Terrace approach, the roads and the empty Frataraka site cle :: AssertionError: expected [ …(7) ] to deeply equal []
+settlement.test.ts :: plots never overlap, within a site (raster) or across sites :: AssertionError: expected [ 'q_b4-0179 × stores-0001', …(17) ] to deeply equal []
+settlement.test.ts :: capacities cover the court-absent town population (population.json: to :: AssertionError: expected 11315 to be less than or equal to 11000
+settlement.test.ts :: door points sit on the plot boundary: outside point within 1 m of the  :: AssertionError: expected 1.0770329614268923 to be less than 1.05
+settlement_build.test.ts :: meshes and triangles of everything the settlement adds :: AssertionError: expected 52 to be less than or equal to 45
+sim_fixture.test.ts :: loads what the jump made: plans, life records and the economy agree :: AssertionError: expected '{"pid":5,"seed":1,"day":40,"hour":10,…' to be '{"pid":5,"seed":1,"day":40,"hour":10,
+talk_view.test.ts :: a follower walks on the stranger’s way 1.5 m behind; spoken to, a pers :: AssertionError: expected 'the loads are counted by the scribe; …' to match /wary|mind|time|fitting|anxious|wor
+talk_world.test.ts :: with no event the world is the same: the save has no talk and equals a :: Error: Test timed out in 120000ms.
+terrace_walk.test.ts :: every road block between two Terrace blocks of a detailed agent's plan :: Error: Test timed out in 300000ms.
+town_glow.test.ts :: the moment's hour is the one whose smoke reads (τ Terrace ≥ 0.3, Kuh-e :: AssertionError: expected 0.1982344178706788 to be greater than 0.3
+visible.test.ts :: haggled deals are walked: a stall at the market ground, the buyer at i :: AssertionError: expected 7.341442850822341 to be greater than or equal to 7.891665475761022
