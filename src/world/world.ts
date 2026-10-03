@@ -812,7 +812,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
           // NearPerson for everyone within 400 m)
           if (time >= farAt) { farAt = time + 0.5; if (nowView.active) farBuf.length = 0; else crowd.nearPeople(cam.position, FAR_R, farBuf); }
           farCrowd.update(farBuf, cam.position);
-          const at = audio.ctx.currentTime; for (const [k, v] of voices.speaking) crowd.voice(k, time + (v.from - at), time + (v.to - at), time);
+          const at = audio.ctx.currentTime; for (const [k, v] of voices.speaking) crowd.voice(k, time + (v.from - at), time + (v.to - at), time, v.ipa ?? v.text); // D-790: the mouth takes the words
           crowd.claimVoices(voices.claimed, time);
           if ((Math.floor(time) & 31) === 0) for (const [k, u] of scriptedUntil) if (u < time) scriptedUntil.delete(k);
           water.update(cam.position, month); }

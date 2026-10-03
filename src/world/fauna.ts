@@ -57,7 +57,7 @@ export function grazingSites(use: (e: number, n: number) => string, slope: (e: n
 /** D-570: how far the camps' picket lines are drawn (m) */
 export const CAMP_LINE_R = 300;
 export const FAUNA = {
-  yardDogTown: F.dog.yard_share_town as number, yardDogVillage: F.dog.yard_share_village as number, strayMiddenShare: F.dog.stray_midden_share as number,
+  yardDogTown: F.dog.yard_share_town as number, /** s18 C14 (D-790) */ yardCatTown: (F as any).cat?.yard_share_town as number ?? 0, yardDogVillage: F.dog.yard_share_village as number, strayMiddenShare: F.dog.stray_midden_share as number,
   henTown: F.poultry.yard_share_town as number, henVillage: F.poultry.yard_share_village as number, poultryYard: F.poultry.state_yard_birds as number,
   deer: F.fallow_deer.count as [number, number], gazelle: F.goitered_gazelle.count as [number, number], boar: F.wild_boar.count as number,
   /** D-256: the cows of the village compounds, the small stock with them, the state flock in the stockyard's fold */
@@ -87,6 +87,7 @@ export class Fauna {
   readonly group = new THREE.Group();
   readonly animals = new Animals(1024, 'animals:fauna');
   readonly yardDogs: YardDog[] = []; readonly strays: Strays[] = []; readonly henYards: HenYard[] = [];
+  /** s18 C14 (D-790): the town's yard cats (their yard and seed) */ readonly yardCats: { yard: Yard; seed: number }[] = [];
   /** D-256: the village compounds' penned animals and the stockyard's fold (its centre; the flock drawn there at night) */
   readonly stockYards: StockYard[] = []; stockFold: { c: P2; n: number } | null = null; private stockGrid = new Grid<number>();
   poultry: { c: P2; n: number } | null = null; paradise: { frame: Frame } | null = null; boarPath: P2[] = [];
@@ -141,6 +142,7 @@ export class Fauna {
       hi++;
       if (p.kind === 'house' || p.kind === 'house_large') {
         if (h01(this.seed, hi, 1) < FAUNA.yardDogTown) this.yardDogs.push({ yard: yard(), seed: hi * 7 + 1, where: 'town' });
+        if (h01(this.seed, hi, 5) < FAUNA.yardCatTown) this.yardCats.push({ yard: yard(), seed: hi * 7 + 5 }); // (s18 C14)
         if (h01(this.seed, hi, 2) < FAUNA.henTown) this.henYards.push({ yard: yard(), n: 3 + Math.floor(h01(this.seed, hi, 3) * 4), cock: h01(this.seed, hi, 4) < 0.6, seed: hi * 7 + 2 });
       } else if (p.kind === 'stable' || p.kind === 'station') for (let k = 0; k < 2; k++) this.yardDogs.push({ yard: yard(), seed: hi * 7 + 3 + k, where: 'stable' });
     }
@@ -195,7 +197,7 @@ export class Fauna {
     const dogs = { town: 0, village: 0, stable: 0 }; for (const d of this.yardDogs) dogs[d.where]++;
     const strays = this.strays.reduce((a, s) => a + s.n, 0), hens = this.henYards.reduce((a, h) => a + h.n + (h.cock ? 1 : 0), 0);
     const cows = this.stockYards.filter(y => y.cow).length, smallStock = this.stockYards.reduce((a, y) => a + y.small, 0);
-    return { yardDogsTown: dogs.town, yardDogsVillage: dogs.village, stableDogs: dogs.stable, strays, henYards: this.henYards.length, hens, poultryYard: this.poultry?.n ?? 0, cows, smallStock, stockFold: this.stockFold?.n ?? 0,
+    return { yardCats: this.yardCats.length, yardDogsTown: dogs.town, yardDogsVillage: dogs.village, stableDogs: dogs.stable, strays, henYards: this.henYards.length, hens, poultryYard: this.poultry?.n ?? 0, cows, smallStock, stockFold: this.stockFold?.n ?? 0,
       deer: this.paradise ? FAUNA.deer[0] + FAUNA.deer[1] : 0, gazelle: this.paradise ? FAUNA.gazelle[0] + FAUNA.gazelle[1] : 0, boar: this.boarPath.length ? FAUNA.boar : 0 };
   }
   // ---------------------------------------------------------------- closed-form behaviour
@@ -208,6 +210,18 @@ export class Fauna {
     Object.assign(out, { sp: 'dog' as Species, e, n, x: 0, z: 0, yaw: walking ? Math.atan2(B[0] - A[0], B[1] - A[1]) : Math.atan2(d.yard.door[0] - e, d.yard.door[1] - n) + 0.5 * Math.sin(c.t * 0.03 + i),
       phase: (2 * Math.PI * c.t * 1.0) / 0.95, walk: walking ? 1 : 0, graze: up && !walking && fr(c.t / 9 + i * 0.3) < 0.4 ? 1 : 0, lie: up ? 0 : 1, coat: h01(d.seed, 9) });
     const al = this.alarm.get(i); if (al !== undefined && c.player) { out.lie = 0; out.walk = 0; out.graze = 0; out.yaw = Math.atan2(c.player[0] - e, c.player[1] - n); }
+    return out;
+  }
+  /** s18 C14 (D-790): a yard cat at time t: lying in the sun or the shade on one of the yard's spots most of the day, about
+   *  the yard at dawn and dusk (walking between spots, sitting up), curled at its spot at night; the visitor within 4 m: it
+   *  walks off to the yard's far spot (C) */
+  yardCatAt(i: number, c: FaunaCtx, out: AnimalInst & { e: number; n: number }) {
+    const y = this.yardCats[i], sp = y.yard.spots, dusk = Math.abs(c.hour - c.sun.set) < 1.3 || Math.abs(c.hour - c.sun.rise) < 1.0, T = (dusk ? 40 : 300) + 60 * h01(y.seed, 1);
+    const k = Math.floor((c.t + h01(y.seed, 2) * T) / T), u = fr((c.t + h01(y.seed, 2) * T) / T), A = sp[(k + i) % sp.length], B = sp[(k + i + 1) % sp.length];
+    const walking = u > 0.85, w = walking ? smooth((u - 0.85) / 0.15) : 0; let e = A[0] + (B[0] - A[0]) * w, n = A[1] + (B[1] - A[1]) * w, yaw = walking ? Math.atan2(B[0] - A[0], B[1] - A[1]) : h01(y.seed, k) * 6.28;
+    let walk = walking ? 1 : 0, lie = walking || (dusk && h01(y.seed, k, 3) < 0.5) ? 0 : 1;
+    if (c.player) { const far = sp[sp.length - 1], d = Math.hypot(e - c.player[0], n - c.player[1]); if (d < 4) { const f = Math.min(1, (4 - d) / 2); e += (far[0] - e) * f; n += (far[1] - n) * f; yaw = Math.atan2(far[0] - e, far[1] - n); walk = 1; lie = 0; } }
+    Object.assign(out, { sp: 'cat' as Species, e, n, x: 0, z: 0, yaw, phase: (2 * Math.PI * c.t * 0.8) / 0.42, walk, graze: 0, lie, coat: h01(y.seed, 9) });
     return out;
   }
   /** D-256: one of a compound's penned animals (j: 0 the cow, 1 the calf, then the small stock) at time t: standing about its
@@ -284,6 +298,8 @@ export class Fauna {
         const a2 = this.alarm.get(i); if (a2 !== undefined && this.snd.next() < c.dt / (c.t - a2 < 10 ? 1.4 : 6)) { sound('bark', o.e, o.n, 0.5); st.barks++; } }
       if (night && this.snd.next() < c.dt / 400) { sound('bark', o.e, o.n, 0.5); st.barks++; } // a dog answering the night (C)
       push(); }
+    // s18 C14 (D-790): the yard cats, within the hens' draw radius (they are small)
+    for (let i = 0; i < this.yardCats.length; i++) { const b = this.yardCats[i].yard.bed; if (Math.hypot(b[0] - cam[0], b[1] - cam[1]) > FAUNA.drawR.hen) continue; this.yardCatAt(i, c, o); push(); }
     for (const gi of this.strayGrid.near(cam[0], cam[1], FAUNA.drawR.dog, [])) { const g = this.strays[gi]; for (let j = 0; j < g.n; j++) { this.strayAt(g, j, c, o); push(0.92); } }
     // hens and cocks by day (at night they roost indoors: not drawn); the cocks crow at first light (at most one every 5 s)
     if (day) { for (const hi of this.henGrid.near(cam[0], cam[1], FAUNA.drawR.hen, [])) { const y = this.henYards[hi]; for (let j = 0; j <= y.n - (y.cock ? 0 : 1); j++) { this.henAt(y, j, c, o, sc); push(sc.s); } }

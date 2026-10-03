@@ -31,7 +31,7 @@ const {
   log2, Fn, attribute, texture, uv, vec2, vec3, vec4, float, int, ivec2, mix, step, abs, max, min, floor, clamp, dot, normalize, exp2, smoothstep, sin, cos,
   varyingProperty, normalLocal, positionPrevious, positionView, normalView, normalViewGeometry, positionViewDirection, sign, mx_noise_float, diffuseColor,
   diffuseContribution, specularColor, specularColorBlended, specularF90, metalness, roughness, mod, fract, length, sqrt, atan, exp, pow, cross,
-  cameraViewMatrix, BRDF_GGX, F_Schlick, BRDF_Lambert, cameraPosition, interleavedGradientNoise, screenCoordinate, frameId,
+  cameraViewMatrix, BRDF_GGX, F_Schlick, BRDF_Lambert, cameraPosition, interleavedGradientNoise, screenCoordinate, frameId, uniform,
 } = TSL as any; // TSL's typings do not follow mixed float/vec3 arithmetic; the graph is checked when it builds
 import { MAT, EYE_UNIT, SKIN_CURV_MAX, LOOK_BITS, PRM_UPPER, PRM_ROBE, PRM_CARD, HB, HBONES } from './humanFormat';
 import { ROBE, BEARD, BELLY } from './drape';
@@ -160,7 +160,7 @@ export const KOHL = { band: 0.35, alb: [0.018, 0.016, 0.015] as RGB };
 export const BROW = { lines: 2800, len: 140, clumps: 650 };
 /** the coordinate across the brow's hairs (their direction at angle th from the horizontal, outward) */
 const bP = (y: any, ax: any, c: any, sn: any) => y.mul(c).sub(ax.mul(sn));
-export const EYE = { irisR: 0.0059, pupilR: 0.0015, sclera: [0.64, 0.6, 0.55] as RGB, caruncle: [0.6, 0.36, 0.34] as RGB, lidShadow: 0.55, f0: 0.025, /** D-790 */ cornerShade: 0.38 };
+export const EYE = { irisR: 0.0059, pupilR: 0.0015, sclera: [0.64, 0.6, 0.55] as RGB, caruncle: [0.6, 0.36, 0.34] as RGB, lidShadow: 0.55, f0: 0.025, /** D-790 */ cornerShade: 0.38, lowerShade: 0.3 };
 export const IRIS: RGB[] = [[0.04, 0.02, 0.009], [0.062, 0.032, 0.013], [0.095, 0.05, 0.02], [0.13, 0.072, 0.03], [0.14, 0.1, 0.045], [0.11, 0.115, 0.06], [0.11, 0.13, 0.105], [0.1, 0.14, 0.18]];
 /** lash strips (MakeHuman helper UVs span u 0.704–0.762 along both lids): clumps along the lid, tapering to the tip */
 export const LASH = { u0: 0.704, u1: 0.762, clumps: 72 };
@@ -245,8 +245,11 @@ class HumanLightingModel extends THREE.PhysicalLightingModel {
   }
 }
 
+/** D-790: the hair's motion (m at a card's tip): the air's sway, the trail behind a walker (per m/s), the bounce of the step */
+export const HAIR_SWAY = { air: 0.004, trail: 0.006, bounce: 0.004 };
 export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
   private S: Record<string, any> = {}; private f0Node: any;
+  /** D-790: the clock of the hair's sway (s; humanGPU.end sets it) */ readonly hairTime = uniform(0);
   constructor(T: HumanTextures, opts: { shadowOnly?: boolean } = {}) {
     super();
     this.name = 'human';
@@ -372,6 +375,15 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
       const clothV = step(0.5, hmat.x).mul(step(hmat.x, 3.5));
       const sag = hext.y.mul(SAG_MAX).mul(horiz).mul(scale).mul(clothV);
       p.y.subAssign(sag);
+      // D-790 (UD-27): hair and beards move: the strand cards' tips (uv.y root -> tip; the scalp's hanging locks fully, the
+      // beards half, the brows not) swing in the air and trail the walk (the root's motion since the last frame); the court
+      // beard's hanging mass a little. A few millimetres standing, ~1.5 cm walking; C
+      const hairV = is(hmat.x, MAT.hair), cardCl = floor(hext.z.mul(255).add(0.5).div(8)), isCardV = step(PRM_CARD - 0.5, hmat.w).mul(hairV);
+      const swayK = isCardV.mul(is(cardCl, 0).add(is(cardCl, 1)).add(is(cardCl, 2).add(is(cardCl, 3)).mul(0.5))).add(is(hmat.w, 3).mul(hairV).mul(0.35));
+      const tipW = tS.mul(tS).mul(swayK).mul(float(1).sub(smoothstep(12, 30, camD))), vel = root.xyz.sub(rootPrev.xyz), spd = min(length(vel).mul(60), 3);
+      const hph = this.hairTime.mul(1.7).add(slot.mul(1.37)), gust = sin(hph).mul(0.6).add(sin(hph.mul(2.3).add(1.1)).mul(0.4));
+      const trail = vel.mul(-60 * HAIR_SWAY.trail).mul(min(spd, 1.5)).div(max(spd, 0.05)).mul(spd.mul(0.35).min(1));
+      p.addAssign(vec3(gust.mul(HAIR_SWAY.air).add(trail.x), sin(hph.mul(3.1)).abs().mul(spd).mul(-HAIR_SWAY.bounce), gust.mul(HAIR_SWAY.air * 0.6).add(trail.z)).mul(tipW).mul(scale));
       // optional pieces: bit b of the person's mask (bit 0 = always worn); hidden pieces collapse to one point
       const bit = hmat.z, mask = person0.y;
       const shown = mod(floor(mask.div(exp2(bit))), 2);
@@ -536,7 +548,9 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     let sclera: any = mix(vec3(...EYE.sclera), vec3(...EYE.sclera).mul(vec3(1, 0.62, 0.58)), veins);
     sclera = mix(sclera, vec3(...EYE.caruncle), nasal.mul(0.8));
     const lidSh = float(1).sub(smoothstep(-0.0015, 0.0018, ey).mul(EYE.lidShadow)) // the upper lid's shadow on the eyeball
-      .mul(float(1).sub(smoothstep(0.0055, 0.0115, abs(ex)).mul(EYE.cornerShade))); // (D-790: the white turns away into the corners: a bright flat white read as a doll's)
+      .mul(float(1).sub(smoothstep(0.0055, 0.0115, abs(ex)).mul(EYE.cornerShade))) // (D-790: the white turns away into the corners: a bright flat white read as a doll's)
+      // (D-790: the eye's occlusion along the lower lid too: the lid and the lashes' rim shade the ball where they meet it)
+      .mul(float(1).sub(smoothstep(-0.0028, -0.0058, ey).mul(EYE.lowerShade)));
     const eyeAlb = mix(sclera, iris, irisM).mul(lidSh);
 
     // ---- hair: natural curls, court rows of snail curls, straight strands

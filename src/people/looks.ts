@@ -158,7 +158,7 @@ export const DELEGATION_OF_ORIGIN: Record<string, DelegationDef> = Object.fromEn
  *  paint, Akkadian guḫlu: RECOLLECTION, NOT SEEN; C). Median dress: the guards' shares, else the base (scribes, couriers) */
 export const JEWELS: Partial<Record<Dress, { base: { ear: number; brace: number; shield?: number; kohl?: number }; guard?: { ear: number; brace: number; shield?: number; kohl?: number } }>> = {
   persian: { base: { ear: 0.9, brace: 0.8, kohl: 0.5 } }, guard: { base: { ear: 0.85, brace: 0.6, shield: 0.35 } }, king: { base: { ear: 1, brace: 1, kohl: 1 } },
-  court_woman: { base: { ear: 1, brace: 1, kohl: 1 } }, median: { base: { ear: 0.45, brace: 0.4 }, guard: { ear: 0.8, brace: 0.5 } }, woman: { base: { ear: 0.75, brace: 0.6, kohl: 0.25 } },
+  court_woman: { base: { ear: 1, brace: 1, kohl: 1 } }, median: { base: { ear: 0.45, brace: 0.4 }, guard: { ear: 0.8, brace: 0.5 } }, woman: { base: { ear: 0.75, brace: 0.6, kohl: 0.45 } }, // (D-780: eye paint for nearly half the town's women: C)
   // D-780: a share of the working men with a bronze ring at the ear or the wrist (C, by analogy with the women's: D-207)
   worker: { base: { ear: 0.2, brace: 0.18 } },
 };
@@ -294,6 +294,8 @@ export function lookFor(A: HumanAssets, p: LookInput, worldSeed: number): Person
   const uE = rng.next(), uB = rng.next(), uS = rng.next(), uK = rng.next();
   if (shares && free) { const bz = dress === 'woman' || dress === 'worker'; if (uE < shares.ear) add(bz ? 'earrings_b' : 'earrings'); if (uB < shares.brace) add(bz ? 'bracelets_b' : 'bracelets'); if (uS < (shares.shield ?? 0)) add('shield'); }
   const kohl = shares && (free || dress === 'king') && uK < (shares.kohl ?? 0) ? 1 : 0;
+  // D-780 (C12 P2-7; new draws last): the women's necklaces: every court woman, three in five of the town's women (C)
+  const uN = rng.next(); if (free || dress === 'court_woman') { if (dress === 'court_woman') add('necklace'); else if (dress === 'woman' && uN < 0.6) add('necklace_b'); }
   // D-780 (holes #11; new draws last): the gold of the court's robes: the gold plaques sewn on the robes of Persians of rank
   // (HDT 9.80 'gold plaques'; the gold appliqués of the Oxus Treasure and of Achaemenid tombs: B for the thing) drawn as the
   // rosette motif in a gold-yellow (the shared motif of the material: one in three robes of the Persians and the court women; C)

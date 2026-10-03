@@ -10015,6 +10015,34 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
 - Unseen: the cloud cannot draw Q=high (WebGL2: program validation failures and a lost device with the cascade on AND off;
   WebGPU: SwiftShader's 16-texture cap), so the far cascade is verified node-side only; it needs a T4 frame.
 
+## D-750 The Terrace at 100-300 m: crowned, banded, hung and flagged (s18 cloud C10; UD-19, UD-29, UD-35, UD-36)
+- **Why:** Vagon's final train (s17-renders final2) showed the Gate, the palaces and the Terrace's edge as plain boxes from the
+  stair, the town and the plain: flat roof lines, blank walls, open stone porticoes, nothing moving in the wind.
+- **What (render geometry only; no parts, colliders, grid or plan changed; every class C, tiered in F3):**
+  1. Stepped stone merlons on every palace roof line (roofedge.ts `crowns`: Gate, Apadana, Tachara, Hadish, Harem; not the
+     fortification, which keeps its mud merlons, nor the garrison and Treasury) at 1.35x the stair merlon (UD-29: 0.9 m is a
+     hairline at 300 m), and on the Terrace's edge parapet at the stair size (terrace.parapet_height: "low crenellated parapet").
+     The Blender merlon's own geometry and material (no new pipeline), instanced in 23 chunks of 128 m per building so the far
+     levels (far_terrace.ts) apply per chunk; MerlonNear inside 16 m. ~2,900 merlons; duplicates where two parapet lines
+     coincide (a wall top flush with a roof edge) dropped.
+  2. Glazed-brick bands (the Apadana frieze's rosettes, 1.62 m, 18 courses) under the string course of the Gate's, the
+     Tachara's and the Hadish's outer wall runs (glazed.ts `palaceBandFaces`).
+  3. The porticoes' hangings (dressings.ts; Esther 1:6 for the practice, B): two tied-back curtains per front-row bay and a
+     scalloped valance under the capitals, white, green, blue and purple; 30 bays (Apadana 15, Tachara 3, Hadish 7, Harem 5).
+  4. Royal standards (Xenophon Cyr. 7.1.4 for the standard, B): 12 poles with bronze finials and swallow-tailed purple-red
+     banners over the Gate's corners, the Apadana towers, the Tachara and the Hadish (static cloth: no wind shader).
+  5. Blind windows in dark stone frames with gorge cornices on the Apadana towers' free outer faces (52; global.r_window's
+     frame by analogy).
+  Materials are ones the world already compiles (the merlon, the torches' textile/wood, the brazier stone, bronze, glazed):
+  no new shader, no new sampler. Dressings ride under the glazed-frieze mesh (world.ts adds it); ~30 k triangles.
+- **Measured (cloud, SwiftShader WebGL2, Q=test, one page, each view with the additions hidden then shown; handoff/s18/c10):**
+  stair foot +0.65 M triangles / +39 draws (11.83 -> 12.48 M; +0.95 M before the 128 m chunks), approach 700 m +0.35 M / +27,
+  plain 930 m +0.27 M / +27, Rahmat 350 m +0.41 M / +30, on the Terrace (inside the Apadana stair) +0.81 M / +41. Upper bounds:
+  the far levels are built in a worker and a 3-frame test render may draw before they land. Frame time and memory unmeasured
+  (the T4's budget run decides; the merge budget binds).
+- **Unseen:** the tower windows (committed after the last render); any frame at Q=high; the cloth and merlons under the T4's
+  shadows and lighting; whether the banners' static droop reads as cloth at 20 m.
+
 
 ## D-790 People up close: faces that speak, listen and look; the Bactrian camel and the zebu from library bodies; library ears that flick (session 18, cloud C14; UD-18, UD-21, UD-19)
 - The face while speaking (src/people/face.ts, new): mouth shapes from a phone stream (the spoken line's transliteration
@@ -10102,6 +10130,12 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   hangings on the W, E and N walls); with the court away the halls keep their hangings, and the Apadana a keeper's corner and lamps.
 
 
+  hangings on the W, E and N walls: dropped in the second pass for the 450 k budget, the tables then drawn at the model's lowest
+  level); with the court away the halls keep their hangings, and the Apadana a keeper's corner and lamps.
+- Second pass (the lead's go-ahead and C12's passes 2-4): the asks applied in activities.ts, calendar.ts (E-28, E-29) and
+  performers.ts (the banquet's music); the proskynesis pose; the crown prince and the weapon-bearer behind the throne, the parasol
+  furled indoors; the plain kidaris; guards in the court robe; head pieces fitted by the head's radius, not its support function;
+  the delegations' gifts modelled (tools/blender/model_props.py gift_*); the stale 'court absent by default' texts rewritten.
 ## D-760 An original score, out of world: recorded orchestra, a main theme, an hour for the world, and a director that leaves silence (session 18, cloud C11; UD-38, UD-39)
 - The user's words (UD-38, UD-39) add non-diegetic music to the out-of-world layer, at a Hollywood bar and never recognisable as AI: the brief's "no background score" (§11) gives way to them; its ban on the "ancient Persia" cliché stands and binds the score (blocklist 'music-cliche': no duduk, oud or santur, no augmented-second "exotic" modes, no bent ethnic solo as the theme's identity; after C12's fourth pass the first draft's cor-anglais "duduk", alto-flute "ney" and Phrygian/Hijaz cues were rewritten for solo cello, horn, clarinet and flute in minor, Dorian and Aeolian). Majesty comes from harmony, brass, choir and rhythm; the period's colour (harp, frame drum) is used lightly. Equal temperament is the orchestra's own: the brief's tuning rule governs the world's players (src/audio/music.ts), not the out-of-world score. C.
 - Composed, not generated: every note is written (tools/score/cues/*.ts; the arranger's kit lib/kit.ts voice-leads pads and basses but never invents a tune), performed with expression (lib/write.ts: CC1 hairpins with each long note's own swell, vibrato blooming on held notes, section onsets spread, rubato tempo maps, legato overlaps), rendered through recorded instruments only (Sonatina Symphonic Orchestra, CC Sampling Plus 1.0; VSCO-2 Community Edition, CC0; MuseScore General, MIT; via sfizz and fluidsynth: tools/score/fetch.sh), mixed on a stage (pan, depth, a hall, glue compression, a look-ahead limiter) and mastered to BS.1770 loudness (-16 LUFS the theme, -18 to -22 the world's cues, true peak under -1 dBTP). The composer checks by measurement (tools/score/analyze.ts loudness curve and spectrogram; the build's semitone-clash check of long notes against the harmony): nobody in the cloud can listen. The hall is synthetic (no recorded hall IR is reachable here: a Vagon fetch can replace it).
@@ -10163,6 +10197,19 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   the heard reply says the reply, overheard pairs say their own fact (#15); the court's people, travellers and herders not sent
   to market (C7); meals bought by the stranger (4-12); trespass (4-1); W5, W6, W13, W14, W15, W17, W22; Kokoro blends without a
   regional colour (all C).
+- D-790 round 2 (the leads' asks): the mouth takes the voices' words (crowd.voice's optional 5th argument `words`, IPA or
+  transliteration, sets FaceState.say; face.ts folds IPA onto the viseme classes; world.ts:815 to pass `v.ipa ?? v.text`);
+  mounts trot and gallop by their pace (gaitOfPace: walk to ~1.8 m/s, trot to ~3.6, gallop above; a transverse gallop:
+  each pair's right leg GALLOP_LEAD 0.65 rad after its left; the stride x1.3 / x2.4) and the rider's seat bounces at the trot
+  and sits forward at the gallop (anim 'ride' from the rider's own speed); the wild herds bolt from the player (beasts.ts
+  BeastFlight: within the flight distance an alarm snort, a gallop away `far` m with the members fanning, hooves drumming,
+  15-30 s watching the threat, then grazing and a 0.4 m/s walk home; the old force field kept as a floor at a third of the
+  distance), walk to water at dawn and at dusk (the nearest river point within 8 km) and face the way they drift; the
+  domestic cat (D-771 unblocked it): a species from the leopard library body (animals_derive 'cat': the head rounder, a
+  tabby), in about a sixth of the town's house yards (fauna.json cat; lying by day, about the yard at dusk and dawn, off
+  over the yard when someone comes within 4 m); the anatomy's boar and hare rebuilt for the species list; the mother's
+  held hand 7 cm back to the child's under the skirted gait (people_children's palms within 12 cm again).
+
 ## D-691 Carried props sit on the body, seated poses clear their props (s18 cloud C5)
 - tools/dev/prop_clip.ts: every activity and variant that holds a prop, and the goods in the plan's words (basket, sack, jar,
   head jar, tablet) under walking, standing, talking, sitting, eating and resting, over a man's and a woman's body at 8 phases:
@@ -10191,3 +10238,11 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
 - A hearth indoors (interiors/plan.ts, drawn with the court hearth's model and its cooking pot): against the back wall of the kitchen, or of the living room where a house has no kitchen, with a quern, a kneading trough and a cooking pot beside it (C: the region's house hearth, the smoke out through the roof; the court keeps the summer hearth). Census (node, 1,931 town houses): a hearth 1,711 (1,259 indoors, 1,251 courts), a quern 1,889, an oven 1,929 (440 their own in the court; the rest the nearest court oven within 40 m of the door, shared with the neighbours: C), rooms walkable as before (interiors.test).
 - interiors/ring.ts houseWorkObjects(plotId, day): a house's work objects in world terms (kind, e, n, y, rot, room or −1 for the court, inside, shared, note) from the same room plans the ring draws and the court's fittings, for C1 to put people at real work objects.
 - C12 W12: a tray-table only in the better-off houses (standing > 0.6); the rest eat from a tray of flat bread on the mat.
+## D-800 Beyond the Terrace in 467: Naqsh-e Rustam painted and in use, the estates porticoed, the villages washed (s18 cloud C15; holes.md row 20)
+- Naqsh-e Rustam (plain/naqsh.ts, naqsh_paint.ts, naqsh_life.ts): the façades' architecture painted and gilded per vertex over the Blender model's baked maps (column bases' tori blue, astragals red, bull capitals a warm wash with gilded horns and a gold-studded red harness, fasciae red/blue/green, dentils blue, cornice red, the doorway's bands, the throne's beams and slab, its legs gilded; the recess's back, the lower arm and the shafts bare: the reliefs' ground is the stone, D-030); the Ka'ba's white fresh (albedo 0.79, finer grain); DNc, DNd and DNe carved in Old Persian from ARIo Q007154-6 (CC0; tools/build_naqsh_captions.ts, data/corpus/ario_dn_captions.catf), 18 of DNe's 30 lines (the rest lost in the edition, uncut); the Elamite and Babylonian of DNa/DNb stay uncut (Q-1730: no licensed digital text exists); the second tomb's scaffold (16 standards, 4 decks, ladders), its spoil of fresh chips and the cutters' lean-to; the keepers' whitewashed courtyard house at D-640's NAQSH.house; the offering table before Darius' tomb (bowls of flour, wine and water, the barsom, flowers). One extra draw (nr-life, 7.8 k tris); the DNa/DNb panels now draw with the Elamite relief's panel (the plain stays at 40 meshes).
+- The estates, the pavilion, the Dasht-e Gohar hall (settlement/estates.ts; plan.ts estateSite, pavilionProps, the hall block): Achaemenid columns (stone plinth, bell and torus, a plastered timber shaft painted red ochre with blue and yellow bands, a blue bracket capital), painted architraves over glazed-brick friezes of white, turquoise and yellow, roofs with painted eave boards; each estate a nine-column garden porch, a four-column talar in the court, a gatehouse, and a four-part garden of stone-lined channels crossing at its pool; the estates' columns and piers stand as the town's 'column' fittings (colliders, far level) under the painted props. All C by analogy with Pasargadae (Palace P, the pavilions, the garden) and the Terrace's paint. +1 settlement mesh (the estates' prop batch), +34 k triangles.
+- The villages (plain/villagehouses.ts): the far level takes each household's wash by C2's draw (D-661), so villages read from afar as they do near; 38 % of households a cloth or two drying over the eave, 30 % dung cakes drying on the lane wall (C). +~60 k far triangles (the plain 1.87 M of 2.0 M).
+
+## D-665 A house being built (s18 cloud C2, the lead's ask)
+- q_b1-0015 (105 m², centre grid -511.9, 227.9; on the walk from the Grand Stair's foot): its smallest room finished and roofed, the household living in it; the other rooms' walls at 1.5 m and open to the sky; scaffold poles along its long walls, three brick stacks, the mud-mixing heap, a brick mould, a water jar, the footing's spoil, a sack and a hoe in its open rooms (houseplan.ts buildingPlot, houses.ts: drawn through roofFill's instanced things, `at: 'site'`; C). C1 puts a household and a brick squad there.
+- The belt's quarters (D-661) drawn in the far meshes of the quarters beside them: settlement_build's mesh count back to the base's 51 (its ≤ 45 already failed before s18).
