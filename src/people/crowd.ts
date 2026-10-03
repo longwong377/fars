@@ -50,9 +50,9 @@ import { WORK_META, workRoot, ploughPath, THRESH_TURN_S, type WorkAnim, CAPTURED
 import { IK_Q } from './poseKit';
 import { WorkObjects, WORK_NOTES, WHEELS, type WorkKind } from './workObjects';
 import { Reins } from './reins';
-import { Animals, animalsFor, ANIMAL_BUILD, grazeReach, riderLift, bitAt, type Species } from './animals';
+import { Animals, animalsFor, ANIMAL_BUILD, grazeReach, riderLift, bitAt, CHARIOT_FLOOR, type Species } from './animals';
 /** s18 C14 (D-790): the animal kinds led by reins or a rope */
-const REINED = new Set(['mount', 'team', 'string', 'lead']); const _bit = [0, 0, 0];
+const REINED = new Set(['mount', 'team', 'string', 'lead', 'chariot']); const _bit = [0, 0, 0];
 import type { PopView, ViewPerson } from './popview';
 import { CrowdImpostors, rowOf, frameOf, impFallback, IMP_GAITS } from './impostors';
 import type { AnimId } from './anim';
@@ -684,6 +684,7 @@ export class Crowd {
       if (p.path) { const c = Math.cos(yaw), sn = Math.sin(yaw), o = p.path; x += c * o[0] + sn * o[1]; z += -sn * o[0] + c * o[1]; yaw += o[2]; }
       // D-210: a rider sits on the mount's back (the mount stands on the ground at the base)
       if (p.perf?.animals?.kind === 'mount') y += riderLift(p.perf.animals.species[0], p.look.stature || 1.65);
+      else if (p.perf?.animals?.kind === 'chariot') y += CHARIOT_FLOOR; // (s18 C14: standing in the car)
       const pr = p.prevRoot, r = p.root;
       if (p.drawnFrame === this.frame - 1) { pr[0] = r[0]; pr[1] = r[1]; pr[2] = r[2]; pr[3] = r[3]; } else { pr[0] = x; pr[1] = y; pr[2] = z; pr[3] = yaw; }
       r[0] = x; r[1] = y; r[2] = z; r[3] = yaw;
@@ -967,8 +968,8 @@ export class Crowd {
         if (g) { g.x += fr[0]; g.y += fr[1]; g.z += fr[2]; g.n++; } else this.shared.set(key, { kind: w.kind, x: fr[0], y: fr[1], z: fr[2], yaw: fr[3], n: 1, rank: -1, one: place(fr, w.at[0], w.at[1], w.at[2], 0, new THREE.Matrix4()) });
         continue; }
       // (s18 C14 D-790: a vehicle that follows its performer turns its wheels by the distance it has come: workObjects WHEELS)
-      const WH = w.follow ? WHEELS[w.kind] : undefined; let roll = 0;
-      if (WH) { const q = p as Person & { wheelS?: number; wheelAt?: number[] }, a = q.wheelAt ?? (q.wheelAt = [r[0], r[2]]), dd = Math.hypot(r[0] - a[0], r[2] - a[1]); if (dd < 5) q.wheelS = (q.wheelS ?? 0) + dd; a[0] = r[0]; a[1] = r[2]; roll = (q.wheelS ?? 0) / WH.R; }
+      const WH = WHEELS[w.kind]; let roll = 0;
+      if (WH) { const q = p as Person & { wheelS?: number; wheelAt?: number[] }, a = q.wheelAt ?? (q.wheelAt = [fr[0], fr[2]]), dd = Math.hypot(fr[0] - a[0], fr[2] - a[1]); if (dd < 5) q.wheelS = (q.wheelS ?? 0) + dd; a[0] = fr[0]; a[1] = fr[2]; roll = (q.wheelS ?? 0) / WH.R; }
       this.things.push(w.kind, place(fr, w.at[0], w.at[1], w.at[2], 0, _m), roll);
     }
     // (D-256: the bees about the hives buzz within 25 m, now and then)
@@ -989,7 +990,7 @@ export class Crowd {
       if (REINED.has(A.kind) && p.handC && d < 60) { const H = p.handC, c = Math.cos(r[3]), s = Math.sin(r[3]), bc = Math.cos(fr[3]), bs = Math.sin(fr[3]), bt = bitAt(an, time, _bit);
         const hw = (o: number) => [r[0] + c * H[o] + s * H[o + 2], r[1] + H[o + 1], r[2] - s * H[o] + c * H[o + 2]];
         const bw = [fr[0] + bc * bt[0] + bs * bt[2], fr[1] + bt[1], fr[2] - bs * bt[0] + bc * bt[2]];
-        if (A.kind === 'mount') { this.reins.push(hw(0), bw); this.reins.push(hw(3), bw); } else if (an === list[0] || A.kind === 'team') this.reins.push(hw(A.kind === 'string' || A.kind === 'lead' ? 3 : 0), bw); }
+        if (A.kind === 'mount') { this.reins.push(hw(0), bw); this.reins.push(hw(3), bw); } else if (A.kind === 'chariot') this.reins.push(hw(an.x < 0 ? 0 : 3), bw); else if (an === list[0] || A.kind === 'team') this.reins.push(hw(A.kind === 'string' || A.kind === 'lead' ? 3 : 0), bw); }
     }
     // (D-256: a herd of cows lows, less often and heard further, LOW_S; a penned flock or herd calls too)
     const cattle = A.species.includes('cow');

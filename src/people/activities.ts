@@ -65,7 +65,9 @@ export interface WorkSpec { kind: WorkKind; at: [number, number, number]; follow
  *  butcher, a sheep on a lead */
 export interface AnimalSpec { kind: 'flock' | 'drive' | 'team' | 'circle' | 'beside' | 'lying' | 'tethered' | 'lead' | 'string' | 'mount' | 'draught'
   /** D-256: penned in a fold (the fold's centre FOLD_AT ahead; `pace` 1 = night, most lying) */
-  | 'fold'; species: Species[]; n?: number;
+  | 'fold'
+  /** s18 C14 (D-790): the royal chariot's four horses abreast at the yoke ahead of the car (the work object 'chariot') */
+  | 'chariot'; species: Species[]; n?: number;
   /** D-210: a flock's dogs; a string's, a mount's or a draught pair's walking pace (m/s; 0 standing), the lead rope between
    *  the animals of a string (m), the first animal's distance behind the driver (m) and its side offset (m) */
   dogs?: number; pace?: number; gap?: number; lead?: number; side?: number }
@@ -104,8 +106,8 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
     variants: [
       // D-780 (s18 C13): the court's programme (people/ceremony.ts, court.ts): riding with the king, to the hunt and at exercise;
       // grooms leading the king's horses; a delegate leading his people's gift animals up the Apadana's stair (the reliefs, B)
-      { when: /in the royal chariot/, anim: 'ride', sound: undefined, animals: { kind: 'mount', species: ['horse_saddle'], pace: 1.8 },
-        note: 'the king driving out in the royal chariot (the reliefs, B): drawn mounted until the chariot and its pair are drawn under him (C14, the animals: C: D-780)' },
+      { when: /in the royal chariot/, anim: 'charioteer', sound: undefined, animals: { kind: 'chariot', species: ['horse', 'horse', 'horse', 'horse'], pace: 2.2 }, work: [{ kind: 'chariot', at: [0, 0, 0.05], follow: true }],
+        note: 'the king driving out in the royal chariot (the reliefs, B), four horses abreast (C14 D-790: the four-horse team C; its wheels turn; the reins in his hands)' },
       { when: /on horseback/, anim: 'ride', sound: undefined, animals: { kind: 'mount', species: ['horse_saddle'], pace: 1.8 },
         note: 'riding with the king, to the hunt or at exercise, on a saddle cloth, no stirrups (blocklist; Cyr. 8.3, 1.4: claims, B; the pace C: D-780)' },
       { when: /leading the king’s horses|leading the horses back/, animals: { kind: 'string', species: ['horse_saddle', 'horse_saddle', 'horse_saddle'], n: 3, pace: 1.0 }, note: 'a groom leading the king’s saddled horses on a string (C: D-780)' },
