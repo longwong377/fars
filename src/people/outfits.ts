@@ -1202,7 +1202,7 @@ const VEIL = new WeakMap<HumanVariant, Map<string, number[][]>>();
  *  crown to mid-thigh; hanging from the widest of the body and the robe above each height (a running maximum: cloth
  *  hangs, it does not tuck in), 12 mm clear of them and flaring to 4 cm at the hem; 3 mm fine wool, lined (C) */
 function veilGeo(L: Lib, key: string, lod: number) {
-  const S = lod === 0 ? 16 : lod === 1 ? 8 : 5, R = lod === 0 ? 12 : lod === 1 ? 5 : 3, A0 = Math.PI - 1.3, A1 = Math.PI + 1.3; // (D-322 rev 2: ±75° from the back, over the shoulder blades: at ±60° it settled into a narrow band)
+  const S = lod === 0 ? 26 : lod === 1 ? 12 : 5, R = lod === 0 ? 22 : lod === 1 ? 8 : 3, A0 = Math.PI - 1.0, A1 = Math.PI + 1.0; // (D-804: 26 × 22 at full detail, was 16 × 12: too coarse to carry the solver's folds (the costume's 42 k budget with the hair cards bounds it); ±57° from the back, was ±75°: the wider bell sleeves came through it, the cut's ease 1.25 gives the width; D-322 rev 2: ±75° from the back, over the shoulder blades: at ±60° it settled into a narrow band)
   const origin = (c: Ctx, t: number): V3 => { const y0 = c.v.eyeY + 0.055, y1 = c.J('pelvis')[1] - 0.26, hz = c.J('head')[2] + 0.03, bz = c.J('spine_02')[2]; return [0, lerp(y0, y1, t), lerp(hz, bz, sstep(0, 0.3, t))]; };
   const robe = ['robe_upper', 'robe_sleeves', 'robe_skirt'].map(k => geoKey(k, lod));
   const table = (c: Ctx) => { let m = VEIL.get(c.v); if (!m) VEIL.set(c.v, m = new Map()); const hit = m.get(key); if (hit) return hit;
@@ -1455,6 +1455,17 @@ export function buildOutfits(A: HumanAssets, opts: { dresses?: Dress[]; lods?: n
       const y0 = c.J('spine_01')[1] - 0.005, zc = c.J('pelvis')[2] + 0.02, B = 48, br = new Float32Array(B), bin = (x: number, z: number) => Math.floor((((Math.atan2(x, z) / (2 * Math.PI)) % 1 + 1) % 1) * B) % B;
       for (let i = 0; i < bp.length; i += 3) { if (Math.abs(bp[i + 1] - y0) > 0.03) continue; const k = bin(bp[i], bp[i + 2] - zc); br[k] = Math.max(br[k], Math.hypot(bp[i], bp[i + 2] - zc)); }
       let moved = false;
+      // D-804: and outside the robe as placed on this body at every height (2 cm rows): the robe drawn with its baked pleats is
+      // fuller at the hips than the robe the veil settled over, and its pleats showed through the veil in strips (C)
+      { const L_ = vk.split('@')[1], far = new Map<number, number>(), row = (y: number) => Math.round(y / 0.02), g = geos[vk];
+        // (sampled over the robe's triangles at ~1 cm: its rings are 3-5 cm apart, so its vertices alone left most rows empty)
+        for (const rk of ['robe_skirt', 'robe_upper', 'robe_sleeves']) { const rg = geos[`${rk}@${L_}`], rp = c.placed.get(`${rk}@${L_}`); if (!rp || !rg) continue;
+          const put = (x: number, y: number, z0: number) => { const z = z0 - zc, q = row(y) * B + bin(x, z), r = Math.hypot(x, z); if (r > (far.get(q) ?? 0)) far.set(q, r); };
+          for (let t = 0; t < rg.index.length; t += 3) { const a = rg.index[t] * 3, b = rg.index[t + 1] * 3, d = rg.index[t + 2] * 3;
+            const e = Math.max(Math.hypot(rp[a] - rp[b], rp[a + 1] - rp[b + 1], rp[a + 2] - rp[b + 2]), Math.hypot(rp[b] - rp[d], rp[b + 1] - rp[d + 1], rp[b + 2] - rp[d + 2]), Math.hypot(rp[a] - rp[d], rp[a + 1] - rp[d + 1], rp[a + 2] - rp[d + 2])), m = Math.min(8, Math.ceil(e / 0.01));
+            for (let u = 0; u <= m; u++) for (let w = 0; w <= m - u; w++) { const fu = u / m, fw = w / m, fv = 1 - fu - fw; put(rp[a] * fv + rp[b] * fu + rp[d] * fw, rp[a + 1] * fv + rp[b + 1] * fu + rp[d + 1] * fw, rp[a + 2] * fv + rp[b + 2] * fu + rp[d + 2] * fw); } } }
+        for (let i = 0; i < vp.length; i += 3) { const x = vp[i], z = vp[i + 2] - zc, r = Math.hypot(x, z); if (r < 1e-4) continue; const f = far.get(row(vp[i + 1]) * B + bin(x, z)); if (f === undefined) continue;
+          const need = f + (g.ao[i / 3] === 150 ? 0.004 : 0.007) - r; if (need > 0) { vp[i] = (x / r) * (r + need); vp[i + 2] = zc + (z / r) * (r + need); moved = true; } } }
       for (let i = 0; i < vp.length; i += 3) { const w = 1 - sstep(0.025, 0.065, Math.abs(vp[i + 1] - y0)); if (w <= 0) continue; const x = vp[i], z = vp[i + 2] - zc, r = Math.hypot(x, z), k = bin(x, z); if (!br[k] || r < 1e-4) continue;
         const need = (br[k] + VEIL_OVER_BELT - r) * w; if (need > 0) { vp[i] = (x / r) * (r + need); vp[i + 2] = zc + (z / r) * (r + need); moved = true; } }
       if (moved) { const g = geos[vk], o = base + pieceBase[vk] * 4, nr = geoNormals(vp, g.index, g.n); for (let i = 0; i < g.n; i++) { source[o + i * 4] = vp[i * 3]; source[o + i * 4 + 2] = vp[i * 3 + 2]; source[o + i * 4 + 3] = packNormal(nr[i * 3], nr[i * 3 + 1], nr[i * 3 + 2]); } } }

@@ -10545,6 +10545,18 @@ touched; the budget baseline is not re-accepted from such a head.
   sent to C2 with a repro. At q_s1 (d0 10:00) 53 of 75 people on the move walk; the walks are short (3-5 min), and only 6 of
   303 drawn within 60 m walk: more and longer trips are the plans' (C1).
 - The doorstep shares a little higher (spin 50 %, play 65 %, talk 55 %, rest 40 %, craft 35 %, clean 45 %, eat 20 %).
+
+## D-804 The garments as settled cloth, family by family (s18 cloud C13; the user: people must stop looking like 2010 stock models)
+- The split with C14: C13 the garments (outfits.ts garment pieces, drape.ts, garments.ts, tools/blender/cloth.py and
+  sources/people_cloth*.ts, the cloth branch of humanMaterial), C14 the body, skin, rig and hair. Built in the cloud with pip
+  bpy (6 min; byte-reproduced, build.mjs --verify); Blender contact sheets (preview_garments) are the eyes.
+- The Persian court robe (family 1): the solver hung the sleeves as smooth tubes (no spare cloth); a sleeve now has `ease`
+  about the arm's own axis (1.55 below the pinned top), so it falls in folds as the reliefs' bell sleeves do; the robe's
+  shoulder cap pinned lower (`shoulderPin` 6 cm: the crumpled rim at the shoulder). The court woman's veil: 26 x 22 at full
+  detail (was 16 x 12), cut fuller (ease 1.25), ±57° from the back (the bell sleeves came through at ±75°), settled over the
+  robe's body and skirt only (it snagged on a sleeve) and kept, in the game, radially outside the robe as placed on each body
+  (the robe as drawn, with its baked pleats, is fuller than as settled: its pleats showed through the veil in strips).
+  Before/after: handoff/s18/c13_garments/robe_*.jpg. All C.
 - Later the same session (C12's holes and the lead's asks): staffed works at C3's stations (D-670 spots); a wedding never overfills a town house and a craft's house is never in another craft's workshop; a village's fields out to 3.2 km; meals, feeds and dress kept whatever the overlays lay (keepFood, keepDress: meal and feed faults 37-54 a day -> 0); the Six's names kept off commoners, no doubled or royal xšaθra- women's names, all twelve Old Persian months first, the chronicle as the world's record (chronicleWords); the Terrace's courts and kitchens spread (slots 1.2 m apart); save/load: the minds' reading off the plan cache, the deeds' evSeen and window kept (the persistence round trip byte-identical; still diverging after ~5 days because the minds' memories are not saved: C8's budget).
 - The out-of-doors day (outOfDoors, follow): errands through the lanes (the well, the market ground, kin's door: 1.4 an adult a day, ~15 min of walking), the children's play in their lane, the heat of the day in the lane's shade and on the doorstep (45 % of house-days), the evening at the door, the field work from first light; who is "with" another follows them out (Seg.od). Node census (tools/dev/outdoor_census.ts, pagecheck's reading): the lane cov-142 at 13:48 open 2 -> 25 of 142.
 ## D-802 The town kit: modelled mud-brick pieces for the town's and the villages' houses (s18 cloud C15, lead 3)
