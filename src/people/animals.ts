@@ -408,7 +408,8 @@ export function animalsFor(spec: AnimalSpec, t: number, seed: number, path?: { s
     // (D-256: `n` 4 = two yoke pairs, one behind the other, for the drum sledge from the quarry)
     case 'draught': { const pace = spec.pace ?? 0.9, pairs = Math.max(1, Math.round((spec.n ?? 2) / 2)); let z0 = -1.2;
       for (let k = 0; k < pairs; k++) { let L = 0; for (let i = 0; i < 2; i++) { const s = sp(2 * k + i), B = ANIMAL_BUILD[s]; L = Math.max(L, B.len);
-        out.push({ sp: s, x: i ? -0.55 : 0.55, z: z0 - B.len / 2, yaw: 0, phase: (TWO_PI * t * pace) / B.stride + i * 0.9 + k * 0.4, walk: pace > 0 ? 1 : 0, graze: 0, lie: 0, coat: h1(seed + i + 2 * k, 5) }); }
+        const Gp = gaitOfPace(pace); // (s18 C14: a team at the trot or gallop: the king's chariot)
+        out.push({ sp: s, x: i ? -0.55 : 0.55, z: z0 - B.len / 2, yaw: 0, phase: (TWO_PI * t * pace) / (B.stride * Gp.stride) + i * 0.9 + k * 0.4, walk: pace > 0 ? 1 : 0, graze: 0, lie: 0, coat: h1(seed + i + 2 * k, 5), gait: Gp.gait }); }
         z0 -= L + 0.9; }
       break; }
     // D-256: animals penned in a fold (the brushwood fold beside a band's tents, the stockyard's fold: work object 'fold', its

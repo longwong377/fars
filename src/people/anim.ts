@@ -119,7 +119,12 @@ export function pose(id: AnimId, t: number, ph: number, k: number, g: Gait = GAI
     case 'guard': {
       // standing at his post (D-333): the quietest standing captures, the spear and shield arms held as authored
       p = loopAt(['idle_a', 'idle_c'][pickOf(k, 2, 6)], t, k, 0.8); r = p.rot;
-      r.r_upper = [-0.25, 0, -0.1]; r.r_fore = [-1.25, 0, 0]; r.l_upper = [-0.15, 0, 0.12]; r.l_fore = [-1.1, 0, -0.35]; r.r_hand = [0, 0, 0]; r.l_hand = [0, 0, 0];
+      // (s18 C14, D-790: not one held pose for every guard (cov-042): each guard his own way of holding the spear and the
+      // shield-side arm (three carriages: the spear well forward, nearer the body, the elbow out), the arms easing and
+      // re-gripping on their own slow clock; C)
+      const gv = pickOf(k, 3, 7), ease = 0.05 * S(t * 0.11 + 7 * k) + 0.03 * S(t * 0.37 + 3 * k);
+      const RU = [[-0.25, -0.1], [-0.12, -0.16], [-0.32, -0.04]][gv], RF = [-1.25, -1.1, -1.38][gv], LU = [[-0.15, 0.12], [-0.05, 0.2], [-0.22, 0.08]][gv], LF = [-1.1, -0.85, -1.2][gv];
+      r.r_upper = [RU[0] + ease, 0, RU[1]]; r.r_fore = [RF - 0.6 * ease, 0, 0]; r.l_upper = [LU[0] - 0.7 * ease, 0, LU[1]]; r.l_fore = [LF, 0, -0.35 + 0.08 * S(t * 0.07 + k)]; r.r_hand = [0, 0, 0]; r.l_hand = [0, 0, 0];
       break;
     }
     case 'chisel': {
