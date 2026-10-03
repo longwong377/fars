@@ -22,7 +22,7 @@ export type WorkKind = 'drum_sledge' | 'brick_stack' | 'mud_heap' | 'brick_field
   // session 9 (G77): an ox cart with roof beams; s17 V3 (C3's ask): an ox cart with a rough-cut block from the quarry
   | 'cart_timber' | 'cart_stone'
   // D-780 (holes u1): a royal woman's curtained litter; the couch a diner of the top ranks reclines on at the king's banquet
-  | 'litter' | 'feast_couch'
+  | 'litter' | 'feast_couch' | 'feast_cushion'
   // D-215: children's play (gap audit item 26)
   | 'knucklebones' | 'toy_wheeled'
   // D-209: the lan set out before the fire, and the boiled meat of a sacrifice laid on soft grass
@@ -135,6 +135,7 @@ export const WORK_NOTES: Record<WorkKind, { tier: 'A' | 'B' | 'C'; note: string 
   basket_nuts: { tier: 'C', note: 'a basket of wild pistachios and almonds in their husks (C: D-256)' },
   throne: { tier: 'B', note: 'the king’s throne and footstool at an audience (court setting, D-199): a high-backed chair on turned legs with lion’s-paw feet, and a footstool, as the Treasury audience relief carves them (TREAS-AUD, B); gilded wood and the sizes C: the seat 0.525 m and the footstool 0.105 m high, fitted to the enthroned pose measured on the rig (anim ENTHRONED); where it stood in the Apadana is not known (C)' },
   feast_couch: { tier: 'C', note: 'a couch at the king’s banquet for the Persians of rank nearest the throne, gilded, with a mattress and a bolster (Herodotus 9.80, 9.82: gilded and silver-plated couches in the king’s establishment, B claim; dining reclined on a couch: the Assurbanipal garden relief and the Greek banquet of the period, analogy; who reclines C: D-780). The furnishings’ couch model (m_couch), fitted to the reclining pose measured on the rig (workAnims RECLINE)' },
+  feast_cushion: { tier: 'C', note: 'a flat wool cushion on the floor under a diner at the king’s banquet, round the low tables (cushions and carpets for sitting: the Pazyryk carpet’s craft, B; Heracleides’ seated guests, a claim; the form C: D-780). The interiors’ cushion model, flattened to 6 cm' },
 };
 
 // ------------------------------------------------------------------------------------------------ D-325: the modelled work objects
@@ -186,6 +187,9 @@ function composite(kind: WorkKind): THREE.BufferGeometry | null {
       const id = { basket_meat: 'wo_meat', basket_fruit: 'wo_grapes', basket_nuts: 'wo_nuts', basket_fish: 'wo_fish' }[kind], c = woParts(id, kind); if (!c) return null;
       const r = kind === 'basket_fish' ? 0.22 : 0.2, h = kind === 'basket_meat' ? 0.18 : 0.2;
       return merge([P(SB(kind === 'basket_meat' || kind === 'basket_fish' ? 0 : 1, r, h, () => new THREE.CylinderGeometry(r, r * 0.75, h, 10, 1, true).translate(0, h / 2, 0)), [0.6, 0.52, 0.32]), ...c]); }
+    case 'feast_cushion': { // (D-780: the interiors' cushion model, flattened, under a seated diner)
+      const c = modelFit('i_cushion', [0.62, 0.06, 0.5], 1, [0, 0, -0.05]); if (!c) return null;
+      return merge([paint(c.textile, [0.46, 0.11, 0.09], 0, 0.95), paint(c.cord, [0.62, 0.48, 0.2], 0, 0.9)]); }
     case 'feast_couch': { // (D-780: the furnishings' couch model, lod1, moved into the recliner's frame: workAnims RECLINE)
       const c = modelParts('couch', 1, new THREE.Matrix4().makeTranslation(RECLINE.couchX, 0, 0)); if (!c) return null;
       return merge([paint(c.metal, [0.72, 0.56, 0.3], 0.8, 0.4), paint(c.mattress, [0.46, 0.11, 0.09], 0, 0.95), paint(c.bolster, [0.2, 0.24, 0.42], 0, 0.95)]); }
@@ -278,6 +282,7 @@ export function workGeometry(kind: WorkKind): THREE.BufferGeometry {
       g.push(P(box(0.5, 0.02, 1.8, 0, y - 0.01, 0), WOOD));
       g.push(P(new THREE.CapsuleGeometry(0.16, 1.35, 3, 7).rotateX(Math.PI / 2).scale(1.05, 0.7, 1).translate(0, y + 0.12, 0), LINEN, 1));
       return merge(g); }
+    case 'feast_cushion': return merge([P(box(0.62, 0.06, 0.5, 0, 0, -0.05), [0.46, 0.11, 0.09], 0.95)]);
     case 'feast_couch': { // origin under the recliner's root: the couch along x, its head end and bolster at the left (+x) (workAnims RECLINE)
       const GILT: RGB = [0.72, 0.56, 0.3], RED: RGB = [0.46, 0.11, 0.09], BLUE: RGB = [0.2, 0.24, 0.42];
       const L = RECLINE.x1 - RECLINE.x0, cx = (RECLINE.x0 + RECLINE.x1) / 2, g = [paint(box(L, 0.1, RECLINE.w, cx, RECLINE.top - 0.22, 0), GILT, 0.8, 0.4), paint(box(L - 0.04, 0.12, RECLINE.w - 0.04, cx, RECLINE.top - 0.12, 0), RED, 0, 0.95),
