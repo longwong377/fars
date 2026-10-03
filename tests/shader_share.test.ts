@@ -53,4 +53,9 @@ describe('shared shaders (D-250)', () => {
     expect(fitsAttributes(new THREE.InstancedMesh(geo, new THREE.MeshStandardNodeMaterial(), 4))).toBe(false);
     expect(fitsAttributes(new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshStandardNodeMaterial(), 4))).toBe(true);
   });
+  it('D-473: within 8 vertex buffers too (3 for the matrices and the colour), and on by default (?shareinst=0 to opt out)', () => {
+    const geo = new THREE.BoxGeometry(1, 1, 1); for (let k = 0; k < 3; k++) geo.setAttribute('extra' + k, new THREE.BufferAttribute(new Float32Array(geo.attributes.position.count), 1));
+    expect(fitsAttributes(new THREE.InstancedMesh(geo, new THREE.MeshStandardNodeMaterial(), 4))).toBe(false); // 6 buffers + 3
+    expect(readFileSync('src/render/shareInstancing.ts', 'utf8')).toContain("get('shareinst') === '0'");
+  });
 });
