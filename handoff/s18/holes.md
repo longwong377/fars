@@ -69,7 +69,7 @@ Text that still calls a state "evidence-strict" should be read as stale wherever
 | 21 | **There are no seasonal or one-off marks.** | Kuh-e Rahmat (2,216 m) is under the January snowline of 2,350 m (`weather/climate.ts:38`), so it is never capped in an ordinary winter. No comet: Pliny NH 2.149 records one in 467/466 (GB3). No floods, dust walls, house fires or locusts (GA59, G68). No run-off in lanes after rain (GB7). Heat shimmer is behind `?heat=1` (`pipeline.ts:66`). | A white ridge for weeks in a wetter climate. The 467 comet, the one sky event that dates the year. A spring flood over the fords. A dust storm. (A for the comet, B/C for the rest) | S–M | Unowned (weather) / C4 (sky) |
 | 22 | **Some visible faults read as broken, not as old.** | sb-town-from-rahmat: the foreground ridge is a black striped stretched mesh. Coverage cameras that face a wall or are black: cov-056 (vegetation filling the view), cov-070, cov-112, cov-322 (black). Black floating blobs in the sky (sb-town-from-rahmat). The Treasury floor mirrors like glass (cov-182). The garden reads as trees on flat ground with drawn lines (cov-014/280). | Not a 467 question. The coverage set also under-samples: about 5 of 40 views judge nothing. | S–M each | C4 (terrain mesh); harness C6; garden C2 |
 | 23 | **Movement in a world of several km is a 1.35–1.95 m/s walk.** | `player/motion.ts:22`. There is no horse, cart or boat ride. The opening starts 3.8 km out (`intro.ts:35`). | The brief rules out fast travel, but riding a hired donkey or horse, or sitting on a cart, is period-true and keeps the walking pace honest. (C) | M | C5 |
-| 24 | **Faces at 0.3–3 m read as game NPCs.** | B112; `playing.ts`: "the rig has a jaw and no lips". The fallback voice is PLACEHOLDER-quality (`converse/voice.ts:11`). | Not a 467 question. | L | Vagon (V3) |
+| 24 | **Faces at 0.3–3 m read as game NPCs.** | B112; `playing.ts`: "the rig has a jaw and no lips". The fallback voice is PLACEHOLDER-quality (`converse/voice.ts:11`). | Not a 467 question. | L | C14 (people up close) |
 | 25 | **Page memory and load.** | `bench-reports/load_s17.md`: memory 5.5–5.7 GB against a 5 GB target; the world pops in as shaders compile (`main.ts:626`). | Not a 467 question. | L | C9 |
 
 ### Smaller holes from the same sweep, unranked
@@ -231,7 +231,7 @@ At 0.3–3 m (V3, s17 report_people.md):
 3. Pass-1 #3 the Terrace colour (C10).
 4. **C2** the working land empty even in the simulation (new; C1 + C3).
 5. Pass-1 #4 and #5, town shape and colour (C2).
-6. **F1** faces, lips, guards' dress and pose (new; C13 + Vagon).
+6. **F1** faces, lips, guards' dress and pose (new; C13 + C14).
 7. Pass-1 #9 plus the newcomer's ten minutes: talk undiscoverable (C11, C8, C5).
 8. **P2-1 / P2-2** skin by origin; the delegations with their animals (new; C13, C9).
 9. The stale "court absent default" text in 9 files (new; C13, lead).
