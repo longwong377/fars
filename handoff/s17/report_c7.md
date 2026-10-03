@@ -12,7 +12,7 @@ Final state: merged with origin/cloud-s17-int at 00:10 UTC (V6's interior light,
   carpet's pile texture. Textiles are flat vertex colours (the household's palette), no weave map.
 - Palaces (now in the census): in residence 37-79 things a hall; with the court away the Hadish and harem halls keep a keeper's
   corner and their stores (15-25 things); the Apadana stands empty and the Tachara hall keeps only its steward's corner (the
-  earlier decision, tests/palace_furnish.test.ts); the Tachara's small side rooms stay thin while stored (7 of 10 under 8 things).
+  earlier decision, tests/palace_furnish.test.ts); the Tachara's small side rooms stay thin (7 of 10 under 8 things stored; in use only jars were added: the palaces are at their 450 k triangle budget, now 431.8 k).
 - Workrooms of one craft standing side by side still share their set of things 4 % of the time; ridge tents 16 % (the same set,
   never the same layout).
 
