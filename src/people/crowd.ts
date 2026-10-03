@@ -48,7 +48,7 @@ import { PLAYING, singFace, type PlayKind } from './playing';
 import { PIECES, pieceBit, COSTUME_OF, weatherMask, type Dress } from './outfits';
 import { WORK_META, workRoot, ploughPath, THRESH_TURN_S, type WorkAnim, CAPTURED_WORK } from './workAnims';
 import { IK_Q } from './poseKit';
-import { WorkObjects, WORK_NOTES, type WorkKind } from './workObjects';
+import { WorkObjects, WORK_NOTES, WHEELS, type WorkKind } from './workObjects';
 import { Animals, animalsFor, ANIMAL_BUILD, grazeReach, riderLift, type Species } from './animals';
 import type { PopView, ViewPerson } from './popview';
 import { CrowdImpostors, rowOf, frameOf, impFallback, IMP_GAITS } from './impostors';
@@ -402,6 +402,7 @@ export class Crowd {
     const inp = this.view!.lookInput(pid), look = lookFor(this.humans.A, inp, this.seed), h = this.view!.childStature(pid);
     if (h) { const v = this.humans.A.variants[look.variant]; look.scale = h / v.height; look.stature = h; } // a child's size by age (C)
     const p = this.newPerson(`p${pid}`, null, look, inp.seed); p.pid = pid; this.byPid.set(pid, p);
+    { const age = this.view!.pop.ageOn(pid, Math.floor((this.sim?.t ?? 0) / 24)); if (age < 4) p.gait.toddler = age <= 2 ? 1 : 3.5 - age; } // (s18 C14 D-790: a toddler's walk, anim.ts toddle)
     const day = Math.floor((this.sim?.t ?? 0) / 24); this.setBelly(p, this.view!.pop.gravid?.(pid, day) ?? 0); this.setMarks(p, pid, day); return p; // (gravid?.: a view built on a partial population, as the tests' stand-ins, draws no belly)
   }
   /** an extra person not driven by the simulation (test lineups, the performance sheet): fixed place, yaw and animation,
@@ -959,7 +960,10 @@ export class Crowd {
         // a group object (the bier) at the centre of its bearers
         if (g) { g.x += fr[0]; g.y += fr[1]; g.z += fr[2]; g.n++; } else this.shared.set(key, { kind: w.kind, x: fr[0], y: fr[1], z: fr[2], yaw: fr[3], n: 1, rank: -1, one: place(fr, w.at[0], w.at[1], w.at[2], 0, new THREE.Matrix4()) });
         continue; }
-      this.things.push(w.kind, place(fr, w.at[0], w.at[1], w.at[2], 0, _m));
+      // (s18 C14 D-790: a vehicle that follows its performer turns its wheels by the distance it has come: workObjects WHEELS)
+      const WH = w.follow ? WHEELS[w.kind] : undefined; let roll = 0;
+      if (WH) { const q = p as Person & { wheelS?: number; wheelAt?: number[] }, a = q.wheelAt ?? (q.wheelAt = [r[0], r[2]]), dd = Math.hypot(r[0] - a[0], r[2] - a[1]); if (dd < 5) q.wheelS = (q.wheelS ?? 0) + dd; a[0] = r[0]; a[1] = r[2]; roll = (q.wheelS ?? 0) / WH.R; }
+      this.things.push(w.kind, place(fr, w.at[0], w.at[1], w.at[2], 0, _m), roll);
     }
     // (D-256: the bees about the hives buzz within 25 m, now and then)
     if (d < 25 && this.onHit && (P.work ?? []).some(w => w.kind === 'hives') && this.snd.next() < dt / 3) { const c = Math.cos(b[3]), s = Math.sin(b[3]); this.onHit('buzz', new THREE.Vector3(b[0] + s * 0.9, b[1] + 0.5, b[2] + c * 0.9)); }
