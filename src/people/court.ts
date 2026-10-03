@@ -1093,7 +1093,8 @@ class CourtDay {
     const [b0, b1] = ceremonyHours(this.K.pop.seed, this.d).banquet, A = 'court_audience', seat = this.K.seatOf(this.pid, this.d), r = this.r;
     const opts: Opt[] = [['court_portico', 'talk', 'talking with other Persians of rank in the Apadana portico before the banquet', 2], ['forecourt', 'talk', 'talking in the forecourt before the banquet', 1]];
     this.fill(b0 - walkHours(this.cur, 'court_portico') - 0.1, opts); this.go(seat >= 0 ? A : 'court_portico', 'going in to the king’s banquet in the Apadana');
-    this.add(b1 - r.range(0, 0.25), seat >= 0 ? A : 'court_portico', 'eat', seat >= 0 ? 'at the king’s banquet in the Apadana, seated at a low table between the columns, eating and drinking (Heracleides: a claim, B; C: D-780)' : 'at the king’s banquet, served in the Apadana portico, the hall being full (C: D-780)');
+    this.add(b1 - r.range(0, 0.25), seat >= 0 ? A : 'court_portico', 'eat', seat >= 0 && FEAST_SEATS[seat].couch ? 'reclining on a couch at the king’s banquet in the Apadana, at a table nearest the throne, the cup in his hand (Herodotus 9.80-82: the couches, a claim, B; C: D-780)'
+      : seat >= 0 ? 'at the king’s banquet in the Apadana, seated at a low table between the columns, eating and drinking (Heracleides: a claim, B; C: D-780)' : 'at the king’s banquet, served in the Apadana portico, the hall being full (C: D-780)');
     this.go(this.m.sleep, 'going down to the camp after the banquet, by lamplight'); this.night();
   }
   /** the parasol bearer and the fly-whisk and towel bearer: in attendance on the king in the palace (not drawn), behind him

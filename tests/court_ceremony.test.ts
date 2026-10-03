@@ -12,6 +12,11 @@ import { palaceFurnishingPlan } from '../src/world/furnish_palaces';
 import type { Column } from '../src/arch/parts';
 import sources from '../src/data/sources.json';
 import courtJson from '../src/data/court.json';
+import { RECLINE } from '../src/people/workAnims';
+import { pose } from '../src/people/anim';
+import { decodeHumanAssets } from '../src/people/humanAssets';
+import { RigSolver, PALETTE_STRIDE, skinPoint, type RigInput } from '../src/people/humanRig';
+import { PART } from '../src/people/humanFormat';
 
 const nav = new NavGrid(new Int16Array(readFileSync('public/generated/nav.i16').buffer.slice(0)), new Uint8Array(readFileSync('public/generated/nav_edges.u8')));
 const env = () => ({ rain: 0, lightning: false, windMs: 2, tempC: 18, dust: 0 });
@@ -41,8 +46,32 @@ describe('the court’s programme (ceremony.ts)', () => {
       expect(nav.walkable(s.at[0], s.at[1]) || !!nav.snap(s.at[0], s.at[1], 0.4), `seat ${s.at}`).toBe(true);
       for (const c of cols) expect(Math.max(Math.abs(c.c[0] - s.at[0]), Math.abs(c.c[1] - s.at[1])) - c.order.baseW / 2, `seat ${s.at} by a column`).toBeGreaterThan(0.25);
       for (const it of solid) { const dx = Math.abs(s.at[0] - it.e), dy = Math.abs(s.at[1] - it.n); expect(dx < it.hu + 0.2 && dy < it.hv + 0.2, `seat ${s.at} in a ${it.kind}`).toBe(false); }
-      const toT = Math.atan2(s.table[0] - s.at[0], s.table[1] - s.at[1]) * 180 / Math.PI; expect(Math.abs(((s.heading - toT) % 360 + 540) % 360 - 180)).toBeLessThan(1);
+      const toT = Math.atan2(s.table[0] - s.at[0], s.table[1] - s.at[1]) * 180 / Math.PI; expect(Math.abs(((s.heading - toT) % 360 + 540) % 360 - 180)).toBeLessThan(s.couch ? 25 : 1);
+      if (!s.couch) continue;
+      // a couch (workAnims RECLINE, in the diner's frame: x left, z ahead) clear of its table, of the columns and of every other couch
+      const h = s.heading * Math.PI / 180, f = [Math.sin(h), Math.cos(h)], lt = [-Math.cos(h), Math.sin(h)], corners: number[][] = [];
+      for (const x of [RECLINE.x0, RECLINE.x1]) for (const z of [-RECLINE.w / 2, RECLINE.w / 2]) corners.push([s.at[0] + x * lt[0] + z * f[0], s.at[1] + x * lt[1] + z * f[1]]);
+      const lo = [Math.min(...corners.map(c => c[0])), Math.min(...corners.map(c => c[1]))], hi = [Math.max(...corners.map(c => c[0])), Math.max(...corners.map(c => c[1]))];
+      for (const it of solid) expect(lo[0] < it.e + it.hu + 0.05 && hi[0] > it.e - it.hu - 0.05 && lo[1] < it.n + it.hv + 0.05 && hi[1] > it.n - it.hv - 0.05, `couch at ${s.at} in a ${it.kind}`).toBe(false);
+      for (const c of cols) expect(lo[0] < c.c[0] + c.order.baseW / 2 + 0.2 && hi[0] > c.c[0] - c.order.baseW / 2 - 0.2 && lo[1] < c.c[1] + c.order.baseW / 2 + 0.2 && hi[1] > c.c[1] - c.order.baseW / 2 - 0.2, `couch at ${s.at} by a column`).toBe(false);
     }
+    const couches = FEAST_SEATS.filter(s => s.couch); expect(couches.length).toBe(2 * (courtJson as any).ceremony.banquet.couch_tables);
+    for (const a of couches) for (const b of couches) if (a !== b) expect(Math.abs(a.at[0] - b.at[0]) > 2.2 || Math.abs(a.at[1] - b.at[1]) > 0.9, `couches at ${a.at} and ${b.at}`).toBe(true);
+    // the couches are the first seats: the top ranks recline nearest the throne
+    expect(FEAST_SEATS.slice(0, couches.length).every(s => s.couch)).toBe(true);
+  });
+  it('the reclining diner lies on the couch at every man’s body the crowd draws (the Persians of rank and the chiliarch): the seat within 6 cm of the mattress, nothing under it, the elbow on the bolster', () => {
+    const b = readFileSync('public/generated/humans/humans.bin'), A = decodeHumanAssets(JSON.parse(readFileSync('public/generated/humans/humans.json', 'utf8')), b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength));
+    const rig = new RigSolver(A.meta.curlAxes), pal = new Float32Array(PALETTE_STRIDE), o = [0, 0, 0], bx = [RECLINE.x1 - 0.36, RECLINE.x1 - 0.16];
+    for (const v of A.variants.filter(v => v.meta.sex === 'm' && v.meta.group !== 'child')) for (const t of [0, 8.4]) {
+      const inp = { joints: v.joints, pose: pose('recline' as any, t, 0, 0), face: { jaw: 0, blink: 0, look: null, eyeYaw: 0, eyePitch: 0 }, grip: [0.5, 0.5], x: 0, y: 0, z: 0, yaw: 0, scale: 1 } as unknown as RigInput;
+      rig.setPose(inp); rig.solve(inp, pal, 0); let seat = 9, under = 0, elbow = 9, off = 0;
+      for (let i = 0; i < A.NO; i += 2) { const pt = A.part[i]; if (pt >= PART.eye) continue; skinPoint(pal, 0, A.skinIndex.subarray(i * 4, i * 4 + 4), Array.from(A.skinWeight.subarray(i * 4, i * 4 + 4), x => x / 255), v.pos.subarray(i * 3, i * 3 + 3), o);
+        const on = o[0] > RECLINE.x0 && o[0] < RECLINE.x1 && Math.abs(o[2]) < RECLINE.w / 2; if (!on && o[1] < RECLINE.top + 0.02) off++; if (on) under = Math.max(under, RECLINE.top - o[1]);
+        if (pt === PART.pelvis || pt === PART.thigh_l || pt === PART.thigh_r) seat = Math.min(seat, o[1]);
+        if ((pt === PART.uarm_l || pt === PART.farm_l) && o[0] > bx[0] && o[0] < bx[1]) elbow = Math.min(elbow, o[1]); }
+      expect(Math.abs(seat - RECLINE.top), `${v.meta.id}: seat`).toBeLessThan(0.065); expect(under, `${v.meta.id}: into the couch`).toBeLessThan(0.07); expect(off, `${v.meta.id}: hanging off the couch`).toBe(0);
+      expect(Math.abs(elbow - (RECLINE.top + 0.18)), `${v.meta.id}: the elbow on the bolster`).toBeLessThan(0.09); } // (by stature: the 1.50 m body's arm 9 cm into the soft bolster, the 1.79 m one's seat 6 cm above the mattress: the pose cannot know the body)
   });
 });
 
