@@ -22,6 +22,10 @@ export const PIGMENT: Record<string, C3> = {
   gold: GILT_SRGB,
 };
 const P = PIGMENT, STONE = P.stone, HAIR = P.darkBlue;
+/** D-752 (s18 D-771, C; holes.md #3, P2-3): the 467 reliefs fully painted: skin a flesh ochre (the red and yellow ochres of
+ *  §3a mixed with calcite white, as in every painted figure tradition of the time), shoes and boots in leather, the eye's white
+ *  with a dark pupil; the animals in their natural coats (Species.coat). Was: faces, hands and animals bare stone (D-030) */
+const SKIN: C3 = [0.76, 0.56, 0.42], LEATHER: C3 = [0.42, 0.27, 0.17];
 /** garment colours (D-151). The Persian court robe: 'red and purple for the robe' (RELIEFS_AND_COLOUR §3b, B/C: the search
  *  extract with hair and beard dark blue), so its field is one of the reds or the purple, girt with a blue belt (C; the
  *  patterned field and the blue hem strips are the king's, royalRobe). The riding dress, the delegates' dress and the
@@ -103,9 +107,10 @@ export function humanHead(fr0: Frame, head: Head, beard: Beard, hc: C3, HAIR: C3
   // the face rises toward the profile (brow, nose, lips carry the relief's highest line; the cheek recedes to the ear) with
   // a shallow socket under the brow and a crisp cheek plane (D-151; was a dome, highest mid-cheek)
   const facePlanes = fr.det((x, y) => 0.16 * Math.min(1, Math.max(0, (x + 0.012) / 0.07)) - 0.1 * Math.max(0, 1 - Math.hypot((x - 0.03) / 0.024, (y - 0.806) / 0.013)) - 0.05 * Math.max(0, 1 - Math.hypot((x - 0.02) / 0.03, (y - 0.772) / 0.022)));
-  ms.push(M([face, fr.ell(-0.006, 0.8, 0.055, 0.058)], { amp: 0.68, lift: 0.1, round: 0.022, edge: 0.5, dome: 0.25, domeW: 0.04, groove: 0.08, colour: STONE, smooth: 0.01, detail: facePlanes }));
+  ms.push(M([face, fr.ell(-0.006, 0.8, 0.055, 0.058)], { amp: 0.68, lift: 0.1, round: 0.022, edge: 0.5, dome: 0.25, domeW: 0.04, groove: 0.08, colour: SKIN, smooth: 0.01, detail: facePlanes }));
   I.push(inc(fr.ell(0.035, 0.806, 0.0125, 0.0045), 0.12, 0.0018)); // almond eye (the frontal eye of the profile convention)
-  ms.push(M([fr.ell(0.034, 0.806, 0.0105, 0.0032)], { amp: 0.7, lift: 0.05, colour: STONE, round: 0.004 }));
+  ms.push(M([fr.ell(0.034, 0.806, 0.0105, 0.0032)], { amp: 0.7, lift: 0.05, colour: P.white, round: 0.004 }));
+  ms.push(M([fr.circ(0.039, 0.806, 0.0029)], { amp: 0.001, colour: P.black, paintOnly: true })); // D-752: the pupil (D-771, C)
   I.push(...fr.caps([[0.022, 0.8105], [0.034, 0.8125], [0.047, 0.8075]], 0.0006, 0.0006, 2).map(s => inc(s, 0.12, 0.0024))); // the heavy upper lid
   I.push(...fr.caps([[0.016, 0.818], [0.034, 0.823], [0.051, 0.818]], 0.0004, 0.0004, 2).map(s => inc(s, 0.1, 0.002))); // brow
   I.push(inc(fr.seg(0.049, 0.759, 0.061, 0.7595, 0.0004), 0.1, 0.0016), inc(fr.ell(0.064, 0.774, 0.005, 0.003), 0.06, 0.0014)); // lips, nostril
@@ -115,7 +120,7 @@ export function humanHead(fr0: Frame, head: Head, beard: Beard, hc: C3, HAIR: C3
   // 0.06 of the head's height (the beard's 0.05), in staggered rows (B)
   const hairCurl = fr.det((x, y) => curls(x, y, 0.02, 0.19));
   // the neck (bare stone, as the face), from under the jaw down into the shoulders; mostly hidden by the beard and the hair
-  ms.push(M([fr.seg(-0.006, 0.705, 0.0, 0.77, 0.03, 0.028)], { amp: 0.62, lift: 0.02, colour: STONE, round: 0.014 }));
+  ms.push(M([fr.seg(-0.006, 0.705, 0.0, 0.77, 0.03, 0.028)], { amp: 0.62, lift: 0.02, colour: SKIN, round: 0.014 }));
   if (head !== 'hood') ms.push(M([fr.spoly([[-0.028, 0.824], [-0.062, 0.824], [-0.092, 0.79], [-0.096, 0.735], [-0.076, 0.698], [-0.04, 0.708], [-0.024, 0.776]], 4)], { amp: 0.72, lift: 0.12, colour: HAIR, round: 0.016, detail: hairCurl, groove: 0.08 }));
   if (head === 'bare' || head === 'fillet' || head === 'band')
     ms.push(M([fr.spoly([[-0.058, 0.8], [-0.056, 0.842], [-0.028, 0.864], [0.016, 0.866], [0.042, 0.846], [0.03, 0.836], [-0.02, 0.836], [-0.038, 0.8]], 4)], { amp: 0.72, lift: 0.08, colour: HAIR, round: 0.012, detail: hairCurl }));
@@ -125,7 +130,7 @@ export function humanHead(fr0: Frame, head: Head, beard: Beard, hc: C3, HAIR: C3
     ms.push(M([b], { amp: 0.8, lift: 0.14, colour: HAIR, round: 0.014, edge: 0.55, groove: 0.1, detail: fr.det((x, y) => (y > 0.746 ? curls(x, y, 0.0125, 0.16, 0.004, 0.002) : curls(x, y, 0.0145, 0.19, 0.0, 0.004))) }));
     ms.push(M([fr.ell(0.054, 0.759, 0.012, 0.005, -0.2)], { amp: 0.84, lift: 0.1, colour: HAIR, round: 0.005, detail: fr.det((x, y) => curls(x, y, 0.008, 0.12)) })); // moustache
   }
-  ms.push(M([fr.ell(-0.008, 0.796, 0.011, 0.018)], { amp: 0.76, lift: 0.1, colour: STONE, round: 0.008, groove: 0.08 })); // ear
+  ms.push(M([fr.ell(-0.008, 0.796, 0.011, 0.018)], { amp: 0.76, lift: 0.1, colour: SKIN, round: 0.008, groove: 0.08 })); // ear
   I.push(inc(fr.ell(-0.006, 0.796, 0.005, 0.01), 0.12, 0.0016));
   if (head === 'fluted') { // tall fluted hat (Persian dress, B): vertical flutes over a plain band
     // D-320 round 3 (AKS photo, B): the top edge is the row of the flutes' rounded tips, rising a little to the front; under the
@@ -248,7 +253,7 @@ export function human(fr: Frame, h: Human, extra: Partial<Record<Layer, Mass[]>>
   if (seated) { // thighs horizontal, shins down to the footstool (the throne is drawn by the caller)
     if (h.royal) robe = royalRobe(fr, g, [[0.13, 0.058], [0.2, 0.048], [0.222, 0.058]]);
     body.push(fr.spoly([[-0.066, 0.5], [-0.066, 0.4], [0.02, 0.37], [0.19, 0.37], [0.215, 0.35], [0.222, 0.06], [0.2, 0.05], [0.13, 0.06], [0.14, 0.3], [0.06, 0.44], [0.068, 0.5]], 3));
-    L.front.push(M([fr.poly([[0.13, 0.045], [0.26, 0.045], [0.265, 0.058], [0.24, 0.07], [0.15, 0.075]])], { amp: 0.6, lift: 0.05, colour: STONE, round: 0.01 }));
+    L.front.push(M([fr.poly([[0.13, 0.045], [0.26, 0.045], [0.265, 0.058], [0.24, 0.07], [0.15, 0.075]])], { amp: 0.6, lift: 0.05, colour: LEATHER, round: 0.01 }));
     fold = fr.det((x, y) => (y < 0.37 && x > 0.12 ? pleats(x - y * 0.1, 0.012, 0.1) : y < beltY ? pleats(y + x * 0.2, 0.03, 0.05) : 0));
   } else if (h.dress === 'persian' || h.dress === 'royal' || h.dress === 'long') {
     // ankle-length robe girt at the waist, falling in tiers of pleats (IR-CAND, B): curved folds fanning from the front of the
@@ -257,8 +262,8 @@ export function human(fr: Frame, h: Human, extra: Partial<Record<Layer, Mass[]>>
     if (h.royal) robe = royalRobe(fr, g, [[-0.128 * st, hemB], [0.0, 0.04], [0.128 * st, hemF]]);
     else if (h.pattern) robe = patternedRobe(fr, g, [[-0.128 * st, hemB], [0.0, 0.04], [0.128 * st, hemF]]);
     body.push(fr.spoly([[-0.062, 0.5], [-0.076, 0.36], [-0.098, 0.2], [-0.12 * st, hemB + 0.01], [-0.128 * st, hemB], [0.0, 0.04], [0.128 * st, hemF], [0.116 * st, 0.12], [0.088, 0.3], [0.07, 0.5]], 3));
-    L.back.push(M([fr.poly([[-0.112 * st, 0.0], [-0.005, 0.0], [0.004, 0.012], [-0.015, 0.03], [-0.095 * st, 0.038]])], { amp: 0.4, colour: STONE, round: 0.012 }));
-    L.front.push(M([fr.poly([[0.03, 0.0], [0.145 * st + 0.01, 0.0], [0.152 * st + 0.012, 0.012], [0.13 * st + 0.01, 0.027], [0.06, 0.034], [0.03, 0.036]])], { amp: 0.58, lift: 0.05, colour: STONE, round: 0.012 }));
+    L.back.push(M([fr.poly([[-0.112 * st, 0.0], [-0.005, 0.0], [0.004, 0.012], [-0.015, 0.03], [-0.095 * st, 0.038]])], { amp: 0.4, colour: LEATHER, round: 0.012 }));
+    L.front.push(M([fr.poly([[0.03, 0.0], [0.145 * st + 0.01, 0.0], [0.152 * st + 0.012, 0.012], [0.13 * st + 0.01, 0.027], [0.06, 0.034], [0.03, 0.036]])], { amp: 0.58, lift: 0.05, colour: LEATHER, round: 0.012 }));
     I.push(inc(fr.seg(0.075, 0.006, 0.09, 0.03, 0.0005), 0.08), inc(fr.seg(0.1, 0.004, 0.11, 0.024, 0.0005), 0.08)); // shoe straps (NS, C)
     // the folds fan from the front of the waist down to the back hem, each a sloping plane ending in a crisp step (D-151: 0.14 of
     // the relief depth, was 0.07); above the belt the upper robe hangs in shallow swags from the shoulder
@@ -267,14 +272,14 @@ export function human(fr: Frame, h: Human, extra: Partial<Record<Layer, Mass[]>>
     L.front.push(M([casc], { amp: 0.62, lift: 0.07, colour: robe, round: 0.012, edge: 0.55, groove: 0.08, detail: fr.det((x, y) => pleats(x - 0.07 * (0.5 - y), 0.0105, 0.2)) }));
   } else {
     // riding dress: knee-length tunic over trousers (median), or a short tunic / wrap with bare legs
-    const hemY = h.dress === 'wrap' ? 0.3 : 0.28, trousers = h.dress === 'median', legCol = trousers ? g2 : STONE;
+    const hemY = h.dress === 'wrap' ? 0.3 : 0.28, trousers = h.dress === 'median', legCol = trousers ? g2 : SKIN;
     body.push(fr.spoly([[-0.062, 0.5], [-0.078, 0.4], [-0.094, hemY + 0.005], [-0.086, hemY - 0.01], [0.0, hemY - 0.012], [0.092, hemY - 0.004], [0.096, hemY + 0.02], [0.08, 0.4], [0.07, 0.5]], 3));
     const tf = fr.det((x, y) => pleats(y + 0.25 * x, 0.02, trousers ? 0.13 : 0));
     L.back.push(M(fr.strokeR([[-0.02, 0.4], [-0.044 * st, 0.24], [-0.07 * st, 0.05]], [0.045, 0.036, trousers ? 0.031 : 0.023]), { amp: 0.42, colour: legCol, round: 0.02, detail: tf }));
     L.body.push(M(fr.strokeR([[0.03, 0.4], [0.07 * st, 0.24], [0.104 * st, 0.05]], [0.048, 0.038, trousers ? 0.032 : 0.024]), { amp: 0.6, lift: 0.08, colour: legCol, round: 0.022, detail: tf, groove: 0.06 }));
     const boot = (x: number) => fr.poly([[x - 0.035, 0.0], [x + 0.062, 0.0], [x + 0.068, 0.012], [x + 0.047, 0.028], [x + 0.012, 0.035], [x + 0.008, trousers ? 0.075 : 0.045], [x - 0.03, trousers ? 0.075 : 0.045]]);
-    L.back.push(M([boot(-0.074 * st)], { amp: 0.44, lift: 0.02, colour: STONE, round: 0.01 }));
-    L.front.push(M([boot(0.104 * st)], { amp: 0.62, lift: 0.06, colour: STONE, round: 0.01, groove: 0.05 }));
+    L.back.push(M([boot(-0.074 * st)], { amp: 0.44, lift: 0.02, colour: LEATHER, round: 0.01 }));
+    L.front.push(M([boot(0.104 * st)], { amp: 0.62, lift: 0.06, colour: LEATHER, round: 0.01, groove: 0.05 }));
     if (trousers) for (let k = 0; k < 3; k++) I.push(inc(fr.seg(0.078 * st, 0.055 - k * 0.013, 0.112 * st, 0.06 - k * 0.013, 0.0004), 0.07, 0.002)); // laces (NS, C)
     L.front.push(M([fr.poly([[-0.096, hemY - 0.012], [0.098, hemY - 0.005], [0.098, hemY + 0.014], [-0.096, hemY + 0.008]])], { amp: 0.001, colour: g2, paintOnly: true })); // hem border
     fold = fr.det((x, y) => (y < beltY && y > hemY ? pleats(x * 0.6 + y * 0.8, 0.028, 0.1) : y >= beltY ? pleats(Math.hypot(x - 0.01, y - 0.7), 0.028, 0.05) : 0));
@@ -298,7 +303,7 @@ export function human(fr: Frame, h: Human, extra: Partial<Record<Layer, Mass[]>>
   const sh: [number, number] = [0.004, 0.69];
   const arm = (a: Arm, near: boolean) => {
     const out: Mass[] = [], [ex, ey] = a.elbow, [hx, hy] = a.hand, amp = near ? 0.66 : 0.4, lift = near ? 0.12 : 0;
-    out.push(M(fr.strokeR([sh, [ex, ey], [hx, hy]], [0.03, 0.025, 0.018], 3), { amp, lift, colour: h.dress === 'wrap' ? STONE : robe, round: 0.016, groove: near ? 0.08 : 0 }));
+    out.push(M(fr.strokeR([sh, [ex, ey], [hx, hy]], [0.03, 0.025, 0.018], 3), { amp, lift, colour: h.dress === 'wrap' ? SKIN : robe, round: 0.016, groove: near ? 0.08 : 0 }));
     if (h.dress === 'persian' || h.dress === 'royal') {
       // D-320 round 3: the wide Persian sleeve hangs lower (its hem 0.17 of the figure under the forearm: the Apadana nobles, B/C)
       const low = Math.min(ey, hy) - 0.17, mx = (ex + hx) / 2;
@@ -307,7 +312,7 @@ export function human(fr: Frame, h: Human, extra: Partial<Record<Layer, Mass[]>>
       out.push(M([fr.spoly([[ex - 0.028, ey + 0.02], [hx - 0.01, hy - 0.004], [hx - 0.035, hy - 0.06], [mx - 0.01, low + 0.01], [mx - 0.048, low], [ex - 0.044, ey - 0.05]], 4)],
         { amp: amp * 0.95, lift: lift * 0.9, colour: sleeve, round: 0.018, groove: near ? 0.1 : 0, detail: fr.det((x, y) => pleats(Math.sqrt((x - hx + 0.01) ** 2 + (y - hy - 0.02) ** 2), 0.012, 0.16)) }));
     } else if (h.dress !== 'wrap') out.push(M([fr.seg(hx - (hx - ex) * 0.12, hy - (hy - ey) * 0.12, hx - (hx - ex) * 0.2, hy - (hy - ey) * 0.2, 0.021)], { amp: 0.001, colour: g2, paintOnly: true })); // cuff
-    out.push(M([fr.ell(hx + 0.004, hy, 0.018, 0.015, Math.atan2(hy - ey, hx - ex))], { amp: amp + 0.06, lift: lift + 0.05, colour: STONE, round: 0.01 })); // hand
+    out.push(M([fr.ell(hx + 0.004, hy, 0.018, 0.015, Math.atan2(hy - ey, hx - ex))], { amp: amp + 0.06, lift: lift + 0.05, colour: SKIN, round: 0.01 })); // hand
     return out;
   };
   if (h.far) L.farArm.push(...arm(h.far, false));
@@ -426,6 +431,8 @@ export function prop(fr: Frame, kind: Prop, hx: number, hy: number, pc: C3): Mas
  *  D = barrel depth; neck from its base to the poll (angle above horizontal; arch = bow of the crest); head axis from the
  *  poll to the nose (negative angle = pointing down). */
 export interface Species {
+  /** D-752: the coat's colour (sRGB; the animals painted in their natural colours, D-771 C) */
+  coat?: C3;
   L: number; H: number; D: number;
   neck: { len: number; ang: number; base: number; top: number; arch: number };
   head: { len: number; dep: number; ang: number; muzzle: number };
@@ -462,6 +469,12 @@ export const SPECIES: Record<string, Species> = {
   cub: { L: 0.42, H: 0.26, D: 0.15, neck: { len: 0.07, ang: 25, base: 0.065, top: 0.052, arch: 0 }, head: { len: 0.1, dep: 0.085, ang: -10, muzzle: 0.62 }, leg: 0.9, ears: 0.8, tail: 'lion', feet: 'paw', waist: 0.82,
     tier: 'B', note: 'lion cub (Elamite delegation, B/C)' },
 };
+/** D-752 (D-771, C): the animals' coats, natural colours as a painter of the time would lay them (sRGB) */
+const COATS: Record<string, C3> = { horse: [0.5, 0.3, 0.18], bull: [0.56, 0.4, 0.26], camel_bactrian: [0.66, 0.5, 0.32], dromedary: [0.72, 0.58, 0.4],
+  ram: [0.82, 0.76, 0.62], lioness: [0.74, 0.56, 0.32], lion: [0.72, 0.53, 0.3], ibex: [0.6, 0.47, 0.32], okapi: [0.36, 0.22, 0.16],
+  wild_ass: [0.66, 0.58, 0.48], kid: [0.62, 0.48, 0.34], cub: [0.74, 0.58, 0.36] };
+for (const [k, c] of Object.entries(COATS)) if (SPECIES[k]) SPECIES[k].coat = c;
+
 
 /** lean = the body's tilt (rad, front up). Legs that stand are aimed at the ground line (field y = 0) through the frame, so a
  *  tilted body still stands; neck and head angles are then world-relative. fore: 'walk' | 'raised' (rearing, forelegs
@@ -470,7 +483,7 @@ export interface QuadPose { /** D-320 round 3: the bead rows along the neck and 
 export interface QuadBuilt extends Built { poll: [number, number]; shoulder: [number, number]; rump: [number, number] }
 /** Profile quadruped facing +x, feet at y = 0. Near legs are carved in front of the body, far legs behind it. */
 export function quadruped(fr: Frame, sp: Species, pose: QuadPose = {}): QuadBuilt {
-  const out: Mass[] = [], incs: SDF[] = [], col = STONE, { L, H, D } = sp, hl = L / 2, lg = sp.leg, w = sp.waist ?? 1, paw = sp.feet === 'paw', lean = pose.lean ?? 0;
+  const out: Mass[] = [], incs: SDF[] = [], col = sp.coat ?? P.yellowOchre, { L, H, D } = sp, hl = L / 2, lg = sp.leg, w = sp.waist ?? 1, paw = sp.feet === 'paw', lean = pose.lean ?? 0;
   // D-226: the animal's body is cut back in a near-vertical step too (edge 0.7, was 0.5), its musculature rounded within it
   // (dome 0.3 over 0.08, was 0.45 over 0.1; round 0.02, was 0.035)
   const BODY = { amp: 0.62, round: 0.02, edge: 0.7, dome: 0.3, domeW: 0.08, groove: 0.1, grooveW: 0.008 };
@@ -904,7 +917,7 @@ export function figureDef(kind: string, seed: number): FigureDef {
     case 'fire_altar': return { masses: fireAltar(fr) };
     case 'elamite': { // D-320: a worshipper of the Neo-Elamite relief (by analogy, C; see FIGURE_KINDS.elamite), unpainted
       const woman = seed % 3 === 2, clasp = { near: { elbow: [0.05, 0.56], hand: [0.085, 0.64] }, far: { elbow: [0.035, 0.57], hand: [0.075, 0.63] } } as Pick<Human, 'near' | 'far'>;
-      return human(fr, { dress: 'long', head: woman ? 'fillet' : 'band', beard: woman ? 'none' : 'long', garment: STONE, garment2: STONE, headCol: STONE, hair: STONE, ...clasp });
+      return human(fr, { dress: 'long', head: woman ? 'fillet' : 'band', beard: woman ? 'none' : 'long', garment: P.redOchre, garment2: P.egyptianBlue, headCol: P.white, hair: HAIR, ...clasp }); // D-752: painted as the rest
     }
     case 'moon': return { masses: [M([diff(fr.circ(0, 0.5, 0.5), fr.circ(0.16, 0.56, 0.42))], { amp: 0.7, colour: P.yellowOchre, round: 0.03, groove: 0.1 }), M([diff(fr.circ(0, 0.5, 0.5), fr.circ(0, 0.5, 0.44))], { amp: 0.6, colour: STONE, round: 0.02 })] };
     case 'hero': { // the royal hero grasps the rampant beast and stabs it in the belly (composition C); seed % 3: lion, bull,
@@ -915,7 +928,7 @@ export function figureDef(kind: string, seed: number): FigureDef {
       const extra: Mass[] = [];
       if (monster) { const wf = new Frame(q.shoulder[0], q.shoulder[1], -0.35, 0.55, true); // wing raised from the shoulder, drawn behind the body
         extra.push(M([wf.spoly([[-0.04, -0.02], [0.05, 0.05], [0.02, 0.2], [-0.1, 0.4], [-0.2, 0.46], [-0.19, 0.33], [-0.12, 0.15]], 4)],
-          { amp: 0.6, lift: 0.08, colour: STONE, round: 0.03, groove: 0.1, detail: wf.det((x, y) => feathers(x * 0.8 + y * 0.6, y * 0.8 - x * 0.6, 0.03, 0.04, 0.2)) })); }
+          { amp: 0.6, lift: 0.08, colour: P.egyptianBlue, round: 0.03, groove: 0.1, detail: wf.det((x, y) => feathers(x * 0.8 + y * 0.6, y * 0.8 - x * 0.6, 0.03, 0.04, 0.2)) })); }
       const b = human(fr, persianDress({ head: 'crown', garment: P.purple, garment2: P.egyptianBlue, royal: true, near: { elbow: [0.07, 0.5], hand: [0.18, 0.47] }, far: { elbow: [0.07, 0.68], hand: [0.18, 0.76] } }), { front: prop(fr, 'dagger', 0.18, 0.47, P.white) });
       return { masses: [...extra, ...q.masses, ...b.masses], incisions: [...q.incisions, ...b.incisions] };
     }

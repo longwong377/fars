@@ -28,7 +28,7 @@ import { packGeo, unpackGeo, type GeoPack } from '../world/cache/geo';
 import type { Part, Prism, Box, Column, ColumnOrder, Material } from './parts';
 import type { Physics } from '../player/physics';
 import { columnMesh, columnMeshesByMaterial, memberMaterials, toGeometry, colossusMesh, colossusFrontProjections, setColossusFront, sculptIndex, srow, Lod, protomeBox, protomeMesh, voluteBox, voluteMesh } from './sculpt';
-import { model, fitLevel, placeLevel, bakedMaterial, registerSwap } from '../render/models';
+import { model, fitLevel, placeLevel, registerSwap } from '../render/models';
 import { frameGeometries, type FrameGeoStats } from './frames';
 import { frameMaterial } from '../render/decorAssets';
 import { memberBox, memberMesh, type MemberName, type ShaftKind } from './sculpt';
@@ -40,7 +40,7 @@ const ALBEDO: Record<Material, [number, number, number]> = {
   limestone: [0.62, 0.6, 0.56], limestone_dark: [0.28, 0.28, 0.28], mudbrick: [0.66, 0.56, 0.44], mudbrick_painted: [0.58, 0.57, 0.45], plaster: [0.8, 0.76, 0.68],
   plaster_red: [0.5, 0.16, 0.12], bronze: [0.55, 0.4, 0.22],
   timber: [0.36, 0.27, 0.19], glazed: [0.2, 0.4, 0.55], earth: [0.5, 0.42, 0.32], scaffold: [0.45, 0.35, 0.24], rubble: [0.55, 0.52, 0.48],
-  court_fill: [0.5, 0.46, 0.39], terrace: [0.62, 0.6, 0.56], roof_earth: [0.61, 0.54, 0.42], mudbrick_bare: [0.6, 0.52, 0.41], steel: [0.3, 0.3, 0.31],
+  court_fill: [0.5, 0.46, 0.39], terrace: [0.62, 0.6, 0.56], roof_earth: [0.61, 0.54, 0.42], mudbrick_bare: [0.6, 0.52, 0.41], steel: [0.3, 0.3, 0.31], palace_plaster: [0.78, 0.69, 0.54], frame_coat: [0.8, 0.78, 0.72],
 };
 import { surfaceMaterial, paintedShaftMaterial } from '../render/materials';
 import { pointInPoly } from './parts';
@@ -56,6 +56,7 @@ function shaftPaint(o: ColumnOrder): THREE.Material {
 import { ceilingTimbers } from './ceilings';
 import { roofEdges, wallFeet, type RoofEdges } from './roofedge';
 import { buildPieces } from './palacekit';
+import { paintedLevel, paintedModelMaterial } from './model_paint';
 /** D-276: parts that are colliders only: the round fittings world/furnish.ts draws (storage jars, querns) */
 export const COLLIDER_ONLY = new Set(['jar', 'quern']);
 const matCache = new Map<string, THREE.MeshStandardNodeMaterial>();
@@ -200,7 +201,17 @@ export function bevelledBox(h: V3, r: number, edges: boolean[], round: boolean, 
  *  service ranges, the fortification, or the halls still under construction in 467 (the Hall of 100 Columns, the Tripylon) */
 /** D-334: the surface a part is drawn in: a mud-brick wall still under construction in 467 stands in its bare courses (the
  *  plaster is the last coat, laid when the brickwork is done: C); every other part its own material */
-export const renderMaterial = (p: Part): Material => p.material.startsWith('mudbrick') && /under construction/.test(p.note ?? '') ? 'mudbrick_bare' : p.material;
+export const renderMaterial = (p: Part): Material => {
+  if (p.material.startsWith('mudbrick') && /under construction/.test(p.note ?? '')) return 'mudbrick_bare';
+  if ((p as any).now) return p.material; // (the Now view's parts keep their own: UD-20)
+  // D-752: the palaces in residence: their walls and towers in the painted, kept plaster; the frames' dark stone under its coat
+  if (p.material === 'mudbrick' && PALACE_PLASTER.has(p.building) && PALACE_PLASTER_KINDS.has(p.kind)) return 'palace_plaster';
+  if (p.material === 'limestone_dark') return 'frame_coat';
+  return p.material;
+};
+/** D-752: the buildings whose mud-brick walls and towers are drawn in palace_plaster (the Treasury keeps its clay paint), and the kinds */
+export const PALACE_PLASTER = new Set(['gate_nations', 'apadana', 'tachara', 'hadish', 'harem', 'tripylon', 'hall100']);
+export const PALACE_PLASTER_KINDS = new Set(['wall', 'tower', 'storerooms', 'pier', 'pilaster']);
 export const PAINTED_INTERIORS = new Set<string>(v<any>('global', 'r_interior_paint').buildings); // SITE_SPEC global.r_interior_paint
 export class PartIndex {
   private cells = new Map<number, number[]>(); private CELL = 4;
@@ -664,7 +675,7 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
     for (const [MM, boxOf, meshOf, part, what] of members) {
       if (!MM) continue;
       const [lo, hi] = boxOf(c.order)!, mat = M.capital, surf = CARVED[mat] ?? mat, b = c.parts[0].building;
-      const geos = MM.lods.map(g => fitLevel(g, lo, hi)), mats = MM.maps.map((map, k) => bakedMaterial(surf, map, `${MM.id}:${k}`));
+      const geos = MM.lods.map(g => fitLevel(paintedLevel(MM.id, g), lo, hi)), mats = MM.maps.map((map, k) => paintedModelMaterial(surf, map, `${MM.id}:${k}`)); // D-752: painted and gilded
       const lod = new InstancedLOD(geos, mats[0], at, SW.column, SW.hysteresis);
       lod.name = `${b}:columns:${part}`;
       lod.userData = { tier: c.parts[0].tier, src: `${c.parts[0].src};RECON;PHOTO`, placeholder: false, building: b, model: MM.id,
@@ -686,7 +697,7 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
       const CM = flatMode ? null : model(`colossus_${p.sculpt!.model}`), surf = CARVED[p.material] ?? p.material;
       const meshes = ([0, 1] as Lod[]).map(l => {
         const stand = toGeometry(colossusMesh(p, l));
-        const m = CM && CM.lods[l] ? new THREE.Mesh(placeLevel(CM.lods[l], colossusPlacement(p)), bakedMaterial(surf, CM.maps[l], `${CM.id}:${l}`)) : new THREE.Mesh(stand, carvedMaterial(p.material));
+        const m = CM && CM.lods[l] ? new THREE.Mesh(placeLevel(paintedLevel(CM.id, CM.lods[l]), colossusPlacement(p)), paintedModelMaterial(surf, CM.maps[l], `${CM.id}:${l}`)) /* D-752: painted and gilded */ : new THREE.Mesh(stand, carvedMaterial(p.material));
         if (CM && CM.lods[l]) registerSwap(m, [stand, carvedMaterial(p.material)]);
         m.castShadow = m.receiveShadow = true; return m;
       });

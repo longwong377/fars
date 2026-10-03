@@ -90,6 +90,9 @@ export const FEAST_SEATS: { at: P2; heading: number; table: P2 }[] = (() => {
     for (let k = 0; k < N; k++) { const a = (k + 0.5) / N * 2 * Math.PI, at: P2 = [+(t[0] + R * Math.sin(a)).toFixed(2), +(t[1] + R * Math.cos(a)).toFixed(2)];
       out.push({ at, heading: (Math.atan2(t[0] - at[0], t[1] - at[1]) * 180 / Math.PI + 360) % 360, table: t }); }
   }
+  // D-780 (the lead: guests by rank): the seats nearest the king's place first, so the first diners (the chiliarch, then the
+  // Persians of rank, the officials last: CourtResidents.seatOf) sit closest to the throne (C)
+  const K0 = F.king_at as P2; out.sort((a, b) => Math.hypot(a.table[0] - K0[0], a.table[1] - K0[1]) - Math.hypot(b.table[0] - K0[0], b.table[1] - K0[1]) || a.at[0] - b.at[0] || a.at[1] - b.at[1]);
   return out;
 })();
 /** the low tables of the banquet (their centres): furnish_palaces.ts lays one in each bay with seats */

@@ -18,7 +18,7 @@ export const MUD_CELL = 2.5;
 export const MUD_OCTAVES: [number, number][] = [[9, 0.035], [4.2, 0.02]];
 export const MUD_FADE = [0.04, 0.6];
 export const MUD_FOOT = 0.8; // (m: from no motion at the other material's face to full motion)
-export const MUD_MATS = new Set(['mudbrick', 'mudbrick_painted', 'mudbrick_bare']);
+export const MUD_MATS = new Set(['mudbrick', 'mudbrick_painted', 'mudbrick_bare', 'palace_plaster']); // (D-752: the palaces' painted plaster)
 /** kinds that support a wall (its floor, roof) rather than being set into it: no fade against them */
 const SUPPORT = /^(floor|floor_finish|court|pavement|landing|portico_floor|platform|roof|ceiling.*|wall_foot)$/;
 

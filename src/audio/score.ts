@@ -38,6 +38,9 @@ function ext(): 'webm' | 'm4a' { return opusOK() ? 'webm' : 'm4a'; }
 export const scoreLevel = () => scorePreference() === 'off' ? 0 : Math.max(0, Math.min(1, loadSettings().volume.master * scoreVolume()));
 const level = scoreLevel;
 
+/** the score's level under a conversation (-10 dB) */
+export const DUCK = 0.316;
+
 // ---------------------------------------------------------------------------------------------------------------- a track
 /** one cue playing: an <audio> element whose volume follows the settings and its own fade */
 export class ScoreTrack {
@@ -47,9 +50,14 @@ export class ScoreTrack {
     this.el.addEventListener('ended', () => { this.ended = true; this.stop(); });
     this.timer = window.setInterval(() => this.tick(), 50);
   }
+  private duck = 1;
   private tick() {
+    // under speech: while a conversation is open (src/people/converse/ui.ts's panel) the score sits 10 dB lower, gliding
+    // there in ~0.5 s and back in ~2 s, so the person's voice stays clear over it
+    const talking = typeof document !== 'undefined' && (document.getElementById('converse')?.style.display ?? 'none') !== 'none';
+    const want = talking ? DUCK : 1; this.duck += (want - this.duck) * (want < this.duck ? 0.1 : 0.025);
     if (this.rate) { this.fade += this.rate * 0.05; if ((this.rate > 0 && this.fade >= this.target) || (this.rate < 0 && this.fade <= this.target)) { this.fade = this.target; this.rate = 0; if (this.fade <= 0) this.stop(); } }
-    this.el.volume = Math.max(0, Math.min(1, this.fade * this.gain * level()));
+    this.el.volume = Math.max(0, Math.min(1, this.fade * this.gain * this.duck * level()));
   }
   /** start (fading in over `seconds`; 0: at once) */
   play(seconds = 0, from = 0): Promise<void> {
@@ -99,7 +107,10 @@ export function chooseCue(cat: Catalogue, c: ScoreContext, history: { id: string
   const recent = new Set(history.slice(-DIRECTOR.notWithinCues).map(h => h.id));
   for (const h of history) if (now - h.at < DIRECTOR.notWithinSeconds) recent.add(h.id);
   const last = history[history.length - 1]?.id;
-  let pool = Object.entries(cat.cues).map(([id, info]) => [id, fitness(info, c)] as [string, number]).filter(([id, w]) => w > 0 && id !== last);
+  // two alike never back to back: a cue sharing the last one's place or court tag weighs a third as much (the road twice,
+  // the court twice); the hour's tags are shared by design
+  const lastTags = new Set((last ? cat.cues[last]?.tags ?? [] : []).filter(t => !['dawn', 'day', 'dusk', 'night', 'opening'].includes(t)));
+  let pool = Object.entries(cat.cues).map(([id, info]) => [id, fitness(info, c) * (info.tags.some(t => lastTags.has(t)) ? 0.33 : 1)] as [string, number]).filter(([id, w]) => w > 0 && id !== last);
   const fresh = pool.filter(([id]) => !recent.has(id));
   if (fresh.length) pool = fresh; else { // everything fitting was heard lately: the least recent of them (never the last)
     const lastAt = new Map(history.map(h => [h.id, h.at])); pool.sort((a, b) => (lastAt.get(a[0]) ?? 0) - (lastAt.get(b[0]) ?? 0)); pool = pool.slice(0, 1); }

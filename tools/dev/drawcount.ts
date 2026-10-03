@@ -22,7 +22,7 @@ const img = () => new THREE.DataTexture(new Uint8Array(4), 1, 1);
 const humans = { A, O, gpu: new HumanGPU(A, O, { skin: img(), eye: img() }, { capacity: 64 }), ms: { load: 0, outfits: 0, gpu: 0, worker: false } };
 const crowd = new Crowd(sim, 1, humans as any); crowd.view = view; crowd.imp = new CrowdImpostors(atlas); crowd.looksPerFrame = 1e9;
 const P = JSON.parse(readFileSync('tests/data/coverage_points.json', 'utf8')).points as any[];
-const views = [...['cov-252', 'cov-294', 'cov-350', 'cov-037', 'cov-098', 'cov-142', 'cov-266'].map(id => P.find(p => p.id === id)),
+const views = process.env.VIEWS ? JSON.parse(process.env.VIEWS) : [...['cov-252', 'cov-294', 'cov-350', 'cov-037', 'cov-098', 'cov-142', 'cov-266'].map(id => P.find(p => p.id === id)),
   { id: 'c6-lane', e: -478, n: -881, eye: 1.6, az: 189, pitch: -4, day: 0, hour: 10 }];
 const ground = (e: number, n: number) => { const g = W.nav.walkable(e, n) ? W.nav.heightAt(e, n) : NaN; return Number.isFinite(g) ? g : T.surfaceAt(e, -n); };
 let time = 0;
@@ -39,6 +39,9 @@ for (const v of views) {
   const bear = near.slice(0, 400).map(o => Math.round(((Math.atan2(o.e - v.e, o.n - v.n) * 180 / Math.PI - v.az + 540) % 360 - 180) / 30) * 30); const bh: Record<number, number> = {}; for (const x of bear) bh[x] = (bh[x] ?? 0) + 1;
   for (const a of sim.agents) if (!a.offmap && inView(a.pos[0], a.y, -a.pos[1])) agents++;
   let bodies = 0; for (const p of crowd.persons.values()) if (p.shown && p.drawnFrame === (crowd as any).frame && inView(p.root[0], p.root[1], p.root[2])) bodies++;
+  { const near: string[] = []; let walled = 0, lanes = 0, lodN = [0, 0, 0, 0]; for (const p of crowd.persons.values()) { if (!p.shown || p.drawnFrame !== (crowd as any).frame) continue; const d = Math.hypot(p.root[0] - v.e, -p.root[2] - v.n); if (d > R) continue;
+      const w = !p.agent && p.vp && (crowd as any).walledOff(p.vp, cam.position.y); if (w) walled++; lodN[p.lod ?? 3]++; }
+    console.log(`  ${v.id}: attached and shown within ${R} m: lods ${JSON.stringify(lodN)}, walled off (in a court the camera is outside of, below its walls) ${walled}`); }
   let imps = 0; const IL = (crowd as any).impList as any[]; for (let i = 0; i < (crowd as any).nImp; i++) { const e = IL[i]; if (inView(e.x, e.y, e.z)) imps++; }
   console.log(`${v.id.padEnd(8)} d${v.day} ${v.hour.toFixed(2)}h: within ${R} m ${near.length} (bearing from the view's axis ${JSON.stringify(bh)}); in view: placed ${placed} (+${agents} agents) | bodies drawn ${bodies}, impostor candidates ${imps} | crowd ${JSON.stringify({ drawn: crowd.perf.drawn, attached: crowd.perf.attached, imp: crowd.impPerf.drawn, rigClear: (crowd as any).rigClear })} | view pending ${view.stats.pending}`);
 }

@@ -37,12 +37,15 @@ def reset():
                 prefs.compute_device_type = kind; prefs.get_devices()
                 if any(d.type == kind for d in prefs.devices):
                     for d in prefs.devices: d.use = d.type == kind
-                    sc.cycles.device = 'GPU'; break
+                    sc.cycles.device = 'GPU'
+                    if kind == 'OPTIX': sc.cycles.denoiser = 'OPTIX'
+                    break
             except Exception: pass
     sc.cycles.samples = SAMPLES; sc.cycles.use_denoising = True
-    sc.cycles.denoiser = 'OPENIMAGEDENOISE'; sc.cycles.use_adaptive_sampling = True; sc.cycles.adaptive_threshold = 0.03
+    if sc.cycles.device != 'GPU': sc.cycles.denoiser = 'OPENIMAGEDENOISE'
+    sc.cycles.use_adaptive_sampling = True; sc.cycles.adaptive_threshold = 0.03
     sc.cycles.max_bounces = 6; sc.cycles.volume_bounces = 1; sc.cycles.glossy_bounces = 3; sc.cycles.transmission_bounces = 2
-    sc.cycles.volume_step_rate = 4.0; sc.cycles.caustics_reflective = False; sc.cycles.caustics_refractive = False
+    sc.cycles.volume_step_rate = float(arg('--vstep', '4')); sc.cycles.caustics_reflective = False; sc.cycles.caustics_refractive = False
     sc.render.resolution_x, sc.render.resolution_y = RES; sc.render.resolution_percentage = 100
     sc.render.fps = 24; sc.render.film_transparent = False
     if THREADS: sc.render.threads_mode = 'FIXED'; sc.render.threads = THREADS
@@ -521,7 +524,7 @@ def render(id, t0, t1, build):
         if os.path.exists(f): continue
         up(t); sc.render.filepath = f; bpy.ops.render.render(write_still=True)
         print(f'[film] {id} {k + 1}/{n} t={t:.2f}', flush=True)
-    json.dump({'id': id, 't0': t0, 't1': t1, 'fps': FPS, 'frames': n, 'res': RES}, open(os.path.join(d, 'shot.json'), 'w'))
+    json.dump({'id': id, 't0': t0, 't1': t1, 'fps': FPS, 'every': EVERY, 'frames': n, 'res': RES}, open(os.path.join(d, 'shot.json'), 'w'))
 
 for id, t0, t1, f in SHOTS:
     if SHOT in ('all', id) or id in SHOT.split(','):

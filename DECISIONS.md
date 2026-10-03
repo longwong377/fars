@@ -9930,6 +9930,12 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   horizon map rebuilt (tools/build_horizon.ts). terrain, terrain_walk, horizon and plain tests green; villages unchanged.
 - The T4's black screen (Vagon's culprit probe: plain-stone's shadow pass bound a released buffer): the fords' merged stone
   mesh casts no shadow from birth and is never re-flagged at run time; the shared quarry mesh is hidden, never disposed.
+- Far flora no longer black (the flora atlas's transparent texels are black, so its coarser mips darkened the far cards:
+  groundFlora.ts un-premultiplies the colour by the mip's coverage). plantedTrees() (src/world/trees/planted.ts) for C10's
+  Terrace planters. The river works (ledger row 16): two kit models built in the cloud's pip bpy (model_props.py
+  a_wo_shaduf, a_wo_pontoon); waterworks.ts places ~127 shadufs on the river and canal banks within 12 km (every ~420 m /
+  ~330 m, sides alternating, none near a ford or on a road) with a 'lift' spot each for C1, and a bridge of boats on the
+  royal road over the Kur whose deck rides on the river's level of the day.
 
 ## D-720 Follow thirty: the people answer from their own lives without the model, and the town's deeds and yesterday reach their talk (session 18, cloud C8; UD-07, UD-08, UD-11, UD-21, UD-24, UD-32)
 - Measured (tools/dev/follow30.ts; REVIEWS/follow30.json): thirty people drawn by seed across the town, the villages, the Terrace's
@@ -10010,6 +10016,13 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   (its depth texture has no compare function and nearest filtering), so it adds NO sampler to any material (the T4's 16 per
   fragment stage, D-300); tests/far_cascade_d680.test.ts builds a lit surface with the cascades on and off: same sampler
   count, the far map read by textureLoad. ?farcsm=0 (load) or __parsaFarCascade.value = 0 (run time) for the A/B. C.
+- The night's "fan of light streaks from one horizon point" (cov-000; still one streak on this tree after light v2b): found by
+  elimination (hidden Milky Way: still there; hidden clouds: gone; world-fixed at 1024 px and turned 20 deg) and reproduced in a
+  CPU replica of the march: the cloud noise tiles every 7 km, so a ray running along a lattice axis (world x or z) samples one
+  periodic column again and again, and an empty column draws a clear slit to the horizon; all such slits converge on the
+  axis's horizon point. clouds.ts (and the CPU mirror cloudCover.ts) warp the base shapes' lookup by the weather field's G, B
+  (CLOUD.warp 12 km; no extra fetch): near-horizon rays along the axes clear 5.4 % vs 1.9 % off them before, 3.3 % vs 2.7 %
+  after (tests/cloud_slits_d680.test.ts; fails unwarped). The cover calibration tests pass unchanged. C.
 - Kuh-e Rahmat's bright streak: road_pasargadae's first segment (settlement.json [250,250] -> [2600,1900]) runs ruler-straight
   from 2 m up to ~290 m over the mountain behind the Terrace; a data fix (reroute round the north end) asked of the lead.
 - Unseen: the cloud cannot draw Q=high (WebGL2: program validation failures and a lost device with the cascade on AND off;
@@ -10139,6 +10152,12 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   performers.ts (the banquet's music); the proskynesis pose; the crown prince and the weapon-bearer behind the throne, the parasol
   furled indoors; the plain kidaris; guards in the court robe; head pieces fitted by the head's radius, not its support function;
   the delegations' gifts modelled (tools/blender/model_props.py gift_*); the stale 'court absent by default' texts rewritten.
+- Third pass (the lead's asks, C14's measures, C6's frames): the king seen daily (audience_share 0.9 of mornings, the drive out
+  in the royal chariot on 0.65 of afternoons, the hunts in the morning, the arrival by chariot); the banquet laid as a feast
+  (seats round tables, the servers by the tables, the lamp tenders by the walls, a phiale and a jug on each table); the royal
+  women's outing to the paradise; bead necklaces; barefoot labourers and stripping to the waist in the heat (lookInput.tempC);
+  fewer look-alikes in a crowd (12.8 % -> 2-3 %); the gifts drawn as a prop class of their own.
+
 ## D-760 An original score, out of world: recorded orchestra, a main theme, an hour for the world, and a director that leaves silence (session 18, cloud C11; UD-38, UD-39)
 - The user's words (UD-38, UD-39) add non-diegetic music to the out-of-world layer, at a Hollywood bar and never recognisable as AI: the brief's "no background score" (§11) gives way to them; its ban on the "ancient Persia" cliché stands and binds the score (blocklist 'music-cliche': no duduk, oud or santur, no augmented-second "exotic" modes, no bent ethnic solo as the theme's identity; after C12's fourth pass the first draft's cor-anglais "duduk", alto-flute "ney" and Phrygian/Hijaz cues were rewritten for solo cello, horn, clarinet and flute in minor, Dorian and Aeolian). Majesty comes from harmony, brass, choir and rhythm; the period's colour (harp, frame drum) is used lightly. Equal temperament is the orchestra's own: the brief's tuning rule governs the world's players (src/audio/music.ts), not the out-of-world score. C.
 - Composed, not generated: every note is written (tools/score/cues/*.ts; the arranger's kit lib/kit.ts voice-leads pads and basses but never invents a tune), performed with expression (lib/write.ts: CC1 hairpins with each long note's own swell, vibrato blooming on held notes, section onsets spread, rubato tempo maps, legato overlaps), rendered through recorded instruments only (Sonatina Symphonic Orchestra, CC Sampling Plus 1.0; VSCO-2 Community Edition, CC0; MuseScore General, MIT; via sfizz and fluidsynth: tools/score/fetch.sh), mixed on a stage (pan, depth, a hall, glue compression, a look-ahead limiter) and mastered to BS.1770 loudness (-16 LUFS the theme, -18 to -22 the world's cues, true peak under -1 dBTP). The composer checks by measurement (tools/score/analyze.ts loudness curve and spectrogram; the build's semitone-clash check of long notes against the harmony): nobody in the cloud can listen. The hall is synthetic (no recorded hall IR is reachable here: a Vagon fetch can replace it).
@@ -10152,6 +10171,8 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
 - "Still roofless" (C6 round 1, town-20m): the page draws the roofs (C6's own frame and C2's at the same view show a pale earth slab over every room, the open courts the dark holes), but each roof sat in a tray of parapets 0.22-0.62 m high and from 20 m up or the Terrace the town read as open-topped boxes. Parapets now a lip, 0.05-0.39 m by standing (houseplan.ts parapetOf; C: most of the region's flat roofs have a lip, the better-off a low wall).
 - The pale green hard-edged strip across the q_s1 market (C6, new on the D-660 head) was D-660's lowered lane ground: at 1 cm the terrain's finer mesh rose through the 4 m quads. The ground is back at 10 cm over the terrain; the town's fill items are lifted 10 cm instead (fillPlan.ts TOWN_LIFT; villages, which have no lane ground, are not). The lanes' things stay above ground (the D-660 census holds).
 - Cost kept: the far level's full-room roofs draw their top only (their sides lie in the walls), a door's infill its long faces and top, the roofs' flat things a top; the wall crests' stations ~6 m apart (were ~3) and each deep notch its centre: the town is 1.02 M triangles if all drawn (cap 1.2 M) and the far level under 800 k (houses.test) with the belt's ~680 more plots. q_b1 shrunk off the stair-foot-to-q_w1 walk (settlement_build), q_b4 re-sized so no house there is landlocked; the corner-cut search capped at 40 floods a house (each re-derives the site's walls): the plan 19 s → ~37 s in node (baked in the browser).
+
+
 ## D-651 The working Terrace and the court at the start (s18 cloud C1; C12's holes #1, #2)
 - Hole #1 measured first (tools/dev/terrace_count.ts and the life census's reading at the s17 final frames' own seed and moments): the sim had 118-271 people within 60 m of the "empty" T4 frames (cov-252, cov-112, cov-037, cov-142, cov-266), so those frames are a drawing failure (popview/crowd or the people's assets on the T4), reported to the lead. On top of it, six more building gangs of 100 (nine: three each of stone, labour, brick), made last from their own stream (nobody earlier changes), housed in the four villages nearest the Terrace (the town's plots are full; the kurtaš of the tablets at Matezziš and the settlements around Pārsa, B; 900 builders on the one great hall C). Seed 1, day 200, court away: ~870 -> ~1,150 awake on the Terrace by day; population.json's Terrace court-absent day figures follow (spring w 575 -> 1175).
 - Hole #2: a new game begins at dawn the day after the court's arrival (in residence), not 1-3 days before it (newGame.ts; tests/defaults). The king's daily presence is C13's (court.ts): asked through the lead.
@@ -10212,6 +10233,12 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   tabby), in about a sixth of the town's house yards (fauna.json cat; lying by day, about the yard at dusk and dawn, off
   over the yard when someone comes within 4 m); the anatomy's boar and hare rebuilt for the species list; the mother's
   held hand 7 cm back to the child's under the skirted gait (people_children's palms within 12 cm again).
+- D-790 round 3 (the lead's must-lands): toddlers toddle (anim Gait.toddler, the plop) and children's stature varies ±3 %
+  (popview); vehicle wheels are a separate instanced mesh rolled by distance/R (workObjects splitWheels); reins and lead ropes
+  (people/reins.ts, animals.bitAt); the royal chariot driven by the king standing (anim 'charioteer', animals kind 'chariot':
+  four horses abreast, CHARIOT_YOKE 2.95 m, the car's floor 0.55 m); the royal women's curtained litter (workObjects 'litter',
+  carry_bier on a why naming it; Plutarch Them. 26, HDT 7.83 claims B, the form C); household donkeys tied at lane doors by
+  day and hens out at the door (fauna.json donkey 0.08 of lane-door houses; all C).
 
 ## D-691 Carried props sit on the body, seated poses clear their props (s18 cloud C5)
 - tools/dev/prop_clip.ts: every activity and variant that holds a prop, and the goods in the plan's words (basket, sack, jar,
@@ -10225,12 +10252,6 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   set down beside the seated (it sank into the chest and calves); the hip basket rides outside the hip at the hand's height
   (6.6 cm into the pelvis before); the sack sits out over the shoulder's point; the hauling rope ends in the rear hand and
   bows round the body between the hands (8 cm into the belly before); the towel hangs on the hand's outer side. All C.
-  hangings on the W, E and N walls: dropped in the second pass for the 450 k budget, the tables then drawn at the model's lowest
-  level); with the court away the halls keep their hangings, and the Apadana a keeper's corner and lamps.
-- Second pass (the lead's go-ahead and C12's passes 2-4): the asks applied in activities.ts, calendar.ts (E-28, E-29) and
-  performers.ts (the banquet's music); the proskynesis pose; the crown prince and the weapon-bearer behind the throne, the parasol
-  furled indoors; the plain kidaris; guards in the court robe; head pieces fitted by the head's radius, not its support function;
-  the delegations' gifts modelled (tools/blender/model_props.py gift_*); the stale 'court absent by default' texts rewritten.
 
 ## D-663 A kept town, washing in the courts (s18 cloud C2: the lead's V9 note and C12's W11)
 - The town's plaster loss (V9's EarthWeatherDef on house_plaster) 7 % → 1.5 % of the face: the houses are re-plastered each spring; the bricks show where houses.ts's own losses put them (by the household's upkeep and the wall's age), the splash and streaks kept (surfaces.ts).
@@ -10242,10 +10263,50 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
 - interiors/ring.ts houseWorkObjects(plotId, day): a house's work objects in world terms (kind, e, n, y, rot, room or −1 for the court, inside, shared, note) from the same room plans the ring draws and the court's fittings, for C1 to put people at real work objects.
 - C12 W12: a tray-table only in the better-off houses (standing > 0.6); the rest eat from a tray of flat bread on the mat.
 ## D-800 Beyond the Terrace in 467: Naqsh-e Rustam painted and in use, the estates porticoed, the villages washed (s18 cloud C15; holes.md row 20)
-- Naqsh-e Rustam (plain/naqsh.ts, naqsh_paint.ts, naqsh_life.ts): the façades' architecture painted and gilded per vertex over the Blender model's baked maps (column bases' tori blue, astragals red, bull capitals a warm wash with gilded horns and a gold-studded red harness, fasciae red/blue/green, dentils blue, cornice red, the doorway's bands, the throne's beams and slab, its legs gilded; the recess's back, the lower arm and the shafts bare: the reliefs' ground is the stone, D-030); the Ka'ba's white fresh (albedo 0.79, finer grain); DNc, DNd and DNe carved in Old Persian from ARIo Q007154-6 (CC0; tools/build_naqsh_captions.ts, data/corpus/ario_dn_captions.catf), 18 of DNe's 30 lines (the rest lost in the edition, uncut); the Elamite and Babylonian of DNa/DNb stay uncut (Q-1730: no licensed digital text exists); the second tomb's scaffold (16 standards, 4 decks, ladders), its spoil of fresh chips and the cutters' lean-to; the keepers' whitewashed courtyard house at D-640's NAQSH.house; the offering table before Darius' tomb (bowls of flour, wine and water, the barsom, flowers). One extra draw (nr-life, 7.8 k tris); the DNa/DNb panels now draw with the Elamite relief's panel (the plain stays at 40 meshes).
+- Naqsh-e Rustam (plain/naqsh.ts, naqsh_paint.ts, naqsh_life.ts): the façades' architecture painted and gilded per vertex over the Blender model's baked maps (column bases' tori blue, astragals red, bull capitals a warm wash with gilded horns and a gold-studded red harness, fasciae red/blue/green, dentils blue, cornice red, the doorway's bands, the throne's beams and slab, its legs gilded; the recess's back, the lower arm and the shafts bare: the reliefs' ground is the stone, D-030); the Ka'ba's white fresh (albedo 0.79, finer grain); DNc, DNd and DNe carved in Old Persian from ARIo Q007154-6 (CC0; tools/build_naqsh_captions.ts writes their entries in inscriptions.json from data/corpus/ario_dn_captions.catf; 18 of DNe's 30 lines, the rest lost and uncut; lines 29-30 under each tier's last bearer), moved from the programme's 'missing' to 'carved', with the project's translations (the lead's go; no pick rectangles: the plain's mesh cap); the Elamite and Babylonian of DNa/DNb stay uncut (Q-1730: no licensed digital text exists); the second tomb's scaffold (16 standards, 4 decks, ladders), its spoil of fresh chips and the cutters' lean-to; the keepers' whitewashed courtyard house at D-640's NAQSH.house; the offering table before Darius' tomb (bowls of flour, wine and water, the barsom, flowers). One extra draw (nr-life, 7.8 k tris); the DNa/DNb panels now draw with the Elamite relief's panel (the plain stays at 40 meshes).
 - The estates, the pavilion, the Dasht-e Gohar hall (settlement/estates.ts; plan.ts estateSite, pavilionProps, the hall block): Achaemenid columns (stone plinth, bell and torus, a plastered timber shaft painted red ochre with blue and yellow bands, a blue bracket capital), painted architraves over glazed-brick friezes of white, turquoise and yellow, roofs with painted eave boards; each estate a nine-column garden porch, a four-column talar in the court, a gatehouse, and a four-part garden of stone-lined channels crossing at its pool; the estates' columns and piers stand as the town's 'column' fittings (colliders, far level) under the painted props. All C by analogy with Pasargadae (Palace P, the pavilions, the garden) and the Terrace's paint. +1 settlement mesh (the estates' prop batch), +34 k triangles.
 - The villages (plain/villagehouses.ts): the far level takes each household's wash by C2's draw (D-661), so villages read from afar as they do near; 38 % of households a cloth or two drying over the eave, 30 % dung cakes drying on the lane wall (C). +~60 k far triangles (the plain 1.87 M of 2.0 M).
 
 ## D-665 A house being built (s18 cloud C2, the lead's ask)
 - q_b1-0015 (105 m², centre grid -511.9, 227.9; on the walk from the Grand Stair's foot): its smallest room finished and roofed, the household living in it; the other rooms' walls at 1.5 m and open to the sky; scaffold poles along its long walls, three brick stacks, the mud-mixing heap, a brick mould, a water jar, the footing's spoil, a sack and a hoe in its open rooms (houseplan.ts buildingPlot, houses.ts: drawn through roofFill's instanced things, `at: 'site'`; C). C1 puts a household and a brick squad there.
 - The belt's quarters (D-661) drawn in the far meshes of the quarters beside them: settlement_build's mesh count back to the base's 51 (its ≤ 45 already failed before s18).
+
+## D-772 The in-page truth check: tools/dev/pagecheck.mjs (s18 cloud C12)
+- The built site (dist at /fars/, its own static server with COOP/COEP) is loaded headless with ?norender at the coverage
+  views. The world is stepped, and the scene graph is read per view: what is effectively visible and in the frustum (meshes,
+  instances, triangles, per object key); the crowd's own drawn counts against the out-of-doors people the page's simulation
+  holds within 60 and 250 m (split by open ground, walled court and walking); a roof-area probe for the town; the
+  shadow-casting light's reach.
+- Run on every s17-int head the lead names; results go to handoff/s18/pagecheck.md and to each owner.
+- First run (92d6a6bf): the town lanes are empty in the simulation (everyone at home in the courts at 13:48); people in
+  courts are not drawn from an eye above the walls; the Terrace draws what the simulation holds; the roofs exist in the
+  geometry; the far shadow reaches 2,000 m.
+
+## D-810 The deploy rule while the live site is black (s18 cloud lead, 2026-10-03 07:4x UTC)
+The deployed c3bde8ab shows players a black screen on a real GPU (Vagon, asks_cloud 06:2x-07:0x), so any head that draws is
+better for every player than what is live. Rule for today: a head that (1) draws on the T4 in the live path (title, Enter,
+60 s walk, no frameFaults/renderFaults that blank the frame) and (2) is not worse than c3bde8ab on first frames, page memory
+and frame time is deployed at once; settle time and download-before-ready (worse on 9700b06d: 1266 vs 611 s, 413 vs 372 MB)
+become C9's next fix and the next deploy must recover them. No threshold in gates/thresholds.json or gates/budgets.json is
+touched; the budget baseline is not re-accepted from such a head.
+- Then the in-engine opening (src/shell/intro.ts, D-590's shots; a night 'stars' shot was tried and cut after C6's frame) plays to "First Light", each cut on a bar, its clock following the music, landing on the player's eye as the horn closes the theme's first half; the music rings on into the walk and the director takes over.
+## D-692 Life drawn where it is simulated: the cause of the empty frames, the first second after a jump, the lanes (s18 cloud C5)
+- The cause (C12's hole C1): nothing is dropped between the view and the screen. Headless (tools/dev/drawcount.ts) and in a
+  cloud browser (?norender scene count + a 640x360 frame of C6's q_s1 lane), the crowd draws what the view places in the
+  camera's frustum. The frames read empty because (a) in the town most people near a lane are in their own walled courts at
+  midday (q_s1, 10:00: 113 of 131 within 25 m), hidden by the walls; (b) the coverage cameras face open ground while the people
+  stand beside and behind them (cov-252: 218 within 40 m, none in the frustum; cov-142: 49 within 40 m, 4 in view, 4 drawn);
+  (c) on the court's days away the Terrace is empty by the plans (cov-294 d200, cov-350 d241). pagecheck.mjs counts the view's
+  people in a 60 m disc against frustum-culled draws.
+- Fixed in popview.ts: after a page's first update or a jump in time the near people are planned at once (CATCH_UP: 60 ms,
+  then 10 ms for 30 updates; before, 3 ms, and a page's first update was not a jump); a named work place (a town workshop
+  'ws:3', 'ws_textile') anchors its workers (the Treasury's workshop hands of q_s1 were anchored by homes up to 1.6 km off and
+  planned last). cov-266 a second after a jump: 72 -> 104 of the 116 a settle places. The doorstep (C): by day a share of the
+  people at light work in their own court (spin 45 %, play 60 %, talk 50 %, rest 35 %, craft 30 %, clean 40 %, eat 15 %) do it
+  in the lane by their street door, beside it and never in the opening, when the door is within 25 m: people in the lanes
+  within 25 m of a lane point roughly doubled (q_s1 10:00 18 -> 37, q_w2 12 -> 19, q_n1 11 -> 21; 16:00 q_w2 18 -> 32).
+  tests/people_drawn.test.ts: drawn >= 90 % of placed a second after a jump, placed >= 80 % of settled, lanes >= 25 %.
+## D-666 The paradise garden planted; the belt kept off the roads (s18 cloud C2, the lead's garden ask; settlement.test)
+- The garden (plan.ts gardenBeds, used by the paradise and Dasht-e Gohar gardens; drawn by build.ts fittingGeom 'bed' and 'path', near and far): every tree in a raised bed (a mud-brick kerb round tilled, furrowed earth, 5.4 m square), the beds without a tree the gardeners' greens, an understorey of shrubs and vines (pomegranate, fig, vine) in half the beds; a gravel walk either side of every channel between stone edges, laid in 8 m pieces (C: a planted garden on the Pasargadae plan, B by analogy, not rows of trees on bare ground). Basins and channels as before; the pavilion is C15's.
+- The belt (D-661) kept settlement.test whole: q_b4 and q_b6 now flank their roads instead of straddling them (no plot within a road's half-width + 1 m: only q_s1 takes a road as its street), q_b4 west of the road south between the stores and the lower town (130 x 130 m), q_b6 north of the road west (180 x 150 m, turned −105° so its door points round true), q_b3 and q_b1 off the nav grid's box, q_b5 off orchard_6. Plots 1,505 → 2,016 (homes 1,947, town capacity 10,165 ≤ 11,000), every one reached (0 shut, lane cells 100 %).
+- A population quarter's market point on the open ground inside a site's raster, with no wall within 28 m to set the spreads along (q_lt_e's, moved by the belt), gets the open-ground market (fillPlan.ts).

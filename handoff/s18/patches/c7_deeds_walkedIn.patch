@@ -1,0 +1,31 @@
+diff --git a/src/people/deeds/engine.ts b/src/people/deeds/engine.ts
+index 9efdff16..b7e5845d 100644
+--- a/src/people/deeds/engine.ts
++++ b/src/people/deeds/engine.ts
+@@ -300,10 +300,25 @@ export class DeedWorld {
+   /** take back the segments laid from a day on whose reason matches (a hire ended: D-462) */
+   private unlay(pid: number, from: number, why: RegExp) { for (const [k, l] of this.lays) { const [p, d] = k.split(':').map(Number); if (p !== pid || d < from) continue; const r = l.filter(s => !why.test(s.why)); if (r.length) this.lays.set(k, r); else this.lays.delete(k); } }
+   private layDays(pid: number, day: number, n: number, act: ActivityId, why: string) { const P = this.w.pop; for (let d = day + 1; d <= day + n; d++) this.lay(pid, d, { t0: 0, t1: 24, place: `h:${P.home(pid, d)}`, act, why, where: P.households[P.home(pid, d)]?.zone === 'plain' ? 'plain' : 'town' }); }
++  /** a laid stretch cut into the day with the walks to it from where the day has the person before and back to where it goes
++   *  on after, taken out of its own hours (planCheck: nobody changes place without a walk); a walk of the day at either edge is
++   *  left to lead there; too short once walked: not laid (C7 D-710) */
++  private walkedIn(pid: number, day: number, base: Seg[], s: Seg): Seg[] {
++    if (s.t0 <= 1e-6 && s.t1 >= 24 - 1e-6) return cutIn(base, s);
++    const P = this.w.pop, bad = (x: Seg) => x.where === 'road' || x.place.startsWith('road:') || x.place.startsWith('@') || x.where === 'away';
++    const b = s.t0 > 1e-6 ? segAt(base, s.t0 - 1e-6) : null, a = s.t1 < 24 - 1e-6 ? segAt(base, s.t1 + 1e-6) : null;
++    const wh = (x: string) => this.whereOf(x, pid, day), walk = (x: string, y: string) => x === y ? 0 : P.walkH(x, y, day, wh(x), wh(y));
++    const w1 = b && !bad(b) ? walk(b.place, s.place) : 0, w2 = a && !bad(a) ? walk(s.place, a.place) : 0;
++    if (s.t1 - s.t0 - w1 - w2 < 0.1) return base;
++    const mid: Seg[] = [...(w1 > 0 ? [{ t0: s.t0, t1: s.t0 + w1, place: `road:${wh(s.place)}`, act: 'walk' as ActivityId, why: 'walking', where: 'road' as Where }] : []), { ...s, t0: s.t0 + w1, t1: s.t1 - w2 },
++      ...(w2 > 0 ? [{ t0: s.t1 - w2, t1: s.t1, place: `road:${wh(a!.place)}`, act: 'walk' as ActivityId, why: 'walking back', where: 'road' as Where }] : [])];
++    const wx = P.cal?.ctx(day).wx; if (wx) { dustWear(mid, wx); coldWear(mid, wx); } // (dressed for the cold and the dust by their own hours, as the living world's errands)
++    let out = base; for (const x of mid) out = cutIn(out, x); return out;
++  }
+   /** the deeds' overlay of the day plans (Population.deeds) */
+   readonly overlay = {
+     touches: (pid: number, day: number) => this.lays.has(`${pid}:${day}`),
+-    overlay: (pid: number, day: number, base: Seg[]): Seg[] => { let out = base; for (const s of this.lays.get(`${pid}:${day}`) ?? []) out = cutIn(out, s); return out; },
++    overlay: (pid: number, day: number, base: Seg[]): Seg[] => { let out = base; for (const s of this.lays.get(`${pid}:${day}`) ?? []) out = this.walkedIn(pid, day, out, s); return out; },
+   };
+ 
+   // ---------------------------------------------------------------- the law, promises (day by day)

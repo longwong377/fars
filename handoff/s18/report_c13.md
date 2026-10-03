@@ -58,18 +58,26 @@ Every morning of the residence holds an audience, a gift day, a ride, a hunt or 
 
 New people: the chiliarch (in Median dress with kandys, gold at the ears and wrists) and 356 royal-road couriers.
 
-## Dress (tools/dev/dress_census.ts, seed 1; looks.ts, garments.ts, delegations.json)
+## Dress (tools/dev/dress_census.ts, seed 1; looks.ts, garments.ts, delegations.json; final numbers)
 | people | main garment dyed, before → after | main colour C*ab | ornaments |
 |---|---|---|---|
-| everyone, court away (3,000 drawn) | 16 % → 63 % | 14.9 → 22.4 | 21 % → 40 % |
-| working men | 0 % → 58 % | 11.5 → 20.5 | 0 % → 34 % (bronze) |
-| children | 0 % → 51 % | 12.2 → 21.0 | – |
-| women | 50 % → 79 % | 21.4 → 26.0 | 67 % → 89 % |
-| the court on day 40 (1,700) | 45 % → 80 % | 20.9 → 26.3 | gold 38 % → 43 %, rosettes or gold plaques 7 % → 15 % |
-| guards | 57 % → 83 % (yellow, purple and white Susa robes) | 23.4 → 25.5 | 77 % → 96 % |
-| delegations | 38-48 % → 73-74 % | 19-21 → 25-29 | – |
+| everyone, court away (3,000 drawn) | 16 % → 64 % | 14.9 → 22.2 | 21 % → 40 % |
+| working men | 0 % → 65 % | 11.5 → 21.7 | 0 % → 34 % (bronze) |
+| children | 0 % → 59 % | 12.2 → 21.8 | – (a third with a cloth band) |
+| women | 50 % → 69 % | 21.4 → 23.1 | 67 % → 90 % (necklaces for 3 in 5) |
+| the court on day 40 (1,690) | 45 % → 79 % | 20.9 → 26.3 | gold 38 % → 44 %; rosettes or gold plaques 7 % → 23 % |
+| guards | 57 % → 80 % (Susa yellow, purple and white; now including 2 in 3 non-Persian guards in the robe) | 23.4 → 27.9 | 77 % → 94 % |
+| delegations | 38-48 % → 56-79 % | 19-21 → 24-29 | – |
 
-Persians' robes are never undyed. 60 % wear torques (was 30 %). A third wear gold plaques, drawn as the rosette in gold-yellow.
+- Persians of rank never wear an undyed robe; half wear gold plaques (the rosette motif in gold-yellow).
+- Look-alikes in a crowd (C14's tools/dev/look_clones.ts): 11.6-12.8 % of 40-person crowds held a look-alike pair; now 2.0-3.2 %
+  on seeds 1-4 (target 2 %). The rest are mostly same-age children (popview.childStature gives every child of an age one height:
+  an ask for C5) and women in the same headcloth.
+- Most working men and many women go barefoot.
+- Labourers strip to the waist above 30 °C (the bare-chested wrap's mesh). This only shows once popview passes `tempC` in
+  lookInput (C5).
+- Fixed: one line comment of mine, placed mid-line, cut off a working man's headgear draw and its `break` (in at eeb45211, out
+  at 8592fe19). For those commits the worker case fell into the women's.
 
 ## Halls (furnish_palaces.ts)
 - **Court in residence:** the Apadana is laid for the banquets with 38 low tables in the bays (304 seats). This is on top of the
@@ -86,6 +94,33 @@ Persians' robes are never undyed. 60 % wear torques (was 30 %). A third wear gol
 - workAnims.ts / impostors.ts: the proskynesis cycle.
 - props.ts (C5): the gift props.
 - population.json and town.json: the stale "court absent by default" lines rewritten.
+
+## Third pass (the lead's asks, C14's measures, C6's frames)
+- **The king is seen daily.** Seed 1: an audience on 75 of 102 residence mornings, plus the 8 gift days. A drive in the royal
+  chariot on 61 afternoons (drawn mounted until C14's chariot variant). A hunt on 9 mornings. He arrives by chariot.
+  court_fill's audience test is rewritten for this rule.
+- **The banquet as a feast.**
+  - Seats round 38 low tables in the bays, filled by rank (the chiliarch, then the Persians of rank, the officials last),
+    nearest the throne first.
+  - A silver phiale and a jug on every table.
+  - The servers and wine-bearers stand by the tables, the lamp tenders by the walls (C6 saw a standing crowd facing the throne).
+  - The banquet music is in the Apadana.
+  - Not done: couches and reclining (the court's furnishings are at the 450 k budget) and food on the tables beyond the
+    vessels.
+- **The royal women's outing.** On about one afternoon in five, about 77 women and attendants go to the paradise. The women are
+  carried in curtained litters: wo_litter, built in Blender, drawn round the walking woman, its curtains hiding her steps. The
+  bearers are not drawn under the poles; the attendants walk alongside.
+- **Seals:** officials, scribes and stewards in Persian or Median dress wear a cylinder seal on a cord, fitted to the chest
+  (80 %).
+- **Necklaces:** gold for the court women, bronze for 3 in 5 town women. Kohl for 45 % of the town's women.
+- **Barefoot and bare-chested:** most labourers go barefoot. In the heat they strip to the waist, once popview passes `tempC`.
+- **Look-alikes:** 12.8 % → 2.0-3.2 % of crowds.
+- **The gifts are drawn:** a prop class of their own.
+- **Pre-existing test failures, same on the base commit:**
+  - court.test "every sealed letter …": times out at 600 s; it takes 1,120 s here and 1,194 s on base.
+  - impostor_assets "within budget".
+  - court_view "no pop-in" (a forecourt talker at 41.7 m).
+  - performances' CPU timing fails only under load (10.4 ms vs 10 while a render ran).
 
 ## The court's people and dress (later passes)
 - The crown prince and the weapon-bearer stand behind the throne (the Treasury relief). The parasol is furled indoors.
