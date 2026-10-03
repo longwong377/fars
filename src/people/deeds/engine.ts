@@ -44,8 +44,9 @@ const VERB_ING: Partial<Record<string, string>> = { visit: 'visiting', help: 'he
 const cl = (x: number, lo = -1, hi = 1) => x < lo ? lo : x > hi ? hi : x;
 /** D-720: the days a day's laid stretches are kept after it (in the running world; a save keeps from the day before its own) */
 const LAYS_KEPT = 60;
-/** D-720: the deeds a save keeps ten days of (wrongs, courting, peace made): what a person would still tell of (the save's 600 KB) */
-const KEPT = new Set(['attack', 'steal', 'break', 'curse', 'accuse', 'threaten', 'insult', 'push', 'court', 'reconcile']);
+/** D-720: the deeds a save keeps ten days of (every wrong the law names, courting, peace made): what a person would still tell of,
+ *  and all the minds read back (goals.ts: a grudge's cause) (the save's 600 KB) */
+const KEPT = new Set<string>([...Object.entries(VERBS).filter(([, v]) => v.wrong).map(([k]) => k), 'court', 'reconcile']);
 const CHILD_HARM = new Set(['attack', 'push', 'steal', 'threaten', 'curse', 'break']);
 const ROMANCE = new Set(['flirt', 'court', 'embrace']);
 /** deeds the people near take note of and tell (a wrong, and words or touches that make talk); the rest need no witnesses
@@ -389,6 +390,9 @@ export class DeedWorld {
     for (const d of [...this.law.day(day), ...this.joint.initiative(day)]) { this.own(d, day, 1000 + k++); if (k % 8 === 0) yield; }
     const tl = performance.now() - t0; yield;
     yield* this.agency.dayParts(day);
+    // (D-720, C7's round trip: the feelings are kept as a save keeps them, every day: the faded ones let go and the rest rounded,
+    // so a save loses nothing the running world still has, and a world loaded runs on as the one that saved it)
+    this.minds.canon(day); this.agency.goals.canon(day);
     this.stats.days++; this.stats.ms += tl + this.agency.stats.ms - ms0; this.stats.deeds += this.next - n0;
   }
   /** a mind's own deed done at an hour of the day (initiative.ts) */
