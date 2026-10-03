@@ -92,9 +92,9 @@ export const GAIT0: Gait = { v: 1.2, style: 'man' };
  *  hand-authored (PLACEHOLDER; the dev overlay's flag) */
 export const MOCAP_ANIMS = new Set<string>(['idle', 'inspect', 'walk', 'carry_shoulder', 'carry_head', 'carry_front', 'guard', 'guard_walk', 'talk', 'sit', 'play']);
 /** s18 C14 (D-790): a walk made a toddler's (w 0..1): the legs wider and the steps shorter, the arms up and out, the trunk
- *  rocking over each step, leaning a little forward; every 35-80 s (by the seed) a plop down onto the bottom for ~2.4 s and
- *  up again (the carer's picking up is the crowd's: ledger u4) */
-export function toddle(p: Pose, t: number, ph: number, k: number, w: number) {
+ *  rocking over each step, leaning a little forward; with `plop` (a toddler standing or held in place: a walker's root keeps
+ *  moving, and would slide it along seated) every 35-80 s (by the seed) a plop down onto the bottom for ~2.4 s and up again */
+export function toddle(p: Pose, t: number, ph: number, k: number, w: number, plop = false) {
   const r = p.rot, T = TODDLER, mix3 = (a: [number, number, number] | undefined, b: [number, number, number]): [number, number, number] => { const q = a ?? [0, 0, 0]; return [q[0] + (b[0] - q[0]) * w, q[1] + (b[1] - q[1]) * w, q[2] + (b[2] - q[2]) * w]; };
   for (const [key, sd] of [['l_thigh', 1], ['r_thigh', -1]] as const) { const q = r[key] ?? [0, 0, 0]; r[key] = [q[0] * (1 - (1 - T.stepK) * w), q[1], q[2] + sd * T.abduct * w]; }
   for (const key of ['l_shin', 'r_shin'] as const) { const q = r[key] ?? [0, 0, 0]; r[key] = [q[0] * (1 - 0.4 * w), q[1], q[2]]; }
@@ -104,7 +104,7 @@ export function toddle(p: Pose, t: number, ph: number, k: number, w: number) {
   const sp = r.spine ?? [0, 0, 0]; r.spine = [sp[0] + T.lean * w, sp[1], sp[2] - 0.5 * T.sway * w * Math.sin(ph)];
   // the plop: down onto the bottom, a moment sitting, up again
   const P = T.fallEvery[0] + (T.fallEvery[1] - T.fallEvery[0]) * fr(k * 3.17), u = (t + fr(k * 7.1) * P) % P;
-  if (u < T.fallS) { const a = Math.sin(Math.PI * Math.min(1, u / T.fallS)) ** 0.5 * w;
+  if (plop && u < T.fallS) { const a = Math.sin(Math.PI * Math.min(1, u / T.fallS)) ** 0.5 * w;
     p.hips = [p.hips[0], p.hips[1] - 0.22 * a, p.hips[2]];
     for (const key of ['l_thigh', 'r_thigh'] as const) { const q = r[key]!; r[key] = [q[0] + (-1.3 - q[0]) * a, q[1], q[2]]; }
     for (const key of ['l_shin', 'r_shin'] as const) { const q = r[key]!; r[key] = [q[0] + (0.4 - q[0]) * a, q[1], q[2]]; } }
