@@ -66,7 +66,7 @@ export function partDesc(desc: Desc[], o: number, far: boolean): Desc | null {
   return base;
 }
 /** s18 C2 (D-665): the lower-city belt's quarters (plan.ts q_b*) drawn in the mesh of the quarter beside them */
-const BELT_WITH: Record<string, string> = { q_b1: 'q_w1', q_b3: 'q_w3', q_b4: 'q_s1', q_b5: 'q_n1', q_b6: 'q_w1' };
+const BELT_WITH: Record<string, string> = { q_b1: 'q_w1', q_b3: 'q_w3', q_b4: 'q_s1', q_b5: 'q_n1', q_b6: 'q_w1', q_b8: 'q_w3', q_b9: 'q_w3', q_b10: 'q_w1' };
 /** town meshes farther than this from the camera cast no shadows (they would only fill the Terrace's far cascades) */
 export const SHADOW_RANGE = 150;
 /** the town's trodden ground over the terrain (m): the terrain's coarser LODs must not poke through (fillPlan.ts TOWN_LIFT) */
