@@ -450,7 +450,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   let navOwn = false;
   if (navCore) for (const k of prefetchedKeys('navcore')) { if (!k.startsWith(navKey + '|')) continue; const m = cacheGetSync<Map<string, unknown>>('navcore', k);
     if (m instanceof Map) { for (const [a, v] of m) navCore.set(a, v); if (k === `${navKey}|${seed}`) navOwn = true; } }
-  const view = new PopView(sim, geo, seed, { warm: !navOwn }); crowd.view = view;
+  const view = new PopView(sim, geo, seed, { warm: !navOwn }); crowd.view = view; view.setDoorways(doorways); // D-690: the view keeps people out of the Terrace doorways (C5)
   if (navCore && !navOwn) cachePutSync('navcore', `${navKey}|${seed}`, navCore);
   wmark('view');
   // D-210: the animals that live about the town, the villages, the paradise and the river (world/fauna.ts), and the animals

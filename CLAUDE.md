@@ -78,6 +78,7 @@ Large binaries (DEM tifs) stay out of git; `npm run terrain` regenerates derived
   cloudnoise, long people_days runs). Never commit bench-reports/*.txt rewritten by a loaded test run.
 - **Reviewers use every reference** in `references/` paired to the moments (table in handoff/review_briefs.md), and say which
   ones they judged against; memory of photographs of the ruin is allowed only where no reference covers it, labelled C.
+- **Judge the living city of 467 BC, never the ruin (UD-29, s18).** The target is a finished, painted, inhabited royal city: coloured plaster, painted and gilded stone and timber, textiles, people, smoke, goods. Photographs of the site today are used ONLY for terrain, rock, the plain and the hills; never for the buildings' finish, colour, completeness or emptiness. The reconstructions in `references/` (Getty "Persepolis Reimagined", the artists' renditions) are the floor for colour and life, not a ceiling; where the evidence is silent or only traces survive, fill it as they do (tier C). Every review asks first: "what would a person standing here in 467 BC see that this frame lacks?"
 - **Before merging an agent branch:** records conflict (DECISIONS, OPEN_QUESTIONS, BLOCKERS, PROGRESS) are unions of appended
   rows: keep both sides, no blank line inside a table; reserve D/Q/B number ranges per agent in its prompt.
 - **After a render-affecting merge**, re-render the moments it touches before claiming a fix; a node test is not a render.

@@ -44,7 +44,8 @@ export async function pipelineCensus(renderer: THREE.WebGPURenderer, scene: THRE
       b.environmentNode = nodes.getEnvironmentNode?.(scene) ?? null; b.fogNode = nodes.getFogNode?.(scene) ?? null; b.build(); built++;
       const vs: string = b.vertexShader ?? '', fs: string = b.fragmentShader ?? '', params = (vs.split(/fn main\s*\(/)[1] ?? '').split(/\)\s*->/)[0];
       const inputs = (params.match(/@location\(/g) ?? []).length, extra = (params.match(/nodeAttribute\d+/g) ?? []).length;
-      const buffers = new Set(Object.values((m.geometry as any).attributes ?? {}).map((a: any) => (a.isInterleavedBufferAttribute ? a.data : a))).size + Math.ceil(extra / 4);
+      const used = [...params.matchAll(/@location\(\s*\d+\s*\)\s*(\w+)\s*:/g)].map(x => ((m.geometry as any).attributes ?? {})[x[1]]).filter(Boolean); // (bound: the arrays the WGSL reads)
+      const buffers = new Set(used.map((a: any) => (a.isInterleavedBufferAttribute ? a.data : a))).size + Math.ceil(extra / 4);
       const samplers = (fs.match(/: sampler[;\s]|: sampler_comparison/g) ?? []).length;
       worstIn = Math.max(worstIn, inputs); worstBuf = Math.max(worstBuf, buffers); worstSmp = Math.max(worstSmp, samplers);
       const name = `${m.name || m.type}:${mat.name || mat.type}`;

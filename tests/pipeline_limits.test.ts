@@ -17,6 +17,7 @@ import { SmallLife } from '../src/world/smallLife';
 import { NavGrid } from '../src/people/navgrid';
 import { Terrain, Ring, type TerrainMeta } from '../src/terrain/heightfield';
 
+const hashOf = (s: string) => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36); };
 export const LIMITS = { vertexInputs: 16, vertexBuffers: 8, fragmentSamplers: 16, nodeSamplers: 5 } as const;
 /** a node-side WebGPU renderer that builds WGSL as the page does (velocity output on, the T4's uniform limit) */
 export function wgslRenderer(velocityOn = true) {
@@ -35,10 +36,11 @@ export function pipelineOf(o: THREE.Mesh, env: ReturnType<typeof wgslRenderer>) 
   // (buffers: the geometry's distinct arrays, plus the matrices' and the previous matrices' interleaved buffers when the WGSL
   // reads them as attributes, plus an instance colour's)
   const names = [...params.matchAll(/@location\(\s*\d+\s*\)\s*(\w+)\s*:/g)].map(m => m[1]), extra = names.filter(n => /^nodeAttribute\d+$/.test(n)).length;
-  const geo = new Set(Object.values(o.geometry.attributes).map((a: any) => (a.isInterleavedBufferAttribute ? a.data : a))).size;
+  // (only the attributes the WGSL reads are bound: three makes a vertex buffer per array the pipeline uses)
+  const used = names.map(n => (o.geometry.attributes as any)[n]).filter(Boolean), geo = new Set(used.map((a: any) => (a.isInterleavedBufferAttribute ? a.data : a))).size;
   const buffers = geo + Math.ceil(extra / 4);
   const samplers = ((b.fragmentShader as string).match(/: sampler[;\s]|sampler_comparison/g) ?? []).length;
-  return { inputs, buffers, samplers };
+  return { inputs, buffers, samplers, program: `${vs.length}:${hashOf(vs)}/${(b.fragmentShader as string).length}:${hashOf(b.fragmentShader)}` };
 }
 const check = (g: THREE.Object3D, env: ReturnType<typeof wgslRenderer>) => {
   const bad: string[] = [], rows: string[] = []; let worst = 0;
@@ -62,6 +64,10 @@ describe('every life pipeline fits the T4 (WGSL counted; D-740)', () => {
     expect(r.bad, r.rows.join(', ')).toEqual([]);
     // the starlings' flying levels: 6 geometry inputs, the matrix and the previous frame's (8): 14 with the uv packed in life.zw (the T4 failed them at 17)
     for (const m of B.meshesOf('starling')) expect(pipelineOf(m as THREE.Mesh, env).inputs, (m as THREE.Mesh).name).toBeLessThanOrEqual(14);
+    // (D-740: one shader for every species' flying level: the wingbeat's rate and shoulder are uniforms; the page counted 43
+    // programs for the birds' 59 mesh groups: 2 now, the plain flight and the take-off morph)
+    const progs = new Set<string>(); B.group.traverse(o => { const m = o as THREE.Mesh; if (m.isMesh && /:fly/.test(m.name)) progs.add(pipelineOf(m, env).program); });
+    expect(progs.size, 'the flying birds\' programs').toBeLessThanOrEqual(2);
     const J = new Jackals(1, terrain); expect(check(J.mesh, env).bad).toEqual([]);
     const S = new SmallLife(7, { ground: () => 0, ctxAt: () => 'steppe' } as any); expect(check((S as any).group, env).bad).toEqual([]);
     clearLifeModels();

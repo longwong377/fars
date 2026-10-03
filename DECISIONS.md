@@ -9932,3 +9932,30 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   10.48 -> 10.54 GB (+0.6 %), frame 117 -> 135 ms, shaders settled 753 -> 922 s, pipeline validation errors 15 -> 1. Load passes;
   frame time and settle are worse against a baseline that skipped 15 failed pipelines (objects never compiled or drawn), so
   they were judged a pass by the lead and are recorded here, not hidden. Budget baseline unchanged.
+
+## D-660 The town's roofs, lane fill, doors and the last shut houses (s18 cloud C2, town)
+- Measured first (node probes: a ray down every house room on the far mesh and on both near levels; the fill's drawn height against the lane ground mesh). The "roofless" town is not missing roofs: the far level roofs 92 % of the 6,878 house rooms (the rest carry the roof fuel on top), both near levels ~97 % of a 982-room sample. From 20 m up and the Terrace they read as open boxes because the roof top was the walls' own plaster tone, the parapets (0.22-0.62 m) hide them at a few degrees' elevation and the courts are dark holes; nothing of a roof's life was drawn beyond 120 m. Fix: every roof in a straw-and-clay coat (houses.ts roofCol, both levels: the plot's earth mixed 45-70 % toward a sun-bleached coat, ±9 % roof to roof) and the roofs' jars, mats, fleeces and dung cakes on the far level (+39 k triangles town-wide).
+- The lane fill was there and drawn but under the lane's earth: the trodden-ground mesh is draped 10 cm over the terrain while the fill (and the nav grid the people walk on) take the terrain's height, so 1,250 of 1,273 litter pieces and 709 mats and flat things lay wholly under it and every other item (14,155 in the town) stood 10 cm sunk. Fix: the ground 1 cm over the terrain within 30 m of the eye, rising in the vertex stage to 10 cm by 140 m (the coarse terrain LODs still under it); litter lifted 1.2 cm. After: 0 buried in every class.
+- Found on the way: the street doors' leaves were never drawn since s15 (eacb1e4 put `m.setMatrixAt(n++, M)` inside a trailing comment): every doorway of the town stood open as a dark hole. Drawn again (door_planks, s17 C1's plank scan).
+- Repairs: the patch's tone step from the wall cut to a third (1.08/1.06 → 1.035/1.025) with a 16-26 cm rim; each brick loss gets an irregular halo of thinned, damp-stained plaster 8-20 cm wide fading into the wall (32 triangles; the 60 k tile budget holds, houses.test.ts).
+- B580: a landlocked house whose only lane contact is a corner cell keeps a 0.02-0.3 m slot between the two crossing 0.7 m walls whatever door is cut (measured at 10 cm). access.ts' last pass cuts up to three connected cells at that corner (the house's own or a neighbour's; never a door cell or a small plot) back to the lane, the door through the cut (a narrow 0.6 m door allowed there), a neighbour's room the cut strands given an inner door, kept when the house is then at least half reached and no other plot loses a reached place; the cut reaching most is kept. q_s4-0074 (100/100 cells), q_s4-0161 (91/141: its inside split by a narrow inner passage), q_w3-0122 and one more entered: shut houses 6 → 2, quarter plot cells reached 99.437 → 99.632 %, lane cells 99.742 → 99.880 % (reach_census.ts). town_plots.json regenerated. Left: q_w2-0077 and q_w2-0082 face a 40-cell lane pocket whose one exit is a one-cell lane (q_w2 cells 131-140, row 96; 0.15 m room) (B690).
+
+## D-690 Crowds, doors and the walk: people standing keep ~1 m apart, never stand in a doorway, and make way for the stranger (s18 cloud C5)
+- popview.ts: standing out of doors SEP 1.0 m (was 0.6; rooms and tents 0.7), spread on slightly uneven rings to 12 m (rooms 5 m) in the same court or open ground; a
+  place fuller than that leaves the rest undrawn (stats.crowded) instead of stacking them on the spot. Doorways and their aprons
+  (DOOR_CLEAR 1.5 m either side, the opening's width + 0.35 m) are kept clear: the Terrace's doorways (setDoorways; built once
+  if world.ts does not hand them over) and the town's and villages' door edges. A group at a social act (talk, rest, game, meal,
+  shelter, mourning, play) faces its middle. Making way (C): within 2.4 m of the stranger (3.2 m by a doorway) a person standing
+  steps up to 0.85 m off the stranger's way, to the side they stand on, never across it unless on it, to a clear place, turned
+  toward the stranger, by an amount that follows the distance (no jumps); posts held turn only; the crowd turns the head (react
+  'turn'). Measured (node, day 25 10:00, people on): door passages blocked by a person 35 -> 0 (Terrace 118 -> 130/130, rooms
+  326 -> 330/330, town street 367 -> 395/399, the 4 left touch only walls: B691); bots Terrace 40/40 (two seeds; s17 36/40),
+  town 40/40 seed 1, 39/40 seed 2 (an animal lying in a lane). The s17 town misses: q_s2's pen 180 holds walled-off ground no
+  body reaches (walkers.ts now samples plot cells reachable from their door), and a person stepping across the walker's way in
+  q_s2's 1.4 m lanes (fixed).
+
+## D-770 The giant-holes audit: what else the ruin bias and the early "attested only" rules left out (s18 cloud C12; UD-14, UD-29)
+- handoff/s18/holes.md ranks 25 holes by screen share x time x how jarring, with evidence, the most probable 467 fill and an
+  owner. The nine tests and rules that enforce an absence (polychromy faces/background, Treasury-only clay paint, no shrine,
+  no qanat, the king never staged, delegations/feasts `never`, words never joined) are listed so the fixes change them too.
+  No src edits (an audit).
