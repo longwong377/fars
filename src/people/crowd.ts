@@ -48,7 +48,7 @@ import { PLAYING, singFace, type PlayKind } from './playing';
 import { PIECES, pieceBit, COSTUME_OF, weatherMask, type Dress } from './outfits';
 import { WORK_META, workRoot, ploughPath, THRESH_TURN_S, type WorkAnim, CAPTURED_WORK } from './workAnims';
 import { IK_Q } from './poseKit';
-import { WorkObjects, WORK_NOTES, type WorkKind } from './workObjects';
+import { WorkObjects, WORK_NOTES, WHEELS, type WorkKind } from './workObjects';
 import { Animals, animalsFor, ANIMAL_BUILD, grazeReach, riderLift, type Species } from './animals';
 import type { PopView, ViewPerson } from './popview';
 import { CrowdImpostors, rowOf, frameOf, impFallback, IMP_GAITS } from './impostors';
@@ -960,7 +960,10 @@ export class Crowd {
         // a group object (the bier) at the centre of its bearers
         if (g) { g.x += fr[0]; g.y += fr[1]; g.z += fr[2]; g.n++; } else this.shared.set(key, { kind: w.kind, x: fr[0], y: fr[1], z: fr[2], yaw: fr[3], n: 1, rank: -1, one: place(fr, w.at[0], w.at[1], w.at[2], 0, new THREE.Matrix4()) });
         continue; }
-      this.things.push(w.kind, place(fr, w.at[0], w.at[1], w.at[2], 0, _m));
+      // (s18 C14 D-790: a vehicle that follows its performer turns its wheels by the distance it has come: workObjects WHEELS)
+      const WH = w.follow ? WHEELS[w.kind] : undefined; let roll = 0;
+      if (WH) { const q = p as Person & { wheelS?: number; wheelAt?: number[] }, a = q.wheelAt ?? (q.wheelAt = [r[0], r[2]]), dd = Math.hypot(r[0] - a[0], r[2] - a[1]); if (dd < 5) q.wheelS = (q.wheelS ?? 0) + dd; a[0] = r[0]; a[1] = r[2]; roll = (q.wheelS ?? 0) / WH.R; }
+      this.things.push(w.kind, place(fr, w.at[0], w.at[1], w.at[2], 0, _m), roll);
     }
     // (D-256: the bees about the hives buzz within 25 m, now and then)
     if (d < 25 && this.onHit && (P.work ?? []).some(w => w.kind === 'hives') && this.snd.next() < dt / 3) { const c = Math.cos(b[3]), s = Math.sin(b[3]); this.onHit('buzz', new THREE.Vector3(b[0] + s * 0.9, b[1] + 0.5, b[2] + c * 0.9)); }
