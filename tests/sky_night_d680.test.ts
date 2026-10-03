@@ -21,3 +21,12 @@ describe('D-680 stars through the twilight', () => {
     expect(b.fragmentShader).toContain('exp');
   });
 });
+describe('D-680 the Moon\'s face', () => {
+  it('the moon material builds with its maria (WGSL)', () => {
+    const canvas: any = { style: {}, width: 960, height: 540, getContext: () => null, addEventListener() {}, removeEventListener() {} };
+    const r: any = new (THREE as any).WebGPURenderer({ canvas }); r.hasFeature = () => true;
+    const sky: any = new SkySystem(new THREE.Scene(), 256, 'test');
+    const b = new (THREE as any).WGSLNodeBuilder(sky.moon, r); b.scene = new THREE.Scene(); b.camera = new THREE.PerspectiveCamera(); b.material = sky.moon.material; b.build();
+    expect((b.fragmentShader.match(/exp\(/g) ?? []).length).toBeGreaterThan(8);
+  });
+});
