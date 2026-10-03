@@ -54,3 +54,31 @@ src/arch: roofedge, decor, glazed, dressings, model_paint, tower_stairs, drum_ro
 relief_figures, reliefs, arris_slabs, mudface, parts; src/render: materials, scans, grime, loaders (D-751); tools/blender:
 relief_paint.ts, drum_road_profile.ts; tests changed: polychromy, surfaces_s6, roofedge, arch, paint_glaze, blender_assets;
 new: terrace_dressing.
+
+## D-803 the Terrace kit (lead 3, then lead 4's freeze)
+Broken or unseen first:
+- **Not seen in any frame.** Neither the T4 nor a probe has shown the site pieces. The probe views at cov-252's position put the
+  eye under the court level: they show the retaining wall, and one scaffold standing on a block, not the site. Verify in the
+  T4 world render at cov-252.
+- **Site pieces have no colliders.** The player walks through the scaffold poles, ladders and brick stacks, and nobody uses
+  the ladders.
+- **Scaffold foot height is guessed.** The poles start 3 m under the wall's foot and the ladders 0.5 m under it, so they
+  stand buried where the ground is higher. Where the ground outside is more than 0.5 m lower (the Tripylon), a ladder
+  could float.
+- **New pipeline:** propMaterial('wood', vertexColors), for the scaffolds, ladders and beams.
+- **Not done:** the stair treads and the parapets as kit pieces.
+
+What a player meets:
+- The palaces' wall heads crowned by a modelled, painted Egyptian-gorge cornice. It is 1.64x on the Gate's 20 m walls.
+- A torus plinth at the wall feet, and modelled stone window frames on the Apadana towers.
+- The retaining walls' drafted margins, and a smooth lime coat on the palaces.
+- The Hall of 100 Columns and the Tripylon as working sites:
+  - courses racked up over the flat wall tops;
+  - brick stacks on the tops, scaffolds against the faces, ladders against the walls;
+  - the first cedar beams on the raised capitals.
+
+| measure | value |
+|---|---|
+| Terrace kit triangle bound | 100-450 k (cornices, plinths, windows) |
+| site kit | 1,078 course modules, 49 scaffold bays, 37 ladders, 44 stacks, 8 beams; 124 k triangles (bound under 160 k) |
+| tests | terrace_dressing, roofedge, paint_glaze, arch, polychromy: 59 pass |
