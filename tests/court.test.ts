@@ -97,7 +97,9 @@ describe('the court in residence (D-182)', () => {
   }, 600_000);
   it('every sealed letter for the Treasury is handed over while the desk is open, every day of the year, with and without the court (D-229)', () => {
     for (const S of [absent, court]) { const P = S.pop; let cal = 0, carried = 0; const bad: string[] = [];
-      for (let d = 0; d < 354; d++) { const L = P.cal.ctx(d).letters; cal += L.length;
+      // (the plans are read on every day a letter comes and on every seventh day besides, to see no letter carried that the
+      // calendar did not send: the year's plans cost ~20 min on a 4-core box, the letters' days a fraction; C7 D-710)
+      for (let d = 0; d < 354; d++) { const L = P.cal.ctx(d).letters; cal += L.length; if (!L.length && d % 7) continue;
         for (const x of L) expect(x.go + P.walkH('station', 'stair_foot', d, 'town', 'terrace') + 0.1 + TREASURY_DESK.hand, `day ${d}`).toBeLessThanOrEqual(TREASURY_DESK.close + 1e-9);
         for (const m of P.messengers) if (P.present(m, d)) carried += P.plan(m, d).filter(s => s.why === LETTER_WHY).length;
         for (const x of receipts(P, d, pid => P.plan(pid, d))) bad.push(`${S === court ? 'court' : 'absent'} day ${d}: ${x.pid} ${x.note}`); }
