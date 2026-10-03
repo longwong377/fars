@@ -32,8 +32,8 @@ for (const v of work) {
     // reaches the view's hour and the population view has nothing pending (at most WAITS s)
     const tw = Date.now(), target = v.day * 24 + v.hour; let wait = null;
     for (let i = 0; i < 400 && Date.now() - tw < +(process.env.WAITS ?? 240) * 1000; i++) {
-      wait = await p.evaluate(() => { const a = window.__parsa, P = a.people?.(), H = a.humans?.(); return { t: P?.t ?? null, pending: H?.view?.pending ?? null }; });
-      if (wait.t !== null && Math.abs(wait.t - target) < 0.05 && !wait.pending) break;
+      wait = await p.evaluate(() => { const a = window.__parsa, P = a.people?.(), H = a.humans?.(); return { t: P?.t ?? null, pending: H?.view?.pending ?? null, catchingUp: a.world?.people?.sim?.catchingUp ?? null }; });
+      if (wait.t !== null && Math.abs(wait.t - target) < 0.05 && !wait.pending && !wait.catchingUp) break;
       await p.evaluate(() => window.__parsa.tick()); }
     // an open view (v.open; the lead, holes.md row 22): keep the heading if the first hit at eye level on it is >= 8 m away,
     // else turn to the bearing of 16 with the farthest first hit (pickW: the world's meshes through the screen centre)
@@ -56,7 +56,7 @@ for (const v of work) {
     const life = await p.evaluate(([e, n]) => { const a = window.__parsa, H = a.humans?.(), P = a.people?.(); if (!H) return null;
       const near = r => (P?.agents ?? []).filter(g => !g.offmap && Math.hypot(g.e - e, g.n - n) < r).length;
       const rf = window.__renderFaults; return { faults: rf ? (Array.isArray(rf) ? rf.slice(-8) : rf) : null, skinned: (H.perf?.drawn ?? []).reduce((x, y) => x + y, 0), imp: H.impPerf?.drawn ?? H.impostors ?? null, popKept: H.view?.candidates ?? null, popVisible: H.view?.visible ?? null, popPending: H.view?.pending ?? null, pv: H.view ? Object.fromEntries(Object.entries(H.view).filter(([k, x]) => typeof x === "number" && x)) : null, agents60: near(60), agents150: near(150), simT: P?.t != null ? +P.t.toFixed(3) : null }; }, [v.e, v.n]).catch(e => ({ err: String(e).slice(0, 80) }));
-    life.waitS = +((Date.now() - tw) / 1000).toFixed(0); life.target = +target.toFixed(3);
+    life.waitS = +((Date.now() - tw) / 1000).toFixed(0); life.catchingUp = await p.evaluate(() => window.__parsa.world?.people?.sim?.catchingUp ?? null).catch(() => 'err'); life.target = +target.toFixed(3);
     appendFileSync(`${outDir}/life.jsonl`, JSON.stringify({ id: v.id, who: v.who, reheaded: v.reheaded, ...life }) + '\n');
     const tf = Date.now(); await p.screenshot({ path: `${outDir}/${v.id}.png`, timeout: 1800000 }); const tshot = ((Date.now() - tf) / 1000).toFixed(0);
     const st = await p.evaluate(() => { const s = window.__parsa.stats(); return { dc: s.drawCalls, tri: s.triangles, be: s.backend }; }).catch(() => ({}));
