@@ -4,7 +4,7 @@
 // village within 2.5 km), its use, crop, the season's stage, and the spots where its workers stand: the ploughman behind
 // the ard at the furrow front, the reapers in a line across the strip with binders behind them, gleaners on the stubble,
 // the waterer at the plot's head on irrigation days, weeders, pruners and pickers in the vines and orchards, a herder on
-// the grazed fallow. Fronts move along the strip as the work goes on through its days. All C (the calendar is
+// the grazed fallow and on the open range within 4.5 km of a village. Fronts move along the strip as the work goes on through its days. All C (the calendar is
 // seasonal.ts'; the gangs by analogy with the Persepolis Fortification texts' workers and the plain's practice).
 //
 //   const work = plain.fieldWork(e, n, 1200, dayIndex);   // plots within 1.2 km with work today
@@ -13,22 +13,25 @@
 // Threshing is at the village's floor (fieldFill.ts threshingFloor), not in the field.
 import { plotAt, landUseAt, hash2, unit, type ZoneMap, type LandUse } from './fields';
 import { cropState, doyOf, type CropRow } from './seasonal';
+import { settlementZones, pointInPolygon } from './data';
 
 export type FieldAct = 'plough' | 'sow' | 'reap' | 'bind' | 'glean' | 'carry' | 'water' | 'weed' | 'cut' | 'tend' | 'prune' | 'hoe' | 'pick' | 'graze';
-export type FieldStage = 'ploughing' | 'growing' | 'reaping' | 'stubble' | 'fallow' | 'vines' | 'orchard' | 'idle';
+export type FieldStage = 'ploughing' | 'growing' | 'reaping' | 'stubble' | 'fallow' | 'vines' | 'orchard' | 'range' | 'idle';
 export interface FieldSpot { e: number; n: number; /** facing (as works.ts WorkSpot: atan2(toE, -toN)) */ yaw: number; act: FieldAct }
 export interface FieldPlotWork {
   /** plot key (fields.ts Plot.h) */ plot: number; village: string | null; use: LandUse; crop: CropRow; stage: FieldStage;
   /** the plot's centre (e, n) and strip size (m) */ e: number; n: number; w: number; l: number; spots: FieldSpot[];
 }
 export interface FieldVillage { id: string; x: number; y: number; r: number }
-export const FIELD_WORK = { villageReach: 2500, step: 30, tag: { tier: 'C', src: 'RECON;PF', note: 'field work by plot and season (D-670): stages from the crop calendar (seasonal.ts), gangs and their places by analogy (C)' } } as const;
+export const FIELD_WORK = { villageReach: 2500, rangeReach: 4500, step: 30, tag: { tier: 'C', src: 'RECON;PF', note: 'field work by plot and season (D-670): stages from the crop calendar (seasonal.ts), gangs and their places by analogy (C)' } } as const;
 
+let ZONES: [number, number][][] | null = null; const zones = () => (ZONES ??= settlementZones());
 const yawOf = (dE: number, dN: number) => Math.atan2(dE, -dN);
 /** the plot's stage and its work today (pure): from the crop state a week either side (the plot's own offset applied) */
 export function plotStage(row: CropRow, doy: number, h: number): { stage: FieldStage; acts: [FieldAct, number][]; progress: number } {
   const at = (d: number) => cropState(row, d), s = at(doy), back = at(doy - 7), fwd = at(doy + 8), r = unit(hash2(h >>> 0, Math.floor(doy), 77));
-  if (row === 'steppe') return { stage: 'idle', acts: [], progress: 0 };
+  // the open range: a herder with the village's flock on about one patch in 25, all year (the flocks off the crops; C)
+  if (row === 'steppe') return { stage: 'range', acts: r < 0.04 ? [['graze', 1]] : [], progress: 0 };
   if (row === 'fallow') return { stage: 'fallow', acts: r < 0.35 ? [['graze', 1]] : [], progress: 0 };
   if (row === 'vineyard') { const acts: [FieldAct, number][] = doy >= 30 && doy < 75 ? [['prune', 2]] : doy >= 75 && doy < 100 ? [['hoe', 2]] : doy >= 255 && doy < 300 ? [['pick', 4], ['carry', 1]] : [];
     return { stage: 'vines', acts, progress: ((doy * 13 + (h & 255)) % 100) / 100 }; }
@@ -53,11 +56,12 @@ export function plotStage(row: CropRow, doy: number, h: number): { stage: FieldS
 /** one plot's work today at a point (null when the point is not in a worked plot) */
 export function plotWork(zm: ZoneMap, villages: FieldVillage[], e: number, n: number, dayIndex: number): FieldPlotWork | null {
   const u = landUseAt(zm, e, -n), p = u.plot;
-  if (u.use === 'natural') return null;
   const [sx, sz] = p.seed, ce = sx, cn = -sz;
   if (villages.some(v => Math.hypot(v.x - ce, v.y - cn) < v.r + 15)) return null;
-  let village: string | null = null, best: number = FIELD_WORK.villageReach;
+  // the open range is grazed from the villages within a day's walk out and back; the fields are the nearest village's
+  let village: string | null = null, best: number = u.use === 'natural' ? FIELD_WORK.rangeReach : FIELD_WORK.villageReach;
   for (const v of villages) { const d = Math.hypot(v.x - ce, v.y - cn); if (d < best) { best = d; village = v.id; } }
+  if (u.use === 'natural' && (!village || zones().some(z => pointInPolygon(ce, cn, z)))) return null; // not the town's or the Terrace's ground
   const doy = doyOf(dayIndex) + u.offsetDays, st = plotStage(u.row, doy, p.h);
   let acts = st.acts; if (u.use !== 'irrigated' && u.use !== 'orchard') acts = acts.filter(([a]) => a !== 'water');
   // the strip frame: across (w) along (cos, sin) of the angle in world x/z; along the strip (l) its normal; to (e, n): n = -z

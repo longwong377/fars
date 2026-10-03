@@ -8,7 +8,7 @@
 // corridor and the water are raised in the vertex shader by up to 3 m with distance (0.07 deg at 2.5 km, sub-pixel);
 // near the viewer they sit exactly where the colliders are.
 import * as THREE from 'three/webgpu';
-import { attribute, uniform, positionLocal, positionWorld, cameraPosition, cameraViewMatrix, vec2, vec3, vec4, float, mix, smoothstep, clamp, length, sin, cos, dot, normalize, max, pow, mx_noise_float, time, color, step, abs } from 'three/tsl';
+import { attribute, uniform, positionLocal, positionWorld, cameraPosition, cameraViewMatrix, vec2, vec3, vec4, float, mix, smoothstep, clamp, length, sin, cos, dot, normalize, max, pow, mx_noise_float, time, color, step, abs, fwidth } from 'three/tsl';
 import { rippleNormal, waterBody, skyReflection, waterRoughness, WATER_SKY } from './waterShade';
 import type { Terrain } from '../../terrain/heightfield';
 import { curvatureDrop } from '../../terrain/heightfield';
@@ -32,7 +32,7 @@ function sections(r: RiverProfile): Section[] {
     let dth = Math.atan2(r.y[b] - r.y[c], r.x[b] - r.x[c]) - Math.atan2(r.y[d0] - r.y[a], r.x[d0] - r.x[a]); if (dth > Math.PI) dth -= 2 * Math.PI; if (dth < -Math.PI) dth += 2 * Math.PI;
     return Math.abs(dth) > 1e-4 ? Math.hypot(r.x[b] - r.x[a], r.y[b] - r.y[a]) * 0.75 / Math.abs(dth) : 1e9; };
   for (let i = 0; i < n - 1; i++) {
-    const near = Math.hypot(r.x[i], r.y[i]) < 12000, Rb = Math.min(radiusAt(i), radiusAt(i + 1)), step = near ? Math.min(20, Math.max(8, Rb / 4)) : Math.min(45, Math.max(12, Rb / 3));
+    const near = Math.hypot(r.x[i], r.y[i]) < 12000, Rb = Math.min(radiusAt(i), radiusAt(i + 1)), step = near ? Math.min(24, Math.max(9, Rb / 3.6)) : Math.min(45, Math.max(20, Rb / 2.2)) /* D-670: far 20 m min (the plain under 2 M with the merged reliefs) */;
     const seg = Math.hypot(r.x[i + 1] - r.x[i], r.y[i + 1] - r.y[i]);
     for (; acc < seg; acc += step) {
       const t = acc / seg, x = r.x[i] + (r.x[i + 1] - r.x[i]) * t, y = r.y[i] + (r.y[i + 1] - r.y[i]) * t;
@@ -217,7 +217,7 @@ export function buildRivers(terrain: Terrain, rivers: RiverProfile[], canals: Ca
   const flowRel = pick(flowU, riR), speed = mix(flowRel.mul(0.9).add(0.3), float(0.25), isCanal);
   const sAlong = fl.x, across = ac.z.mul(width.mul(0.5));
   const T = vec3(fl.y, 0, fl.z), B = vec3(ac.x, 0, ac.y);
-  const rip = rippleNormal(sAlong, across, T, B, speed, mix(flowRel.mul(0.6).add(0.55), float(0.35), isCanal));
+  const rip = rippleNormal(sAlong, across, T, B, speed, mix(flowRel.mul(0.4).add(0.45), float(0.35), isCanal)); // D-670: the spring river 0.85, was 1.15
   const nW = rip.n;
   wm.normalNode = normalize(cameraViewMatrix.mul(vec4(nW, 0)).xyz);
   // the local water depth across the trapezoid (bed half-width, then the side slopes to the edge; C): deep and dark in
@@ -229,7 +229,13 @@ export function buildRivers(terrain: Terrain, rivers: RiverProfile[], canals: Ca
   const turbid = mix(pick(turbidU, riR), turbidU[0], isCanal); // canals carry Pulvar/Kur water: the Pulvar's state stands for both (C)
   const nz = mx_noise_float(vec3(sAlong.sub(time.mul(speed)).mul(0.35), across.mul(0.6), time.mul(0.15)));
   const riffle = smoothstep(0.62, 0.85, nz.add(0.5)).mul(float(1).sub(smoothstep(0.3, 0.6, depth))).mul(float(1).sub(isCanal)); // broken water over riffles at low flow
-  wm.colorNode = mix(waterBody(dLocal, turbid), vec3(0.5, 0.52, 0.5), riffle.mul(0.45));
+  // D-670 (riv-a: one even tint over the shallows): the bed under the shallows varies along the reach, dark silt and pale
+  // river gravel in patches of ~10-30 m (the bars' gravel runs out under the water), and the broken water over riffles is
+  // the river's own water whitened, not a neutral grey (C)
+  const bedN = mx_noise_float(vec3(sAlong.mul(0.06), across.mul(0.15), riW.mul(3.1))).mul(0.5).add(0.5);
+  const bedC = mix(color(new THREE.Color().setRGB(0.24, 0.2, 0.15, THREE.SRGBColorSpace)), color(new THREE.Color().setRGB(0.42, 0.38, 0.3, THREE.SRGBColorSpace)), smoothstep(0.45, 0.75, bedN));
+  const body = waterBody(dLocal, turbid, bedC);
+  wm.colorNode = mix(body, body.mul(0.35).add(vec3(0.42, 0.42, 0.38)), riffle.mul(0.45));
   // sky reflection (no environment map): Fresnel x the calibrated horizon-to-sky radiance, and where the reflected ray
   // meets the far bank (its reeds and grass ~1.5 m over the bank top; riparian trees ~12 m tall over about half its
   // length, 15 m back; C) the bank instead of the sky (waterShade.ts)
@@ -252,7 +258,12 @@ export function buildRivers(terrain: Terrain, rivers: RiverProfile[], canals: Ca
   const edgeIn = halfW.sub(latAct), pull = rag.mul(mix(float(0.45), float(0.25), isCanal));
   wm.opacityNode = step(pull, edgeIn); wm.alphaTest = 0.5;
   const sheet = float(1).sub(smoothstep(0.0, 0.5, edgeIn.sub(pull)));
-  wm.colorNode = mix(wm.colorNode as any, waterBody(float(0.03), float(0)), sheet.mul(0.7));
+  wm.colorNode = mix(wm.colorNode as any, waterBody(float(0.03), float(0), bedC), sheet.mul(0.7));
+  // D-670: the drift line: a thin pale scum of foam, seed and chaff caught at the water's edge in patches (~40 % of it), its
+  // width under 15 cm faded to its pixel share far off (C)
+  const fwE = fwidth(edgeIn).max(1e-3), drift = float(1).sub(smoothstep(pull, pull.add(0.12).add(fwE), edgeIn)).mul(clamp(float(0.12).div(fwE), 0, 1))
+    .mul(smoothstep(0.1, 0.4, mx_noise_float(vec3(positionWorld.x.mul(0.15), 4.4, positionWorld.z.mul(0.15))))).mul(float(1).sub(isCanal.mul(0.6)));
+  wm.colorNode = mix(wm.colorNode as any, vec3(0.5, 0.48, 0.42), drift.mul(0.5));
   wm.roughnessNode = mix(wm.roughnessNode as any, float(0.3), sheet.mul(0.6));
   wm.userData.ssr = false; // the reflection above is the water's own: no screen-space reflection on top (the SSR composite, D-216)
   const water = new THREE.Mesh(wg, wm); water.name = 'river-water'; water.frustumCulled = false; water.receiveShadow = true;

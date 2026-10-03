@@ -141,10 +141,12 @@ export const SPREAD_R = { inside: 5, out: 12 } as const;
 /** D-690: people standing make way for the stranger within YIELD_R m (YIELD_DOOR_R by a doorway: doorways first), by up to
  *  YIELD_STEP m, turned toward the stranger (C: a step aside, a glance) */
 export const YIELD_R = 2.4, YIELD_DOOR_R = 3.2, YIELD_STEP = 0.85;
+/** D-697: a state this far out of date (h) is not drawn until it is evaluated again */
+const STALE_H = 0.05;
 /** D-692: the plan budget after a jump in time: the first update's ms, then that many updates at the last ms */
-export const CATCH_UP = [60, 30, 10] as const;
+export const CATCH_UP = [60, 90, 8] as const;
 /** D-692: the share of people at each light work in their own court by day who do it in the lane by their street door (C) */
-const DOORSTEP: Partial<Record<ActivityId, number>> = { spin: 0.45, play: 0.6, talk: 0.5, rest: 0.35, craft: 0.3, clean: 0.4, eat: 0.15 };
+const DOORSTEP: Partial<Record<ActivityId, number>> = { spin: 0.5, play: 0.65, talk: 0.55, rest: 0.4, craft: 0.35, clean: 0.45, eat: 0.2 };
 /** D-690: acts a group stands at facing its own middle (a talk, a rest, a game, a meal), not all one way */
 const SOCIAL = new Set<ActivityId>(['talk', 'rest', 'gamble', 'eat', 'shelter', 'mourn', 'play']);
 /** slowest walk shown (m/s); below it the person walks at their own pace and leaves late (C) */
@@ -189,7 +191,7 @@ export class PopView {
   /** route searches per update (ms): beyond it, people farther than `nearR` wait at the place they are leaving (they
    *  then walk faster to arrive on time); nearer people always get their route */
   routeBudgetMs = 3; nearR = 150;
-  readonly stats = { doorstep: 0, doorKept: 0, yielding: 0, yieldSteps: 0, candidates: 0, planned: 0, planMs: 0, pending: 0, visible: 0, walking: 0, hurried: 0, lateLeaves: 0, steps: 0, hidden: 0, unresolved: 0, routeWait: 0, agentsOff: 0, evalMs: 0, updates: 0, carried: 0, nanTimes: 0, spread: 0, crowded: 0, warmed: 0, warmMs: 0, noRoom: 0, stepsIn: 0, inside: 0 };
+  readonly stats = { stale: 0, doorstep: 0, doorKept: 0, yielding: 0, yieldSteps: 0, candidates: 0, planned: 0, planMs: 0, pending: 0, visible: 0, walking: 0, hurried: 0, lateLeaves: 0, steps: 0, hidden: 0, unresolved: 0, routeWait: 0, agentsOff: 0, evalMs: 0, updates: 0, carried: 0, nanTimes: 0, spread: 0, crowded: 0, warmed: 0, warmMs: 0, noRoom: 0, stepsIn: 0, inside: 0 };
   private out: ViewPerson[] = []; private nOut = 0;
   private anchorsBuilt = false; private homes: Float64Array | null = null;
   /** opts.warm false (D-392): the court's routes are in the geo's core cache already (the baked world's, searched for this
@@ -395,7 +397,7 @@ export class PopView {
   private agentVp(): ViewPerson { let o = this.agentVps[this.nAgentVps]; if (!o) this.agentVps[this.nAgentVps] = o = PopView.blank(); this.nAgentVps++; this.out[this.nOut++] = o; return o; }
   private tmp = { e: 0, n: 0, heading: 0 };
   private collect(t: number) {
-    this.nOut = 0; this.nAgentVps = 0; let walking = 0, carried = 0, nYield = 0; const day = Math.floor(t / 24);
+    this.nOut = 0; this.nAgentVps = 0; let walking = 0, carried = 0, nYield = 0; const day = Math.floor(t / 24); this.stats.stale = 0;
     this.agentOcc.clear(); for (const a of this.sim.agents) if (!a.offmap) { const k = this.occKey(a.pos[0], a.pos[1]); const L = this.agentOcc.get(k); if (L) L.push(a); else this.agentOcc.set(k, [a]); }
     const upd = this.stats.updates; this.youngBuf.length = 0; this.handBuf.length = 0; this.blindBuf.length = 0; this.pairBuf.length = 0;
     for (const s of this.list) { const te = this.tv(s.pid, t);
@@ -407,6 +409,9 @@ export class PopView {
       // with someone who is out of doors is drawn with them too (children, below)
       if (s.mode === 0 && s.wp >= 0 && s.spot && !s.isAgent && this.pop.ageOn(s.pid, day) < 3) { this.youngBuf.push(s); continue; }
       if (s.mode === 0 || !s.spot || s.isAgent) continue; // detailed agents: below
+      // (D-697, C12's T1: a state from before a jump in time, not evaluated yet this update (over the plan budget), is not
+      // drawn: it held people at the court's places on days the court was away, at its old place, until re-planned)
+      if (te > s.v1 + STALE_H || te < s.v0 - STALE_H) { this.stats.stale++; if (s.occ >= 0) this.release(s); continue; }
       // infants are held, nursed or carried on the back (their plan's place is the carer's): no body is drawn for a
       // carried child (C; counted); from one year a child is drawn when it plays or walks by itself
       if (s.youngV !== s.ver) { s.youngV = s.ver; s.isYoung = this.pop.persons[s.pid].age < 3 && this.young(s.pid, day, s); }

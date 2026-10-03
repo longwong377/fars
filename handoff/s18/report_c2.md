@@ -1,4 +1,4 @@
-# s18 cloud C2: the town (D-660..D-674)
+# s18 cloud C2: the town (D-660..D-675)
 
 Branch cloud-s18-c2-town. Frames: crude cloud software frames (SwiftShader WebGL2, quality=test, 1280x720 at the player's
 lens), in handoff/s18/c2_frames/: `_base` = d2ef51b (the session's start), `_after2` = 9522767b (D-660..D-662). The head's
@@ -24,6 +24,11 @@ frames (the plaster, D-668/669; the life objects, D-670) are rendering; they are
 - **tests/population.test.ts was not seen to pass after the belt**: it ran past its 50-min timeout twice on this loaded 4-core box (a render alongside); CI (C7) must run it. The belt changes which houses households take (the nearest of their zone), not their number.
 - **Vagon's Poly Haven props** (s18-face-assets) not converted: the lane and court fill draws the project's own modelled props (m_*.glb), which already hold hand-made stools, brooms, ladders and baskets; the scan-prop system already holds the wicker baskets, the bowl and the crate; the buckets (coopered, iron-hooped) read modern. Plaster001 is taken (D-674).
 
+- **C7's plain_d223 fields share is red: 0.177 < 0.4 (not loosened).** The lower town (D-675) now fills the stair view's
+  200-1,000 m foreground (town site ~13,400 px, trodden ground ~11,100 px), which the test counts as plain ground. It is the
+  direction itself, not a bug: the lead decides whether the test's ground excludes the town's site, or the 200-500 m natural
+  ground (~7,300 px) becomes fields (C3).
+
 ## What a player now meets (measured, node)
 - **Roofs** (D-660, D-662): the town was never roofless (a ray down every house room: the far level roofs 92 % of 6,878
   rooms, the near levels ~97 %); it read as open boxes because the roofs were the walls' tone inside 0.22-0.62 m parapets.
@@ -47,6 +52,11 @@ frames (the plaster, D-668/669; the life objects, D-670) are rendering; they are
 - **Neighbourhood shrines** (D-672): one walled shrine court per quarter (15), offering table, bowls, figurines, a lamp lit at night.
 - **Dawn view census** (D-672): at C6's intro-town camera no ray reaches a room's floor: every room roofed; the dark holes are the courts' inner faces (washed full now, D-668).
 - **Walls** (D-673, D-674): the footing's ledge toned so it no longer floats; the plaster's grain a lime-plaster scan (ambientCG Plaster001, CC0).
+- **The town to the Terrace's foot** (D-675): q_b8 under the Terrace's west foot, q_b9 west of it, q_b10 along the road to
+  the Gate; q_b1 removed (it stood on the stair forecourt's approach); the house being built is q_b10-0020 (-311.2, 121.3); q_b9 split (q_b11) and q_b6, q_b8, q_b10 moved off the baggage trains' tracks;
+  2,083 plots, capacity 10,033 <= 11,000; 0 houses shut. tests/settlement.test.ts keeps houses out of the Terrace and the
+  stair forecourt only (the nav grid takes the town's colliders, C5's D-694). Desire lines pointing at the stair are no
+  longer drawn (C7's radial red: 1 -> 0). Town props take a bottom face on request (Prop.bottom, C15's estates use it).
 - **Budgets:** settlement_build 5/5 (meshes 45, was 51 at the start; 1.04 M triangles ≤ 1.2 M), houses 9/9 (far level
   < 800 k), the village P22 frame inside 2.0 M (no halos in villages).
 

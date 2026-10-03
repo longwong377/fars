@@ -16,7 +16,10 @@ beforeAll(() => { plan = buildTownPlan(); }, 60_000); // (D-249: the plan settle
 function plotCells(s: Site, idx: number, stride = 1): P2[] { const out: P2[] = []; const [i0, j0, i1, j1] = s.plots[idx].rect;
   for (let j = Math.max(0, j0 - 40); j < Math.min(s.H, j1 + 40); j += stride) for (let i = Math.max(0, i0 - 40); i < Math.min(s.W, i1 + 40); i += stride) if (s.cell[s.k(i, j)] === idx) out.push(s.cellGrid(s.k(i, j)));
   return out; }
-const NAV = { e0: -620, e1: 262, n0: -245, n1: 185 }; // the walkable grid of the Terrace approach (people/navgrid.ts)
+// s18 C2 (D-675, lead 2's call): what must stay clear of plots now that build_nav takes the town's colliders (C5, D-694)
+// and the lower town reaches the Terrace's foot: the Terrace platform and the Grand Stair's forecourt (the old rule kept the
+// whole nav grid's box, e −620…262, n −245…185, empty); the roads' widths are the onRoad check below
+const CLEAR = [{ e0: -65, e1: 262, n0: -245, n1: 240 }, { e0: -250, e1: -60, n0: 0, n1: 200 }];
 
 describe('settlement layout (Phase 6)', () => {
   it('every plot lies inside its zone polygon or within the stated uncertainty of its point feature', () => {
@@ -32,7 +35,7 @@ describe('settlement layout (Phase 6)', () => {
     const roads = SETTLEMENT.features.filter((f: any) => f.kind === 'road');
     for (const s of plan.sites) for (const p of s.plots) {
       const cells = plotCells(s, p.idx, 2);
-      for (const c of cells) { if (c[0] > NAV.e0 && c[0] < NAV.e1 && c[1] > NAV.n0 && c[1] < NAV.n1) { inNav.push(p.id); break; } }
+      for (const c of cells) { if (CLEAR.some(B => c[0] > B.e0 && c[0] < B.e1 && c[1] > B.n0 && c[1] < B.n1)) { inNav.push(p.id); break; } }
       for (const r of roads) { if (s.id === 'q_s1' && r.id === 'road_south_tirazzish') continue; // the road is this quarter's main street
         for (const c of cells) if (nearestOnPolyline(r.polyline, c).d < r.width_m / 2 + 1) { onRoad.push(`${p.id}/${r.id}`); break; } }
       const fr = FEATURES.frataraka_complex.xy; for (const c of cells) if (Math.hypot(c[0] - fr[0], c[1] - fr[1]) < 80) { onAbsent.push(p.id); break; }

@@ -25,11 +25,11 @@ import { vergeZone } from './verge';
 
 export type CoverKind = 'tuft' | 'sward' | 'stubble' | 'dung';
 /** reach (m), level distances (m), cell (m), rebuild step (m moved) */
-export const COVER = { R: 34, lod: [5.5, 16], cell: 2, moveM: 3 } as const;
+export const COVER = { R: 34, lod: [4, 12], cell: 2, moveM: 3 } as const; // (D-670 s18: lod 5.5/16 -> 4/12, paying for the denser cover)
 /** per kind: the pieces drawn (ids in public/models/land/cover.json), the size range (m, largest extent), the most instances per piece */
 export const COVER_KINDS: Record<CoverKind, { ids: string[]; size: [number, number]; cap: number }> = {
-  tuft: { ids: ['tuft_m2b', 'tuft_m2c', 'tuft_m2d', 'tuft_m2e', 'tuft_m1a', 'tuft_m1c'], size: [0.22, 0.5], cap: 1800 }, // (s17: 1800, was 1100: the verges) // D-356: six pieces (was 4), the steppe twice as dense
-  sward: { ids: ['sward_bmj', 'sward_bmk', 'sward_bmm'], size: [0.12, 0.22], cap: 1200 },
+  tuft: { ids: ['tuft_m2b', 'tuft_m2c', 'tuft_m2d', 'tuft_m2e', 'tuft_m1a', 'tuft_m1c'], size: [0.22, 0.5], cap: 2700 }, // (s17: 1800, was 1100: the verges; D-670 s18 review: 2700, the cover denser) // D-356: six pieces (was 4), the steppe twice as dense
+  sward: { ids: ['sward_bmj', 'sward_bmk', 'sward_bmm'], size: [0.12, 0.22], cap: 1800 },
   stubble: { ids: ['stubble_a', 'stubble_c'], size: [0.6, 0.8], cap: 900 },
   dung: { ids: ['dung_pat', 'dung_horse', 'dung_sheep'], size: [0.16, 0.3], cap: 250 },
 };
@@ -87,11 +87,11 @@ export function coverCell(env: CoverEnv, ix: number, iz: number, seed: number, d
     // s17 (D-560, Vagon's tip1 frame: the young wheat read as a lawn): the weeds of an unweeded ancient field (wild grasses,
     // darnel, the field's herbs) in clumps among the crop, 0-3 a 2 m cell by a patch noise, larger than the crop's young
     // blades, the season's green to straw (C)
-    const patch = herbDensity(cx * 1.7 + 311, cz * 1.7 - 97), n = Math.floor(patch * patch * 4 + u01(seed, ix, iz, 70) * 0.8);
+    const patch = herbDensity(cx * 1.7 + 311, cz * 1.7 - 97), n = Math.floor(patch * patch * 5 + u01(seed, ix, iz, 70) * 1.0); // (D-670 s18 review "sparse weed sprites": x1.25)
     for (let i = 0; i < n; i++) put(u01(seed, ix, iz, i, 71) < 0.3 ? 'sward' : 'tuft', 70 + i, 0.9 + 0.7 * u01(seed, ix, iz, i, 72));
   } else if (wild && u.use !== 'orchard' || u.row === 'orchard_floor') {
     // the herb layer: tufts at the shader's density and the season's amount, fewer on trodden ground
-    const dens = herbDensity(cx, cz), trT = Math.min(1, Math.max(0, (tr - 0.2) / 0.3)), n = Math.floor(dens * amount * 7 * (1 - trT) + u01(seed, ix, iz, 9) * (1 - trT)); // (none on the roads, the approach and the foot: trodden over ~0.5)
+    const dens = herbDensity(cx, cz), trT = Math.min(1, Math.max(0, (tr - 0.2) / 0.3)), n = Math.floor(dens * amount * 9 * (1 - trT) + u01(seed, ix, iz, 9) * 1.3 * (1 - trT)); // (D-670 s18 review: x1.3) // (none on the roads, the approach and the foot: trodden over ~0.5)
     for (let i = 0; i < n; i++) put(u01(seed, ix, iz, i, 11) < 0.25 ? 'sward' : 'tuft', 30 + i);
   }
   // dung on the trodden ground (the herds and the pack animals), a little on the grazed steppe and the stubble

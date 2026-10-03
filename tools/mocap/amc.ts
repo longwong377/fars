@@ -94,6 +94,7 @@ export function readAMC(path: string): Frame[] {
 /** world rotation (relative to rest) and bone head/tail positions (metres, source world) of every bone in a frame */
 export interface Posed { R: Map<string, M3>; head: Map<string, V3>; tail: Map<string, V3>; rootR: M3; rootT: V3 }
 export function fk(sk: Skeleton, f: Frame): Posed {
+  if ((f as Frame & { P?: Posed }).P) return (f as Frame & { P: Posed }).P; // (s18 C14: a BVH take's frames come posed, bvh.ts)
   const R = new Map<string, M3>(), head = new Map<string, V3>(), tail = new Map<string, V3>();
   const ro = sk.rootOrder, rv = f.root; const T: V3 = [0, 0, 0]; const rot: string[] = [], rvals: number[] = [];
   ro.forEach((o, i) => { const u = o.toUpperCase(); if (u[0] === 'T') T['XYZ'.indexOf(u[1])] = rv[i] * sk.unitM; else { rot.push('r' + u[1].toLowerCase()); rvals.push(rv[i]); } });

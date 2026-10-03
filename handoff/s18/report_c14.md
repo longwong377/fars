@@ -23,6 +23,21 @@
 - Seen in passing, not mine: the porter's headband floats ~2 cm off the scalp all round (C13); a young porter with no beard
   (the reliefs show bearded men: looks, C13).
 
+**Round 5 (the cloud builds the people's assets; skin pores; mocap).** Broken or open first:
+- **people_models "drape sets sane" is RED**: the women's veil (veil@0|women#1) settles to 0.255 m max against the 0.2 m
+  bound since people_cloth was rebuilt on s17-int 0323bc96 (0.108 before; headcloth@0|women 0.056 → 0.146). Deterministic
+  here; likely the women's costume changes (C13's necklaces) under the stage-2 drape, unconfirmed (C13 asked; a Vagon GPU
+  rebuild would tell the build machine apart).
+- tests/impostor_frames: 'recline' has no frame within 0.09 m (another agent's anim; fails on the base too).
+- The ACCAD Male2 brisk walk put the fly-whisk bearer's towel 0.02 mm over its bound: dropped (not shipped).
+Done: people_hair and people_cloth build and reproduce in the cloud (pip bpy; tools/blender/ktx_cli.mjs now does given mip
+levels, arrays, RDO and extract; cloth.py's workers run through bpy_cli.py). The skin's scanned micro-relief (ShareTextures
+Human Skin, CC0) rides in the scan layers' alpha (scans.ktx2 re-baked: 13.2 MB, was 11.8) and is laid triplanar in place of
+the finer pore noise: no new sampler; unseen at the cloud's distances. The court shell's snail cells on scalp and cheeks at
+0.15. Mocap: BVH takes read into the CMU retarget (tools/mocap/bvh.ts); a woman's own walk, stance and talk from ACCAD's
+Female1 (CC BY 3.0) in the women's sets, a woman carrying a box, one more man's walk. The CMU database's index is not
+reachable from the cloud (the work and play takes need it to be chosen: kneeling, jars, children); 100STYLE not yet used.
+
 **Round 4 (the face assets, the litter's crews).** The scanned face's relief (Lee Perry-Smith, CC BY 3.0) is in every head's
 crease channel: subtle in the cloud's renderer (≤0.3 mm), unseen on the T4. Its albedo is deliberately not used (one man's
 stubble and brows). The hair atlas's curls are loosened and rebuilt in the cloud; the people impostors were not re-baked

@@ -195,8 +195,8 @@ export function zoneAt(z: ZoneMap, x: number, wz: number): [number, number, numb
 // ---------------------------------------------------------------- crop choice (plain.json crop_mix; mirrored in the shader)
 /** cumulative crop thresholds of the irrigated mix: barley 0.45, wheat 0.13, emmer/spelt 0.08, sesame 0.05, pulses 0.07,
  *  garden 0.02 (session 9, G16/G74), alfalfa 0.02 (GA3), flax 0.01 (G75), fallow 0.2; barley 0.42; a plot's crop row is the
- *  number of steps its hash passes (0-8, 8 = fallow: CROP_ROWS' order) */
-export const IRR_STEPS = [0.42, 0.55, 0.63, 0.68, 0.75, 0.77, 0.79, 0.8];
+ *  number of steps its hash passes (0-9, 9 = fallow: CROP_ROWS' order; D-670: millet the ninth) */
+export const IRR_STEPS = [0.42, 0.55, 0.63, 0.68, 0.75, 0.77, 0.79, 0.8, 0.83]; // D-670: + millet 0.03
 /** the irrigated land's crop share (the last step): past it, fallow */
 export const IRR_CROP = IRR_STEPS[IRR_STEPS.length - 1];
 export const RAINFED_BARLEY = 0.4; // fields_rainfed: barley 40 %, fallow/grazing 60 %
@@ -215,7 +215,7 @@ export const VINE_SHARE = 0.3; // orchards_gardens: 30 % of orchard plots are vi
 export function checkMixes() { // the thresholds above are the data's mixes (tests)
   const m = feature('fields_irrigated_pulvar').crop_mix, k = feature('fields_irrigated_kur').crop_mix, rf = feature('fields_rainfed').rule.crop_mix;
   const cum = (keys: string[]) => keys.reduce((a, k) => { a.push((a.length ? a[a.length - 1] : 0) + m[k]); return a; }, [] as number[]);
-  return { irr: cum(['barley', 'wheat', 'emmer_spelt', 'sesame', 'pulses', 'garden', 'alfalfa', 'flax']), kurSame: JSON.stringify(m) === JSON.stringify(k), rainBarley: rf.barley, vine: feature('orchards_gardens').rule.vine_share };
+  return { irr: cum(['barley', 'wheat', 'emmer_spelt', 'sesame', 'pulses', 'garden', 'alfalfa', 'flax', 'millet']), kurSame: JSON.stringify(m) === JSON.stringify(k), rainBarley: rf.barley, vine: feature('orchards_gardens').rule.vine_share };
 }
 export type LandUse = 'irrigated' | 'rainfed' | 'orchard' | 'natural';
 export interface PlotUse { use: LandUse; row: CropRow; rowIndex: number; offsetDays: number; plot: Plot }

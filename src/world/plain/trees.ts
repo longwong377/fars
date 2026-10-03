@@ -202,7 +202,9 @@ export interface RowPlot { sx: number; sz: number; angle: number; w: number; l: 
  *  centre is the same for all its rows) when its centre lies within `mid.r` of `mid.c` (the mid ring draws those trees
  *  one by one), and every fragment within `nearR` of the camera is discarded (P22 grey domes: the old rows faded per
  *  vertex, so a long row passing beside the camera kept its height, D-121). */
-export function orchardRows(kit: TreeKit, plots: RowPlot[], terrain: Terrain, mid: { c: any; r: any }, nearR: any, outer: number): THREE.Mesh {
+/*  D-670 (the plain's static triangles under 1.9 M): beyond `oneDirR` m of the Apadana a plot keeps only the lines of trees
+ *  whose quads face the middle of the plain (where a viewer is), the half seen nearly end-on from there dropped (C) */
+export function orchardRows(kit: TreeKit, plots: RowPlot[], terrain: Terrain, mid: { c: any; r: any }, nearR: any, outer: number, oneDirR = Infinity): THREE.Mesh {
   const sp = ORCHARD_SPACING(); const pos: number[] = [], rowA: number[] = [], rowB: number[] = [], rowC: number[] = [], idx: number[] = [];
   const models = allModels();
   let rows = 0;
@@ -222,8 +224,10 @@ export function orchardRows(kit: TreeKit, plots: RowPlot[], terrain: Terrain, mi
       idx.push(b, b + 1, b + 2, b + 2, b + 1, b + 3); rows++;
     };
     // lines of constant u (along v) and of constant v (along u); each spans its trees +- half a spacing
-    for (let i = -nu; i <= nu; i++) addRow(i * sp, -(nv + 0.5) * sp, i * sp, (nv + 0.5) * sp, i + 100);
-    for (let j = -nv; j <= nv; j++) addRow(-(nu + 0.5) * sp, j * sp, (nu + 0.5) * sp, j * sp, j + 300);
+    const dc = Math.hypot(p.sx, p.sz), one = dc > oneDirR, dx = -p.sx / Math.max(dc, 1), dz = -p.sz / Math.max(dc, 1);
+    const uFaces = Math.abs(ca * dx + sa * dz) >= Math.abs(-sa * dx + ca * dz); // lines of constant u face (ca, sa)
+    if (!one || uFaces) for (let i = -nu; i <= nu; i++) addRow(i * sp, -(nv + 0.5) * sp, i * sp, (nv + 0.5) * sp, i + 100);
+    if (!one || !uFaces) for (let j = -nv; j <= nv; j++) addRow(-(nu + 0.5) * sp, j * sp, (nu + 0.5) * sp, j * sp, j + 300);
   }
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
   g.setAttribute('rowA', new THREE.Float32BufferAttribute(rowA, 4)); g.setAttribute('rowB', new THREE.Float32BufferAttribute(rowB, 4)); g.setAttribute('rowC', new THREE.Float32BufferAttribute(rowC, 2));
