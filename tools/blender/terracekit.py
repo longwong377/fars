@@ -100,9 +100,11 @@ def window(seed, fine=True, W=1.5, H=3.0, D=0.35):
         for f in [(4, 5, 6, 7), (0, 1, 5, 4), (1, 2, 6, 5), (2, 3, 7, 6), (3, 0, 4, 7)] + ([] if skip_back else [(3, 2, 1, 0)]):
             faces.append(tuple(b + i for i in f))
     hw = W / 2
-    # the recess: its back and reveals (dark), as a box set into the wall
+    # the recess: its back and reveals (dark)
     b = len(verts)
-    for (x, y, z) in [(-hw, 0, -D), (hw, 0, -D), (hw, H, -D), (-hw, H, -D), (-hw, 0, 0), (hw, 0, 0), (hw, H, 0), (-hw, H, 0)]:
+    # (the wall's face is solid in the game: the recess is drawn as its dark back just proud of the face, the fasciae's 4-12 cm of
+    # projection round it giving the depth, and its reveals from there out to the inner fascia)
+    for (x, y, z) in [(-hw, 0, 0.006), (hw, 0, 0.006), (hw, H, 0.006), (-hw, H, 0.006), (-hw, 0, 0.12), (hw, 0, 0.12), (hw, H, 0.12), (-hw, H, 0.12)]:
         verts.append(G(x, y, z)); col.append(DARK); shade.append(1.0)
     for f in [(0, 1, 2, 3), (0, 4, 5, 1), (1, 5, 6, 2), (2, 6, 7, 3), (3, 7, 4, 0)]: faces.append(tuple(b + i for i in f))
     # the three fasciae: each a frame band a little wider and less proud than the one inside it
