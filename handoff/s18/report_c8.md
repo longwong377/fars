@@ -21,6 +21,42 @@ do you do, what has happened to you this year, what troubles you). The full repl
 - aims.ts phrasing ("a trade for Manuš") reads oddly (not mine).
 - The own lines are English (translation layer); the heard voice is the person's own language as before (voice.ts heardReply).
 
+## The lead's asks (after wave 1)
+- **C1's sliced day:** `EconPlans.stepsSliced(day, ms)` works a day's economy steps out a few hundred houses at a time (the
+  market day's buyers were the ~0.8 s); `steps(day)` gives the same steps whole. **Not yet called**: sim.ts (C1) should call
+  `this.econPlans.stepsSliced(day, end - performance.now())` before warmPlans in jumpTo's sliced branch. Not measured on the page.
+- **No wall-clock in the save:** the minds' stats in the deeds' save are the game's counts only (days, deeds, sources, chains).
+- **Holes #9 (talk hidden):** E speaks with whoever is faced within reach (anyone of the population; a greeting first, then type
+  or say); the panel shows the keys, never the notes, the verdicts or why the model is absent (F3 or ?debug shows them); every
+  reply voice goes through the world's mixer. **Not mine:** the shell's hint (shell.ts "E a door, a person") and the Controls
+  screen (C11) should list T and V; main.ts's E still falls back to world.address's canned line when no one is faced.
+- **Holes #15 (speech):** the eight peoples without a lexicon (Egyptian, Lydian, Carian, Lycian, Cappadocian, Bactrian, Sogdian,
+  Thracian) speak reconstructed sentences built from their own sounds (audio/tongues.ts: a hand-set profile per tongue, its
+  sources named, tier C) where they hummed; every lexicon language adds forty everyday sentences in reconstructed period speech
+  (lang/reconstruct.ts) to its published lines and words; the reply heard in a talk says the reply itself (reconstructed); an
+  overheard pair says its own life's fact in reconstructed speech, the other answering. **Unseen/unheard:** no listening test in
+  the cloud (formant or neural); songs with words and the magi's recitation are not done (music, not mine).
+- **Pre-existing, not mine:** tests/econ_plans.test.ts "nobody moves without a walk" fails on clean s17-int too (49 market
+  stall stretches without a walk, days 120-123).
+
+## The lead's later asks (C12's fourth pass, C7's root cause)
+- **C7 (market):** the court's people, travellers and herders are never sent to keep or buy at a market stall (plans.ts pick); the
+  deeds world lays no stretch on a court person's day. **Still failing, not mine:** tests/court_fill audience (the king's day 15
+  has an `offer` and two enthronements: the court's own schedule after the merge) and a court-camp tent (52162: no tent).
+- **4-12:** the stranger buys bread, beer or a meal from a house (only from its spare) or the market's sellers, eats it there,
+  pays weighed silver or barley (barter), at the market's price of the day (season and shortage) with the seller's margin.
+  **Not mine:** the market ground's seasonal goods and fewer squares (fillPlan.ts, C2).
+- **4-1:** sight.ts takes where the stranger is (`inside`: a house, a palace hall, the women's palace, a store): an uninvited
+  stranger is shouted out of a house, stopped by a place's keepers; once a place and day the deeds world lays it (anger, the
+  house's trust down, a trespass rumour on the lane). **Not wired:** the render side must pass `inside` to strangerSeen (sim.ts,
+  world.ts), and react.ts plays a challenge as a stare until a shout and a pointing arm are added.
+- **Cheap fixes:** no weeks (W5); the day's hire paid in barley worth the hire (W6); hums, not bare nouns, as padding (W13);
+  "my lord" and the king named as Xšayaršā son of Dārayavauš in his nineteenth year (W14); coins puzzle the person ("silver is
+  weighed here"), Asia and Europe allowed, modern talk fenced in replies only (W15); loan interest a fifth a year by the months
+  it runs (W17); src/data/lives_baked_s1.json deleted (W22).
+- **Kokoro accents:** no regional colour pool; four style voices of four trained languages, near-even. **Unheard** (no
+  listening in the cloud): PLACEHOLDER-QUALITY until the T4 hears it; voices_eval's uniqueness should be re-measured on Vagon.
+
 ## The thirty, before → after (replies grounded of 5; thin spots)
 | seed/pid | kind | person | replies | thin before | thin after |
 |---|---|---|---|---|---|

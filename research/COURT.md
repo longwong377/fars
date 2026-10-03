@@ -1,9 +1,11 @@
 # The court in residence (session 6, court workstream; D-182, B12)
 
 Machine-readable: `src/data/court.json` (groups, counts, places, guard lines, day rules; every row tiered and sourced)
-and `src/people/court.ts` (the people and their day plans). The court exists **only** with the out-of-world setting
-'Court calendar = seasonal pattern' (`?court=seasonal`, D-003). Court ABSENT stays the default and the evidence-strict
-state: nothing places Xerxes at Persepolis in 467 (Q-005, B9).
+and `src/people/court.ts` (the people and their day plans). The court comes and goes **by default** (D-236, UD-10): resident from
+its seed-drawn arrival in days 6–18 of Nisannu to E-26's day; the out-of-world setting 'Court calendar = evidence only'
+(`?court=evidence`) removes it. **s18 D-771 (C):** this paragraph said 'the court exists only with the setting; court ABSENT stays the
+default and the evidence-strict state', which D-236 reversed in session 8. No text places Xerxes at Persepolis in 467
+(Q-005, B9): his spring residence is the most probable pattern (C), not an attested one.
 
 **D-252 (session 9): the court now ARRIVES.** With the court coming and going by default (D-236) it is no longer present from
 day 0: one residence a year, the king's day drawn by the seed in days 6–18 of Nisannu (Q-680), the household of the palaces and
@@ -29,7 +31,8 @@ the arrival (D-239). Placeholders: the king on foot (B71), tents that appear who
   are not modelled (delegations.json notes); the king's bearers walk their own routes at his hour, not locked in step
   behind him; the paths through the camps are straight lines.
 - **Not done:** the court's food does not draw on the calendar's stores (calendar.ts, another workstream); the retinue's
-  animals (horses, mules, camels) are tended but not drawn beyond what `tend_animals` shows.
+  animals (horses, mules, camels) are tended but not drawn beyond what `tend_animals` shows. **s18 D-771 (C):** to build: horse lines,
+  grooms and baggage strings at the camps (the PF fodder texts ration royal horses, mules and camels: B).
 
 ## 1. Sources (keys in `src/data/sources.json`)
 | key | what | access | tier |
@@ -49,7 +52,7 @@ the arrival (D-239). Placeholders: the king on foot (B71), tents that appear who
 | group | n | where they sleep | what they do (C) | basis |
 |---|---|---|---|---|
 | the king's spearmen (mēlophoroi) | 1,000 | the garrison quarters (Q-331) | ten hundreds of ten files of ten on the garrison's five-day cycle (A 06-14, B 14-22, C 22-06, off, off: D-023); a watch's 20 files hold 21 stretches of 10 ceremonial posts (stair head, Gate, the way to the Apadana, its N and E façades, the road E from the Gate, the Tripylon, Tachara, Hadish, "Harem"), moved on by 7 each day; by night 8 stretches (stair, Gate, palaces, Tripylon), the rest within call at the guards' court; each man relieved once for a meal; off days: talk, knucklebones, mending gear, washing, and on free days archery below the Terrace (drill C) | HDT 7.41, Heracleides (B claims); dress alternating Persian/Median by file as on the reliefs (B) |
-| women of the royal household | 300 | the "Harem" N court | secluded in its courts: talk, rest, spinning, weaving, meals brought from the kitchens; about one night in five awake with the lamps (music not performed) | Heracleides, Parmenion (B claims) |
+| women of the royal household | 300 | the "Harem" N court | secluded in its courts: talk, rest, spinning, weaving, meals brought from the kitchens; about one night in five awake with the lamps; **s18 D-771 (C):** harp and song heard faintly from their court on those nights (was 'music not performed'; Heracleides' claim, B) | Heracleides, Parmenion (B claims) |
 | attendants (eunuchs, women servants) | 200 | the "Harem" S wing | attendance on the women and in the Hadish, carrying their meals from the kitchens, water, sweeping | TREAS-AUD, IR-COURT (B); count C |
 | palace servants | 700 | ¼ "Harem" S wing, ¼ Tachara, ½ the camp | sweeping the halls and courts, water, standing by in the Apadana | C |
 | the king's table | 800 | 43 % the kitchens, 57 % the camp | cooks 43 %, bakers 21 %, wine staff 13 %, water carriers 9 %, servers 14 % (Parmenion's proportions, merged); dishes to the Hadish, to the women and to the guards' court | ATH13-PARM, ATH4 (B claims); kitchens NOT LOCATED (Q-332) |
@@ -87,7 +90,8 @@ Walser's numbering of the E stair (recollection). Costumes: `envoy` = long sleev
 `envoy_short` = knee-length sleeved tunic, girt; `envoy_bare` = wrap to the knee, bare above; `median` = the Median riding
 dress; outfits.ts COSTUMES. New pieces: `cap_pointed` (the Saka's tall pointed cap, B), `cap_low` (a low rounded cap, C).
 Colours from the D-189 natural dyes (C). Gifts carried as the prop system allows (bowl, jar, cloth, basket, sack, spear);
-the animals and chariots are not shown.
+the animals and chariots are not shown yet. **s18 D-771 (B, the stair reliefs):** to build: each delegation leads its animals
+and chariot into the forecourt and up to the Apadana behind its usher; 'they stay at the camp' was a placeholder, not a rule.
 
 | relief | people | dress (B form unless noted) | gifts carried |
 |---|---|---|---|
@@ -128,7 +132,7 @@ the nearest silhouette's row (long garment: the woman's; knee tunic: the Median;
 | attendants | a parasol bearer and a fly-whisk and towel bearer (beardless, Persian robe, fillet) walk behind him and stand by the throne | B (door jambs; Treasury relief: the towel bearer behind the throne) |
 | escort | four spearmen (Persian and Median dress) walk before him and stand by the throne | C (Xenophon Cyr. 8.3, a claim about Cyrus: B) |
 | audiences | each party is led before him on one of his audience mornings within its stay (531 of 537 with seed 1; 6 had none): queue in the hall, stand before the throne, the gifts presented | B for the usher leading each party (reliefs); C for the procedure |
-| restraint | no procession is staged, he never speaks or reacts, he is never placed for the visitor; the visitor may not enter the Apadana or the Hadish (access.json: closed) | brief 1.1, 2 |
+| presence (was 'restraint') | **s18 D-771 (C):** the king is staged as a king of 467 was most probably seen: the arrival column (on a chariot or horse under the parasol, the guard drawn up, heralds ahead, people lining the road: Xenophon Cyr. 8.3, a claim about Cyrus, B), the walk to and from the Apadana on audience mornings, the audience as ceremony (each party bowing with the hand before the mouth: the Treasury relief, B), the feast at his table (Heracleides in Athenaeus 4, B claim) and the gift day. He never addresses or notices the visitor and is never placed for the camera (brief §1.1: no narrator, no hints). Was: 'no procession is staged, he never speaks or reacts, he is never placed for the visitor'. The visitor may not enter the Apadana or the Hadish while he is in (access.json: closed) | brief 1.1, 2; UD-09, UD-10, UD-14, UD-29 |
 
 ### 5c. The camps' tents (court.json `camps`; camps.ts; world/courtCamps.ts)
 Eight camps: the court's own below the Terrace, four of the retinue in the town (N, W, NW, SW of Persepolis West) and three

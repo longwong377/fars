@@ -28,7 +28,8 @@ describe('a voice per person (D-336)', () => {
   it('blends only style voices of the person\'s sex (children: the women\'s voices at a shorter tract), older voices slower', () => {
     for (let i = 0; i < 400; i++) {
       const sex = i % 2 ? 'f' : 'm', age = [4, 9, 20, 35, 50, 60, 75][i % 7], v = neuralVoice({ seed: i * 31 + 7, sex, age, lang: ['Persian', 'Ionian', 'Syrian', 'Egyptian'][i % 4] });
-      expect(v.mix.length).toBe(3); expect(new Set(v.mix.map(m => m[0])).size).toBe(3);
+      expect(v.mix.length).toBeGreaterThanOrEqual(3); expect(new Set(v.mix.map(m => m[0])).size).toBe(v.mix.length); // (D-720: four voices of four trained languages, none leading)
+      { const ws = v.mix.map(m => m[1]), t = ws.reduce((a, b) => a + b, 0); expect(Math.max(...ws) / t).toBeLessThanOrEqual(0.4); }
       for (const [n, w] of v.mix) { expect(VOICE_POOL[age < 13 ? 'f' : sex]).toContain(n); expect(w).toBeGreaterThan(0); }
       if (age < 13) expect(v.tract).toBeGreaterThan(1.1); else expect(v.tract).toBeLessThan(1.07);
       if (age >= 55) expect(v.speed).toBeLessThan(1.0);

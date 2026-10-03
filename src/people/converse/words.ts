@@ -23,10 +23,11 @@ export function ordWords(n: number): string {
 }
 /** "N days" / "a day" */
 export const countWords = (n: number, unit: string, plural = unit + 's') => n === 1 ? `a ${unit}` : `${numWords(n)} ${plural}`;
-/** how long ago, in days: "today", "yesterday", "three days ago", "about two weeks ago", "about three months ago" */
+/** how long ago, in days: "today", "yesterday", "three days ago", "half a month ago", "about three months ago" */
 export function daysAgoWords(k: number): string {
   k = Math.max(0, Math.round(k)); if (k === 0) return 'today'; if (k === 1) return 'yesterday'; if (k < 8) return `${numWords(k)} days ago`;
-  if (k < 45) { const w = Math.round(k / 7); return w === 1 ? 'about a week ago' : `about ${numWords(w)} weeks ago`; }
+  // (D-720, W5: Persis had no seven-day week: days, half a month, a month)
+  if (k < 12) return `${numWords(k)} days ago`; if (k < 22) return 'half a month ago'; if (k < 45) return 'about a month ago';
   if (k < 330) { const m = Math.round(k / 30); return `about ${numWords(m)} months ago`; }
   const y = Math.round(k / 365); return y <= 1 ? 'about a year ago' : `about ${numWords(y)} years ago`;
 }

@@ -198,6 +198,7 @@ describe('language lint: every source that can reach the canvas', () => {
     'src/people/converse/ui.ts': 'speaking with the people (?converse, D-296): the typing box and the reply in the translation layer (English)', 'src/dev/converseLab.ts': 'the conversation lab page (converse.html, dev only, D-296)',
     'src/shell/progress.ts': "the loading screen's progress (D-393; English, before the world is shown)",
     'src/shell/intro.ts': 'the opening (D-590): its one out-of-world hint (any key skips) over the letterbox; the shots are the world itself',
+    'src/shell/film.ts': 'the title film (D-761): its one out-of-world hint (any key begins it, Esc skips) over the letterboxed film; the film itself writes only the place\'s name in its own script',
   };
   const TEXT_3D = /\b(TextGeometry|textPanelGeometry|layoutText|carvedGeometry|carvedBlockGeometry|CSS2DObject|CSS3DObject|SpriteText|TroikaText)\b/;
   const CANVAS_TEXT = /\b(fillText|strokeText)\b/;
@@ -623,6 +624,20 @@ describe('language lint: every source that can reach the canvas', () => {
     'public/textures/sandy_gravel_02/diff.jpg': 'CC0 scan albedo (sandy_gravel_02; viewed in a contact sheet, session 11 D-301: no text)',
     'public/textures/sandy_gravel_02/arm.jpg': 'CC0 scan AO/roughness/metal pack (sandy_gravel_02; viewed in a contact sheet, session 11 D-301: no text)',
     'public/textures/Fabric043/arm.ktx2': 'KTX2 encoding of the checked Fabric043/arm.jpg (C9 D-740, ktx; the same picture: no text; registered by C7 D-710)',
+    'public/models/land/ground_diff.ktx2': 'the checked models/land/ground_diff.jpg as KTX2, format only (C9 D-740, tools/bake_world/ktx_maps.ts; the same picture: no text)',
+    'public/models/land/ground_diff.thumb.jpg': 'a 128-px thumbnail of the checked models/land/ground_diff.jpg, read for its mean colour (C9 D-740, tools/bake_world/ktx_maps.ts; no text)',
+    'public/models/land/ground_nor.ktx2': 'the checked models/land/ground_nor.jpg as KTX2, format only (C9 D-740, tools/bake_world/ktx_maps.ts; the same picture: no text)',
+    'public/models/land/ground_nor.thumb.jpg': 'a 128-px thumbnail of the checked models/land/ground_nor.jpg, read for its mean colour (C9 D-740, tools/bake_world/ktx_maps.ts; no text)',
+    'public/models/land/ground_arm.ktx2': 'the checked models/land/ground_arm.jpg as KTX2, format only (C9 D-740, tools/bake_world/ktx_maps.ts; the same picture: no text)',
+    'public/models/land/ground_arm.thumb.jpg': 'a 128-px thumbnail of the checked models/land/ground_arm.jpg, read for its mean colour (C9 D-740, tools/bake_world/ktx_maps.ts; no text)',
+    'public/models/land/cover_diff.ktx2': 'the checked models/land/cover_diff.jpg as KTX2, format only (C9 D-740, tools/bake_world/ktx_maps.ts; the same picture: no text)',
+    'public/models/land/cover_diff.thumb.jpg': 'a 128-px thumbnail of the checked models/land/cover_diff.jpg, read for its mean colour (C9 D-740, tools/bake_world/ktx_maps.ts; no text)',
+    'public/models/land/cover_nor.ktx2': 'the checked models/land/cover_nor.jpg as KTX2, format only (C9 D-740, tools/bake_world/ktx_maps.ts; the same picture: no text)',
+    'public/models/land/cover_nor.thumb.jpg': 'a 128-px thumbnail of the checked models/land/cover_nor.jpg, read for its mean colour (C9 D-740, tools/bake_world/ktx_maps.ts; no text)',
+    'public/models/land/cover_arm.ktx2': 'the checked models/land/cover_arm.jpg as KTX2, format only (C9 D-740, tools/bake_world/ktx_maps.ts; the same picture: no text)',
+    'public/models/land/cover_arm.thumb.jpg': 'a 128-px thumbnail of the checked models/land/cover_arm.jpg, read for its mean colour (C9 D-740, tools/bake_world/ktx_maps.ts; no text)',
+    'public/models/trees/bark/bark.ktx2': 'the checked bark scans (bark/*_diff.jpg, *_nor.jpg) packed by the page\'s own barkTexels as one KTX2 array, format only (C9 D-740, tools/bake_world/ktx_bark.ts; the same pictures: no text)',
+    'public/generated/humans/scans/scans.ktx2': 'the checked skin, cloth and fold layers (skin_*.jpg, cloth_*.jpg, people_cloth_folds.png) packed as one KTX2 array, format only (C9 D-740, tools/bake_world/ktx_humans.ts; the same pictures: no text)',
     'public/textures/Fabric043/arm.low.ktx2': 'ETC1S low-first twin (smaller, fewer bits) of the checked Fabric043/arm.jpg (C9 D-740, tools/bake_world/ktx_low.ts; the same picture: no text; registered by C7 D-710)',
     'public/textures/Fabric043/diff.ktx2': 'KTX2 encoding of the checked Fabric043/diff.jpg (C9 D-740, ktx; the same picture: no text; registered by C7 D-710)',
     'public/textures/Fabric043/diff.low.ktx2': 'ETC1S low-first twin (smaller, fewer bits) of the checked Fabric043/diff.jpg (C9 D-740, tools/bake_world/ktx_low.ts; the same picture: no text; registered by C7 D-710)',

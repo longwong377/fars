@@ -517,12 +517,20 @@
      540
     ],
     [
-     -200,
-     810
+     -160,
+     720
+    ],
+    [
+     -240,
+     900
+    ],
+    [
+     -240,
+     1180
     ],
     [
      -360,
-     1180
+     1420
     ],
     [
      -360,
@@ -580,7 +588,7 @@
    "blocklist_ok": {
     "later-sites-plain": "the road passes the natural Naqsh-e Rajab gap; the Sasanian reliefs there stay absent (nr_sasanian, naqsh_e_rajab)"
    },
-   "course_note": "D-730 (s18): the straight line [150,260]-[300,1200]-[908,3365] climbed ~100 m over Kuh-e Rahmat's north spur; redrawn as a least-cost course round its foot on the plain (40 m grid, slope penalty, the town's plots kept clear), passing ~340 m W of the Naqsh-e Rajab gap's reliefs site, to the ford by Takht-e Rustam (C)"
+   "course_note": "D-730 (s18): the straight line [150,260]-[300,1200]-[908,3365] climbed ~100 m over Kuh-e Rahmat's north spur; redrawn as a least-cost course round its foot on the plain (40 m grid, slope penalty, the town's plots kept clear), passing ~340 m W of the Naqsh-e Rajab gap's reliefs site, to the ford by Takht-e Rustam; kept east of the court's t_north camp (C7 s18) (C)"
   },
   {
    "id": "road_pasargadae",
@@ -605,12 +613,20 @@
      540
     ],
     [
-     -200,
-     810
+     -160,
+     720
+    ],
+    [
+     -240,
+     900
+    ],
+    [
+     -240,
+     1180
     ],
     [
      -360,
-     1180
+     1420
     ],
     [
      -360,

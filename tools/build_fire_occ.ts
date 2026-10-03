@@ -12,13 +12,17 @@ import { memberMaterials } from '../src/arch/sculpt';
 import { SPEC } from '../src/arch/spec';
 import { SURFACES } from '../src/render/materials';
 import { traceScene, surfaceTable } from '../src/render/probes/bake';
-import { terraceFireLights } from '../src/world/firePlaces';
+import * as FP from '../src/world/firePlaces';
 import { bakeTile, OCC_TILE, OCC_COLS, OCC_FAR } from '../src/world/fireOcc';
 
 const T0 = Date.now();
 const { parts, manifest, doorways } = buildTerrace();
 const scene = traceScene(parts, surfaceTable(SURFACES as any), (SPEC as any).global.r_column_proportions.v.capital_boxes, p => memberMaterials(p.order));
-const fires = terraceFireLights(manifest, parts, doorways);
+// s18 C9 (D-740): the Terrace's fixed fires, then any occasional ones firePlaces.ts lists for the bake (C13's banquet lamps
+// and braziers in the Apadana: banquetFireLights(manifest, parts, doorways), same shape): each gets its tile, found at
+// runtime by its position (fireOcc.ts tileOf), so a light lit only on banquet nights is shadowed like the fixed ones
+const extra = (FP as any).banquetFireLights as undefined | ((m: typeof manifest, p: typeof parts, d: typeof doorways) => ReturnType<typeof FP.terraceFireLights>);
+const fires = [...FP.terraceFireLights(manifest, parts, doorways), ...(extra ? extra(manifest, parts, doorways) : [])];
 const rows = Math.ceil(fires.length / OCC_COLS), W = OCC_COLS * OCC_TILE, H = rows * OCC_TILE;
 const atlas = new Float32Array(W * H).fill(OCC_FAR);
 let inside = 0;
