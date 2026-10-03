@@ -14,7 +14,7 @@
 // cached; three levels per piece (lod2 shared by every ledge far off), shadows from the levels within the cascades' reach.
 // Tiers: the limestone and its bedding B (KR-BEDROCK: the Terrace is cut from it); every ledge's and stone's place C.
 import * as THREE from 'three/webgpu';
-import { sharedDraco } from '../../render/loaders';
+import { sharedDraco, loadMap } from '../../render/loaders';
 import { texture, uv, vec3, vec2, dot, attribute, float, uniform, positionLocal, smoothstep, distance } from 'three/tsl';
 import type { Terrain } from '../../terrain/heightfield';
 import { mxNoise3 } from '../../render/mx_noise_cpu';
@@ -158,7 +158,7 @@ export async function loadRockKit(base = BASE): Promise<RockKit | null> {
     const kit: RockKit = { ledge: [], ground: [], atlas: {} };
     for (const cls of ['ledge', 'ground'] as RockClass[]) {
       const C = man.classes?.[cls]; if (!C) continue;
-      const [g, map, normal, arm] = await Promise.all([loader.loadAsync(`${base}models/land/${cls}.glb`), tl.loadAsync(`${base}models/land/${cls}_diff.jpg`), tl.loadAsync(`${base}models/land/${cls}_nor.jpg`), tl.loadAsync(`${base}models/land/${cls}_arm.jpg`)]);
+      const [g, map, normal, arm] = await Promise.all([loader.loadAsync(`${base}models/land/${cls}.glb`), loadMap(`${base}models/land/${cls}_diff.jpg`, tl, base), loadMap(`${base}models/land/${cls}_nor.jpg`, tl, base), loadMap(`${base}models/land/${cls}_arm.jpg`, tl, base)]);
       map.colorSpace = THREE.SRGBColorSpace; for (const t of [map, normal, arm]) { t.anisotropy = 8; t.flipY = false; t.needsUpdate = true; }
       for (const pc of C.pieces as { id: string; size_m: [number, number, number] }[]) {
         const lods: THREE.BufferGeometry[] = [];
@@ -176,7 +176,7 @@ export async function loadRockKit(base = BASE): Promise<RockKit | null> {
   KSTAT.ms = Math.round(performance.now() - t0); return KIT;
 }
 function meanColour(t: THREE.Texture, cell = -1): [number, number, number] {
-  try { const img = t.image as HTMLImageElement, c = new OffscreenCanvas(16, 16), g = c.getContext('2d')!, W = img.width / 2, H = img.height / 2;
+  try { const img = (t.userData.thumb ?? t.image) as HTMLImageElement, c = new OffscreenCanvas(16, 16) /* (D-740: a KTX2 map's thumbnail) */, g = c.getContext('2d')!, W = img.width / 2, H = img.height / 2;
     // a cell (0..3, the atlas's 2x2 in Blender's order: rows bottom-up) or the whole image
     if (cell >= 0) g.drawImage(img, (cell % 2) * W, (1 - Math.floor(cell / 2)) * H, W, H, 0, 0, 16, 16); else g.drawImage(img, 0, 0, 16, 16);
     const d = g.getImageData(0, 0, 16, 16).data; let r = 0, gg = 0, b = 0; const lin = (v: number) => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };

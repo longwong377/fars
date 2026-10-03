@@ -59,16 +59,15 @@ export function lowFirstKTX2(loader: any, base: string) {
   const load = loader.loadAsync.bind(loader);
   // (the twin is ETC1S, the full file UASTC: three's transcoder sends both to BC7 only where BC7 is the GPU's best format for
   // both, a desktop GPU without ETC2 or ASTC (the T4); elsewhere (SwiftShader, Apple: ETC1S -> ETC1, UASTC -> ASTC or BC7)
-  // they would differ and the swap could not go into the same texture, so the scans take their jpgs there, as before)
+  // they would differ and the swap could not go into the same texture, so the full file loads at once there)
   // (?twins=1 forces them, the cloud's measure of the T4's bytes: the swap is then refused where the formats differ; ?twins=0 never)
   const tw = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('twins') : null;
   // (?twins=0: the full UASTC files at once, A/B)
   const sameTarget = () => { if (tw) return tw === '1'; const c = loader.workerConfig ?? {}; return !!c.bptcSupported && !c.astcSupported && !c.etc2Supported && !c.etc1Supported; };
   loader.loadAsync = async (url: string, onProgress?: any) => {
     const twin = await lowKtxOf(base, url).catch(() => null);
-    // (no twin usable here, ?twins unset: a listed scan throws, so scans.ts takes its jpg, low first, as before the twins: those
-    // GPUs fetch no more before ready than they did)
-    if (twin && !sameTarget()) { if (!tw) throw new Error('KTX2 low-first twin unusable on this GPU: the jpg'); return load(url, onProgress); }
+    // (no twin usable here: the full file at once; the built site has no jpgs for the listed maps, build_site.mjs)
+    if (twin && !sameTarget()) return load(url, onProgress);
     const low = twin; if (!low) return load(url, onProgress);
     let t: any; try { t = await load(low, onProgress); } catch { return load(url, onProgress); }
     lowFirstStats.low++;
