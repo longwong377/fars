@@ -156,7 +156,9 @@ export function riparianMargins(profiles: CorridorSection[][], canals: Canal[], 
           const hScale = 0.62 + 0.55 * vn(s, 11, ri * 2 + (u < 0 ? 1 : 2), 216);
           const jx = (unit(hash2(h, 1, 2)) - 0.5) * 0.5, jy = (unit(hash2(h, 3, 4)) - 0.5) * 0.5;
           if (hrel > 0.18 && hrel < aprilD - 0.05 && t === 0) { // the channel slope between the low summer water and the spring flood level
-            if (inBed) put(x + jx, hy, -(y + jy), KIND.reed + ex, h, hScale);
+            // D-670: the beds keep to the margin (the upper part of the slope: knee-deep at the spring flood, dry by summer), not
+            // across the channel; on a point bar's gentle slope they reach further down
+            if (inBed && hrel > aprilD * (0.42 - 0.2 * barSide)) put(x + jx, hy, -(y + jy), KIND.reed + ex, h, hScale);
             else if (r1 < 0.12 * (1 - 0.7 * barSide)) put(x + jx, hy, -(y + jy), KIND.rush + ex, h);
           } else if (hrel >= aprilD - 0.05 && t < 0.75 && dc < Q.grass + stepR) { // the upper bank, the bank top and the apron: grass, rushes near the flood line
             const nearFlood = hrel < aprilD + 0.35;
