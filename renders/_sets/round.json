@@ -37,7 +37,8 @@
 "hour": 10,
 "w": "clear",
 "why": "a lane in the N town (cov-097)",
-"owner": "C2"
+"owner": "C2",
+"open": true
 },
 {
 "id": "market-q_s1",
@@ -50,7 +51,8 @@
 "hour": 10,
 "w": "clear",
 "why": "a q_s1 market square",
-"owner": "C2"
+"owner": "C2",
+"open": true
 },
 {
 "id": "town-court",
@@ -63,7 +65,8 @@
 "hour": 10,
 "w": "clear",
 "why": "a house court (cov-037)",
-"owner": "C2"
+"owner": "C2",
+"open": true
 },
 {
 "id": "house-interior",
@@ -76,7 +79,8 @@
 "hour": 10,
 "w": "clear",
 "why": "inside a town room (cov-204, town:rooms)",
-"owner": "C2"
+"owner": "C2",
+"open": true
 },
 {
 "id": "field-500m",

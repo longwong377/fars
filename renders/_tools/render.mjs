@@ -35,6 +35,13 @@ for (const v of work) {
       wait = await p.evaluate(() => { const a = window.__parsa, P = a.people?.(), H = a.humans?.(); return { t: P?.t ?? null, pending: H?.view?.pending ?? null }; });
       if (wait.t !== null && Math.abs(wait.t - target) < 0.05 && !wait.pending) break;
       await p.evaluate(() => window.__parsa.tick()); }
+    // an open view (v.open; the lead, holes.md row 22): keep the heading if the first hit at eye level on it is >= 8 m away,
+    // else turn to the bearing of 16 with the farthest first hit (pickW: the world's meshes through the screen centre)
+    if (v.open) { const probe = async az => { await p.evaluate(q => window.__parsa.view(...q), [a[0], a[1], a[2], az, 0, a[5], a[6]]);
+        const h = await p.evaluate(() => window.__parsa.pickW(0, 0)).catch(() => null); return h ? h.d : 1e4; };
+      const d0 = await probe(v.az); if (d0 < 8) { let best = [v.az, d0];
+        for (let i = 0; i < 16; i++) { const az = (v.az + i * 22.5) % 360, d = await probe(az); if (d > best[1]) best = [az, d]; }
+        a[3] = best[0]; v.reheaded = `az ${v.az} (wall at ${d0.toFixed(1)} m) -> ${best[0]} (${best[1] >= 1e4 ? 'open' : best[1].toFixed(1) + ' m'})`; console.log(v.id, 'reheaded', v.reheaded); } }
     // a face view (v.face): the camera 0.5 m before the nearest simulated person to (e, n) still and in the open (a talker
     // first), at face height, looking at them
     if (v.face) { const who = await p.evaluate(([e, n]) => { const g = (window.__parsa.people?.()?.agents ?? []).filter(x => !x.offmap);
@@ -50,7 +57,7 @@ for (const v of work) {
       const near = r => (P?.agents ?? []).filter(g => !g.offmap && Math.hypot(g.e - e, g.n - n) < r).length;
       return { skinned: (H.perf?.drawn ?? []).reduce((x, y) => x + y, 0), imp: H.impPerf?.drawn ?? H.impostors ?? null, popKept: H.view?.candidates ?? null, popVisible: H.view?.visible ?? null, popPending: H.view?.pending ?? null, agents60: near(60), agents150: near(150), simT: P?.t != null ? +P.t.toFixed(3) : null }; }, [v.e, v.n]).catch(e => ({ err: String(e).slice(0, 80) }));
     life.waitS = +((Date.now() - tw) / 1000).toFixed(0); life.target = +target.toFixed(3);
-    appendFileSync(`${outDir}/life.jsonl`, JSON.stringify({ id: v.id, who: v.who, ...life }) + '\n');
+    appendFileSync(`${outDir}/life.jsonl`, JSON.stringify({ id: v.id, who: v.who, reheaded: v.reheaded, ...life }) + '\n');
     const tf = Date.now(); await p.screenshot({ path: `${outDir}/${v.id}.png`, timeout: 1800000 }); const tshot = ((Date.now() - tf) / 1000).toFixed(0);
     const st = await p.evaluate(() => { const s = window.__parsa.stats(); return { dc: s.drawCalls, tri: s.triangles, be: s.backend }; }).catch(() => ({}));
     const line = `${v.id} ${((Date.now() - t1) / 1000).toFixed(0)}s (shot ${tshot}s) ${JSON.stringify(st)} life ${JSON.stringify(life)}`; console.log(T(), line); appendFileSync(`${outDir}/log.txt`, line + '\n');
