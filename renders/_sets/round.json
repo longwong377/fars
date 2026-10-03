@@ -278,6 +278,58 @@
 "w": "clear",
 "why": "C11 opening shot 'town' (92d6a6bf), middle key: sunrise+0.35 h, the town waking",
 "owner": "C11"
+},
+{
+"id": "banquet-throne",
+"e": 1.9,
+"n": 0,
+"eye": 1.6,
+"az": 161,
+"pitch": -2,
+"day": 19,
+"hour": 20,
+"w": "clear",
+"why": "C13's ask: the banquet near the Apadana's throne end at 20 h, seed 1 day 19 (couches, reclining nobles, tables, servers, musicians)",
+"owner": "C13"
+},
+{
+"id": "town-20m-noon",
+"e": -320,
+"n": 862,
+"eye": 20,
+"az": 135,
+"pitch": -11,
+"day": 25,
+"hour": 12,
+"w": "clear",
+"why": "the town from 20 m at noon (C2's plaster and roofs)",
+"owner": "C2"
+},
+{
+"id": "town-200m-noon",
+"e": -550,
+"n": 700,
+"eye": 200,
+"az": 180,
+"pitch": -35,
+"day": 25,
+"hour": 12,
+"w": "clear",
+"why": "the N town from 200 m up at noon, looking down over its roofs (C2)",
+"owner": "C2"
+},
+{
+"id": "terrace-100m",
+"e": -175,
+"n": 60,
+"eye": 1.6,
+"az": 75,
+"pitch": 8,
+"day": 25,
+"hour": 10,
+"w": "clear",
+"why": "the Terrace's W face from 100 m on the plain (C10's paint)",
+"owner": "C10"
 }
 ]
 }
