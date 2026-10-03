@@ -114,7 +114,9 @@ function encode(cue: Cue, ch: Float32Array[], meas: { lufs: number; tp: number }
   if (process.env.SCORE_WAV) writeWav(join(OUT, `${cue.id}.wav`), { sr: SR, ch });
   // the film carries the main theme in its own file (tools/film/assemble.mjs): no separate audio; the opening's cue in Opus
   // and AAC (it must sound on every browser); the world's cues in Opus (WebM) only, 80 kbps
-  if (cue.tags.includes('film')) return { webm: 0, m4a: 0, ...meas };
+  if (cue.tags.includes('film')) { // the film's soundtrack source, for the edit on any machine (tools/film/assemble.mjs)
+    execFileSync('ffmpeg', ['-y', '-v', 'error', '-i', wav, '-c:a', 'libopus', '-b:a', '192k', join(ROOT, 'tools/film/work', `${cue.id}.opus`)]);
+    return { webm: 0, m4a: 0, ...meas }; }
   const opening = cue.tags.includes('opening'), br = opening ? '96k' : '80k', webm = join(OUT, `${cue.id}.webm`), m4a = join(OUT, `${cue.id}.m4a`);
   execFileSync('ffmpeg', ['-y', '-v', 'error', '-i', wav, '-c:a', 'libopus', '-b:a', br, '-vbr', 'on', '-application', 'audio', '-metadata', `title=${cue.title}`, '-f', 'webm', webm]);
   if (opening) execFileSync('ffmpeg', ['-y', '-v', 'error', '-i', wav, '-c:a', 'aac', '-b:a', '112k', '-movflags', '+faststart', '-metadata', `title=${cue.title}`, m4a]);

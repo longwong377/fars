@@ -11,7 +11,8 @@ import { join, resolve } from 'node:path';
 const argv = process.argv.slice(2), arg = (k, d) => (argv.includes(k) ? argv[argv.indexOf(k) + 1] : d);
 const ROOT = resolve(import.meta.dirname, '../..'), FR = resolve(argv[0] ?? '/tmp/film_frames');
 const OUT = resolve(arg('--out', join(ROOT, 'public/film'))), H = +arg('--height', '0'), FPS_IN = +arg('--fps-in', '8');
-const THEME = arg('--theme', join(process.env.SCORE_WORK ?? join(homedir(), '.cache/parsa-score/work'), 'main_theme.master.wav'));
+const MASTER = join(process.env.SCORE_WORK ?? join(homedir(), '.cache/parsa-score/work'), 'main_theme.master.wav');
+const THEME = arg('--theme', existsSync(MASTER) ? MASTER : join(ROOT, 'tools/film/work/main_theme.opus')); // (the score build leaves both)
 mkdirSync(OUT, { recursive: true });
 const man = JSON.parse(readFileSync(join(ROOT, 'public/audio/score/manifest.json'), 'utf8')).cues.main_theme;
 
