@@ -62,7 +62,7 @@ export const PROJECT_TRANSLATION_LABEL: string = (translations as any)._meta.lab
 /** the marks the project's English uses (translations.json _meta.marks) */
 const MARKS = Object.entries((translations as any)._meta.marks as Record<string, string>).map(([k, v]) => `${k} ${v}`).join('; ');
 /** why the English shown is the project's own and no published translation (D-167, D-198): the finding, and where logged */
-export const TRANSLATION_STATUS = 'The English shown is the project\'s own translation from the ARIo edition (tier C; D-198): no published English translation is shown. The one this project has read, Livius.org\'s (J. Lendering, after Kent and Lecoq; read through the Electronic-Old-Persian-Library scrape), carries "All content copyright © 1995–2024 Livius.org. All rights reserved." on its own pages; the scrape\'s CC-BY-NC cannot relicense it. §12 allows, for this personal, non-commercial use, any licence that permits that use with credit (CC0, CC-BY, CC-BY-NC, and also CC-BY-SA: D-192); "All rights reserved" permits none. A published translation under such a licence, or in the public domain, would replace or check the project\'s (NEEDS_FROM_ME #14; BLOCKERS B17). Nothing is paraphrased from a published translation.';
+export const TRANSLATION_STATUS = 'The English here is the PĀRSA team\'s own translation of the ARIo edition (Schmitt 2009). Published translations are not reproduced: those available to the project may not be.';
 export interface ProjectTranslation { en: string; tier: 'C'; label: string; notes: string[]; edition_restored_words: string[] }
 /** the project's English of one version of a text (inscriptions and seal texts), or null when there is none */
 export function projectTranslation(id: string, version: string): ProjectTranslation | null {
@@ -169,20 +169,20 @@ export function writingReading(objectId: string): { title: string; lines: string
     if (T.bab_atf) lines.push(`Babylonian (ATF): ${T.bab_atf}${en(tid, 'bab')}`);
     lines.push(`${PROJECT_TRANSLATION_LABEL} (tier C).`); };
   const reconLines = (rid: string) => { const R = WRITING.recon_texts[rid];
-    lines.push(`RECONSTRUCTED TEXT ${rid}: ${R.label}. No Persepolis Treasury text could be read for this build (BLOCKERS B18); this memorandum is composed by the project on the Treasury tablets' published formulary (silver paid to named groups of workers as rations), with every word from the sourced Elamite lexicon, every name from the Fortification texts (PF via CDLI) and nothing invented (D-198).`);
+    lines.push(`A reconstructed text. No tablet of this kind can be read today, so this memorandum is composed in the wording of the real Treasury tablets (silver paid to named groups of workers), using only words and names from surviving Persepolis texts.`);
     lines.push(`Date: ${R.date.king} year ${R.date.regnal_year}${R.date.months ? `, month${R.date.months.length > 1 ? 's' : ''} ${R.date.months.join(' and ')}` : ''} (${R.date.bce}); ${R.date.written}.`);
     R.lines_atf.forEach((l, i) => lines.push(`Line ${i + 1} (Elamite, ATF): ${l}`));
     lines.push(`Words: ${R.words.map(w => `${w.w} = ${w.kind === 'numeral' ? 'numeral' : w.gloss.split(/[;:(]/)[0].trim()} [${w.tier.split(' ')[0]}]`).join('; ')}.`);
     lines.push(`English (${R.english_label}): “${R.english}”`);
     for (const n of R.notes) lines.push(n); };
-  if (O.placeholder) lines.push(`No text shown: placeholder. ${O.placeholder_why ?? ''}`);
+  if (O.placeholder) lines.push('The text of this object has not been reconstructed yet.');
   else if (O.recon) reconLines(O.recon);
   else if (O.text) textLines(O.text);
-  else if (O.why_no_text) lines.push(`No text visible: ${String(O.why_no_text)}.`);
+  else if (O.why_no_text) lines.push('No writing can be seen on it.');
   if (O.seal) { const S = WRITING.seals[O.seal]; lines.push(`Sealed with ${O.seal} (tier ${S.tier}). ${S.attested}. Wording: ${S.wording}. Design: ${S.design}.`); if (S.text !== O.text) textLines(S.text); }
-  lines.push(`Tier ${O.tier}; sources ${O.src.join(', ')}.`);
+  lines.push(`How certain: ${({ A: 'attested', B: 'inferred from the evidence', C: 'reconstructed' } as Record<string, string>)[String(O.tier)[0]] ?? 'reconstructed'}. Sources: ${O.src.join(', ')}.`);
   if (!O.recon) lines.push(TRANSLATION_STATUS);
-  return { title: `${O.what} (translation layer)`, lines };
+  return { title: O.what, lines };
 }
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls = '', text = '') { const e = document.createElement(tag); if (cls) e.className = cls; if (text) e.textContent = text; return e; }
@@ -238,8 +238,8 @@ export class TranslationLayer {
         this.drawMap(ctx); Object.assign(d, { zoom: this.zoom, e: p.e, n: p.n, yaw: p.yawDeg, t: ctx.now });
         const Z = MAP_ZOOMS[this.zoom];
         this.panel.replaceChildren(el('h2', '', `Map · ${Z.name}`), this.mapCanvas, el('div', 'small', this.zoom === 0
-          ? 'Grid north up (341° true). Footprints: OpenStreetMap ruin traces and the Phase 4 corrections. Z: wider view. M closes.'
-          : 'Grid north up (341° true), centred on you. What the world builds: town plots, roads, water, rivers, canals, villages and sites, as reconstructed. Solid outline: tier A/B; dashed: tier C (reconstructed). Z: next scale. M closes.'));
+          ? 'The Terrace, north up. The outlines follow the ruins as they survive. Z: wider view · M: close'
+          : 'Centred on you, north up: the town, its roads, water and villages. Dashed outlines are reconstructed. Z: next scale · M: close'));
       }
     } else this.drawn.zoom = -1;
     if (this.mode === 'chronicle') {

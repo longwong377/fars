@@ -76,7 +76,7 @@ export function perform(part: Part, tempo: Tempo, seed: number): MidiPart {
   for (let k = 0; k < sorted.length; k++) {
     const n = sorted[k]; if (n.p < I.lo - 0.5 || n.p > I.hi + 0.5) throw new Error(`${part.id}: ${n.p} outside ${part.inst} ${I.lo}-${I.hi} at beat ${n.b}`);
     const t0 = tempo.s(n.b), t1 = tempo.s(n.b + n.d), len = t1 - t0, d = dynAt(part.dyn, n.b);
-    if (legato && len > 4.3 && ONE_SHOT_LEGATO.has(part.inst)) console.warn(`  ! ${part.id}: a ${len.toFixed(1)} s legato note at beat ${n.b} (the samples run ~4 s): hold it with 'sus'`);
+    const capped = legato && ONE_SHOT_LEGATO.has(part.inst) ? 4.1 : Infinity; // the recorded note runs ~4 s: a longer one is breathed off
     const jit = (gauss() * I.jitter) / 1000 + drift(t0);
     // velocity: the attack's bite: louder and accented notes bite; long notes at piano swell in softly; repeated short notes vary
     let v = short ? 40 + 80 * d : 30 + 70 * d * (len < 0.6 ? 1.15 : len > 2.5 ? 0.7 : 1);
@@ -87,6 +87,7 @@ export function perform(part: Part, tempo: Tempo, seed: number): MidiPart {
     if (legato && next && Math.abs(next.b - (n.b + n.d)) < 1e-3) dur = len + 0.07 + R() * 0.03;
     else if (n.acc === '.' || part.art === 'stac') dur = Math.min(len * 0.5, 0.25);
     else if (!legato && !short) dur = len - Math.min(0.12, len * 0.08);
+    dur = Math.min(dur, capped);
     const at = Math.max(0, t0 + jit - (part.lead ?? 0) * (k === 0 || !legato ? 1 : 0));
     notes.push({ t: at, dur: Math.max(0.05, dur + (part.lead ?? 0) * 0.5), p: n.p, v: Math.max(8, Math.min(127, v)) });
     // the note's own breath inside the hairpin: long notes rise a little to their middle and ease off at the end
@@ -115,5 +116,19 @@ export interface Cue {
   id: string; title: string; /** what it is for (the director's tags) */ tags: string[];
   tempo: Tempo; parts: Part[]; /** seconds the cue lasts (the tail rings on past it) */ seconds: number;
   /** markers for the film's edit (s): name -> time */ marks?: Record<string, number>;
+  /** beats a bar (default 4): the build adds a mark at every bar (bar1, bar2, ...) for the films' and the opening's cuts */ barBeats?: number;
   /** the target loudness for the master (LUFS) */ lufs?: number;
+  /** the harmony, for the build's clash check (lib/kit.ts prog) */ harmony?: { b: number; d: number; tones: number[]; sym: string }[];
+}
+
+/** long notes (a beat or more, on a beat) that grind a semitone against the chord sounding under them and are not chord
+ *  tones themselves: the composer's ears in the cloud (a check, not a rule: an appoggiatura may be meant) */
+export function clashes(cue: Cue): string[] {
+  const out: string[] = []; if (!cue.harmony) return out;
+  for (const p of cue.parts) { if (p.inst === 'kit' || p.inst === 'taiko' || p.inst === 'cym' || p.inst === 'timp') continue;
+    for (const n of p.notes) { if (n.d < 1 || Math.abs(n.b - Math.round(n.b)) > 1e-6) continue;
+      const c = cue.harmony.find(h => n.b >= h.b - 1e-6 && n.b < h.b + h.d - 1e-6); if (!c) continue;
+      const q = ((n.p % 12) + 12) % 12; if (c.tones.includes(q)) continue;
+      if (c.tones.some(t => { const d = (q - t + 12) % 12; return d === 1 || d === 11; })) out.push(`${p.id} ${n.p} at beat ${n.b} (${n.d} beats) over ${c.sym}`); } }
+  return out;
 }
