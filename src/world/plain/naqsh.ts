@@ -313,7 +313,7 @@ export function buildNaqsh(terrain: Terrain, ancientFootAsl: number): NaqshBuild
   const f: Face = { fy, groundAsl: ancientFootAsl, court: terrain.meta.court_asl };
   setRidge(terrain, fy, xa, xb, ancientFootAsl);
   const group = new THREE.Group(); group.name = 'naqsh-e-rustam';
-  group.userData = tag(feature('nr_darius_tomb'), 'Naqsh-e Rustam in 467 BCE: cliff, tomb of Darius I (sealed), tomb attributed to Xerxes (façade cut, uninscribed, D-033), Ka\'ba-ye Zardosht, Neo-Elamite relief; geometry plain.json naqsh_e_rustam (tiers there)');
+  group.userData = tag(feature('nr_darius_tomb'), 'Naqsh-e Rustam in 467 BCE: cliff, tomb of Darius I (sealed), a second royal tomb being cut ENE of it (later attributed to Xerxes, who is alive in 467; uninscribed, D-033), Ka\'ba-ye Zardosht, Neo-Elamite relief; geometry plain.json naqsh_e_rustam (tiers there)');
   const tombs = [{ id: 'nr_darius_tomb', x: feature('nr_darius_tomb').xy[0] as number, inscribed: true }, { id: 'nr_xerxes_tomb', x: feature('nr_xerxes_tomb').xy[0] as number, inscribed: false }];
   const holes = tombs.flatMap(t => facadeHoles(t.x));
   const NM = monument('naqsh');
