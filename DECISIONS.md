@@ -10277,3 +10277,4 @@ better for every player than what is live. Rule for today: a head that (1) draws
 and frame time is deployed at once; settle time and download-before-ready (worse on 9700b06d: 1266 vs 611 s, 413 vs 372 MB)
 become C9's next fix and the next deploy must recover them. No threshold in gates/thresholds.json or gates/budgets.json is
 touched; the budget baseline is not re-accepted from such a head.
+- Then the in-engine opening (src/shell/intro.ts, D-590's shots; a night 'stars' shot was tried and cut after C6's frame) plays to "First Light", each cut on a bar, its clock following the music, landing on the player's eye as the horn closes the theme's first half; the music rings on into the walk and the director takes over.
