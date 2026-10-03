@@ -56,6 +56,8 @@ import { buildReliefs, buildInscriptions, loadInscriptionFonts, buildPhase4Relie
 import { buildWaterworks } from '../arch/waterworks';
 import { footGeometry, FOOT_DEPTH } from '../arch/terrace_foot';
 import { buildGlazedFrieze } from '../arch/glazed';
+import { buildDressings } from '../arch/dressings';
+import { buildDrumRoad } from '../arch/drum_road';
 import { updateReliefs, settleReliefs, buildReliefShadow, ReliefSet } from '../arch/reliefs';
 import { setReliefShadow, refreshReliefShadow } from '../render/reliefShadow';
 import { FireSystem, fireLight, type FireKind } from './fire';
@@ -290,6 +292,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // D-214 (gap audit item 31): the Terrace's drain mouths, inlets and gutters and the cistern heads (all C); the kerbs are solid
   const waterworks = buildWaterworks(parts, (e, n) => terrain.heightAt(e, -n)); root.add(waterworks.group);
   const glaze = buildGlazedFrieze(parts); if (glaze) root.add(glaze); // D-214 (item 28): the Apadana towers' glazed-brick frieze (C)
+  const dress = buildDressings(parts); if (dress) root.add(dress); // D-750 (C10): the porticoes' hangings and the royal standards
+  root.add(buildDrumRoad()); // D-754 (C10): the column drums' sledge road and ramp
   for (const c of waterworks.colliders) phys.addBox({ x: c.c.x, y: c.c.y, z: c.c.z }, { x: c.half.x, y: c.half.y, z: c.half.z });
   insc.add(buildFoundationDeposits(manifest)); // the Apadana foundation deposits, sealed under the hall corners (D-068)
   if ((manifest.treasury as any)?.benches) root.add(buildTreasuryGoods([...(manifest.treasury as any).benches, ...((manifest.treasury as any).storeBenches ?? [])], seed)); // stored goods (types B, placement C; D-276: the store rooms' benches too)
@@ -768,6 +772,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       pa('w.smoke', tp); tp = pt(); settlement?.update(dt, { camera: ctx.camera, clock: ctx.clock, sky: ctx.sky, skyLight: ctx.skyLight, cond: ctx.cond, player: ctx.player });
       campTents?.update(ctx.player.position.x, ctx.player.position.z, 400, sim.t); // D-199; D-252: the tents standing now
       pa('w.settlement', tp); tp = pt(); fire.setSkyLight(ctx.skyLight);
+      fire.setDay(ctx.clock.dayIndex, seed); // D-680: the court's nights (banquets, residence fires, door torches) follow the world's day
       fire.update(dt, ctx.camera, ctx.sky.sunAlt, ctx.cond.windMs, ctx.cond.windDirDeg, ctx.cond.rain, time, ctx.clock.localHour);
       pa('w.fire', tp); tp = pt(); { // D-220: dust from this frame's emitters (the crowd and its animals were drawn above), and the carts' wheels
         if (!nowView.active) for (const m of movers) if (m.kind === 'cart') dust.emit('cart', m.e, groundAt(m.e, m.n), -m.n, yawOf(m.heading * 180 / Math.PI), 0.9, m.key.length * 131 + Math.round(m.e));

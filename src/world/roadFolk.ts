@@ -75,7 +75,7 @@ export function hinterlandRegister(seed: number) {
   const out: { road: number; roadId: string; hh: number; home: string; live: Livelihood; members: { m: Member; sex: 'm' | 'f'; age: number; name: string | null }[] }[] = [];
   ROADS.forEach((R, ri) => { for (let hh = 0; hh < ROAD_HH; hh++) { const H = household(seed, ri, hh), u = (k: number) => h01(seed, 7500 + ri * 1000 + hh, k), man = 25 + Math.floor(30 * u(1));
     out.push({ road: ri, roadId: R.id, hh, home: H.home, live: H.live, members: membersOf(H).map(m => ({ m, sex: m === 'wife' || m === 'daughter' ? 'f' as const : 'm' as const, name: m === 'head' ? H.head : null,
-      age: m === 'head' ? man : m === 'wife' ? Math.max(16, man - 4 - Math.floor(6 * u(2))) : m === 'elder' ? 58 + Math.floor(17 * u(3)) : 6 + Math.floor(11 * u(m === 'son' ? 4 : 5)) })) }); } });
+      age: m === 'head' ? man : m === 'wife' ? Math.max(18, man - 4 - Math.floor(6 * u(2))) /* (D-348's ADULT: no wife under 18; was 16, C7 D-710) */ : m === 'elder' ? 58 + Math.floor(17 * u(3)) : 6 + Math.floor(11 * u(m === 'son' ? 4 : 5)) })) }); } });
   return out;
 }
 /** a member's look (the same person every day: seeded by road, household and member) */

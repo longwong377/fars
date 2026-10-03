@@ -11,6 +11,8 @@ const CH = prog('Am:4 D:4 G:2 Em:2 Am:4 | F:4 C:4 Dm:2 E:2 Am:4 | C:4 G:4 Am:2 E
 const TOP = 'E4:4 | F#4:4 | G4:2 E4:2 | E4:4 | F4:4 | E4:4 | F4:2 G#4:2 | A4:4 | G4:4 | G4:2 B4:2 | C5:2 B4:2 | A4:4 | A4:4 | A4:4 | A4:2 G#4:2 | A4:4';
 const H = [...prog('Am:8', B(1)), ...at(CH, B(3)), ...at(CH, B(19)), ...prog('Am:4 D:4 Am:8', B(35))];
 const parts: Part[] = [
+  // the first two bars: the low strings' A, breathing in before the chorale
+  { id: 'open', inst: 'vc', art: 'sus', notes: pad(prog('Am:8', 0), 'A2', 'E3', 2), lead: 1, dyn: [[0, 0.05], [B(2), 0.3], [B(3), 0.25], [B(4), 0.0]] },
   { id: 'hn', inst: 'hn', art: 'sus', notes: [...pad(at(CH, B(3)), 'A2', 'D4', 3, 'E3'), ...pad(prog('Am:4 D:4 Am:8', B(35)), 'A2', 'D4', 3)], lead: 0.3,
     dyn: [[B(3), 0.4], ...swell(B(3), B(7), 0.4, 0.55, 0.38), ...swell(B(7), B(11), 0.4, 0.58, 0.38), ...swell(B(11), B(15), 0.42, 0.62, 0.4), ...swell(B(15), B(19), 0.42, 0.6, 0.3), [B(19), 0.25], [B(35), 0.4], [B(39), 0.0]] },
   { id: 'hn_top', inst: 'hnSolo', art: 'leg', notes: [...line(TOP, B(3)), ...line('E4:4 | F#4:4 | E4:8', B(35))], dyn: [[B(3), 0.45], [B(10), 0.55], [B(18), 0.45], [B(19), 0.0], [B(35), 0.42], [B(39), 0.1]] },

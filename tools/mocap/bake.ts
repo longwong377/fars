@@ -6,6 +6,7 @@
 // 'loop' (time-sampled, closed). `mirror` swaps the body's sides (a left-handed sweeper from a right-handed one).
 import { writeFileSync } from 'node:fs';
 import { gait, loop, type Baked } from './cycles';
+import { loadTake } from './retarget';
 import { POSE_BONES, type Pose } from '../../src/people/anim';
 import { RigSolver, PALETTE_STRIDE, type RigInput } from '../../src/people/humanRig';
 import { HB } from '../../src/people/humanFormat';
@@ -15,7 +16,8 @@ import { assets } from './preview';
 export interface Spec { id: string; take: string; fps?: number; kind: 'gait' | 'loop'; from?: number; to?: number; len?: number; cycles?: number; out?: number; mirror?: boolean; exact?: boolean; /** seated or lying: the rig's seat pass grounds it (no foot planting in the bake) */ seat?: boolean; /** keep the capture's head pitch (default: levelled, see level()) */ gaze?: boolean; win?: number; trail?: boolean; face?: number; note: string }
 /** the takes' frame rates (CMU index: 120 unless listed) */
 const FPS60 = new Set(['62', '74', '75', '77', '79', '80']);
-const fpsOf = (take: string) => (FPS60.has(take.split('_')[0]) ? 60 : 120);
+// (s18 C14: a BVH take's own rate, from its header's Frame Time: loadTake reads it)
+const fpsOf = (take: string) => (/^(accad|style):/.test(take) ? loadTake(take, 0).fps : FPS60.has(take.split('_')[0]) ? 60 : 120);
 
 export const SPECS: Spec[] = [
   // ---- walking: men (normal pace), several subjects
@@ -62,6 +64,23 @@ export const SPECS: Spec[] = [
   { id: 'drink_a', take: '13_09', kind: 'loop', from: 0, to: 9, len: 6, out: 20, note: 'drink (subject 13)' },
   { id: 'dance_a', take: '55_01', kind: 'loop', from: 1, to: 14, len: 6, out: 24, note: 'dance, whirl (subject 55)' },
   { id: 'dance_b', take: '90_31', kind: 'loop', from: 0.5, to: 7.5, len: 4, out: 24, note: 'russian dance (subject 90)' },
+  // ---- s18 C14 (D-790): ACCAD's performers (CC BY 3.0; BVH, tools/mocap/bvh.ts): a woman's own walk, stance and talk (the
+  // CMU database has no plain walk by a woman), one more man's walk, a woman carrying a box before her
+  { id: 'walk_w_c', take: 'accad:Female1/Female1_B03_Walk1', kind: 'gait', note: 'walk (ACCAD Female1)' },
+  { id: 'walk_m_h', take: 'accad:Male1/Male1_B3_Walk', kind: 'gait', cycles: 1, face: 3.2, note: 'walk (ACCAD Male1)' },
+  { id: 'carry_w', take: 'accad:Female1/Female1_B20_WalkWithBox', kind: 'gait', cycles: 1, face: 3.2, note: 'walk with a box (ACCAD Female1)' },
+  { id: 'idle_w_a', take: 'accad:Female1/Female1_A01_Stand', kind: 'loop', len: 5, out: 15, note: 'standing (ACCAD Female1)' },
+  { id: 'idle_w_b', take: 'accad:Female1/Female1_A02_Sway', kind: 'loop', len: 5, out: 15, note: 'standing, swaying (ACCAD Female1)' },
+  { id: 'idle_w_c', take: 'accad:Female1/Female1_D2_Wait', kind: 'loop', len: 8, out: 15, note: 'waiting (ACCAD Female1)' },
+  { id: 'talk_w_a', take: 'accad:Female1/Female1_D3_ConversationGestures', kind: 'loop', len: 10, out: 20, note: 'conversation gestures (ACCAD Female1)' },
+  // ---- s18 C14 (D-790): 100STYLE (Mason, Starke, Komura 2022; CC BY 4.0; one performer acting a hundred walking styles):
+  // the old and the bent, hands behind the back, a heavy man, a neutral walk, the tired; an old man standing
+  { id: 'walk_bent', take: 'style:BentForward/BentForward_FW', kind: 'gait', from: 20, to: 80, face: 3.2, note: 'bent forward (100STYLE)' },
+  { id: 'walk_behind', take: 'style:ArmsBehindBack/ArmsBehindBack_FW', kind: 'gait', from: 20, to: 80, face: 3.2, note: 'arms behind the back (100STYLE)' },
+  { id: 'walk_heavy', take: 'style:Heavyset/Heavyset_FW', kind: 'gait', from: 20, to: 80, face: 3.2, note: 'heavyset (100STYLE)' },
+  { id: 'walk_neutral', take: 'style:Neutral/Neutral_FW', kind: 'gait', from: 20, to: 80, face: 3.2, note: 'neutral (100STYLE)' },
+  { id: 'walk_tired', take: 'style:Depressed/Depressed_FW', kind: 'gait', from: 20, to: 80, face: 3.2, note: 'depressed, tired (100STYLE)' },
+  { id: 'idle_old', take: 'style:Old/Old_ID', kind: 'loop', from: 5, to: 40, len: 8, out: 15, note: 'old, standing (100STYLE)' },
   { id: 'sit_a', take: '82_05', kind: 'loop', gaze: true, seat: true, from: 0, to: 18.7, len: 15, out: 15, note: 'sitting on the ground relaxing (subject 82)' },
 ];
 

@@ -4,6 +4,7 @@
 // (a planted foot stays planted on the target body although its thigh-to-shin ratio differs), the knee toward the source
 // knee, the foot turned as the source foot. Output channels are in the performer's own frame (the body faces +Z).
 import { readASF, readAMC, fk, between, mul, tr, app, I3, type Skeleton, type Frame, type Posed, type M3, type V3 } from './amc';
+import { readBVH } from './bvh';
 import { NOM, HS, euler, toEuler, trunk, legIK, type M3 as PM3 } from '../../src/people/poseKit';
 import type { Pose, PoseBone, E3 } from '../../src/people/anim';
 
@@ -17,9 +18,15 @@ export interface Take { id: string; sk: Skeleton; frames: Frame[]; fps: number; 
 const SK = new Map<string, Skeleton>();
 /** a take: `07_01`; fps from the database's index (120 unless listed at 60) */
 export function loadTake(id: string, fps: number): Take {
-  const [s, n] = id.split('_'); const S = pad(s);
-  let sk = SK.get(S); if (!sk) { sk = readASF(`${MOCAP}/${S}.asf`); SK.set(S, sk); }
-  const frames = readAMC(`${MOCAP}/${S}_${pad(n)}.amc`);
+  let sk: Skeleton | undefined, frames: Frame[];
+  // s18 C14 (D-790): a BVH take: `accad:Female1/Female1_B03_Walk1` (BVH_DIR, default under MOCAP_DIR/../accad) or
+  // `style:<path under STYLE_DIR>` (100STYLE); its own frame rate
+  const bm = /^(accad|style):(.+)$/.exec(id);
+  if (bm) { const dir = bm[1] === 'accad' ? (process.env.ACCAD_DIR ?? `${MOCAP}/../accad`) : (process.env.STYLE_DIR ?? `${MOCAP}/../100style`);
+    const B = readBVH(`${dir}/${bm[2]}.bvh`); sk = B.sk; frames = B.frames; fps = B.fps; }
+  else { const [s, n] = id.split('_'); const S = pad(s);
+    sk = SK.get(S); if (!sk) { sk = readASF(`${MOCAP}/${S}.asf`); SK.set(S, sk); }
+    frames = readAMC(`${MOCAP}/${S}_${pad(n)}.amc`); }
   const b = (x: string) => sk!.bones.get(x)!;
   const srcLeg = (b('lfemur').len + b('ltibia').len) * sk.unitM;
   const tgtLeg = Math.hypot(...sub(NOM.calf_l, NOM.thigh_l)) + Math.hypot(...sub(NOM.foot_l, NOM.calf_l));

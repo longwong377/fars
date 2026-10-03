@@ -154,6 +154,30 @@
    "tier": "B (in PF: IR-FOODAG); C (calendar)",
    "note": "summer crop needing irrigation; Herodotus 3.117 pairs summer irrigation with millet and sesame (HDT, B analogy)"
   },
+  "millet": {
+   "sow": [
+    "Jun"
+   ],
+   "harvest": [
+    "Sep"
+   ],
+   "height_m": {
+    "Jan": 0,
+    "Feb": 0,
+    "Mar": 0,
+    "Apr": 0,
+    "May": 0,
+    "Jun": 0.15,
+    "Jul": 0.7,
+    "Aug": 1.1,
+    "Sep": 1.2,
+    "Oct": 0,
+    "Nov": 0,
+    "Dec": 0
+   },
+   "tier": "C",
+   "note": "D-670: broomcorn millet (Panicum miliaceum), a summer crop on irrigated land, sown in June (often after the barley harvest) and cut in September; Herodotus 3.117 names millet and sesame as the crops of summer irrigation in the empire (HDT, B analogy); its share 3 % of the irrigated plots, taken from the fallow (C)"
+  },
   "vines": {
    "leaf_out": "Apr",
    "vintage": [
@@ -3456,7 +3480,8 @@
     "garden": 0.02,
     "alfalfa": 0.02,
     "flax": 0.01,
-    "fallow": 0.2
+    "millet": 0.03,
+    "fallow": 0.17
    },
    "chrono": "fields_irrigated_pulvar"
   },
@@ -3988,7 +4013,8 @@
     "garden": 0.02,
     "alfalfa": 0.02,
     "flax": 0.01,
-    "fallow": 0.2
+    "millet": 0.03,
+    "fallow": 0.17
    },
    "chrono": "fields_irrigated_kur"
   },

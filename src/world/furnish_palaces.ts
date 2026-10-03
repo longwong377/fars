@@ -44,6 +44,7 @@ export interface FurnItem { kind: FurnKind; building: string; room: string; stat
 /** the furnishings' surfaces (shared surface model, materials.ts): dyed wool, gold leaf, silver, fired clay (C) */
 export const FURNISH_SURFACES: Record<string, SurfaceDef> = {
   furn_textile: { albedo: [0.6, 0.5, 0.4], roughness: 0.95, porosity: 0.8, noiseScale: 3, noiseAmp: 0.08, bump: { amp: 0.0006, freq: 30 }, tier: 'C', note: 'dyed wool pile and woven cloth (colours per piece from the vertex colours: madder red, indigo blue, weld yellow, undyed; C, D-212)' },
+  furn_carpet: { albedo: [0.6, 0.5, 0.4], roughness: 0.97, porosity: 0.8, noiseScale: 3, noiseAmp: 0.08, bump: { amp: 0.0008, freq: 30 }, tier: 'C', note: 'knotted wool pile (the Pazyryk carpet: B craft; colours per piece from the vertex colours; the pile\'s grain a CC0 carpet scan, Carpet 012: D-780, C)' },
   furn_gilt: { albedo: [0.83, 0.65, 0.33], roughness: 0.3, porosity: 0, noiseScale: 3, noiseAmp: 0.05, metal: 1, tier: 'C', note: 'gold leaf over wood: the gilded couches, tables and poles (Herodotus 9.80, 9.82: B claim; the gilding here C)' },
   furn_silver: { albedo: [0.8, 0.8, 0.78], roughness: 0.28, porosity: 0, noiseScale: 3, noiseAmp: 0.05, metal: 1, tier: 'C', note: 'silver plate over wood (Herodotus 9.80: silver-plated couches, B claim; here C)' },
   furn_clay: { albedo: [0.6, 0.45, 0.33], roughness: 0.85, porosity: 0.6, noiseScale: 2, noiseAmp: 0.1, tier: 'C', note: 'plain buff fired clay (storage jars, lamps; MATERIAL_CULTURE storage jars C)' },
@@ -423,8 +424,8 @@ const MATS: Mat[] = ['furn_textile', 'furn_carpet', 'timber', 'furn_gilt', 'furn
 /** D-325: the carpets' material: the woven textile's surface with the knotted pile's normal map (tools/blender/carpet_pile.py:
  *  12 x 12 knots per 2 cm tile, the Pazyryk density) laid in world x-z on the upward faces; the plain textile without it */
 function carpetMaterial(): THREE.Material {
-  const pile = propTexture('carpet_pile_n'); if (!pile) return surfaceMaterial('furn_textile', { vertexColors: true });
-  return surfaceMaterial('furn_textile', { vertexColors: true, variant: 'carpet', modify: L => {
+  const pile = propTexture('carpet_pile_n'); if (!pile) return surfaceMaterial('furn_carpet', { vertexColors: true });
+  return surfaceMaterial('furn_carpet', { vertexColors: true, variant: 'carpet', modify: L => {
     const t = texture(pile, positionWorld.xz.div(0.02)).xy.mul(2).sub(1), up = smoothstep(0.6, 0.9, normalWorld.y), k = 0.9;
     const tilt = vec3(t.x, 0, t.y.negate()).mul(up.mul(k));
     return { ...L, tilt: L.tilt ? L.tilt.add(tilt) : tilt };

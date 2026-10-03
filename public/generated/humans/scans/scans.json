@@ -243,25 +243,25 @@
   {
    "id": "wool",
    "layer": 1,
-   "scan": "Fabric031",
-   "source": "ambientcg/Fabric031",
+   "scan": "Fabric030",
+   "source": "ambientcg/Fabric030",
    "fabric": "wool",
    "meanLinear": [
-    0.17066,
-    0.17019,
-    0.18725
+    0.11593,
+    0.11375,
+    0.11537
    ],
-   "meanRough": 0.6094,
-   "threadsPerTile": 298.0,
-   "tile": 0.4257,
+   "meanRough": 0.7283,
+   "threadsPerTile": 256.4,
+   "tile": 0.3663,
    "scanDimsMm": null,
-   "clipShare": 0.0,
+   "clipShare": 0.02562,
    "k": 0.4,
-   "name": "Fabric 031",
+   "name": "Fabric 030",
    "authors": [
     "ambientCG (Lennart Demes)"
    ],
-   "url": "https://ambientcg.com/view?id=Fabric031"
+   "url": "https://ambientcg.com/view?id=Fabric030"
   },
   {
    "id": "felt",
@@ -289,25 +289,25 @@
   {
    "id": "leather",
    "layer": 3,
-   "scan": "Leather014",
-   "source": "ambientcg/Leather014",
+   "scan": "Leather037",
+   "source": "ambientcg/Leather037",
    "fabric": "leather",
    "meanLinear": [
-    0.08084,
-    0.03851,
-    0.03366
+    0.12652,
+    0.03897,
+    0.0219
    ],
-   "meanRough": 0.5493,
+   "meanRough": 0.3972,
    "threadsPerTile": 0,
    "tile": 0.25,
    "scanDimsMm": null,
-   "clipShare": 0.00584,
+   "clipShare": 0.0,
    "k": 0.4,
-   "name": "Leather 014",
+   "name": "Leather 037",
    "authors": [
     "ambientCG (Lennart Demes)"
    ],
-   "url": "https://ambientcg.com/view?id=Leather014"
+   "url": "https://ambientcg.com/view?id=Leather037"
   }
  ]
 }

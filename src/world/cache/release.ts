@@ -36,3 +36,35 @@ export function releaseUploadedTextures(renderer: THREE.WebGPURenderer) {
     const r = up(t, o); try { const d = tx.get(t);
     if (t.version > 0 && d?.isDefaultTexture === false && (t as any).source?.dataReady !== false) release(t); } catch { /* keep it */ } return r; };
 }
+
+/** D-740 (s18, the JS heap at its cap: 3.5 GB of 4 GB, ~0.9 GB of it the scene's geometry arrays): the CPU copy of a static
+ *  geometry's attributes and index is dropped once three has put it on the GPU, as for the textures above. Marked at ready
+ *  (markStaticGeometry) for every mesh outside the groups whose geometry is read on the CPU after the build: the
+ *  architecture (the eye's sky rays, eyeRays.ts), the translation layer's pick groups (inscriptions, doors, the scribes'
+ *  room), the terrain (rebuilt in chunks), anything skinned, batched, morphing, dynamic or marked keepData. Bounds are
+ *  computed first (culling reads them). A released attribute flagged for upload again or re-created is skipped and logged
+ *  once (nothing to upload). ?keepgeo turns it off. releaseStats.geoBytes counts. */
+const KEEP_GEO_GROUPS = new Set(['architecture', 'inscriptions', 'nr-inscriptions', 'doors', 'treasury_scribes_room', 'terrain']);
+const eligible = new WeakSet<object>();
+const geoOn = typeof location === 'undefined' || !new URLSearchParams(location.search).has('keepgeo');
+export function markStaticGeometry(scene: THREE.Object3D): number {
+  if (!geoOn) return 0; let n = 0;
+  const walk = (o: any, keep: boolean) => { keep = keep || KEEP_GEO_GROUPS.has(o.name) || o.userData?.keepData;
+    const g = o.geometry;
+    if (!keep && g && o.isMesh && !o.isSkinnedMesh && !o.isBatchedMesh && !g.userData?.keepData && !Object.keys(g.morphAttributes ?? {}).length) {
+      if (!g.boundingSphere) g.computeBoundingSphere(); if (!g.boundingBox) g.computeBoundingBox();
+      for (const a of [...Object.values(g.attributes ?? {}), g.index].filter(Boolean) as any[]) { const b = a.isInterleavedBufferAttribute ? a.data : a;
+        if (b.usage === 35048 /* DynamicDraw */ || b.isInstancedBufferAttribute || b.isInstancedInterleavedBuffer) continue; eligible.add(b); n++; } }
+    for (const c of o.children) walk(c, keep); };
+  walk(scene, false); return n;
+}
+export function releaseUploadedGeometry(renderer: THREE.WebGPURenderer) {
+  const at = (renderer as any)._attributes; if (!geoOn || !at?.update || at.__release) return; at.__release = true;
+  (releaseStats as any).geoBytes = 0; (releaseStats as any).geoSkipped = 0;
+  const up = at.update.bind(at);
+  at.update = (attribute: any, type: any) => { const b = attribute.isInterleavedBufferAttribute ? attribute.data : attribute;
+    if (b.__released) { const d = at.get(attribute); if (d.version === undefined || d.version !== b.version) { (releaseStats as any).geoSkipped++; if (!b.__warned) { b.__warned = true; console.warn('[release] a released geometry buffer was flagged for upload again; skipped (D-740)'); } if (d.version !== undefined) d.version = b.version; return; } }
+    const r = up(attribute, type);
+    if (eligible.has(b) && !b.__released) { const d = at.get(attribute); if (d.version !== undefined && b.array?.length) { (releaseStats as any).geoBytes += b.array.byteLength; b.array = new b.array.constructor(0); b.__released = true; } }
+    return r; };
+}

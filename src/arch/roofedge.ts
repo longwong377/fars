@@ -38,7 +38,9 @@ export interface Crown { building: string; e: number; n: number; y: number; az: 
 export interface BandFace { building: string; c: [number, number]; n: [number, number]; length: number; y1: number }
 /** D-750: a portico's open front under a roof's edge (grid end points along the edge, outward normal, the slab's underside) */
 export interface Porch { building: string; a: [number, number]; b: [number, number]; n: [number, number]; y: number }
-export interface RoofEdges { boxes: Box[]; pieces: Piece[]; crowns: Crown[]; bands: BandFace[]; porches: Porch[]; stats: { edges: number; free: number; wall: number; open: number; metres: number; tops: number } }
+/** D-803: a palace wall run's head or foot for the Terrace kit (grid start, unit along, outward normal, length, the height) */
+export interface KitRun { building: string; a: [number, number]; u: [number, number]; n: [number, number]; len: number; y: number }
+export interface RoofEdges { boxes: Box[]; pieces: Piece[]; crowns: Crown[]; bands: BandFace[]; porches: Porch[]; heads: KitRun[]; stats: { edges: number; free: number; wall: number; open: number; metres: number; tops: number } }
 
 /** D-750 (C): which roofs carry the stepped merlons. The stone stepped merlons found on the Terrace (the Apadana's, the stair
  *  parapets') crowned the palaces' roof lines in every reconstruction since Chipiez and Krefter (the Naqsh-e Rustam facades
@@ -55,6 +57,9 @@ export const BAND_BUILDINGS = ['gate_nations', 'tachara', 'hadish', 'hall100', '
 /** m (C): the gap between the band's top and the string course */
 export const BAND_GAP = 0.12;
 const CACHE = new WeakMap<Part[], RoofEdges>();
+/** D-803: the buildings whose wall heads and feet take the Terrace kit's cornice and plinth, and the cornice's height (m) */
+export const KIT_BUILDINGS = new Set(['gate_nations', 'apadana', 'tachara', 'hadish', 'harem', 'tripylon', 'hall100']);
+export const KIT_CORNICE_H = 0.72;
 
 const inBox = (b: Box, e: number, n: number, y: number, pad = 0) => {
   if (y < b.y0 - 1e-6 || y > b.y1 + 1e-6) return false;
@@ -105,7 +110,7 @@ function runBox(base: Omit<Box, 'type' | 'kind' | 'c' | 'size' | 'y0' | 'y1' | '
 export function roofEdges(parts: Part[]): RoofEdges {
   const hit = CACHE.get(parts); if (hit) return hit;
   const CR = row<any>('global', 'r_stair_crenellation').v as { width: number; height: number; pitch: number; max_depth: number };
-  const R = ROOFEDGE, boxes: Box[] = [], pieces: Piece[] = [], crowns: Crown[] = [], bands: BandFace[] = [], porches: Porch[] = [], stats = { edges: 0, free: 0, wall: 0, open: 0, metres: 0, tops: 0 };
+  const R = ROOFEDGE, boxes: Box[] = [], pieces: Piece[] = [], crowns: Crown[] = [], bands: BandFace[] = [], porches: Porch[] = [], kitHeads: KitRun[] = [], stats = { edges: 0, free: 0, wall: 0, open: 0, metres: 0, tops: 0 };
   const solid = parts.filter(p => p.type === 'box' && !p.door && !p.sculpt && p.kind !== 'floor_finish' && p.kind !== 'frieze' && !(p.kind || '').startsWith('ceiling')) as Box[];
   const grid = new Grid(solid);
   const roofs = solid.filter(p => p.kind === 'roof');
@@ -133,7 +138,8 @@ export function roofEdges(parts: Part[]): RoofEdges {
       const kind: ('wall' | 'open' | null)[] = [];
       for (let i = 0; i < nS; i++) {
         const s = (i + 0.5) * st, e = sd.a[0] + ux * s, n = sd.a[1] + uy * s, eo = e + sd.n[0] * 0.15, no = n + sd.n[1] * 0.15;
-        const cov = grid.at(eo, no, (b.y0 + topY) / 2, b) || grid.at(eo, no, topY + 0.3, b);
+        // (D-753: or a part continues the top flush at its own level: a hollow tower's slab against its walls' heads)
+        const cov = grid.at(eo, no, (b.y0 + topY) / 2, b) || grid.at(eo, no, topY + 0.3, b) || grid.at(eo, no, topY - 0.2, b, q => q.y1 >= topY - 0.05 && q.y1 <= topY + 0.25);
         if (cov) { kind.push(null); continue; }
         const ei = e - sd.n[0] * 0.25, ni = n - sd.n[1] * 0.25;
         kind.push(!roof || grid.at(ei, ni, b.y0 - 0.4, b, isWallish) ? 'wall' : 'open');
@@ -178,15 +184,17 @@ export function roofEdges(parts: Part[]): RoofEdges {
           }
         }
         if (k === 'open' && roof) porches.push({ building: b.building, a: [sd.a[0] + ux * s0, sd.a[1] + uy * s0], b: [sd.a[0] + ux * s1, sd.a[1] + uy * s1], n: [sd.n[0], sd.n[1]], y: b.y0 });
+        // D-803: the run's head for the kit's cornice (a palace's wall run, over a roof or an exposed top)
+        if (k === 'wall' && KIT_BUILDINGS.has(b.building) && s1 - s0 > 1) kitHeads.push({ building: b.building, a: [sd.a[0] + ux * s0, sd.a[1] + uy * s0], u: [ux, uy], n: [sd.n[0], sd.n[1]], len: s1 - s0, y: topY });
         // D-750: the glazed band's face on a palace's wall run
         if (k === 'wall' && roof && BAND_BUILDINGS.includes(b.building) && s1 - s0 > 2) {
           const m = (s0 + s1) / 2;
-          bands.push({ building: b.building, c: [sd.a[0] + ux * m, sd.a[1] + uy * m], n: [sd.n[0], sd.n[1]], length: s1 - s0, y1: topY - R.string.h - BAND_GAP });
+          bands.push({ building: b.building, c: [sd.a[0] + ux * m, sd.a[1] + uy * m], n: [sd.n[0], sd.n[1]], length: s1 - s0, y1: topY - KIT_CORNICE_H - BAND_GAP }); // (D-803: under the kit's cornice)
         }
       }
     }
   }
-  const out = { boxes, pieces, crowns, bands, porches, stats }; CACHE.set(parts, out);
+  const out = { boxes, pieces, crowns, bands, porches, heads: kitHeads, stats }; CACHE.set(parts, out);
   return out;
 }
 
@@ -208,7 +216,7 @@ function coveredTop(b: Box, grid: Grid): boolean {
 // mud-brick wall: a strip FOOT.h high standing FOOT.proud out of the face, in the floor coat's material in front of it
 // (plaster_red in the halls, mud elsewhere).
 export const FOOT = { ...row<any>('global', 'r_wall_foot').v, sample: 0.5 } as { h: number; proud: number; sample: number }; // SITE_SPEC global.r_wall_foot
-export function wallFeet(parts: Part[]): Box[] {
+export function wallFeet(parts: Part[], runs?: KitRun[]): Box[] {
   const out: Box[] = [];
   const boxes = parts.filter(p => p.type === 'box' && !p.door && !p.sculpt && !(p.kind || '').startsWith('ceiling')) as Box[];
   const grid = new Grid(boxes.filter(b => b.kind !== 'floor_finish' && b.kind !== 'frieze' && b.kind !== 'roof'));
@@ -234,6 +242,7 @@ export function wallFeet(parts: Part[]): Box[] {
         const k = mat[i]; let j = i; while (j < nS && mat[j] === k) j++;
         const s0 = i * st, s1 = j * st; i = j; if (!k || s1 - s0 < 0.4) continue;
         const f0 = k === 'mudbrick' ? w.y0 : w.y0 + 0.01; // (on the red floor's 1 cm coat)
+        if (runs && KIT_BUILDINGS.has(w.building) && s1 - s0 > 1) runs.push({ building: w.building, a: [sd.a[0] + ux * s0, sd.a[1] + uy * s0], u: [ux, uy], n: [sd.n[0], sd.n[1]], len: s1 - s0, y: f0 }); // D-803: the kit's plinth
         out.push(runBox({ building: w.building, material: k as Material, tier: 'C', src: 'RECON;STEIN2016', placeholder: false }, sd, s0, s1, FOOT.proud, FOOT.proud + 0.05, f0, f0 + FOOT.h, 'wall_foot',
           k === 'mudbrick' ? 'the mud skirting thickened into a fillet at the paving (D-334, C)' : 'the floor coat turned up against the wall foot (D-334, C)'));
       }

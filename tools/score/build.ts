@@ -101,6 +101,8 @@ function mixCue(cue: Cue) {
   // the master: a warm tilt, the glue, the level, the ceiling
   L = biquad(biquad(L, SR, 'lowshelf', 90, 0.7, 1.5), SR, 'highshelf', 9000, 0.7, 1.0); R = biquad(biquad(R, SR, 'lowshelf', 90, 0.7, 1.5), SR, 'highshelf', 9000, 0.7, 1.0);
   L = biquad(L, SR, 'hp', 24, 0.7); R = biquad(R, SR, 'hp', 24, 0.7);
+  // a gentle presence dip (the self-review's harshness check: sampled violins and brass at forte crowd 2.5-6 kHz)
+  L = biquad(L, SR, 'peak', 3600, 0.8, -1.8); R = biquad(R, SR, 'peak', 3600, 0.8, -1.8);
   let ch: Float32Array[] = compress([L, R], SR, { thr: -20, ratio: 1.8, att: 0.03, rel: 0.35, knee: 8 });
   const target = cue.lufs ?? -18, now = lufs(ch, SR), gain = db(target - now);
   ch = ch.map(c => c.map(x => x * gain));

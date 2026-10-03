@@ -164,7 +164,8 @@ describe('garments re-cut from simulated patterns (D-322)', () => {
   });
   it('rev 2: bodies of a group do not all fold alike: a second cut per piece and group, worn by every other body variant, whose drape differs', () => {
     const D = M.drape!, S = D.meta.seeds ?? 1; expect(S).toBeGreaterThanOrEqual(2);
-    for (const k of ['dress_skirt@0|women', 'robe_skirt@0|men', 'tunic_upper@0|men', 'robe_sleeves@0|men', 'veil@0|women']) {
+    // (s18 C14: the veil keeps one cut, people.json veil.seeds: its second settled 25 cm off; the headcloth's two cuts instead)
+    for (const k of ['dress_skirt@0|women', 'robe_skirt@0|men', 'tunic_upper@0|men', 'robe_sleeves@0|men', 'headcloth@0|women']) {
       const a = D.sets[k], b = D.sets[`${k}#1`]; expect(b, k).toBeTruthy(); let ss = 0; for (let i = 0; i < a.d.length; i++) ss += ((a.d[i] - b.d[i]) * DRAPE_UNIT) ** 2;
       expect(Math.sqrt(ss / (a.d.length / 3)), k).toBeGreaterThan(0.004); }
     // in the costumes: two women wear different cuts (by body variant index), so their placed skirts differ beyond the body's own shape
