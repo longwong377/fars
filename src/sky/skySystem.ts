@@ -13,7 +13,8 @@ import { sunHorizon, moonHorizon, moonPhase, azAltToWorld, j2000ToHorizonMatrix,
 import { VolumetricClouds } from './clouds';
 import { Meteors } from './meteors';
 import { Planets } from './planets';
-import { Comet } from './comet';
+import { Comet, gameDay } from './comet';
+import { cloudKind, cirrusToday, doyOf } from './cloudKind';
 import { skyCalibration, twilightWeight, TW_HI } from './horizon';
 import { Atmosphere, aerosolTauFor, OBSERVER_ALT, SUN_ANGULAR_RADIUS, xyToRenderer, daylightXY, type SkyView, type SkyViewJob } from './atmosphere';
 import { sunNormalLux, skyLux, moonLux, elongationFromFraction, extinctionK, NIGHT_LUX, REN_PER_LUX_SUN, REN_PER_LUX_SKY } from './illuminance';
@@ -109,6 +110,8 @@ export class SkySystem {
   private uKP = uniform(1); private uKT = uniform(0); private uDW = uniform(0);
   /** D-480: the night dome's zenith and horizon radiance (weight and moonlight included) */
   private uNZ = uniform(new THREE.Color(0, 0, 0)); private uNH = uniform(new THREE.Color(0, 0, 0));
+  /** D-680: the cirrus veil's strength, light and drift (km) */
+  private uCirrus = uniform(0); private uCirCol = uniform(new THREE.Color(0, 0, 0)); private uCirOff = uniform(new THREE.Vector2(0, 0));
   /** the overcast part of the dome (D-224): its zenith radiance × the cover, drawn with the CIE overcast gradation where the
    *  volumetric layer is off (test quality); where it is on, the layer draws the cloud and the dome between is clear sky */
   private uOv = uniform(new THREE.Color(0, 0, 0));
@@ -245,7 +248,14 @@ export class SkySystem {
       const dogRGB = vec3(dog(-0.3), dog(0), dog(0.3)).mul(exp(de.div(0.9).pow(2).negate())).mul(float(1).sub(smoothstep(40, 55, this.uSunAlt)));
       const halo = float(1).add(ringRGB.mul(0.45).add(dogRGB.mul(2.2)).mul(this.uHalo));
       const nightDome = mix(this.uNH as any, this.uNZ as any, sqrt(clamp(d.y, 0, 1)));
-      (skyMat as any).colorNode = vec4(cn.xyz.mul(this.uKP).add(nightDome).add(T.mul(this.uKT)).mul(halo).add((this.uDisc as any).mul(disc.mul(this.uDW))).add((this.uOv as any).mul(ovG)), 1); }
+      // D-680: the cirrus veil (cloudKind.ts: commonest in autumn): ice-crystal streaks on a plane ~9 km up, stretched along the
+      // upper wind, lit by the high sun (white by day, rose at sunset after the ground's sun has gone: the clouds' top light)
+      const cq = vec2(d.x, d.z).div(max(d.y, 0.03)).mul(9).add(this.uCirOff as any); // (km on the 9 km plane)
+      const cRot = vec2(cq.x.mul(0.8).sub(cq.y.mul(0.6)), cq.x.mul(0.6).add(cq.y.mul(0.8)));
+      const cN = mx_fractal_noise_float(vec3(cRot.x.mul(0.05), cRot.y.mul(0.6), 0.37), int(4), float(2.2), float(0.55));
+      const cMask = smoothstep(0.08, 0.42, cN).mul(smoothstep(0.02, 0.14, d.y)).mul(this.uCirrus);
+      const cirrus = (this.uCirCol as any).mul(cMask);
+      (skyMat as any).colorNode = vec4(cn.xyz.mul(this.uKP).add(nightDome).add(T.mul(this.uKT)).add(cirrus).mul(halo).add((this.uDisc as any).mul(disc.mul(this.uDW))).add((this.uOv as any).mul(ovG)), 1); }
     scene.add(this.sky);
     this.sun.castShadow = true;
     this.sun.shadow.mapSize.set(shadowMapSize, shadowMapSize);
@@ -578,7 +588,12 @@ export class SkySystem {
     // solved for the drifted field around the camera (recomputed when the observer or the field has moved > 500 m)
     { const cx = camPos.x + C.wind.value.x * C.time.value, cz = camPos.z + C.wind.value.y * C.time.value;
       if (!this.coverAt || Math.hypot(cx - this.coverAt[0], cz - this.coverAt[1]) > 500) { this.coverAt = [cx, cz]; this.coverFactor = C.mesh.visible ? localWeatherFactor(cx, cz) : 1; }
-      C.coverage.value = localCoverageUniform(cloudCover, (coverTable as any).dome, this.coverFactor); } // the weather's cover is the observed DOME cover (D-145)
+      C.coverage.value = localCoverageUniform(cloudCover, (coverTable as any).dome, this.coverFactor); }
+    { // D-680: the season's cloud types (cloudKind.ts): the deck's stratiform share and the cirrus veil
+      const doy = doyOf(gameDay(jdUT)); C.stratus.value = cloudKind(doy).stratus; this.uCirrus.value = cirrusToday(doy, cloudCover, 0);
+      const top = C.sunColorTop.value as THREE.Color, hc = this.hemi.color, hI = this.hemi.intensity;
+      this.uCirCol.value.setRGB(top.r * 0.035 + hc.r * hI * 0.08, top.g * 0.035 + hc.g * hI * 0.08, top.b * 0.035 + hc.b * hI * 0.08);
+      this.uCirOff.value.set(C.wind.value.x * C.time.value * 0.004, C.wind.value.y * C.time.value * 0.004); } // the weather's cover is the observed DOME cover (D-145)
     // (the floor is taken on the moonless sky's light, so moonlight still adds on top: a moonlit night stays brighter)
     const nightBase = (skyLux(alt) + NIGHT_LUX) * (1 - 0.3 * cloudCover) + sunN * sinA;
     this.hemi.intensity *= Math.min(NIGHT_FILL, Math.max(1, NIGHT_GREY / Math.max(displayedGrey(nightBase, nightBase), 1e-9))); // D-480: the night fill (after everything that reads the physical skylight)
