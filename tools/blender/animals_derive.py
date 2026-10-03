@@ -9,6 +9,8 @@
 # delegations, B for the species at Persepolis):
 #   bactrian (and bactrian_pack: the humps a fifth lower under the load) — from the dromedary: one hump made two (fore and hind, a saddle between, both lower than the dromedary's), the long
 #              dark winter hair under the throat, on the upper fore legs and on the humps' tops, the coat darker and browner;
+#   boar     — from the hyena (the nearest build: the high forehand and sloping back): the snout drawn out into the long wedge,
+#              the legs a fifth shorter, the bristled crest along the spine, the hide dark grey-brown grizzle;
 #   zebu     — from the cow: the hump over the withers, the deep dewlap under the throat and brisket, the coat grey-white with
 #              the bull's darker forehand (the cow's ears kept: a drooping ear is a later breed's mark, and the mesh's ears are thin).
 import bpy, sys, json, math
@@ -25,6 +27,11 @@ for o in objs:
     if o is not lod0: bpy.data.objects.remove(o, do_unlink=True)
 me = lod0.data; me.transform(lod0.matrix_world); lod0.matrix_world.identity()
 lod0.name = 'derived'; me.name = 'derived'  # (the library route names its own levels lod0 and lod1)
+# twice as fine before reshaping (the donor's lod0 is ~6 k triangles: a hump drawn on it came out a pyramid); the library route
+# decimates it back to its budget, following the new shape
+bpy.context.view_layer.objects.active = lod0; lod0.select_set(True)
+sub = lod0.modifiers.new('sub', 'SUBSURF'); sub.subdivision_type = 'SIMPLE'; sub.levels = 1; sub.uv_smooth = 'PRESERVE_BOUNDARIES'
+bpy.ops.object.modifier_apply(modifier=sub.name); me = lod0.data
 n = len(me.vertices)
 co = np.empty(n * 3, np.float32); me.vertices.foreach_get('co', co); co = co.reshape(-1, 3)
 # the game's frame: x, y up, z forward  (glTF import: Blender (X, Y, Z) = (x, -z, y))
@@ -63,8 +70,10 @@ if job['recipe'] in ('bactrian', 'bactrian_pack'):
     e0 = np.maximum(h0 - baseline(z), 0)
     hump = (z > zh_leg - 0.1) & (z < zf_leg + 0.15)
     peak = float(e0[hump & mid].max()); span = zf_leg - zh_leg
-    zF, zH = zh_leg + 0.74 * span, zh_leg + 0.22 * span; sg = 0.16 * span
+    zF, zH = zh_leg + 0.86 * span, zh_leg + 0.34 * span; sg = 0.17 * span  # (the fore hump over the withers, the hind over the loins: the saddle where the pack rides)
     e1 = 0.82 * peak * np.maximum(gauss(z - zF, sg), gauss(z - zH, sg * 1.1)) + 0.12 * peak * gauss(z - (zF + zH) / 2, 0.5 * span)
+    # the saddle between them dips to the back's own line and a little under it (the humps stand up from the back: C)
+    e1 = e1 - 0.22 * peak * gauss(z - (zF + zH) / 2, 0.14 * span)
     if job['recipe'] == 'bactrian_pack': e1 *= 0.8  # (a working camel under its load: the humps lower, pressed by the saddle's pads)
     # each vertex of the upper body moves by the change of the hump's height, fading down the flanks (the barrel stays)
     lo = baseline(z) - 0.32
@@ -96,18 +105,43 @@ elif job['recipe'] == 'zebu':
     H = R['backY']; zw = zf_leg - 0.02
     # the hump: over the withers, a little forward of the fore legs' tops, leaning back (C: ~14 % of the withers height in a bull)
     upper = sstep(R['bodyY'] + 0.05, H - 0.02, y)
-    hump = gauss(z - zw, 0.2) * gauss(x, 0.15) * upper
-    G[:, 1] += 0.13 * hump; G[:, 2] -= 0.04 * hump * sstep(zw - 0.1, zw + 0.1, z)
+    # (a dome, not a peak: the hump is a rounded lump of muscle and fat over the withers)
+    hump = np.sqrt(np.clip(1 - ((z - zw) / 0.22) ** 2 - (x / 0.15) ** 2, 0, 1)) ** 1.5 * upper
+    G[:, 1] += 0.19 * hump; G[:, 2] -= 0.04 * hump * sstep(zw - 0.1, zw + 0.1, z)
     # the dewlap: the skin under the throat and the brisket hangs in a deep fold, thin from side to side
     tn, dn, below = neck_frame()
     zthroat = base[2] + 0.62 * (top[2] - base[2])
     dz = (z > zf_leg - 0.05) & (z < zthroat + 0.05) & (np.abs(x) < 0.13) & (y < base[1] + 0.12) & (y > R['bellyY'] - 0.05)
     under = dz & ((below > -0.01) | (z < base[2] + 0.05))
-    w = under * gauss((z - (zf_leg + zthroat) / 2) / max(zthroat - zf_leg, 0.1), 0.55) * np.clip(1 - np.abs(x) / 0.13, 0, 1) ** 1.5
-    G[:, 1] -= 0.14 * w; G[:, 0] *= 1 - 0.35 * np.clip(w * 2, 0, 1)
+    w = under * gauss((z - (zf_leg + zthroat) / 2) / max(zthroat - zf_leg, 0.1), 0.6) * np.clip(1 - np.abs(x) / 0.15, 0, 1)
+    G[:, 1] -= 0.17 * w; G[:, 0] *= 1 - 0.35 * np.clip(w * 2, 0, 1)
     dark *= 1 - 0.38 * np.clip(hump * 2 + gauss(z - zw, 0.35) * upper * 0.6 + w, 0, 1)
     coat = None
     log('hump', int((hump > 0.05).sum()), 'dewlap', int((w > 0.05).sum()))
+elif job['recipe'] == 'boar':
+    x, y, z = G[:, 0], G[:, 1], G[:, 2]
+    # the long wedge of the snout: the head ahead of the eyes drawn out along its axis and narrowed to the disc (C: a boar's
+    # head is a third of its body length, the snout most of it)
+    hdv = np.array(R['muzzle']) - top; hl = float(np.linalg.norm(hdv)); hd = hdv / hl
+    s_ = (G - top) @ hd; s_eye = 0.32 * hl
+    fwd = np.clip((s_ - s_eye) / (hl - s_eye), 0, 1) * (s_ > s_eye)
+    near_head = np.linalg.norm(G - (top + np.outer(np.clip(s_, 0, hl), hd)), axis=1) < 0.16
+    w = fwd * near_head
+    radial = (G - top) - np.outer(s_, hd)
+    G += np.outer(w * (s_ - s_eye) * 0.55, hd) - radial * (0.28 * w)[:, None]
+    # the shorter legs: the body lowered toward its feet (legs a fifth shorter; the barrel kept)
+    bel = R['bellyY']; k = 0.8
+    G[:, 1] = np.where(G[:, 1] < bel, G[:, 1] * k, G[:, 1] - bel * (1 - k))
+    # the bristled crest along the spine from the nape to the croup
+    tn, dn, below = neck_frame()
+    back = (np.abs(G[:, 0]) < 0.05) & (G[:, 2] > R['tailRoot'][2] + 0.1) & (G[:, 2] < top[2] - 0.12)
+    prof_y = np.interp(G[:, 2], *zip(*sorted({round(float(zz), 2): float(G[(np.abs(G[:, 2] - zz) < 0.03) & (np.abs(G[:, 0]) < 0.05), 1].max(initial=-1)) for zz in np.arange(G[:, 2].min(), G[:, 2].max(), 0.02)}.items())))
+    crest = back & (G[:, 1] > prof_y - 0.035)
+    G[crest, 1] += 0.045 * fringe(G[crest, 0], G[crest, 2]) * (1 - np.abs(G[crest, 0]) / 0.05)
+    dark[crest] *= 0.55
+    dark *= 1 - 0.35 * np.clip(w * 2, 0, 1) * (s_ > 0.85 * hl)  # (the snout's disc darker)
+    coat = None
+    log('snout', int((w > 0.05).sum()), 'crest', int(crest.sum()))
 else:
     raise SystemExit('unknown recipe ' + job['recipe'])
 
@@ -117,7 +151,13 @@ me.vertices.foreach_set('co', co.ravel()); me.update()
 img = bpy.data.images.load(job['albedo']); img.colorspace_settings.name = 'sRGB'
 W_, H_ = img.size; px = np.empty(W_ * H_ * 4, np.float32); img.pixels.foreach_get(px); px = px.reshape(-1, 4)
 lin = np.where(px[:, :3] <= 0.04045, px[:, :3] / 12.92, ((px[:, :3] + 0.055) / 1.055) ** 2.4)
-if job['recipe'] == 'zebu':
+if job['recipe'] == 'boar':
+    # the spotted hide to a boar's dark grizzled bristles: the luminance's contrast halved (the spots fade into grizzle), on
+    # a grey-brown (C: Sus scrofa's winter coat)
+    lum = lin @ np.array([0.2126, 0.7152, 0.0722]); fg = px[:, 3] > 0.5; mu = float(lum[fg].mean()) if fg.any() else 0.1
+    l2 = mu + (lum - mu) * 0.45
+    lin = np.clip(np.outer(l2 / max(mu, 1e-4), [0.085, 0.07, 0.058]), 0, 1)
+elif job['recipe'] == 'zebu':
     lum = lin @ np.array([0.2126, 0.7152, 0.0722])
     # grey-white: the red-brown's luminance lifted toward a pale warm grey, its grain kept
     lin = np.clip(np.stack([lum, lum, lum], 1) * 1.75 * np.array([1.0, 0.96, 0.9]) + 0.02, 0, 1) * 0.9 + 0.1 * lin
