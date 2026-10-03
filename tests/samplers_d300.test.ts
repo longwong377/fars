@@ -7,11 +7,12 @@ import * as THREE from 'three/webgpu';
 import { surfaceMaterial, paintedStoneMaterial, SURFACES } from '../src/render/materials';
 import { setScanTexturesForTest } from '../src/render/scans';
 import { installProbeLight } from '../src/render/probes/runtime';
-const NODE_MAX = 6; // 16 on the page with one to spare (render 3: 7 passed; render v4: 8 failed; the merged session-11 render
+import { registerSettlementSurfaces } from '../src/world/settlement/surfaces';
+const NODE_MAX = 5; // 16 on the page with one to spare (render 3: 7 passed; render v4: 8 failed; the merged session-11 render
 // failed a pipeline at 17 with the Terrace platform at 7: the page's own count varies with the scene's lights)
 describe('D-300 fragment samplers with every scan loaded (node)', () => {
   it('no surface exceeds the 16 samplers of a fragment stage on the page', () => {
-    setScanTexturesForTest();
+    registerSettlementSurfaces(); setScanTexturesForTest(); // (D-490: the town's surfaces too: house_plaster, socle, roofs)
     try {
       const canvas: any = { style: {}, width: 960, height: 540, getContext: () => null, addEventListener() {}, removeEventListener() {} };
       const r: any = new (THREE as any).WebGPURenderer({ canvas }); installProbeLight(r); r.hasFeature = () => true;
@@ -21,6 +22,7 @@ describe('D-300 fragment samplers with every scan loaded (node)', () => {
       const over: string[] = [], rows: string[] = [];
       for (const k of Object.keys(SURFACES)) for (const arch of [false, true]) { const n = count(surfaceMaterial(k, { arch })); rows.push(`${k}${arch ? '+arch' : ''} ${n}`); if (n > NODE_MAX) over.push(`${k}${arch ? '+arch' : ''}: ${n}`); }
       const np = count(paintedStoneMaterial()); if (np > NODE_MAX) over.push(`painted stone: ${np}`);
+      if (process.env.SAMPLER_ROWS) console.log('ROWS', rows.join(', '));
       expect(over, rows.join(', ')).toEqual([]);
     } finally { setScanTexturesForTest(false); }
   }, 600_000);

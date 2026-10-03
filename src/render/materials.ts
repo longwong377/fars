@@ -1203,7 +1203,9 @@ export function surfaceMaterial(name: string, opts: { vertexColors?: boolean; va
   }
   if (d.under && SURFACES[d.under]) { // down-facing faces use another surface (the ceiling's matting, D-188)
     // (D-301: the underside takes its own surface's scan, the reed matting's weave; the main layer took its own above)
-    const U = applyScan(d.under, layer(SURFACES[d.under], lin(SURFACES[d.under].albedo), !!opts.arch), !!(d.top && SURFACES[d.top])); /* D-334: with a top layer as well (the roofs' earth) the underside keeps its procedural roughness: 16 samplers */ const t = smoothstep(0.7, 0.9, n.y.negate());
+    const UL = layer(SURFACES[d.under], lin(SURFACES[d.under].albedo), !!opts.arch);
+    // D-490 (s17, the T4 at 17 samplers): with a top layer as well (the palace roofs) the ceiling's matting keeps its procedural weave, no scan
+    const U = d.top && SURFACES[d.top] ? UL : applyScan(d.under, UL, false); /* D-334: with a top layer as well (the roofs' earth) the underside keeps its procedural roughness: 16 samplers */ const t = smoothstep(0.7, 0.9, n.y.negate());
     L = { alb: mix(L.alb, U.alb, t), rough: mix(L.rough, U.rough, t), height: L.height && U.height ? mix(L.height, U.height, t) : (L.height ?? U.height), tilt: L.tilt ? L.tilt.mul(float(1).sub(t)) : undefined };
   }
   // (the scanned grain over the procedural surface, session 11: applied per layer above; identity in node)

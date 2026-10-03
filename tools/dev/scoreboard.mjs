@@ -33,7 +33,7 @@ if (cmd === 'run') {
   // building) plus six agents' probes hung WMI, reset the T4 (device removed) and took the Claude app down (23:20 UTC).
   mkdirSync(ROOT, { recursive: true });
   const LOCK = join(ROOT, 'train.lock'), alive = pid => { try { process.kill(pid, 0); return true; } catch { return false; } };
-  if (existsSync(LOCK)) { const o = JSON.parse(readFileSync(LOCK, 'utf8')); if (alive(o.pid)) { console.error(`refused: train ${o.label} (pid ${o.pid}) is running since ${o.since}; one full-world train at a time`); process.exit(3); } }
+  if (existsSync(LOCK)) { const o = JSON.parse(readFileSync(LOCK, "utf8")); if (o.pid > 0 && alive(o.pid)) { console.error(`refused: train ${o.label} (pid ${o.pid}) is running since ${o.since}; one full-world train at a time`); process.exit(3); } }
   const freeGB = (await import('./boxguard.mjs')).freeGB(); // the smaller of free RAM and free COMMIT (D-472)
   if (freeGB < 24 && !process.env.FORCE) { console.error(`refused: ${freeGB.toFixed(1)} GB free (RAM or commit) < 24 GB (a train page commits up to ~18 GB)`); process.exit(3); }
   writeFileSync(LOCK, JSON.stringify({ pid: process.pid, label, since: new Date().toISOString() }));
