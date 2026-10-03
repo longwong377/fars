@@ -469,27 +469,60 @@ export function workGeometry(kind: WorkKind): THREE.BufferGeometry {
 }
 
 /** the work objects: one instanced mesh per kind, filled every frame by the crowd (begin / push / end) */
+/** s18 C14 (D-790): the vehicles' wheels, drawn apart from the body so they turn: radius, axles (x, z of each wheel's
+ *  centre; y = R), the half-width of a wheel's slab about its x (hub included) */
+export const WHEELS: Partial<Record<WorkKind, { R: number; axles: [number, number][]; half: number }>> = {
+  cart: { R: 0.46, axles: [[0.82, 0], [-0.82, 0]], half: 0.085 }, cart_stone: { R: 0.46, axles: [[0.82, 0], [-0.82, 0]], half: 0.085 },
+  cart_timber: { R: 0.46, axles: [[0.82, 0], [-0.82, 0]], half: 0.085 }, chariot: { R: 0.5, axles: [[0.7, 0], [-0.7, 0]], half: 0.15 },
+  wagon: { R: 0.42, axles: [[0.82, 0.95], [-0.82, 0.95], [0.82, -0.95], [-0.82, -0.95]], half: 0.06 },
+};
+/** s18 C14: a vehicle's geometry split: the body without its wheels, and one wheel (the +x first axle's triangles) centred on
+ *  its own axle (the wheels are alike and mirror-symmetric) */
+export function splitWheels(g: THREE.BufferGeometry, W: { R: number; axles: [number, number][]; half: number }): { body: THREE.BufferGeometry; wheel: THREE.BufferGeometry } {
+  const src = g.index ? g.toNonIndexed() : g, pos = src.getAttribute('position'), n = pos.count / 3, keepB: number[] = [], keepW: number[] = [];
+  for (let t = 0; t < n; t++) { let cx = 0, cy = 0, cz = 0; for (let v = 0; v < 3; v++) { cx += pos.getX(t * 3 + v) / 3; cy += pos.getY(t * 3 + v) / 3; cz += pos.getZ(t * 3 + v) / 3; }
+    let wi = -1; W.axles.forEach(([x, z], i) => { if (wi < 0 && Math.abs(cx - x) < W.half && Math.hypot(cy - W.R, cz - z) < W.R + 0.03) wi = i; });
+    if (wi < 0) keepB.push(t); else if (wi === 0) keepW.push(t); }
+  const pick = (tris: number[], shift: [number, number, number]) => { const out = new THREE.BufferGeometry();
+    for (const name of Object.keys(src.attributes)) { const a = src.getAttribute(name), k = a.itemSize, arr = new Float32Array(tris.length * 3 * k);
+      tris.forEach((t, i) => { for (let v = 0; v < 3; v++) for (let c = 0; c < k; c++) arr[(i * 3 + v) * k + c] = a.getComponent(t * 3 + v, c) - (name === 'position' ? shift[c] : 0); });
+      out.setAttribute(name, new THREE.BufferAttribute(arr, k, a.normalized)); }
+    return out; };
+  const [x0, z0] = W.axles[0];
+  return { body: pick(keepB, [0, 0, 0]), wheel: pick(keepW, [x0, W.R, z0]) };
+}
+const _wm = new THREE.Matrix4(), _wr = new THREE.Matrix4();
 export class WorkObjects {
   readonly group = new THREE.Group();
-  private meshes = new Map<WorkKind, { mesh: THREE.InstancedMesh; n: number; radius: number; box: THREE.Box3 }>();
+  private meshes = new Map<WorkKind, { mesh: THREE.InstancedMesh; n: number; radius: number; box: THREE.Box3; wheel?: { mesh: THREE.InstancedMesh; n: number } }>();
   /** objects not drawn this frame because their kind's instance cap was full (reported by stats: never silent) */
   dropped = 0;
   constructor(private material: THREE.Material, private cap = 256) { this.group.name = 'work:objects-dynamic'; }
   private mesh(kind: WorkKind) {
     let m = this.meshes.get(kind); if (m) return m;
-    const g = workGeometry(kind); g.computeBoundingSphere();
+    let g = workGeometry(kind); const W = WHEELS[kind]; let wheel: { mesh: THREE.InstancedMesh; n: number } | undefined;
+    if (W) { const sp = splitWheels(g, W); if (sp.wheel.getAttribute('position').count) { g = sp.body; const wm = new THREE.InstancedMesh(sp.wheel, this.material, this.cap * W.axles.length);
+      wm.count = 0; wm.visible = false; wm.castShadow = wm.receiveShadow = true; wm.instanceMatrix.setUsage(THREE.DynamicDrawUsage); wm.name = `work:${kind}:wheels`; wm.userData = { tier: WORK_NOTES[kind].tier, src: 'RECON', note: WORK_NOTES[kind].note + ' (its wheels, turning)' }; wm.raycast = () => {};
+      wm.frustumCulled = false; nearCascadesOnly(wm); this.group.add(wm); wheel = { mesh: wm, n: 0 }; } }
+    g.computeBoundingSphere();
     const mesh = new THREE.InstancedMesh(g, this.material, this.cap); mesh.count = 0; mesh.visible = false; mesh.castShadow = mesh.receiveShadow = true;
     mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); mesh.name = `work:${kind}`; mesh.userData = { tier: WORK_NOTES[kind].tier, src: 'RECON', note: WORK_NOTES[kind].note }; mesh.raycast = () => {};
     mesh.frustumCulled = true; mesh.boundingSphere = new THREE.Sphere(); nearCascadesOnly(mesh);
-    this.group.add(mesh); m = { mesh, n: 0, radius: g.boundingSphere!.radius, box: new THREE.Box3() }; this.meshes.set(kind, m); return m;
+    this.group.add(mesh); m = { mesh, n: 0, radius: g.boundingSphere!.radius, box: new THREE.Box3(), wheel }; this.meshes.set(kind, m); return m;
   }
-  begin() { this.dropped = 0; for (const m of this.meshes.values()) { m.n = 0; m.box.makeEmpty(); } }
-  push(kind: WorkKind, M: THREE.Matrix4) {
+  begin() { this.dropped = 0; for (const m of this.meshes.values()) { m.n = 0; m.box.makeEmpty(); if (m.wheel) m.wheel.n = 0; } }
+  /** `roll` (rad): how far a vehicle's wheels have turned (its distance travelled / R; s18 C14) */
+  push(kind: WorkKind, M: THREE.Matrix4, roll = 0) {
     const m = this.mesh(kind); if (m.n >= this.cap) { this.dropped++; return; }
     m.mesh.setMatrixAt(m.n++, M); m.box.expandByPoint(_p.setFromMatrixPosition(M));
+    const W = WHEELS[kind], w = m.wheel; if (W && w) W.axles.forEach(([x, z], i) => { const mir = x * W.axles[0][0] < 0;
+      _wr.makeRotationX(mir ? -roll : roll); if (mir) _wr.premultiply(_wm.makeRotationY(Math.PI)); _wr.setPosition(x, W.R, z);
+      w.mesh.setMatrixAt(w.n++, _wm.multiplyMatrices(M, _wr)); void i; });
   }
   end() {
-    for (const m of this.meshes.values()) { const im = m.mesh; im.count = m.n; im.visible = m.n > 0; if (!m.n) continue;
+    for (const m of this.meshes.values()) { const im = m.mesh; im.count = m.n; im.visible = m.n > 0;
+      if (m.wheel) { const wm = m.wheel.mesh; wm.count = m.wheel.n; wm.visible = m.wheel.n > 0; if (m.wheel.n) { wm.instanceMatrix.needsUpdate = true; wm.instanceMatrix.clearUpdateRanges(); wm.instanceMatrix.addUpdateRange(0, m.wheel.n * 16); } }
+      if (!m.n) continue;
       im.instanceMatrix.needsUpdate = true; im.instanceMatrix.clearUpdateRanges(); im.instanceMatrix.addUpdateRange(0, m.n * 16);
       m.box.getBoundingSphere(im.boundingSphere!); im.boundingSphere!.radius += m.radius; }
   }

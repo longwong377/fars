@@ -573,8 +573,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // 135 on the Terrace; published words only, each person their own voice; a grain bed for the talkers beyond (audio/voices.ts)
   const voices = new PopulationVoices(audio, { seed }); const overheard = new Overheard(sim); voices.script = (k, g, l) => overheard.next(k, g, l); voices.neural = neural; farCrowd.neural = neural; const nearBuf: NearPerson[] = []; const scriptedUntil = new Map<string, number>();
   // what a person near says reaches the translation layer (out of world; T-K3c), unless a scripted line was shown lately
-  let scriptedSubAt = -1e9; voices.onCaption = c0 => { if (c0.lang === 'wordless' || time - scriptedSubAt < 4) return; const c1 = thinCaption(sim, c0), tp = overheard.topicFor(c0.key), c = { ...c1, lang: c0.lang, gloss: tp ? `${c1.gloss}${c1.gloss ? ' ' : ''}(talking of ${tp})` : c1.gloss }; // (D-377: what they talk of; D-370: the gloss thins as the stranger learns the tongue)
-    lastSubtitle = { lineId: c.unit, lang: c.lang, translit: c.translit, gloss: c.gloss, tier: c.tier, speakerId: c.key, backend: neural?.stats.ready ? 'kokoro' : 'formant' }; };
+  let scriptedSubAt = -1e9; voices.onCaption = c0 => { if ((c0.lang === 'wordless' && !c0.tongue) || time - scriptedSubAt < 4) return; const c1 = thinCaption(sim, c0), tp = overheard.topicFor(c0.key), c = { ...c1, lang: c0.lang, gloss: tp ? `${c1.gloss}${c1.gloss ? ' ' : ''}(talking of ${tp})` : c1.gloss }; // (D-377: what they talk of; D-370: the gloss thins as the stranger learns the tongue)
+    lastSubtitle = { lineId: c.unit, lang: c.lang as any, translit: c.translit, gloss: c.gloss, tier: c.tier, speakerId: c.key, backend: neural?.stats.ready ? 'kokoro' : 'formant' }; };
   // D-245: the rivers and canals sound near their banks (audio/water.ts; T-G3e)
   const water = new WaterSound(audio, [...plain.data.rivers.rivers.map(r => ({ pts: Array.from(r.x, (x, i) => [x, r.y[i]] as [number, number]), half: r.topWidth / 2, kind: 'river' as const })),
     ...plain.data.canals.map(c => ({ pts: c.pts, half: c.width / 2, kind: 'canal' as const }))], groundAt, seed);
@@ -629,6 +629,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const courtOn = (d: number) => d >= 0 && sim.cal.ctx(d).court;
   const music = new MusicSystem(audio, () => courtOn(Math.floor(sim.t / 24)) || courtOn(Math.floor(sim.t / 24) - 1));
   const hadishRoom = rooms.find(r => r.id === 'hadish') ?? null;
+  const apadanaRoom = rooms.find(r => r.id === 'apadana') ?? null; // D-780: the court's banquets in the Apadana (C13)
   const director = new MusicDirector(music, audio, {
     addExtra: (key, x) => { crowd.addExtra(key, { id: -7000 - (x.seed % 1000), dress: x.sex === 'f' ? 'court_woman' : 'persian', sex: x.sex, role: 'musician', seed: x.seed, x: x.e, y: x.y, z: -x.n, yaw: yawOf(x.heading), anim: x.anim } as any); },
     removeExtra: key => crowd.detach(key),
@@ -795,7 +796,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
           if (time - leavesAt > 0.5) { leavesAt = time; syncLeaves(); occCache.clear(); }
           const day = Math.floor(sim.t / 24), C = sim.cal.ctx(day);
           director.update(dt, sim.agents as unknown as PerformerAgent[], { t: sim.t, seed, courtToday: C.court, courtYesterday: courtOn(day - 1), sun: C.sun, foul: C.wx.storm || ctx.cond.rain > 0.3,
-            courtHall: hadishRoom ? { cx: hadishRoom.cx, cy: hadishRoom.cy, sx: hadishRoom.sx, sy: hadishRoom.sy, fl: hadishRoom.fl } : null }, cam.position, bandPeople(day));
+            courtHall: hadishRoom ? { cx: hadishRoom.cx, cy: hadishRoom.cy, sx: hadishRoom.sx, sy: hadishRoom.sy, fl: hadishRoom.fl } : null, banquetHall: apadanaRoom ? { fl: apadanaRoom.fl } : null }, cam.position, bandPeople(day));
           audio.updateOcclusion(3); // ~0.1 ms per query measured in node (D-178): about 0.3 ms a frame
         }
         const jdn = ctx.clock.jdn, b = babylonianDate(jdn); void b;
@@ -811,7 +812,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
           // NearPerson for everyone within 400 m)
           if (time >= farAt) { farAt = time + 0.5; if (nowView.active) farBuf.length = 0; else crowd.nearPeople(cam.position, FAR_R, farBuf); }
           farCrowd.update(farBuf, cam.position);
-          const at = audio.ctx.currentTime; for (const [k, v] of voices.speaking) crowd.voice(k, time + (v.from - at), time + (v.to - at), time);
+          const at = audio.ctx.currentTime; for (const [k, v] of voices.speaking) crowd.voice(k, time + (v.from - at), time + (v.to - at), time, v.ipa ?? v.text); // D-790: the mouth takes the words
           crowd.claimVoices(voices.claimed, time);
           if ((Math.floor(time) & 31) === 0) for (const [k, u] of scriptedUntil) if (u < time) scriptedUntil.delete(k);
           water.update(cam.position, month); }

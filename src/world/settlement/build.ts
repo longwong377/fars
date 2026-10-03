@@ -7,7 +7,7 @@ import type { Physics } from '../../player/physics';
 import type { Terrain } from '../../terrain/heightfield';
 import type { FireSystem, FireKind, FireSchedule } from '../fire';
 import { surfaceMaterial } from '../../render/materials';
-import { attribute, positionLocal, positionWorld, cameraPosition, vec3, textureLoad, ivec2, int, float, step, vec2, fract, smoothstep, fwidth, mix, clamp } from 'three/tsl';
+import { attribute, positionLocal, positionWorld, textureLoad, ivec2, int, float, step, vec2, fract, smoothstep, fwidth, mix, clamp } from 'three/tsl';
 import { SiteHouses, plasterBatch, newHB, TILE, NEAR_R, NEAR0, NEAR0_HYST, HOUSE_PARTS, POLE_GAP, seasonOf, type HB } from './houses';
 import { interiorRing } from '../interiors/ring';
 import { TownDoors } from './towndoors';
@@ -65,10 +65,12 @@ export function partDesc(desc: Desc[], o: number, far: boolean): Desc | null {
   base.part = part; if (far) { base.lod = "far"; base.note = `${base.note} [${FAR_LOD_NOTE}]`; }
   return base;
 }
+/** s18 C2 (D-665): the lower-city belt's quarters (plan.ts q_b*) drawn in the mesh of the quarter beside them */
+const BELT_WITH: Record<string, string> = { q_b1: 'q_w1', q_b3: 'q_w3', q_b4: 'q_s1', q_b5: 'q_n1', q_b6: 'q_w1' };
 /** town meshes farther than this from the camera cast no shadows (they would only fill the Terrace's far cascades) */
 export const SHADOW_RANGE = 150;
-/** the town's trodden ground over the terrain near the eye (m; s18 C2, D-660: was 0.1, over the fill's and the people's feet) */
-export const GROUND_LIFT = 0.01;
+/** the town's trodden ground over the terrain (m): the terrain's coarser LODs must not poke through (fillPlan.ts TOWN_LIFT) */
+export const GROUND_LIFT = 0.1;
 
 export class Settlement {
   readonly group = new THREE.Group();
@@ -112,7 +114,7 @@ export class Settlement {
     const clusters = new Map<string, Cluster>();
     const quarters = this.plan.sites.filter(s => s.meta.kind === 'quarter');
     const clusterOf = (s: Site): string => {
-      if (s.meta.kind === 'quarter') return s.id;
+      if (s.meta.kind === 'quarter') return BELT_WITH[s.id] ?? s.id; // (s18 C2, D-665: the belt's quarters in their neighbours' meshes: no new draws)
       // low garden and orchard walls in one mesh that casts no shadow; the four estates in one mesh
       if (s.plots.length && s.plots.every(p => p.kind === 'garden')) return 'gardens';
       if (s.id.startsWith('estate_')) return 'estates';
@@ -212,10 +214,8 @@ export class Settlement {
       this.group.add(m); this.info.tris += b.tris; this.info.meshes++; if (cl.id === 'gardens') m.castShadow = false; else this.casters.push(m);
     }
     if (ground.tris) { const gm = surfaceMaterial('road', { vertexColors: true }) as any; gm.polygonOffset = true; gm.polygonOffsetFactor = -4; gm.polygonOffsetUnits = -8;
-      // s18 C2 (D-660): 1 cm over the terrain round the eye, rising to 10 cm by 140 m (the terrain's coarser LODs must not poke
-      // through there). It was 10 cm everywhere: the lanes' fill, litter and people stand on the terrain's height (fill.ts, the
-      // nav grid), so 98 % of the litter and the mats lay under the lane's earth and every jar and tool stood 10 cm sunk in it
-      gm.positionNode = positionLocal.add(vec3(0, smoothstep(float(30), float(140), positionLocal.xz.sub(cameraPosition.xz).length()).mul(0.1 - GROUND_LIFT), 0));
+      // (s18 C2, D-662: 10 cm over the terrain again: lowered to 1 cm near the eye (D-660), the terrain's finer mesh rose through
+      // the 4 m quads in hard-edged green strips across the squares; the fill is lifted onto it instead, fillPlan.ts TOWN_LIFT)
       const m = new THREE.Mesh(ground.toGeometry(), gm); m.name = 'settlement:ground'; m.receiveShadow = true; m.matrixAutoUpdate = false; const own = ground.owner;
       m.userData = { tier: 'C', src: 'RECON', note: gDesc[0].note, describe: (hit: any) => gDesc[own[hit?.faceIndex ?? -1]] ?? gDesc[0] }; this.group.add(m); this.info.tris += ground.tris; this.info.meshes++; }
     if (refuse.tris) { const m = new THREE.Mesh(refuse.toGeometry(), mats.refuse); m.name = 'settlement:refuse'; m.receiveShadow = true; m.matrixAutoUpdate = false; const own = refuse.owner;

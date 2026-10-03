@@ -383,7 +383,11 @@ export class EventCalendar {
     if (this.court) { const CY = courtYear(seed);
       for (const x of heralds(seed)) if (x.day === d) E(x.hour, 'E-20', 'a courier of the court rides in along the royal road with word that the king is coming', 'station');
       if (d === CY.arrive) E(CY.kingHour, 'E-25', 'the court arrives from Susa', 'stair_foot'); if (d === CY.leave) E(9, 'E-26', 'the court leaves', 'stair_foot');
-      if (court && [12, 1].includes(month)) E(11, 'E-27', 'officials and taxpayers come to the king for the New Year', 'forecourt'); }
+      if (court && [12, 1].includes(month)) E(11, 'E-27', 'officials and taxpayers come to the king for the New Year', 'forecourt');
+      // D-780 (s18 C13): the court's programme (people/ceremony.ts) in the log: the audiences and the days of the peoples' gifts,
+      // the king's gifts, his birthday, the great banquets, the rides and the hunts
+      const PID: Record<string, string> = { gift_day: 'E-24', audience: 'E-24', king_gifts: 'E-36', birthday: 'E-35', banquet: 'E-28', ride: 'E-29', hunt: 'E-29' };
+      for (const e of pop.court?.programme(d) ?? []) if (PID[e.kind]) E(e.t0, PID[e.kind], e.note, e.place); }
 
     // --- life (E-04, E-37, E-70 … E-74), from the population's per-person draws
     const life = pop.lifeOn(d);

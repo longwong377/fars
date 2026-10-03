@@ -89,6 +89,8 @@ export function holdBabe(po: Pose, mode: BabeMode, anim: AnimId): number {
 }
 /** the arm held out to a small child walking beside (carer: the hand low at the side) or raised to hold the carer's
  *  hand (the child: `raise`, the arm's angle out from hanging, rad: popview handReach), on side `s` (C) */
+/** s18 C14: how far back of its rest the grown walker holds the child's hand (m, C) */
+export const HOLD_FWD = 0.07;
 export function holdHand(po: Pose, role: 1 | 2, side: 'l' | 'r', raise: number) {
   const sg = side === 'l' ? 1 : -1;
   const up: [number, number, number] = role === 1 ? [0.05, 0, 0.22 * sg] : [-0.12, 0, raise * sg], fore: [number, number, number] = role === 1 ? [-0.25, 0, 0] : [-0.1, 0, 0];
@@ -96,7 +98,10 @@ export function holdHand(po: Pose, role: 1 | 2, side: 'l' | 'r', raise: number) 
   // turns and leans with each stride, and the two walkers' strides differ), so the two hands meet
   const neutral: Pose = { rot: { [`${side}_upper`]: up, [`${side}_fore`]: fore, [`${side}_hand`]: [0, 0, 0] }, hips: [0, po.hips[1], 0] }; // (the hand held still in the walker's frame: the pelvis's sway is taken by the arm)
   po.rot[`${side}_hand`] = [0, 0, 0];
-  gripIK(po, trunk(po), side, palmOf(neutral, trunk(neutral), side), [sg * 0.7, -1, -0.25]);
+  // (s18 C14: the grown walker's held hand a little back, to the child's at its side: since the skirted gait (D-500,
+  // SKIRT_KNEE) the mother's hand led the child's by ~11 cm)
+  const tgt = palmOf(neutral, trunk(neutral), side); if (role === 1) tgt[2] -= HOLD_FWD;
+  gripIK(po, trunk(po), side, tgt, [sg * 0.7, -1, -0.25]);
   po.grip = side === 'l' ? [0.6, po.grip?.[1] ?? 0] : [po.grip?.[0] ?? 0, 0.6];
 }
 const _r = new Float64Array(9);

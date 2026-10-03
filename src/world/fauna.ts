@@ -34,7 +34,7 @@ import { toLocal, toGrid, ROOM, type Frame, type P2 } from './settlement/site';
 import type { Place } from '../audio/soundscape';
 import townData from '../data/town.json';
 import faunaData from '../data/fauna.json';
-import { beastRanges, beastsAt, keepAway, callsNow, BEAST_CALLS, type BeastRanges } from './beasts';
+import { beastRanges, beastsAt, callsNow, BEAST_CALLS, BeastFlight, type BeastRanges } from './beasts';
 
 const fr = (x: number) => x - Math.floor(x);
 /** a stable hash in [0, 1) of (seed, a, b) */
@@ -57,7 +57,7 @@ export function grazingSites(use: (e: number, n: number) => string, slope: (e: n
 /** D-570: how far the camps' picket lines are drawn (m) */
 export const CAMP_LINE_R = 300;
 export const FAUNA = {
-  yardDogTown: F.dog.yard_share_town as number, yardDogVillage: F.dog.yard_share_village as number, strayMiddenShare: F.dog.stray_midden_share as number,
+  yardDogTown: F.dog.yard_share_town as number, /** s18 C14 (D-790) */ yardCatTown: (F as any).cat?.yard_share_town as number ?? 0, yardDogVillage: F.dog.yard_share_village as number, strayMiddenShare: F.dog.stray_midden_share as number,
   henTown: F.poultry.yard_share_town as number, henVillage: F.poultry.yard_share_village as number, poultryYard: F.poultry.state_yard_birds as number,
   deer: F.fallow_deer.count as [number, number], gazelle: F.goitered_gazelle.count as [number, number], boar: F.wild_boar.count as number,
   /** D-256: the cows of the village compounds, the small stock with them, the state flock in the stockyard's fold */
@@ -69,7 +69,7 @@ export const FAC: Record<string, P2> = Object.fromEntries((townData as any).faci
 
 interface Yard { spots: P2[]; bed: P2; door: P2 }
 interface YardDog { yard: Yard; seed: number; where: 'town' | 'village' | 'stable' }
-interface Strays { c: P2; spots: P2[]; n: number; seed: number }
+interface Strays { c: P2; spots: P2[]; n: number; seed: number; /** s18 C14: a lane route out from the midden and back (open ground all the way) */ route?: P2[]; len?: number }
 interface HenYard { yard: Yard; n: number; cock: boolean; seed: number; r?: number }
 /** D-256: a village compound's animals penned in its court at night: the cow (and calf), and a few sheep and goats */
 interface StockYard { yard: Yard; cow: boolean; small: number; seed: number }
@@ -87,6 +87,7 @@ export class Fauna {
   readonly group = new THREE.Group();
   readonly animals = new Animals(1024, 'animals:fauna');
   readonly yardDogs: YardDog[] = []; readonly strays: Strays[] = []; readonly henYards: HenYard[] = [];
+  /** s18 C14 (D-790): the town's yard cats (their yard and seed) */ readonly yardCats: { yard: Yard; seed: number }[] = [];
   /** D-256: the village compounds' penned animals and the stockyard's fold (its centre; the flock drawn there at night) */
   readonly stockYards: StockYard[] = []; stockFold: { c: P2; n: number } | null = null; private stockGrid = new Grid<number>();
   poultry: { c: P2; n: number } | null = null; paradise: { frame: Frame } | null = null; boarPath: P2[] = [];
@@ -141,6 +142,7 @@ export class Fauna {
       hi++;
       if (p.kind === 'house' || p.kind === 'house_large') {
         if (h01(this.seed, hi, 1) < FAUNA.yardDogTown) this.yardDogs.push({ yard: yard(), seed: hi * 7 + 1, where: 'town' });
+        if (h01(this.seed, hi, 5) < FAUNA.yardCatTown) this.yardCats.push({ yard: yard(), seed: hi * 7 + 5 }); // (s18 C14)
         if (h01(this.seed, hi, 2) < FAUNA.henTown) this.henYards.push({ yard: yard(), n: 3 + Math.floor(h01(this.seed, hi, 3) * 4), cock: h01(this.seed, hi, 4) < 0.6, seed: hi * 7 + 2 });
       } else if (p.kind === 'stable' || p.kind === 'station') for (let k = 0; k < 2; k++) this.yardDogs.push({ yard: yard(), seed: hi * 7 + 3 + k, where: 'stable' });
     }
@@ -151,7 +153,12 @@ export class Fauna {
     plan.middens.forEach((m, mi) => { this.dungPts.add(m.c[0], m.c[1], m.c); if (m.kind !== 'midden' || h01(this.seed, 7000 + mi) >= FAUNA.strayMiddenShare) return;
       const spots: P2[] = []; for (let k = 0; k < 24 && spots.length < 6; k++) { const a = h01(this.seed, 7100 + mi, k) * Math.PI * 2, r = 2 + 8 * h01(this.seed, 7200 + mi, k), e = m.c[0] + r * Math.cos(a), n = m.c[1] + r * Math.sin(a);
         if (openGround(plan, e, n) && lineOpen(plan, m.c, [e, n])) spots.push([e, n]); }
-      if (spots.length >= 2) this.strays.push({ c: m.c, spots, n: 1 + Math.floor(h01(this.seed, 7300 + mi) * 3), seed: 7400 + mi }); });
+      // s18 C14 (D-790): the lanes the strays roam: a chain of legs on open ground out from the midden (10-30 m each, every leg
+      // clear of the plots: the lanes), walked out and back
+      const route: P2[] = [m.c]; for (let q = 0; q < 40 && route.length < 9; q++) { const last = route[route.length - 1], a = h01(this.seed, 7500 + mi, q) * Math.PI * 2, r = 10 + 20 * h01(this.seed, 7600 + mi, q), nx: P2 = [last[0] + r * Math.cos(a), last[1] + r * Math.sin(a)];
+        if (openGround(plan, nx[0], nx[1]) && lineOpen(plan, last, nx) && route.every(p0 => Math.hypot(p0[0] - nx[0], p0[1] - nx[1]) > 6)) route.push(nx); }
+      let len = 0; for (let q = 1; q < route.length; q++) len += Math.hypot(route[q][0] - route[q - 1][0], route[q][1] - route[q - 1][1]);
+      if (spots.length >= 2) this.strays.push({ c: m.c, spots, n: 1 + Math.floor(h01(this.seed, 7300 + mi) * 3), seed: 7400 + mi, ...(route.length >= 3 ? { route, len } : {}) }); });
     // the state poultry yard: the nearest open disc of 12 m beside the royal stores (C)
     const at = FAC.royal_store; outer: for (let r = 20; r < 200; r += 6) for (let k = 0; k < 16; k++) { const a = (k / 16) * Math.PI * 2, e = at[0] + r * Math.cos(a), n = at[1] + r * Math.sin(a);
       let ok = true; for (let q = 0; q < 24 && ok; q++) { const b = (q / 24) * Math.PI * 2; for (const rr of [0, 6, 12]) if (!openGround(plan, e + rr * Math.cos(b), n + rr * Math.sin(b))) { ok = false; break; } }
@@ -195,7 +202,7 @@ export class Fauna {
     const dogs = { town: 0, village: 0, stable: 0 }; for (const d of this.yardDogs) dogs[d.where]++;
     const strays = this.strays.reduce((a, s) => a + s.n, 0), hens = this.henYards.reduce((a, h) => a + h.n + (h.cock ? 1 : 0), 0);
     const cows = this.stockYards.filter(y => y.cow).length, smallStock = this.stockYards.reduce((a, y) => a + y.small, 0);
-    return { yardDogsTown: dogs.town, yardDogsVillage: dogs.village, stableDogs: dogs.stable, strays, henYards: this.henYards.length, hens, poultryYard: this.poultry?.n ?? 0, cows, smallStock, stockFold: this.stockFold?.n ?? 0,
+    return { yardCats: this.yardCats.length, yardDogsTown: dogs.town, yardDogsVillage: dogs.village, stableDogs: dogs.stable, strays, henYards: this.henYards.length, hens, poultryYard: this.poultry?.n ?? 0, cows, smallStock, stockFold: this.stockFold?.n ?? 0,
       deer: this.paradise ? FAUNA.deer[0] + FAUNA.deer[1] : 0, gazelle: this.paradise ? FAUNA.gazelle[0] + FAUNA.gazelle[1] : 0, boar: this.boarPath.length ? FAUNA.boar : 0 };
   }
   // ---------------------------------------------------------------- closed-form behaviour
@@ -210,6 +217,18 @@ export class Fauna {
     const al = this.alarm.get(i); if (al !== undefined && c.player) { out.lie = 0; out.walk = 0; out.graze = 0; out.yaw = Math.atan2(c.player[0] - e, c.player[1] - n); }
     return out;
   }
+  /** s18 C14 (D-790): a yard cat at time t: lying in the sun or the shade on one of the yard's spots most of the day, about
+   *  the yard at dawn and dusk (walking between spots, sitting up), curled at its spot at night; the visitor within 4 m: it
+   *  walks off to the yard's far spot (C) */
+  yardCatAt(i: number, c: FaunaCtx, out: AnimalInst & { e: number; n: number }) {
+    const y = this.yardCats[i], sp = y.yard.spots, dusk = Math.abs(c.hour - c.sun.set) < 1.3 || Math.abs(c.hour - c.sun.rise) < 1.0, T = (dusk ? 40 : 300) + 60 * h01(y.seed, 1);
+    const k = Math.floor((c.t + h01(y.seed, 2) * T) / T), u = fr((c.t + h01(y.seed, 2) * T) / T), A = sp[(k + i) % sp.length], B = sp[(k + i + 1) % sp.length];
+    const walking = u > 0.85, w = walking ? smooth((u - 0.85) / 0.15) : 0; let e = A[0] + (B[0] - A[0]) * w, n = A[1] + (B[1] - A[1]) * w, yaw = walking ? Math.atan2(B[0] - A[0], B[1] - A[1]) : h01(y.seed, k) * 6.28;
+    let walk = walking ? 1 : 0, lie = walking || (dusk && h01(y.seed, k, 3) < 0.5) ? 0 : 1;
+    if (c.player) { const far = sp[sp.length - 1], d = Math.hypot(e - c.player[0], n - c.player[1]); if (d < 4) { const f = Math.min(1, (4 - d) / 2); e += (far[0] - e) * f; n += (far[1] - n) * f; yaw = Math.atan2(far[0] - e, far[1] - n); walk = 1; lie = 0; } }
+    Object.assign(out, { sp: 'cat' as Species, e, n, x: 0, z: 0, yaw, phase: (2 * Math.PI * c.t * 0.8) / 0.42, walk, graze: 0, lie, coat: h01(y.seed, 9) });
+    return out;
+  }
   /** D-256: one of a compound's penned animals (j: 0 the cow, 1 the calf, then the small stock) at time t: standing about its
    *  spot in the court, heads down at the straw, most of them lying through the night (C); null when it is not there now
    *  (by day it is out with the herd, the flock or the boy, except the cow in the winter months) */
@@ -221,12 +240,26 @@ export class Fauna {
     else if (j === 1) { if (!calf || !(night || winterIn)) return false; sp = 'calf'; }
     else { if (j - 2 >= y.small || !night) return false; sp = h01(y.seed, j, 1) < 0.6 ? 'sheep' : 'goat'; }
     const s = y.seed * 19 + j, spots = y.yard.spots, base = spots[(1 + j) % spots.length], near = j === 1 && y.cow ? spots[1 % spots.length] : base;
-    const a = h01(s, 2) * Math.PI * 2, r = j === 1 ? 1.6 : 0.4 + 0.6 * h01(s, 3), e = near[0] + r * Math.cos(a), n = near[1] + r * Math.sin(a);
-    const lying = night && h01(s, Math.floor(c.t / 1800)) < 0.75, eat = !lying && fr(c.t / 17 + j * 0.31) < 0.6;
-    Object.assign(out, { sp, e, n, x: 0, z: 0, yaw: h01(s, 4) * 6.28 + 0.25 * Math.sin(c.t * 0.02 + j), phase: 0, walk: 0, graze: eat ? 1 : 0, lie: lying ? 1 : 0, coat: h01(s, 9) });
+    // (s18 C14, D-790: a penned animal mills about its corner: every few minutes, when it is up, a few steps to another place
+    // there, turning as it goes; the census found them rooted to one spot all night)
+    const T = 150 + 150 * h01(s, 5), q = Math.floor((c.t + h01(s, 6) * T) / T), u = fr((c.t + h01(s, 6) * T) / T);
+    const at = (m: number): P2 => { const a = h01(s, 2, m) * Math.PI * 2, r = j === 1 ? 1.6 : 0.4 + 1.1 * h01(s, 3, m); return [near[0] + r * Math.cos(a), near[1] + r * Math.sin(a)]; };
+    const lying = night && h01(s, Math.floor(c.t / 1800)) < 0.75, moving = !lying && u > 0.93, w = moving ? smooth((u - 0.93) / 0.07) : 0, P0 = at(q), P1 = at(q + 1);
+    const e = P0[0] + (P1[0] - P0[0]) * w, n = P0[1] + (P1[1] - P0[1]) * w, eat = !lying && !moving && fr(c.t / 17 + j * 0.31) < 0.6;
+    Object.assign(out, { sp, e, n, x: 0, z: 0, yaw: moving ? Math.atan2(P1[0] - P0[0], P1[1] - P0[1]) : h01(s, 4, q) * 6.28 + 0.25 * Math.sin(c.t * 0.02 + j), phase: (2 * Math.PI * c.t) / 1.2, walk: moving ? 0.5 : 0, graze: eat ? 1 : 0, lie: lying ? 1 : 0, coat: h01(s, 9) });
     return true;
   }
   private strayAt(g: Strays, j: number, c: FaunaCtx, out: AnimalInst & { e: number; n: number }) {
+    // s18 C14 (D-790): the group's first dog roams its lanes by day and at dusk (a trot out along the route and back, nosing
+    // at the far end; ~half of each 12 minutes), the rest keep to the midden
+    if (j === 0 && g.route && g.len && c.hour > c.sun.rise && c.hour < c.sun.set + 1) {
+      const P = 720, u = fr((c.t + h01(g.seed, 11) * P) / P), v = 1.3, go = (2 * g.len) / v / P; // (share of the cycle on the move)
+      if (u < go) { let d = (u / go) * 2 * g.len; const back = d > g.len; if (back) d = 2 * g.len - d; let q = 1, acc = 0;
+        while (q < g.route.length - 1 && acc + Math.hypot(g.route[q][0] - g.route[q - 1][0], g.route[q][1] - g.route[q - 1][1]) < d) { acc += Math.hypot(g.route[q][0] - g.route[q - 1][0], g.route[q][1] - g.route[q - 1][1]); q++; }
+        const A = g.route[q - 1], B = g.route[q], L = Math.hypot(B[0] - A[0], B[1] - A[1]) || 1, f = Math.min(1, (d - acc) / L), e = A[0] + (B[0] - A[0]) * f, n = A[1] + (B[1] - A[1]) * f;
+        Object.assign(out, { sp: 'dog' as Species, e, n, x: 0, z: 0, yaw: Math.atan2(B[0] - A[0], B[1] - A[1]) + (back ? Math.PI : 0), phase: (2 * Math.PI * c.t * 1.3) / 0.95, walk: 1, graze: 0, lie: 0, coat: h01(g.seed * 13, 9), gait: 1 });
+        if (c.player) { const dx = e - c.player[0], dn = n - c.player[1], dd = Math.hypot(dx, dn); if (dd < 6 && dd > 0.01) { const k2 = (6 - dd) / dd; out.e = e + dx * k2; out.n = n + dn * k2; } }
+        return out; } }
     const s = g.seed * 13 + j, T = 40 + 30 * h01(s, 1), k = Math.floor((c.t + h01(s, 2) * T) / T), u = fr((c.t + h01(s, 2) * T) / T), hot = c.hour > 11.5 && c.hour < 16;
     const A = g.spots[(k + j) % g.spots.length], B = g.spots[(k + j + 1) % g.spots.length], walking = u > 0.75, w = walking ? smooth((u - 0.75) / 0.25) : 0;
     let e = A[0] + (B[0] - A[0]) * w, n = A[1] + (B[1] - A[1]) * w;
@@ -284,7 +317,12 @@ export class Fauna {
         const a2 = this.alarm.get(i); if (a2 !== undefined && this.snd.next() < c.dt / (c.t - a2 < 10 ? 1.4 : 6)) { sound('bark', o.e, o.n, 0.5); st.barks++; } }
       if (night && this.snd.next() < c.dt / 400) { sound('bark', o.e, o.n, 0.5); st.barks++; } // a dog answering the night (C)
       push(); }
-    for (const gi of this.strayGrid.near(cam[0], cam[1], FAUNA.drawR.dog, [])) { const g = this.strays[gi]; for (let j = 0; j < g.n; j++) { this.strayAt(g, j, c, o); push(0.92); } }
+    // s18 C14 (D-790): the yard cats, within the hens' draw radius (they are small)
+    for (let i = 0; i < this.yardCats.length; i++) { const b = this.yardCats[i].yard.bed; if (Math.hypot(b[0] - cam[0], b[1] - cam[1]) > FAUNA.drawR.hen) continue; this.yardCatAt(i, c, o); push(); }
+    for (const gi of this.strayGrid.near(cam[0], cam[1], FAUNA.drawR.dog, [])) { const g = this.strays[gi]; for (let j = 0; j < g.n; j++) { this.strayAt(g, j, c, o);
+      // (s18 C14, D-790: a bolder stray in three barks at the stranger as it draws off, then now and then from where it stands)
+      if (c.player && h01(g.seed * 13 + j, 77) < 0.35) { const d = Math.hypot(o.e - c.player[0], o.n - c.player[1]); if (d < 16 && this.snd.next() < c.dt / (d < 11 ? 1.2 : 5)) { sound('bark', o.e, o.n, 0.5); st.barks++; o.walk = 0; o.lie = 0; o.graze = 0; o.yaw = Math.atan2(c.player[0] - o.e, c.player[1] - o.n); } }
+      push(0.92); } }
     // hens and cocks by day (at night they roost indoors: not drawn); the cocks crow at first light (at most one every 5 s)
     if (day) { for (const hi of this.henGrid.near(cam[0], cam[1], FAUNA.drawR.hen, [])) { const y = this.henYards[hi]; for (let j = 0; j <= y.n - (y.cock ? 0 : 1); j++) { this.henAt(y, j, c, o, sc); push(sc.s); } }
       if (this.poultry && Math.hypot(this.poultry.c[0] - cam[0], this.poultry.c[1] - cam[1]) < FAUNA.drawR.hen + 20) { const y: HenYard = { yard: { spots: [], bed: this.poultry.c, door: this.poultry.c }, n: this.poultry.n, cock: false, seed: 555, r: 7.5 };
@@ -339,7 +377,8 @@ export class Fauna {
     // steppe, the lions in their reeds); their calls carry kilometres
     if (this.beasts) { const B = this.beasts, month = c.month;
       const wt = c.worldT ?? c.t, all = beastsAt(B, this.seed, wt, c.hour, c.sun, month);
-      for (const b0 of all) { const b = keepAway(b0, c.player); if (Math.hypot(b.e - cam[0], b.n - cam[1]) > 1200) continue;
+      // (s18 C14 D-790: the herds bolt from the player and come back, beasts.ts BeastFlight; their alarms and hooves heard)
+      for (const b of this.flight.apply(all, c.player ? [c.player] : [], wt, (k, e, n) => { if (Math.hypot(e - cam[0], n - cam[1]) < 1500) sound(k, e, n, 1.0); })) { if (Math.hypot(b.e - cam[0], b.n - cam[1]) > 1200) continue;
         Object.assign(o, { sp: b.sp as Species, e: b.e, n: b.n, x: 0, z: 0, yaw: b.yaw, phase: (2 * Math.PI * c.t) / 1.2 * (b.gait ? 1.9 : 1), walk: b.walk, graze: b.graze, lie: b.lie, coat: b.coat, gait: b.gait }); push(); }
       const wolf = all.find(x => x.sp === 'wolf');
       const at: Record<string, P2 | null> = { howl: wolf ? [wolf.e, wolf.n] : null,
@@ -350,6 +389,8 @@ export class Fauna {
     A.end();
   }
   private lastCallSecond = -1;
+  /** s18 C14 (D-790): the wild herds' flight from the player (beasts.ts) */
+  private flight = new BeastFlight();
   /** D-227: the tether lines at the stair foot (terraceFoot.ts): drawn with this rig */
   foot: TerraceFoot | null = null;
   /** the wild animals of the land beyond the town (session 9, beasts.ts): their ranges, built once the plain's land use is known */

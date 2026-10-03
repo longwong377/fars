@@ -9,7 +9,8 @@
 // rewrites public/generated/rivers.json (centreline every 20 m; the bank and floodplain levels carried over from the
 // base course by its parameter, so the bed stays non-increasing downstream).
 //
-// Run once after `python tools/build_terrain.py` (it refuses a rivers.json already meandered):
+// Run after `python tools/build_terrain.py`, and again whenever the roads, canals or villages change (a re-run first undoes the
+// last meander from the base course and the prior samples it kept):
 //   npx tsx tools/plain/meander.ts
 import { readFileSync, writeFileSync } from 'node:fs';
 import { mxNoise2 } from '../../src/render/mx_noise_cpu';
@@ -22,8 +23,17 @@ import { WORLD_SEED_POOL } from '../../src/core/seed';
 
 const G = 'public/generated/';
 const riversJ = JSON.parse(readFileSync(G + 'rivers.json', 'utf8'));
-if (riversJ._meta.meander) { console.error('rivers.json is already meandered (D-670): run tools/build_terrain.py first'); process.exit(1); }
 const terrainJ = JSON.parse(readFileSync(G + 'terrain.json', 'utf8'));
+// re-run (the roads or the canals changed): undo the last meander first, from the course and the samples it kept
+if (riversJ._meta.meander) {
+  for (const k of ['mid', 'far']) { const m = terrainJ.rings[k], b = readFileSync('public/' + m.file), raw = new Uint16Array(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength));
+    const p = riversJ.prior[k], d = new Uint16Array(Buffer.from(p.d, 'base64').buffer.slice(0)), v = new Uint16Array(Buffer.from(p.v, 'base64').buffer.slice(0));
+    let i = 0, j = 0, at = 0; while (j < v.length) { let dl = d[i++]; if (dl === 0) { dl = d[i] * 65536 + d[i + 1]; i += 2; } at += dl; raw[at] = v[j++]; }
+    writeFileSync('public/' + m.file, Buffer.from(raw.buffer)); }
+  for (const r of Object.values<any>(riversJ.rivers)) { r.x = r.base_x; r.y = r.base_y; r.bank = r.base_bank;
+    r.floodplain = r.base_floodplain ?? r.base_bank; delete r.base_x; delete r.base_y; delete r.base_bank; delete r.base_floodplain; }
+  delete riversJ.prior; delete riversJ._meta.meander; console.log('undid the previous meander');
+}
 
 // ---------------------------------------------------------------- the heightfield rings (asl, row 0 = grid north)
 interface RingF { name: string; half: number; cell: number; n: number; asl_min: number; step: number; file: string; h: Float64Array }
@@ -177,10 +187,26 @@ for (const [rid, r] of Object.entries<any>(riversJ.rivers)) {
   }
   let Lold = 0, Lnew = 0; for (let i = 1; i < r.x.length; i++) Lold += Math.hypot(r.x[i] - r.x[i - 1], r.y[i] - r.y[i - 1]); for (let i = 1; i < c.x.length; i++) Lnew += Math.hypot(c.x[i] - c.x[i - 1], c.y[i] - c.y[i - 1]);
   stats[rid] = { points: [r.x.length, c.x.length], sinuosity_added: +(Lnew / Lold).toFixed(3) };
-  r.base_x = r.x; r.base_y = r.y; r.base_bank = r.bank; // the course as build_terrain.py left it (the canals and villages are placed on it: data.ts baseCourse)
+  r.base_x = r.x; r.base_y = r.y; r.base_bank = r.bank; r.base_floodplain = r.floodplain; // the course as build_terrain.py left it (the canals and villages are placed on it: data.ts baseCourse)
   r.x = c.x.map(v => Math.round(v * 10) / 10); r.y = c.y.map(v => Math.round(v * 10) / 10);
   r.bank = bank.map(v => Math.round(v * 100) / 100); r.floodplain = flood.map(v => Math.round(v * 100) / 100);
 }
+// the seam (C7: a 53 m step where the mid ring met the far after the carve): build_terrain.py blends the mid ring into the far
+// over its outer 12 cells (w = smoothstep((d - 1) / 11), d the distance from the edge in cells; the edge itself = the far).
+// The far ring changed under that band, so the band is blended again: each mid sample's own (unblended) height, from this
+// tool's carve where it wrote one, else recovered from the old blend, mixed with the far ring as it is now
+{ const [MID, FAR] = rings, H = MID.half, priorFar = prior.get(FAR)!, priorMid = prior.get(MID)!;
+  const farOld = (x: number, y: number) => { const gx = (x + FAR.half) / FAR.cell, gy = (FAR.half - y) / FAR.cell, c = Math.floor(gx), r = Math.floor(gy), fx = gx - c, fy = gy - r;
+    const at = (rr: number, cc: number) => { const i = rr * FAR.n + cc, raw = priorFar.get(i); return raw === undefined ? FAR.h[i] : FAR.asl_min + raw * FAR.step; };
+    return (at(r, c) * (1 - fx) + at(r, c + 1) * fx) * (1 - fy) + (at(r + 1, c) * (1 - fx) + at(r + 1, c + 1) * fx) * fy; };
+  let fixed = 0;
+  for (let r = 0; r < MID.n; r++) for (let c = 0; c < MID.n; c++) {
+    const x = c * MID.cell - H, y = H - r * MID.cell, d = Math.min(x + H, H - x, y + H, H - y) / MID.cell; if (d >= 12) continue;
+    const t = Math.min(1, Math.max(0, (d - 1) / 11)), w = t * t * (3 - 2 * t), fNew = sample(FAR, x, y), fOld = farOld(x, y);
+    if (Math.abs(fNew - fOld) < 0.005 && !priorMid.has(r * MID.n + c)) continue;
+    const i = r * MID.n + c, mu = priorMid.has(i) ? MID.h[i] : w > 0.05 ? (MID.h[i] - (1 - w) * fOld) / w : MID.h[i];
+    const v = w * mu + (1 - w) * fNew; if (Math.abs(v - MID.h[i]) > 0.005) { setH(MID, i, v); fixed++; } }
+  console.log('mid samples re-blended into the far ring at the seam:', fixed); }
 for (const R of rings) { const raw = new Uint16Array(R.h.length); for (let i = 0; i < raw.length; i++) raw[i] = Math.max(0, Math.min(65535, Math.round((R.h[i] - R.asl_min) / R.step)));
   writeFileSync('public/' + R.file, Buffer.from(raw.buffer)); }
 // the prior samples, per ring: index deltas (u16; 0 = escape, then the delta as two u16) and the raw u16 values, base64

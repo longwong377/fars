@@ -12,6 +12,7 @@ import { Site, SiteMeta, Plot, P2, Frame, toGrid, toLocal, OUT, LANE, FREE, RES,
 import { generateQuarter, QuarterOpts } from './quarter';
 import { ringCompound, yardCompound, roomBlock, openGround } from './compounds';
 import { HOUSE } from './town_rules';
+import { estateProps, estateLayout, pavilionProps2, goharHallProps, type EstateFrame } from './estates';
 import { precinctProps, precinctMiddens, burialGraves, PRECINCT_FIRE } from './precinct';
 
 export const TOWN_SEED = 467; // the town is architecture: fixed, not per world seed
@@ -40,14 +41,22 @@ export interface TownPlan { sites: Site[]; props: Prop[]; trees: TreeSpot[]; wat
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Quarters (all C). Centres and orientations are judgement inside the settlement.json zones; each keeps clear of the
-// Terrace approach (the walkable grid, e −620…262, n −245…185), of the empty Frataraka site and of the roads, except
-// q_s1, which the road south runs through as its main street.
-interface QDef { id: string; feature: string; zone: string; popZone: 'town' | 'plain'; c: P2; theta: number; W: number; H: number; mains: number; crafts: QuarterOpts['crafts']; ws: number; squares: number; road?: string; note: string; shape?: QuarterOpts['shape']; reserve?: { at: P2; W: number; H: number; theta?: number }[] }
+// Terrace's walkable grid (e −620…262, n −245…185: the people's nav grid holds no town walls), of the empty Frataraka
+// site, of the court's camps and of the roads, except q_s1, q_b4 and q_b6, which a road runs through as their main street.
+// s18 C2 (D-661, the lead's call on C12's holes audit #4): the rule that kept the whole approach empty is gone; the town was
+// nine blocks 0.5-2 km out in grass and the first frame an empty field before a lone platform. A lower-city belt (q_b*)
+// now joins the quarters to the Terrace's foot and runs along the roads; open are only the processional way (the road west,
+// a 14 m street through q_b6), the stair's forecourt and the court's camp below the Terrace.
+interface QDef { roadW?: number; id: string; feature: string; zone: string; popZone: 'town' | 'plain'; c: P2; theta: number; W: number; H: number; mains: number; crafts: QuarterOpts['crafts']; ws: number; squares: number; road?: string; note: string; shape?: QuarterOpts['shape']; reserve?: { at: P2; W: number; H: number; theta?: number }[] }
 const sRoad = FEATURES.road_south_tirazzish.polyline as P2[];
 const sDir = (() => { const [a, b] = [sRoad[0], sRoad[1]], L = Math.hypot(b[0] - a[0], b[1] - a[1]); return [(b[0] - a[0]) / L, (b[1] - a[1]) / L] as P2; })();
 /** q_s1 sits on the road south: its v axis runs up the road, its centre on the road line */
 const qs1c: P2 = (() => { const a = sRoad[0], s = 780; return [a[0] + sDir[0] * s, a[1] + sDir[1] * s]; })();
 const qs1theta = Math.atan2(-sDir[1], -sDir[0]) - Math.PI / 2; // +v = back up the road (toward the Terrace)
+/** s18 C2 (D-661): a quarter centred on a road at `at` m along it from its first point, its v axis along the road */
+const onRoad = (pl: P2[], at: number): { c: P2; theta: number } => { const [a, b] = [pl[0], pl[1]], L = Math.hypot(b[0] - a[0], b[1] - a[1]), d: P2 = [(b[0] - a[0]) / L, (b[1] - a[1]) / L];
+  return { c: [a[0] + d[0] * at, a[1] + d[1] * at], theta: Math.atan2(-d[1], -d[0]) - Math.PI / 2 }; };
+const wRoad = FEATURES.road_royal_west?.polyline as P2[] | undefined;
 export const QUARTERS: QDef[] = [
   { id: 'q_s1', feature: 'zone_lower_town_south', zone: 'zone_lower_town_south', popZone: 'town', c: qs1c, theta: qs1theta, W: 230, H: 270, mains: 1, crafts: ['metal', 'wood', 'textile', 'bakery', 'brewery'], ws: 0.09, squares: 3, road: 'road_south_tirazzish', note: 'lower town on the road south, its main street (C)' },
   { id: 'q_s2', feature: 'zone_lower_town_south', zone: 'zone_lower_town_south', popZone: 'town', c: [-815, -1095], theta: -8 * deg, W: 220, H: 220, mains: 2, crafts: ['textile', 'bakery', 'pottery', 'metal'], ws: 0.08, squares: 2, note: 'lower town (C)' },
@@ -57,6 +66,14 @@ export const QUARTERS: QDef[] = [
   { id: 'q_w2', feature: 'pw_area_b_craft', zone: 'zone_persepolis_west', popZone: 'town', c: [-1075, 560], theta: -6 * deg, W: 210, H: 200, mains: 2, crafts: ['pottery', 'metal', 'textile'], ws: 0.1, squares: 1, note: 'craft quarter around Persepolis West Area B (kiln, bone pits, pigments: B activity; houses C)', reserve: [{ at: FEATURES.pw_area_b_craft.xy, W: 44, H: 34 }] },
   { id: 'q_w3', feature: 'zone_persepolis_west', zone: 'zone_persepolis_west', popZone: 'town', c: [-935, -95], theta: 10 * deg, W: 210, H: 210, mains: 2, crafts: ['textile', 'bakery', 'wood'], ws: 0.07, squares: 2, note: 'Persepolis West (C)' },
   { id: 'q_n1', feature: 'zone_persepolis_west', zone: 'zone_persepolis_west', popZone: 'town', c: [-265, 725], theta: 0, W: 150, H: 130, mains: 1, crafts: ['wood', 'bakery'], ws: 0.05, squares: 1, note: 'houses of officials and scribes near the official building (C)', shape: { p: 4, noise: 0.1 } },
+  // s18 C2 (D-661): the lower-city belt at the Terrace's foot and along the roads (C: the town that served the court, its
+  // workshops, stores, stables and markets, as dense as the quarters further out; Persepolis West's surveys show occupation
+  // spread over the plain W of the Terrace, B; its layout C)
+  { id: 'q_b1', feature: 'zone_persepolis_west', zone: 'zone_persepolis_west', popZone: 'town', c: [-522, 230], theta: 2 * deg, W: 105, H: 80, mains: 1, crafts: ['wood', 'bakery', 'brewery'], ws: 0.1, squares: 1, note: 'lower city at the Terrace\'s foot, N of the road west: stores, workshops and houses of those who served the court; kept S of the line from the stair foot to q_w1, the walk from the spawn (C)' },
+  { id: 'q_b3', feature: 'zone_persepolis_west', zone: 'zone_persepolis_west', popZone: 'town', c: [-725, -40], theta: 6 * deg, W: 200, H: 200, mains: 2, crafts: ['metal', 'textile', 'bakery', 'pottery'], ws: 0.1, squares: 2, note: 'lower city between Persepolis West and the Terrace\'s foot (C)' },
+  { id: 'q_b4', feature: 'zone_lower_town_south', zone: 'zone_lower_town_south', popZone: 'town', ...onRoad(sRoad, 445), W: 200, H: 290, mains: 1, crafts: ['wood', 'bakery', 'brewery', 'textile'], ws: 0.1, squares: 2, road: 'road_south_tirazzish', note: 'lower city along the road south from the Terrace to the lower town: inns, stables, stores and houses on the road (C)' },
+  { id: 'q_b5', feature: 'zone_persepolis_west', zone: 'zone_persepolis_west', popZone: 'town', c: [-420, 640], theta: 0, W: 160, H: 140, mains: 1, crafts: ['wood', 'bakery'], ws: 0.06, squares: 1, note: 'lower city between Persepolis West and the officials\' houses (C)', shape: { p: 4, noise: 0.08 } },
+  ...(wRoad ? [{ id: 'q_b6', feature: 'zone_persepolis_west', zone: 'zone_persepolis_west', popZone: 'town' as const, ...onRoad(wRoad, 700), W: 180, H: 200, mains: 1, crafts: ['metal', 'wood', 'bakery', 'brewery'] as QuarterOpts['crafts'], ws: 0.1, squares: 2, road: 'road_royal_west', roadW: 14, note: 'lower city on the road west, the processional way its wide main street (C)' }] : []),
   { id: 'q_f1', feature: 'zone_bagh_e_firuzi', zone: 'zone_bagh_e_firuzi', popZone: 'town', c: [-2140, 2085], theta: -30 * deg, W: 100, H: 90, mains: 1, crafts: ['bakery'], ws: 0.05, squares: 1, note: 'gardeners\' houses of the Bagh-e Firuzi gardens (C)', shape: { p: 2.6, noise: 0.18 } },
   { id: 'q_g1', feature: 'zone_dasht_e_gohar', zone: 'zone_dasht_e_gohar', popZone: 'plain', c: [650, 3800], theta: 8 * deg, W: 90, H: 80, mains: 1, crafts: ['bakery'], ws: 0.05, squares: 1, note: 'gardeners\' houses of the Dasht-e Gohar gardens (C)', shape: { p: 2.6, noise: 0.18 } },
 ];
@@ -69,7 +86,7 @@ function quarterSite(q: QDef): Site {
   const rng = new Rng(TOWN_SEED, 'town:' + q.id);
   const reserve = (q.reserve ?? []).map(r => { const [u, v] = toLocal(s.frame, r.at[0], r.at[1]); return [u - r.W / 2, v - r.H / 2, u + r.W / 2, v + r.H / 2] as [number, number, number, number]; });
   generateQuarter(s, { mains: q.mains, mainWidth: 4, laneWidth: 3, alleyWidth: 2, dmax: 16, plotW: HOUSE.plotW, plotD: HOUSE.plotD, workshopShare: q.ws, crafts: q.crafts, squares: q.squares,
-    forced: q.road ? [{ axis: 'v', offset: 0, width: 7 }] : undefined, reserve, shape: q.shape, row: 'town_houses', feature: q.feature, idPrefix: q.id }, rng);
+    forced: q.road ? [{ axis: 'v', offset: 0, width: q.roadW ?? 7 }] : undefined, reserve, shape: q.shape, row: 'town_houses', feature: q.feature, idPrefix: q.id }, rng);
   if (q.id === 'q_w2') stampAreaB(s, reserve[0], rng);
   return s;
 }
@@ -183,6 +200,7 @@ function wayStationSite(): Site {
   s.recount(); return s;
 }
 
+const ESTATES = new Map<string, EstateFrame>(); // (by site id: a rebuilt plan replaces its estates' frames)
 function estateSite(id: string, c: P2, theta: number): Site {
   // elite estate in the Bagh-e Firuzi zone (very low-density elite occupation among gardens, GONDET2009 B; plan C):
   // a walled orchard with a courtyard house at one end and a pool
@@ -197,8 +215,19 @@ function estateSite(id: string, c: P2, theta: number): Site {
   F('hearth', s.cu(hx0 + 9), s.cv(hy0 + 9)); F('oven', s.cu(hx0 + 26), s.cv(hy0 + 26)); F('well', s.cu(hx0 + 17), s.cv(hy0 + 17));
   for (let x = 0; x < 6; x++) F('jar_big', s.cu(hx0 + 7 + x), s.cv(hy0 + 27), 1);
   F('pool', s.cu(2 + 60), s.cv(2 + 35), 1, { len: 12, wid: 6, note: 'garden pool (C)' });
-  for (let i = 40; i < 90; i += 6) for (let j = 4; j < 68; j += 6) if (Math.abs(i - 60) > 9 || Math.abs(j - 35) > 6) F('tree', s.cu(2 + i), s.cv(2 + j), rng.range(0.8, 1.15), { species: rng.pick(['pomegranate', 'fig', 'apple', 'pear', 'olive', 'mulberry', 'vine']) });
-  for (let j = 4; j < 34; j += 6) for (const i of [4, 16, 28]) F('tree', s.cu(2 + i), s.cv(2 + j), rng.range(0.8, 1.1), { species: rng.pick(['pomegranate', 'fig', 'vine']) });
+  // s18 C15 (D-800): the orchard as four beds by two channels crossing at the pool (the Pasargadae garden's form, B by analogy;
+  // C): the trees keep 2.5 m clear of the channels (the random stream drawn as before, so the plan's other draws are unchanged)
+  for (let i = 40; i < 90; i += 6) for (let j = 4; j < 68; j += 6) if (Math.abs(i - 60) > 9 || Math.abs(j - 35) > 6) { const sz = rng.range(0.8, 1.15), sp = rng.pick(['pomegranate', 'fig', 'apple', 'pear', 'olive', 'mulberry', 'vine']);
+    if (Math.abs(i - 60) >= 3 && Math.abs(j - 35) >= 3) F('tree', s.cu(2 + i), s.cv(2 + j), sz, { species: sp }); }
+  // (the trees S of the house stop short of its garden porch, estates.ts)
+  for (let j = 4; j < 34; j += 6) for (const i of [4, 16, 28]) { const sz = rng.range(0.8, 1.1), sp = rng.pick(['pomegranate', 'fig', 'vine']); if (j < 28) F('tree', s.cu(2 + i), s.cv(2 + j), sz, { species: sp }); }
+  const pu = s.cu(2 + 60), pv = s.cv(2 + 35), ch = (u: number, v: number, rot: number, len: number) => F('channel', u, v, 1, { rot, len, wid: 0.6, note: 'stone-lined channel of the four-part garden (Pasargadae by analogy, B; C; s18 C15, D-800)' });
+  { const a0 = s.cu(40) - 0.5, a1 = s.cu(91) - 0.5, b0 = s.cv(4) - 0.5, b1 = s.cv(69) - 0.5;
+    ch((a0 + pu - 6) / 2, pv, 0, pu - 6 - a0); ch((pu + 6 + a1) / 2, pv, 0, a1 - pu - 6); ch(pu, (b0 + pv - 3) / 2, Math.PI / 2, pv - 3 - b0); ch(pu, (pv + 3 + b1) / 2, Math.PI / 2, b1 - pv - 3); }
+  const EF = { hx0, hy0, size: 34, court: [hx0 + 6, hy0 + 6, hx0 + 28, hy0 + 28] as [number, number, number, number], gateAt: 10 }, EL = estateLayout(EF, s);
+  for (const [u, v, h] of EL.columns) F('column', u, v, h, { note: 'a column of the porch: stone base, painted timber shaft (estates.ts; C)' });
+  for (const [u, v] of EL.gate.piers) F('column', u, v, 4.4, { note: 'a pier of the gatehouse (estates.ts; C)' });
+  ESTATES.set(id, { site: s, ...EF });
   s.recount(); return s;
 }
 
@@ -272,16 +301,7 @@ function areaCGardenSite(): Site {
  *  roofed room (C: "column bases and foundations beyond the gate", press) */
 const PAVILION: { frame: Frame | null } = { frame: null };
 function pavilionProps(props: Prop[], groups: Map<string, P2[]>) {
-  const f = PAVILION.frame; if (!f) return; const W = 18, D = 14, row = 'paradise_bagh_e_firuzi', feature = 'zone_bagh_e_firuzi', note = 'garden pavilion on the axis, facing the gate: columned porch before a room (C; column bases beyond the gate: press)';
-  groups.set('pavilion', [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => toGrid(f, a * D / 2, b * W / 2)));
-  const B = (u: number, v: number, hu: number, hv: number, y0: number, y1: number, mat: Mat = 'mud', collide = true, colour?: [number, number, number]) => props.push({ shape: 'box', mat, c: toGrid(f, u, v), theta: f.theta, hu, hv, y0, y1, group: 'pavilion', collide, row, feature, note, colour });
-  B(-D / 2 + 0.4, 0, 0.45, W / 2, -0.4, 5.2); B(-D / 2 + 3.5, W / 2 - 0.4, 3.5, 0.45, -0.4, 5.2); B(-D / 2 + 3.5, -W / 2 + 0.4, 3.5, 0.45, -0.4, 5.2); // room walls (back and sides)
-  B(-D / 2 + 7, 3.5, 0.4, W / 2 - 3.5, -0.4, 5.2); B(-D / 2 + 7, -W / 2 + 1, 0.4, 1, -0.4, 5.2); // front wall of the room with a door
-  B(0, 0, D / 2 + 0.4, W / 2 + 0.4, 5.2, 5.9, 'mud', false); // flat roof
-  B(0, 0, D / 2 + 0.6, W / 2 + 0.6, -0.3, 0.35, 'stone', true); // stone platform
-  for (let k = 0; k < 4; k++) { const v = -W / 2 + 2.25 + k * 4.5; for (const u of [D / 2 - 0.9, 2.2]) {
-    props.push({ shape: 'cyl', mat: 'stone', c: toGrid(f, u, v), theta: 0, hu: 0.55, hv: 0.55, y0: 0.3, y1: 0.7, group: 'pavilion', collide: true, row, feature, note: note + ': stone column base' });
-    props.push({ shape: 'cyl', mat: 'timber', c: toGrid(f, u, v), theta: 0, hu: 0.26, hv: 0.26, y0: 0.7, y1: 5.2, group: 'pavilion', collide: true, row, feature, note: note + ': plastered timber column (C)', colour: [0.8, 0.74, 0.64] }); } }
+  const f = PAVILION.frame; if (!f) return; pavilionProps2(props, groups, f); // s18 C15 (D-800): modelled as a porticoed, painted pavilion (estates.ts)
 }
 // Takht-e Rustam (LIVIUS-TR: ~12.5 x 12.5 m, local stone, base for a higher structure like the lower tiers of Cyrus'
 // tomb, B size): placed 18 m E of the road line (the road passes beside it; position C ±400 m). Two steps (the
@@ -355,12 +375,8 @@ export function buildTownPlan(): TownPlan {
   groups.set('takht', [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => toGrid({ c: t.c, theta: gt }, a * TAKHT.size / 2, b * TAKHT.size / 2)));
   const gs = sites.find(s => s.id === 'garden_gohar')!; const hallC = gs.grid(-85, 0); const hf: Frame = { c: hallC, theta: gs.frame.theta };
   const hallW = 24, hallD = 30; groups.set('hall_gohar', [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => toGrid(hf, a * hallW / 2, b * hallD / 2)));
-  const HN = 'columned hall behind Takht-e Rustam ("hypostyle hall reburied behind the platform": search extract, C); size, plan and column form C';
-  for (let a = 0; a < 4; a++) for (let b = 0; b < 5; b++) { const [u, v] = [-hallW / 2 + 3 + a * 6, -hallD / 2 + 3 + b * 6];
-    props.push({ shape: 'cyl', mat: 'stone', c: toGrid(hf, u, v), theta: 0, hu: 0.75, hv: 0.75, y0: -0.2, y1: 0.45, group: 'hall_gohar', collide: true, row: 'hall_dasht_e_gohar', feature: 'zone_dasht_e_gohar', note: HN + ': stone column base' });
-    props.push({ shape: 'cyl', mat: 'timber', c: toGrid(hf, u, v), theta: 0, hu: 0.34, hv: 0.34, y0: 0.45, y1: 6.2, group: 'hall_gohar', collide: true, row: 'hall_dasht_e_gohar', feature: 'zone_dasht_e_gohar', note: HN + ': plastered timber column (C)', colour: [0.78, 0.72, 0.62] }); }
-  props.push({ shape: 'box', mat: 'mud', c: toGrid(hf, -hallW / 2 - 0.5, 0), theta: hf.theta, hu: 0.5, hv: hallD / 2 + 1, y0: -0.4, y1: 6.9, group: 'hall_gohar', collide: true, row: 'hall_dasht_e_gohar', feature: 'zone_dasht_e_gohar', note: HN + ': back wall' });
-  props.push({ shape: 'box', mat: 'mud', c: toGrid(hf, 0, 0), theta: hf.theta, hu: hallW / 2 + 1, hv: hallD / 2 + 1, y0: 6.2, y1: 6.9, group: 'hall_gohar', collide: false, row: 'hall_dasht_e_gohar', feature: 'zone_dasht_e_gohar', note: HN + ': flat roof on timber beams' });
+  goharHallProps(props, hf, hallW, hallD); // s18 C15 (D-800): the porticoed, painted hall (estates.ts)
+  estateProps(props, [...ESTATES.values()]);
   pavilionProps(props, groups);
   // D-209: the open-air sacred precinct (its plinths, altar, wood and ash) and the town's burial ground (precinct.ts)
   precinctProps(props, groups); precinctMiddens(middens); burialGraves(middens, props);

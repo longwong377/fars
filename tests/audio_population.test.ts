@@ -38,7 +38,7 @@ describe('voices from the population (T-G3, D-241, T-K1a2)', () => {
     expect(a).toMatchObject({ lang: 'Ionian', sex: 'f', age: 9 }); expect(a.seed).not.toBe(b.seed);
     const n = nearPerson('p0', a, 'talk', false, 1, 0, 2, 'market'); expect(n.talking).toBe(true); expect(nearPerson('p0', a, 'talk', true, 1, 0, 2, null).talking).toBe(false);
   });
-  it('languages by origin; a people without a corpus is wordless, never given Aramaic; a listed second language is used', () => {
+  it('languages by origin; a people without a corpus has no lexicon language (it speaks its own tongue: tongues.ts), never given Aramaic; a listed second language is used', () => {
     expect(voiceLang('Ionian').lang).toBe('grc'); expect(voiceLang('Persian').lang).toBe('op'); expect(voiceLang('Elamite').lang).toBe('el'); expect(voiceLang('Babylonian').lang).toBe('bab'); expect(voiceLang('Syrian').lang).toBe('arc');
     for (const o of ['Egyptian', 'Lydian', 'Carian', 'Bactrian', 'Sogdian', 'Thracian', 'Cappadocian', 'Lycian', 'West Semitic']) expect(voiceLang(o).lang, o).toBeNull();
     expect(voiceLang('Egyptian', ['Egyptian', 'Aramaic']).lang).toBe('arc');
@@ -58,11 +58,14 @@ describe('voices from the population (T-G3, D-241, T-K1a2)', () => {
       for (const u of mine.slice(0, 3)) expect(sourceLevel(u.src as any, u.t0, lis).db, `${p.key} ${u.unit}`).toBeGreaterThan(-40); }
     const published = new Set<string>([...LINES.map(l => l.id), ...(Object.keys(LEXICON) as LangId[]).flatMap(l => LEXICON[l].filter(murmurEligible).map(e => e.id))]);
     // (the human sounds that are not words, session 9: laughter, children's calls, babies' cries, are wordless too)
-    for (const u of log) if (u.lang === 'wordless') expect(/^(wordless|laugh|call|cry|cough|lull):/.test(u.unit), u.unit).toBe(true); else expect(published.has(u.unit), u.unit).toBe(true);
-    // the Egyptians and Lydians of the scene hum; nobody of theirs speaks another people's words
-    const wordlessKeys = new Set(S.people.filter(p => voiceLang(p.lang, p.langs).lang === null).map(p => p.key));
-    expect(wordlessKeys.size).toBeGreaterThan(0);
-    for (const u of log) if (wordlessKeys.has(u.key)) expect(u.lang).toBe('wordless');
+    // (D-720, UD-24: reconstructed period speech, tier C, beside the published units: the everyday sentences ('rc:') and the
+    // tongues of the peoples without a lexicon ('tg:'))
+    for (const u of log) if (u.lang === 'wordless') expect(/^(wordless|laugh|call|cry|cough|lull):/.test(u.unit), u.unit).toBe(true); else expect(published.has(u.unit) || /^(rc|tg):/.test(u.unit), u.unit).toBe(true);
+    // D-720: the Egyptians and Lydians of the scene speak their own tongues (reconstructed), never another people's words
+    const tongueKeys = new Set(S.people.filter(p => voiceLang(p.lang, p.langs).lang === null).map(p => p.key));
+    expect(tongueKeys.size).toBeGreaterThan(0);
+    for (const u of log) if (tongueKeys.has(u.key)) expect(u.lang === 'wordless' || (u.lang.startsWith('tg:') && u.unit.startsWith(`${u.lang}:`)), `${u.key} ${u.lang} ${u.unit}`).toBe(true);
+    expect(log.some(u => tongueKeys.has(u.key) && u.lang.startsWith('tg:'))).toBe(true);
     expect(log.some(u => u.kind === 'bed')).toBe(true); // the talkers beyond the clear voices are heard as the grain bed
     for (const w of [...WORDLESS, ...LAUGH, ...CHILD_CALL, ...CRY, ...COUGH, ...LULL]) expect(findModernWords(w.ipa, { ipa: true }), w.ipa).toEqual([]);
     for (const l of ['op', 'el', 'arc', 'bab', 'grc'] as LangId[]) expect(unitsFor(l).words.length).toBeGreaterThan(40);
@@ -139,13 +142,34 @@ describe('the human sounds that are not words (session 9, G33)', () => {
     expect(cries[0].voice.age).toBeLessThan(2);
     const coughs = L.filter(u => u.unit.startsWith('cough:')); expect(coughs.every(u => u.key !== 'b0')).toBe(true);
   });
-  it('D-292 (C-D30): a woman with a small child at its bedtime hums it a wordless lullaby, in phrases with a breath between; nobody else does', () => {
+  it('D-292 (C-D30): a woman with a small child at its bedtime hums or sings it a lullaby (D-720: words in her tongue every other phrase), in phrases with a breath between; nobody else does', () => {
     const { ctx, e } = engineOn(), v = new PopulationVoices(e, { seed: 7 }), L = log(v); v.coughEvery = 1e9;
     const mother: NearPerson = { key: 'm0', x: 2, y: 0, z: 2, talking: false, lang: 'Old Persian', sex: 'f', age: 24, seed: 11, group: null, lull: true };
     const other: NearPerson = { key: 'w1', x: -2, y: 0, z: 2, talking: false, lang: 'Old Persian', sex: 'f', age: 30, seed: 12, group: null };
     drive(ctx, 90, dt => v.update(dt, [mother, other], { x: 0, y: 1.6, z: 0 }));
-    const hums = L.filter(u => u.unit.startsWith('lull:')); expect(hums.length).toBeGreaterThan(12);
-    expect(hums.every(u => u.key === 'm0' && u.lang === 'wordless')).toBe(true);
+    // (D-720: every other phrase sung with words in her own tongue, reconstructed: 'rc:' units in Old Persian)
+    const hums = L.filter(u => u.unit.startsWith('lull:') || (u.key === 'm0' && u.unit.startsWith('rc:'))); expect(hums.length).toBeGreaterThan(12);
+    expect(hums.every(u => u.key === 'm0' && (u.lang === 'wordless' || u.lang === 'op'))).toBe(true);
     let breaths = 0; for (let i = 1; i < hums.length; i++) if (hums[i].t0 - hums[i - 1].t1 > 1) breaths++; expect(breaths).toBeGreaterThan(2);
+  });
+});
+
+describe('D-720 (the holes audit #15): songs and calls by what people do', () => {
+  it('work, field, well and market places have their songs; the words are the singer\'s own tongue, reconstructed', async () => {
+    const { songKind, SONGS } = await import('../src/audio/voices');
+    expect(songKind('well:q_n')).toBe('well'); expect(songKind('market:q_lt_e:12')).toBe('market'); expect(songKind('field:122:1')).toBe('field'); expect(songKind('ws:3')).toBe('work');
+    expect(songKind('h:12')).toBeNull(); expect(songKind(null)).toBeNull();
+    for (const k of ['work', 'field', 'well', 'market'] as const) expect(SONGS[k].length).toBeGreaterThan(2);
+  });
+  it('reapers in a field sing and a seller calls, two at most at once; a sung word is reconstructed, never another people\'s', () => {
+    const S = syntheticScene(4, 5);
+    S.people = [...['Persian', 'Elamite', 'Lydian', 'Persian'].map((lang, i) => ({ key: `r${i}`, x: 4 + i * 1.5, y: 0, z: 2, talking: false, lang, sex: 'm' as const, age: 30 + i, seed: 77 + i * 31, group: 'field:12:1' })),
+      { key: 'm0', x: -5, y: 0, z: 3, talking: false, lang: 'Babylonian', sex: 'f' as const, age: 40, seed: 991, group: 'market:q_lt_e:3' }];
+    const R = runScene(S, 600, 5), sung = R.voices.log!.filter(u => /:\d+(:,)?$/.test(u.unit) && /^(rc|tg):/.test(u.unit));
+    expect(sung.length).toBeGreaterThan(5); expect(new Set(sung.map(u => u.key)).size).toBeGreaterThan(1);
+    for (const u of sung) { if (u.key === 'r2') expect(u.unit.startsWith('tg:Lydian')).toBe(true); else expect(u.unit.startsWith('rc:')).toBe(true); }
+    expect(sung.some(u => u.key === 'm0')).toBe(true);
+    // never more than two singers at once
+    for (const u of sung) expect(new Set(sung.filter(v => v.t0 <= u.t0 && v.t1 > u.t0).map(v => v.key)).size).toBeLessThanOrEqual(2);
   });
 });

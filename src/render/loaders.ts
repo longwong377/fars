@@ -3,6 +3,7 @@
 // the decodes queued behind ~70 workers' start-up. Now one pool per decoder, sized to the cores less the main thread. The
 // transcoder's target format: the renderer's when the first caller has one, else the WebGPU adapter's features (as before,
 // render/models.ts D-306: the world loads before it has a renderer). Never dispose them (shared).
+import { LinearFilter, TextureLoader } from 'three/webgpu';
 import { BASE } from '../core/base';
 import { lowFirstKTX2 } from './lowfirst';
 
@@ -27,13 +28,21 @@ const pool = () => Math.max(1, Math.min(8, (((globalThis as any).navigator?.hard
 let adP: Promise<any> | null = null, k2P: Promise<any> | null = null, dracoP: Promise<any> | null = null;
 /** the WebGPU adapter (null without one), asked once */
 export const gpuAdapter = (): Promise<any> => (adP ??= Promise.resolve().then(() => (globalThis as any).navigator?.gpu?.requestAdapter?.() ?? null).catch(() => null));
+/** the page draws through the WebGL2 backend by request (?webgl=1: main.ts settings.forceWebGL) */
+const forcedWebGL = () => typeof location !== 'undefined' && new URLSearchParams(location.search).get('webgl') === '1';
 /** the page's KTX2Loader (three's), its transcoder target set */
 export function sharedKTX2(base = BASE, renderer?: any): Promise<any> {
   return (k2P ??= (async () => {
     const { KTX2Loader } = await import('three/addons/loaders/KTX2Loader.js');
     const k = new KTX2Loader().setTranscoderPath(base + 'models/lib/basis/').setWorkerLimit(pool());
     if (renderer) k.detectSupport(renderer);
-    else { const ad = await gpuAdapter(); k.detectSupport({ isWebGPURenderer: true, hasFeature: (f: string) => !!ad?.features?.has(f) } as any); }
+    else if (forcedWebGL()) { // D-750: the page draws through WebGL2 (?webgl=1, the cloud's eyes): its extensions, not the adapter's
+      // (the WebGPU adapter's 'texture-compression-bc' sent every scan to BC7, which SwiftShader's WebGL2 cannot upload:
+      // compressedTexSubImage2D 'invalid format', the textures sampled black: the black Terrace walls of the s17/s18 cloud frames)
+      const gl = (globalThis as any).document?.createElement?.('canvas')?.getContext?.('webgl2') as WebGL2RenderingContext | null;
+      k.detectSupport({ isWebGPURenderer: false, extensions: { has: (e: string) => !!gl?.getExtension(e), get: (e: string) => gl?.getExtension(e) } } as any);
+      (gl?.getExtension('WEBGL_lose_context') as any)?.loseContext?.();
+    } else { const ad = await gpuAdapter(); k.detectSupport({ isWebGPURenderer: true, hasFeature: (f: string) => !!ad?.features?.has(f) } as any); }
     // (the pool is idle when no worker is busy and nothing is queued)
     const wp = (k as any).workerPool, arm = reapWhenIdle(() => wp.workerStatus !== 0 || wp.queue.length > 0, () => { if (wp.workers.length) { wp.dispose(); loaderStats.ktx2Reaped++; } });
     wrap(wp, 'postMessage', arm);
@@ -49,4 +58,22 @@ export function sharedDraco(base = BASE): Promise<any> {
       () => { if (d.workerPool.length) { for (const w of d.workerPool) w.terminate(); d.workerPool.length = 0; loaderStats.dracoReaped++; } });
     wrap(d, 'decodeGeometry', arm); return keep(d);
   }));
+}
+// D-740 (s18 C9): an image listed in public/ktx_maps.json (tools/bake_world/ktx_maps.ts) loads as its KTX2 (BC7 on the T4: a
+// quarter of RGBA8's memory, its mips in the file), in the orientation its own loader would give it; its 128-px thumbnail is
+// texture.userData.thumb for code that reads the image's colours (a compressed texture has no pixels to draw). Otherwise, or
+// if the KTX2 fails, the image itself through `tl` (three's TextureLoader). ?scanjpg: the images (A/B).
+let mapsP: Promise<Set<string>> | null = null;
+export async function loadMap(url: string, tl?: { loadAsync(u: string): Promise<any> }, base = BASE): Promise<any> {
+  const key = url.startsWith(base) ? url.slice(base.length) : url;
+  const listed = typeof location === 'undefined' || new URLSearchParams(location.search).has('scanjpg') ? new Set<string>()
+    : await (mapsP ??= fetch(`${base}ktx_maps.json`).then(r => (r.ok && (r.headers.get('content-type') ?? '').includes('json') ? r.json() : null)).then(j => new Set(Object.keys(j?.maps ?? {}))).catch(() => new Set<string>()));
+  if (listed.has(key)) try {
+    const stem = url.replace(/\.(jpg|png|webp)$/, ''), K = await sharedKTX2(base);
+    const [t, thumb] = await Promise.all([K.loadAsync(stem + '.ktx2'), fetch(stem + '.thumb.jpg').then(r => (r.ok ? r.blob() : null)).then(b => (b ? createImageBitmap(b) : null)).catch(() => null)]);
+    t.magFilter = LinearFilter; // (the transcoder's textures come nearest-magnified)
+    if (thumb) t.userData.thumb = thumb;
+    return t;
+  } catch (e) { console.warn(`[loadMap] ${key}: ${(e as Error).message}; the image`); }
+  return (tl ?? new TextureLoader()).loadAsync(url);
 }

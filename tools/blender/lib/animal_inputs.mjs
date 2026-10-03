@@ -13,4 +13,5 @@ export const animalHash = (sp, root = '.') => { const h = createHash('sha256'); 
 /** V5 D-520: the inputs of a library-model species (tools/blender/animals_real.mjs): its registry entry and class, the Blender stage, the gear's source */
 export const realHash = (sp, root = '.') => { const R = JSON.parse(readFileSync(`${root}/tools/blender/animals_real.json`, 'utf8')), e = R.species[sp], h = createHash('sha256'), rd = p => readFileSync(`${root}/${p}`, 'utf8').replace(/\r\n/g, '\n');
   h.update(JSON.stringify({ e, cls: R.classes[e.class] })); h.update(rd('tools/blender/animals_real.py')); if (e.gear) h.update(rd('tools/blender/sources/animal_gear.ts'));
+  if (e.derive) h.update(rd('tools/blender/animals_derive.py')); // (s18 C14 D-790: a body derived from another species' built model)
   return h.digest('hex'); };

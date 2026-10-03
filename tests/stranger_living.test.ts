@@ -4,7 +4,7 @@ import { describe, it, expect } from 'vitest';
 import { Population } from '../src/people/population';
 import { Economy } from '../src/people/economy/world';
 import { householdsOf } from '../src/people/economy/chains';
-import { PLAYER, MARKET, DAY_WAGE, STR_LAG, chronicleLine, type SAct } from '../src/people/speech/stranger';
+import { PLAYER, MARKET, dayGrain, STR_LAG, chronicleLine, type SAct } from '../src/people/speech/stranger';
 import { strangerAsk } from '../src/people/speech/verbs';
 
 const pop = new Population(1), hs = householdsOf(pop);
@@ -17,7 +17,7 @@ describe('D-455 the stranger lives by his own choices', () => {
   it('the words: bread by the loaf, a day\'s hire', () => {
     const c = { day: 5, hh: 'h:1', q: 'q', job: 'farmer' };
     expect(strangerAsk('Sell me four loaves of bread.', c)).toMatchObject({ a: 'buy', good: 'grain', qty: 2 });
-    expect(strangerAsk('Can I buy some bread?', c)).toMatchObject({ a: 'buy', good: 'grain', qty: 1 });
+    expect(strangerAsk('Can I buy some bread?', c)).toMatchObject({ a: 'meal', what: 'bread' }); // (D-720: bread to eat now; loaves counted are stores)
     expect(strangerAsk('Sell me two measures of barley.', c)).toMatchObject({ a: 'buy', good: 'grain', qty: 20 });
     expect(strangerAsk('Is there work for today? I can carry loads.', c)).toMatchObject({ a: 'daywork' });
     expect(strangerAsk('Do you need a porter?', c)).toMatchObject({ a: 'daywork' });
@@ -36,20 +36,21 @@ describe('D-455 the stranger lives by his own choices', () => {
     expect(chronicleLine('sold_at_market', 'x')).toMatch(/grain sellers/);
     S.purse.cash = 0.001; expect(S.judge({ a: 'buy', day, hh: MARKET, good: 'grain', qty: 10 }).why).toMatch(/not the silver/);
   });
-  it('a day\'s hire: taken on once a day, paid a thirtieth of a shekel, refused while he has regular work', () => {
-    const e = town(30), S = e.stranger(), day = hireDay(e), c0 = S.purse.cash;
+  it('a day\'s hire: taken on once a day, paid a day\'s barley (D-720: in kind, not silver), refused while he has regular work', () => {
+    const e = town(30), S = e.stranger(), day = hireDay(e), c0 = S.purse.cash, g0 = S.purse.grain;
     expect(S.do({ a: 'daywork', day }).ok).toBe(true);
     expect(S.judge({ a: 'daywork', day }).ok).toBe(false);
-    expect(S.do({ a: 'daypaid', day }).ok).toBe(true); expect(S.purse.cash).toBeCloseTo(c0 + DAY_WAGE, 9);
+    expect(S.do({ a: 'daypaid', day }).ok).toBe(true); expect(S.purse.grain).toBeCloseTo(g0 + dayGrain(e.price('grain', e.day)), 6); expect(S.purse.cash).toBe(c0);
     expect(S.do({ a: 'daypaid', day }).ok).toBe(false); // (paid once)
     expect(evs(e, 'day_paid').length).toBe(1);
     const farm = [...e.hh.values()].find(h => S.hireCheck(h.id, e.day).ok);
     if (farm) { S.do({ a: 'seek_work', day: e.day, hh: farm.id }); expect(S.judge({ a: 'daywork', day: e.day + 1 }).why).toMatch(/work already/); }
   });
-  it('the loop: a month of carrying feeds him and his silver grows; a month idle eats it', () => {
-    const run = (work: boolean) => { const e = town(30), S = e.stranger(); S.hear('Aramaic', 50, 0, false, 30); const c0 = S.purse.cash;
+  it('the loop: a month of carrying feeds him and what he has grows; a month idle eats it', () => {
+    // (D-720: paid in barley: what he has is his silver and his barley at the market's price)
+    const run = (work: boolean) => { const e = town(30), S = e.stranger(); S.hear('Aramaic', 50, 0, false, 30); const has = () => S.purse.cash + S.purse.grain * e.price('grain', e.day); const c0 = has();
       for (let i = 0; i < 30; i++) { const d = e.day + 1; e.step(d); if (work && S.dayCheck(d).ok) { S.do({ a: 'daywork', day: d }); S.do({ a: 'daypaid', day: d }); } }
-      for (let i = 0; i < STR_LAG; i++) e.step(e.day + 1); return { e, S, dc: S.purse.cash - c0 }; };
+      for (let i = 0; i < STR_LAG; i++) e.step(e.day + 1); return { e, S, dc: has() - c0 }; };
     const w = run(true), idle = run(false);
     expect(w.dc).toBeGreaterThan(0.1); expect(idle.dc).toBeLessThan(0); expect(w.S.hungry).toBe(0);
     expect(evs(w.e, 'day_paid').length).toBeGreaterThanOrEqual(15);
@@ -58,5 +59,24 @@ describe('D-455 the stranger lives by his own choices', () => {
     const e = town(30), S = e.stranger(), day = hireDay(e); S.do({ a: 'daywork', day });
     const r = Economy.restore(JSON.parse(JSON.stringify(e.snapshot())), hs, { trust: true }), R = r.stranger();
     expect(R.dayHire?.day).toBe(day); expect(R.do({ a: 'daypaid', day } as SAct).ok).toBe(true);
+  });
+});
+
+describe('D-720 (the holes audit 4-12): the stranger buys a meal', () => {
+  it('bread, beer or a meal from a house or the market, eaten there: paid in weighed silver or barley, priced by the market', () => {
+    const e = town(30), S = e.stranger(), day = e.day, c0 = S.purse.cash;
+    const H = [...e.hh.values()].find(h => !h.dead && h.grain > h.eaters * 0.55 * 10 + 2)!;
+    const v = S.judge({ a: 'meal', day, hh: H.id, what: 'bread' }); expect(v.ok).toBe(true);
+    expect(S.do({ a: 'meal', day, hh: H.id, what: 'bread' }).ok).toBe(true); expect(S.purse.cash).toBeLessThan(c0);
+    expect(S.purse.cash).toBeCloseTo(c0 - 0.5 * e.price('grain', day) * 1.25, 3);
+    S.purse.grain = 5; const g0 = S.purse.grain;
+    expect(S.do({ a: 'meal', day, hh: MARKET, what: 'beer', barter: true }).ok).toBe(true); expect(S.purse.grain).toBeLessThan(g0);
+    S.purse.cash = 0; S.purse.grain = 0; expect(S.judge({ a: 'meal', day, hh: MARKET, what: 'meal' }).ok).toBe(false);
+  });
+  it('the words: "can I buy some bread" and "a jug of beer for barley" are meals; "sell me two sacks of barley" is grain', async () => {
+    const { strangerAsk } = await import('../src/people/speech/verbs');
+    expect(strangerAsk('Can I buy some bread?', { day: 1, hh: 'h:3', q: null, job: 'farmer' })).toMatchObject({ a: 'meal', what: 'bread', hh: 'h:3' });
+    expect(strangerAsk('I will pay barley for a jug of beer', { day: 1, hh: null, q: null, job: 'farmer' })).toMatchObject({ a: 'meal', what: 'beer', hh: 'market', barter: true });
+    expect(strangerAsk('Sell me two sacks of barley', { day: 1, hh: 'h:3', q: null, job: 'farmer' })).toMatchObject({ a: 'buy', good: 'grain' });
   });
 });

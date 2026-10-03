@@ -9,6 +9,7 @@
 // radius, and are placed out to that radius plus the distance the camera may move before they are placed again, so
 // none pops in (brief §13.8); they cast no shadows (receive only).
 import * as THREE from 'three/webgpu';
+import { windBend } from './windField';
 import { attribute, uniform, cameraPosition, cameraViewMatrix, vec3, vec4, float, mix, smoothstep, length, sin, cos, time, clamp, max, step, normalize, fract } from 'three/tsl';
 import type { Terrain } from '../../terrain/heightfield';
 import type { CorridorSection } from './rivers';
@@ -73,8 +74,9 @@ export function riparianMargins(profiles: CorridorSection[][], canals: Canal[], 
   const a = bl.x.mul(BLADES * 2.39996).add(yaw).add(rnd(6).mul(1.2)), rr = tuftR.mul(rnd(4).mul(0.85).add(0.15));
   const dir = vec3(cos(a), 0, sin(a)), across = vec3(sin(a).negate(), 0, cos(a));
   const base = dir.mul(rr).add(across.mul(P.x.mul(wBlade).mul(wf).mul(0.5)));
-  const sway = sin(time.mul(1.9).add(seed.mul(6.28)).add(bl.x.mul(3))).mul(U.wind).mul(0.012);
-  const tip = dir.mul(rr.add(lean.mul(hBlade))).add(vec3(sway, hBlade, sway.mul(0.6)));
+  // D-670: the weather's wind (windField.ts): reeds and grass lean downwind, gusts run along the beds; each blade its own phase
+  const bend = windBend(ipos.xz, seed.add(bl.x.mul(0.07)), mix(float(0.9), float(1.4), isGrass)).mul(hBlade);
+  const tip = dir.mul(rr.add(lean.mul(hBlade))).add(vec3(bend.x, hBlade.sub(bend.dot(bend).div(max(hBlade, 0.05)).mul(0.5)), bend.y));
   const local = mix(base, tip, P.y).mul(fade).mul(keep);
   const m = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide });
   m.positionNode = ipos.add(local);
@@ -104,7 +106,7 @@ export function riparianMargins(profiles: CorridorSection[][], canals: Canal[], 
   profiles.forEach((prof, ri) => prof.forEach((q, i) => { const k = key(Math.floor(q.x / cell), Math.floor(q.y / cell)); let l = idx.get(k); if (!l) idx.set(k, l = []); l.push([ri, i]); }));
   /** height (world y) and height above the bed of a section's surface at signed lateral offset u (the drawn profile) */
   const prof = (q: CorridorSection, u: number): [number, number, number] => {
-    const ks = u < 0 ? [0, 1, 2, 3, 4, 5, 6] : [0, 7, 8, 9, 10, 11, 12], au = Math.abs(u);
+    const ks = u < 0 ? [0, 1, 2, 3, 4, 5] : [0, 6, 7, 8, 9, 10], au = Math.abs(u);
     for (let j = 1; j < ks.length; j++) { const a0 = Math.abs(q.off[ks[j - 1]]), a1 = Math.abs(q.off[ks[j]]);
       if (au <= a1 || j === ks.length - 1) { const f = a1 > a0 ? Math.min(1, Math.max(0, (au - a0) / (a1 - a0))) : 0;
         return [q.hy[ks[j - 1]] + (q.hy[ks[j]] - q.hy[ks[j - 1]]) * f, q.hrel[ks[j - 1]] + (q.hrel[ks[j]] - q.hrel[ks[j - 1]]) * f, q.t[ks[j - 1]] + (q.t[ks[j]] - q.t[ks[j - 1]]) * f]; } }
@@ -137,7 +139,7 @@ export function riparianMargins(profiles: CorridorSection[][], canals: Canal[], 
         // reed beds along the margins: patches ~25-90 m long, about half the bank (C); fords and grazed banks between
         const bedA = vn(s, 60, ri * 2 + 1, 211) * 0.65 + vn(s, 17, ri * 2 + 1, 212) * 0.35;
         const bedB = vn(s, 60, ri * 2 + 2, 211) * 0.65 + vn(s, 17, ri * 2 + 2, 212) * 0.35;
-        const maxU = Math.abs(q0.off[12]);
+        const maxU = Math.abs(q0.off[10]);
         for (let u = -maxU; u <= maxU; u += 0.45) {
           const x = sx + nx * u, y = sy + ny * u, dc = Math.hypot(x - cx, y - cy); if (dc > R + stepR) continue;
           const h = hash2(cellU(x / 0.3), cellU(y / 0.3), 213 + ri), r1 = unit(h);

@@ -100,3 +100,26 @@ describe('the quarry path (ribbons.ts quarryPaths)', () => {
     for (const q of p) if (h(q[0], q[1]) > 0) expect(Math.min(q[0] - 500, 600 - q[0], 800 - q[1])).toBeLessThan(QUARRY_PATH.cell + 5); // (never across the ridge: the smoothing clips its corner by at most a cell)
   });
 });
+
+// D-670: the works at town.json's facilities, and the qanats
+import { worksLayout } from '../src/world/plain/works';
+import { qanatLines } from '../src/world/plain/qanats';
+import { buildTownPlan } from '../src/world/settlement/plan';
+import { loadTerrain as loadT, loadRiversFile as loadR } from './plainLib';
+import { setVergePaths as setVP } from '../src/world/plain/verge';
+import { settlementRoads as sRoads } from '../src/world/plain/data';
+describe('the plain-side works and the qanats (D-670)', () => {
+  it('every facility yard is built clear of the town\'s sites and the roads, with work spots for the people', () => {
+    setVP(sRoads().map(r => ({ pts: r.pts, hw: r.width / 2, kind: 'road' as const })));
+    const plan = buildTownPlan(), L = worksLayout(plan);
+    expect(L.yards.map(y => y.id).sort()).toEqual(['brewery', 'brickyard', 'clay_pit', 'mill', 'oil_press', 'stockyard', 'tannery', 'terrace_bricks']);
+    expect(L.items.filter(i => i.m === 'wo_brick_field').length).toBeGreaterThan(400); // acres of bricks drying
+    for (const y of L.yards) { expect(y.moved).toBeLessThanOrEqual(160); expect(L.spots.some(s => s.facility === y.id)).toBe(true); }
+  });
+  it('qanat lines run down the fans: dozens of lines, shafts 15-50 m apart, mounds larger upslope', () => {
+    const T = loadT(), R = loadR(), L = qanatLines(T, R.rivers, []);
+    expect(L.length).toBeGreaterThan(20);
+    for (const l of L) { for (let i = 1; i < l.shafts.length; i++) { const d = Math.hypot(l.shafts[i].e - l.shafts[i - 1].e, l.shafts[i].n - l.shafts[i - 1].n); expect(d).toBeGreaterThan(12); expect(d).toBeLessThan(52); }
+      expect(l.shafts[0].r).toBeGreaterThan(l.shafts[l.shafts.length - 1].r); expect(T.aslAt(l.shafts[0].e, -l.shafts[0].n)).toBeGreaterThan(T.aslAt(l.shafts.at(-1)!.e, -l.shafts.at(-1)!.n)); }
+  });
+});

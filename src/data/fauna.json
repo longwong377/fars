@@ -230,5 +230,12 @@
    5
   ],
   "place": "the stockyard's fold (a ring of thorn brush 12 m across beside the stockyard, town.json) holds the state flock from dusk to dawn; about half the village compounds keep 2-5 sheep and goats in the court at night with the cow (C)"
+ },
+ "cat": {
+  "tier": "C",
+  "src": "RECON",
+  "yard_share_town": 0.18,
+  "evidence": "D-771 (s18 C12): the domestic cat kept in Egypt for millennia and known in the Near East; the town has Egyptian households and grain stores; mousers in the yards probable (C). No Achaemenid image or text of a cat was read.",
+  "place": "in about a sixth of the town's house yards: lying in the sun or the shade by day, about the yard at dusk and dawn, off over the wall when someone comes close (C)"
  }
 }

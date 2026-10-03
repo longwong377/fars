@@ -38,6 +38,8 @@
 import type { AudioEngine } from './engine';
 import { FormantBackend, clipToBuffer, voiceBase, type VoiceParams, type Intonation, type Vec3 } from './speech';
 import { tokenizeIpa } from './phonemes';
+import { tongueOf, tongueUnits, tongueUnit, EVERYDAY } from './tongues';
+import { reconstructedUnit } from '../lang/reconstruct';
 import { LEXICON, LANG_IDS, murmurEligible, spokenForm, type LangId } from '../lang/lexicon';
 import { LINES } from '../people/speech_lines';
 import { HOME_LANG } from '../people/exchanges';
@@ -100,6 +102,40 @@ export function unitsFor(lang: LangId): { lines: Unit[]; words: Unit[] } {
   const words = LEXICON[lang].filter(murmurEligible).filter(e => speakable(e.ipa!)).map(e => ({ id: e.id, ipa: e.ipa!, intonation: (hashString(e.id) % 5 === 0 ? 'rise' : hashString(e.id) % 3 === 0 ? 'level' : 'fall') as Intonation, kind: 'word' as const, parts: [e.id], tier: e.tier, gloss: e.gloss, translit: spokenForm(e) }));
   u = { lines, words }; UNITS.set(lang, u); return u;
 }
+const RC = new Map<LangId, Unit[]>();
+/** D-720: the town's everyday sentences in a lexicon language as reconstructed period speech (lang/reconstruct.ts; tier C) */
+export function rcLines(lang: LangId): Unit[] { let u = RC.get(lang); if (!u) RC.set(lang, u = EVERYDAY.map((en, i) => reconstructedUnit(en, lang, i)).filter(x => speakable(x.ipa) && x.ipa.split(' ').length >= 2)); return u; }
+/** D-720: what is sung or called where (by the plan's place: the crowd's group); null: nothing */
+export type SongKind = 'work' | 'field' | 'well' | 'market' | 'lull';
+export function songKind(place: string | null): SongKind | null {
+  if (!place) return null; if (/^well:/.test(place)) return 'well'; if (/^market/.test(place)) return 'market';
+  if (/^(field|threshing|vineyard|orchard|garden|estate|crown_fields|meadow|pasture)/.test(place)) return 'field';
+  if (/^(ws:|works|quarry|stone|brick|clay_pit|h100|drum|lift|mill|querns|oven)/.test(place)) return 'work';
+  return null;
+}
+/** the mean seconds between songs a person begins at that work (C: often at the heavy work, less at the well) */
+const SONG_EVERY_S: Record<SongKind, number> = { work: 90, field: 120, well: 240, market: 45, lull: 1 };
+/** the songs' and calls' words (the translation layer's English; reconstructed in the singer's tongue, tier C: no song text of
+ *  Persis survives, so these are this module's, of the kind every people of the empire sang at its work: C) */
+export const SONGS: Record<SongKind, readonly string[]> = {
+  work: ['pull together, pull, the stone is heavy', 'lift and lift again, the king builds high', 'one more stone, then bread and beer', 'the sun is hot, the work is long, the evening comes'],
+  field: ['the barley falls to the sickle, gather it in', 'bind the sheaf, bind it tight, the harvest is good', 'the water runs in the channel, the field drinks', 'sow the seed, the gods give the rain'],
+  well: ['water of the well, cool and sweet', 'the jar is full, the road is long, I carry it home', 'come to the well, the water is good'],
+  market: ['barley, good barley, weighed fair', 'bread, fresh bread', 'oil, sweet oil', 'onions and melons, come and see', 'pots, good pots, buy a pot'],
+  lull: ['sleep, little one, sleep', 'the night is quiet, your mother is here', 'close your eyes, the gods keep you', 'sleep, the stars are out, sleep'],
+};
+/** the units of one song or call for a singer: the line's words one by one (a breath marked between its parts) */
+function songUnits(kind: SongKind, p: NearPerson, r: Rng): Unit[] {
+  const line = r.pick(SONGS[kind] as string[]), L = voiceLang(p.lang, p.langs).lang, tg = L ? null : tongueOf(p.lang);
+  if (!L && !tg) return [];
+  const out: Unit[] = [];
+  for (const part of line.split(/,\s*/)) {
+    const u = L ? reconstructedUnit(part, L) : tongueUnit(tg!, part); if (!u.ipa) continue;
+    const ws = u.ipa.split(' '), tr = u.translit.split(' ');
+    ws.forEach((w, i) => out.push({ id: `${u.id}:${i}${i === ws.length - 1 ? ':,' : ''}`, ipa: w, intonation: 'level', kind: 'line', parts: [`${u.id}:${i}`], tier: 'C', gloss: `${line} (a ${kind === 'market' ? 'call' : 'song'}, reconstructed, tier C)`, translit: tr[i] ?? '' }));
+  }
+  return out;
+}
 /** sim language labels with a lexicon (Iranian: the sim's label for Persians named from the Iranian pool; Medes are voiced
  *  in Old Persian through HOME_LANG, as the sim does: C) */
 export const LEX_LABEL: Readonly<Record<string, LangId>> = { 'Old Persian': 'op', Iranian: 'op', Elamite: 'el', Aramaic: 'arc', Babylonian: 'bab', Greek: 'grc' };
@@ -132,23 +168,26 @@ export const voiceDist = (a: VoiceParams, b: VoiceParams) => { const A = voiceBa
   return Math.hypot(dp / VOICE_MIN.pitch, (Math.log(A.formantScale / B.formantScale) - dp) / VOICE_MIN.formant, (a.rate - b.rate) / VOICE_MIN.rate,
     ((a.glottis ?? 0.5) - (b.glottis ?? 0.5)) / VOICE_MIN.glottis, ((a.f2 ?? 1) - (b.f2 ?? 1)) / VOICE_MIN.f2); };
 const wrap = (v: number, lo: number, w: number) => lo + ((((v - lo) % w) + w) % w);
-interface Slot { key: string; p: NearPerson; voice: VoiceParams; /** D-336: their own natural voice, and the unit waiting for its render */ nv: NeuralVoice; want?: { u: Unit; lang: LangId | null }; rng: Rng; loud: number; recent: Map<string, number>; busyUntil: number; nextAt: number; seen: number; n: number; spoke: number; /** a baby's cries left in this bout */ bout?: number; /** D-292: the lullaby's phrase: notes left, its length, the scale step */ lull?: { left: number; n: number; step: number } }
+interface Slot { key: string; p: NearPerson; voice: VoiceParams; /** D-336: their own natural voice, and the unit waiting for its render */ nv: NeuralVoice; want?: { u: Unit; lang: LangId | null }; rng: Rng; loud: number; recent: Map<string, number>; busyUntil: number; nextAt: number; seen: number; n: number; spoke: number; /** a baby's cries left in this bout */ bout?: number; /** D-720: the song being sung, word by word, and its tune */ song?: { units: Unit[]; i: number; step: number; kind: SongKind }; /** D-292: the lullaby's phrase: notes left, its length, the scale step */ lull?: { left: number; n: number; step: number; words?: Unit[] } }
 interface Group { busyUntil: number; nextAt: number; speaker: string | null; turnLeft: number; last: string | null; /** a listener's laugh after the turn */ laughAt?: number; laughBy?: string }
 /** one utterance or grain started (the offline measurement reads these: tools/dev/audio_render.ts) */
-export interface Uttered { key: string; kind: 'voice' | 'bed'; t0: number; t1: number; unit: string; lang: LangId | 'wordless'; src: AudioBufferSourceNode; pan: PannerNode; buf: AudioBuffer; voice: VoiceParams }
+/** D-720: a language spoken: a lexicon's, a tongue's (tongues.ts: `tg:Lydian`), or no words */
+export type SpokenLang = LangId | 'wordless' | `tg:${string}`;
+export interface Uttered { key: string; kind: 'voice' | 'bed'; t0: number; t1: number; unit: string; lang: SpokenLang; src: AudioBufferSourceNode; pan: PannerNode; buf: AudioBuffer; voice: VoiceParams }
 /** what the translation layer may show for an utterance heard near (out of world; T-K3c) */
-export interface Caption { key: string; unit: string; lang: LangId | 'wordless'; translit: string; gloss: string; tier: string; t0: number; t1: number }
+export interface Caption { /** D-720: a tongue's speech has `tongue` (tongues.ts) and lang 'wordless' (no lexicon) */ tongue?: string; key: string; unit: string; lang: LangId | 'wordless'; translit: string; gloss: string; tier: string; t0: number; t1: number }
 
 export interface VoicesOptions { seed?: number; clearR?: number; bedR?: number; maxVoices?: number; hrtfN?: number; bedStreams?: number; level?: number; bedLevel?: number; renderBudget?: number; renderMs?: number; sampleRate?: number }
 
 export class PopulationVoices {
-  readonly clearR: number; readonly bedR: number; readonly maxVoices: number; readonly hrtfN: number; readonly bedStreams: number; readonly level: number; readonly bedLevel: number;
+  readonly clearR: number; readonly bedR: number; readonly maxVoices: number; /** D-720: songs and calls at once near the listener */ maxSingers = 2; readonly hrtfN: number; readonly bedStreams: number; readonly level: number; readonly bedLevel: number;
   renderBudget: number; renderMs: number;
   private synth: FormantBackend; private rng: Rng;
   private slots = new Map<string, Slot>(); private groups = new Map<string, Group>();
   private bedNext: number[] = []; private recentAll = new Map<string, number>();
   /** who speaks now (context time): the crowd moves their jaw from `from` to `to` (world.ts) */
-  readonly speaking = new Map<string, { from: number; to: number }>();
+  /** who is speaking now (audio clock), and D-720 (C14's visemes, D-790): the words being said (their IPA and transliteration) */
+  readonly speaking = new Map<string, { from: number; to: number; ipa?: string; text?: string }>();
   /** the talkers voiced this update (individually or by the bed): the crowd lets only the voice move their jaw */
   readonly claimed = new Set<string>();
   /** when set, every utterance and grain started is appended (the offline measurement) */
@@ -185,7 +224,11 @@ export class PopulationVoices {
   script: ((key: string, group: string | null, lang: LangId | null) => Unit | null) | null = null;
   private pickUnit(s: Slot, lang: LangId | null, now: number): Unit | null {
     const sc = this.script?.(s.p.key, s.p.group, lang); if (sc) return sc;
-    const U = lang ? unitsFor(lang) : { lines: [] as Unit[], words: WORDLESS }, fresh = (u: Unit) => u.parts.every(id => (s.recent.get(id) ?? -1e9) < now - 60) && (s.recent.get(u.id) ?? -1e9) < now - 60;
+    // D-720 (UD-24; the holes audit #15): a people without a lexicon speaks its own tongue in reconstructed sentences (tongues.ts),
+    // no longer only hums; a people with one says the town's everyday sentences in reconstructed period speech as well as its
+    // published lines and words (lang/reconstruct.ts): fluent talk, not single words (tier C both)
+    const tg = lang ? null : tongueOf(s.p.lang);
+    const U = lang ? { lines: [...unitsFor(lang).lines, ...rcLines(lang)], words: unitsFor(lang).words } : tg ? { lines: tongueUnits(tg), words: tongueUnits(tg) } : { lines: [] as Unit[], words: WORDLESS }, fresh = (u: Unit) => u.parts.every(id => (s.recent.get(id) ?? -1e9) < now - 60) && (s.recent.get(u.id) ?? -1e9) < now - 60;
     for (let k = 0; k < 16; k++) {
       const pool = U.lines.length && s.rng.chance(0.3) ? U.lines : U.words; if (!pool.length) continue;
       const u = pool[Math.floor(s.rng.next() * pool.length)];
@@ -246,9 +289,9 @@ export class PopulationVoices {
     g.connect(pan); e.route(pan, 'voices', t0 + dur); src.start(t0); src.stop(t0 + dur + 0.01);
     s.n++; for (const id of [tune.id, ...tune.parts]) s.recent.set(id, now); this.recentAll.set(`${lang}|${tune.id}`, now);
     if (s.recent.size > 64) for (const [k, t] of s.recent) if (t < now - 61) s.recent.delete(k);
-    this.speaking.set(s.key, { from: t0, to: t0 + dur }); s.busyUntil = t0 + dur; s.spoke = t0 + dur; this.stats.utterances++;
-    const L = tune.kind === 'wordless' ? 'wordless' : (lang ?? 'wordless'); this.log?.push({ key: s.key, kind, t0, t1: t0 + dur, unit: tune.id, lang: L, src, pan, buf, voice: s.voice });
-    if (this.onCaption && d <= this.captionR) this.onCaption({ key: s.key, unit: tune.id, lang: L, translit: tune.translit, gloss: tune.gloss, tier: tune.tier, t0, t1: t0 + dur });
+    this.speaking.set(s.key, { from: t0, to: t0 + dur, ipa: tune.ipa, text: tune.translit || tune.gloss }); s.busyUntil = t0 + dur; s.spoke = t0 + dur; this.stats.utterances++;
+    const L: SpokenLang = tune.kind === 'wordless' ? 'wordless' : lang ?? (tune.id.startsWith('tg:') ? `tg:${tune.id.split(':')[1]}` : 'wordless'); this.log?.push({ key: s.key, kind, t0, t1: t0 + dur, unit: tune.id, lang: L, src, pan, buf, voice: s.voice });
+    if (this.onCaption && d <= this.captionR) this.onCaption({ key: s.key, unit: tune.id, lang: L.startsWith('tg:') ? 'wordless' : L as LangId | 'wordless', ...(L.startsWith('tg:') ? { tongue: L.slice(3) } : {}), translit: tune.translit, gloss: tune.gloss, tier: tune.tier, t0, t1: t0 + dur });
     return t0 + dur;
   }
   /** Call once a frame with everyone the crowd places near the listener. `hold(key)`: a person speaking a scripted line
@@ -312,10 +355,27 @@ export class PopulationVoices {
     for (const p of people) { if (!p.lull) continue; const d = Math.hypot(p.x - listener.x, p.y + 1.5 - listener.y, p.z - listener.z); if (d > this.clearR) continue;
       const s = this.slot(p, now); s.seen = now; s.p = p; this.claimed.add(p.key); if (now < s.busyUntil || now < s.nextAt) continue;
       if (!s.lull || s.lull.left <= 0) { if (s.lull && s.rng.chance(LULL_REST_P)) { s.lull = undefined; s.nextAt = now + 4 + 8 * s.rng.next(); continue; }
-        const n = LULL_NOTES[0] + s.rng.int(0, LULL_NOTES[1] - LULL_NOTES[0]), top = 2 + s.rng.int(0, 2); s.lull = { left: n, n, step: top }; }
+        // (D-720, UD-24: every other phrase sung with words in her own tongue, reconstructed (tier C): the rest hummed as before)
+        const words = s.rng.chance(0.5) ? songUnits('lull', p, s.rng) : [];
+        const n = words.length || LULL_NOTES[0] + s.rng.int(0, LULL_NOTES[1] - LULL_NOTES[0]), top = 2 + s.rng.int(0, 2); s.lull = { left: n, n, step: top, ...(words.length ? { words } : {}) }; }
       const L = s.lull, k = L.n - L.left, semis = LULL_STEPS[Math.max(0, Math.min(LULL_STEPS.length - 1, L.step))], pitch = Math.pow(2, (semis - 2) / 12) * 0.92;
-      const end = this.utter(s, null, now, 'voice', false, d, { unit: LULL[(k + (L.left === 1 ? 1 : 0)) % LULL.length], loud: 0.55, pitch }); if (end == null) continue;
+      const end = this.utter(s, L.words ? voiceLang(p.lang, p.langs).lang : null, now, 'voice', false, d, { unit: L.words ? L.words[k] : LULL[(k + (L.left === 1 ? 1 : 0)) % LULL.length], loud: 0.55, pitch }); if (end == null) continue;
       L.left--; L.step = Math.max(0, L.step + (s.rng.chance(0.65) ? -1 : 1)); s.nextAt = end + (L.left ? 0.05 + 0.12 * s.rng.next() : 1.2 + 1.3 * s.rng.next()); }
+    // D-720 (the holes audit #15, UD-24): songs and calls by what people are doing: work songs at the works and the building, reaping
+    // songs in the fields, singing at the well, the market's calls; the words reconstructed in the singer's own tongue (tier C),
+    // sung word by word to a simple tune (the lullaby's steps), a breath between lines, a rest between songs; at most `maxSingers`
+    // at once near the listener, so the world is not a choir (C)
+    { let singing = 0; for (const s of this.slots.values()) if (s.song && now < s.busyUntil + 2) singing++;
+      for (const p of people) { if (p.talking || p.lull || p.age < 8) continue; const kind = songKind(p.group); if (!kind) continue;
+        const d = Math.hypot(p.x - listener.x, p.y + 1.5 - listener.y, p.z - listener.z); if (d > this.clearR * (kind === 'market' ? 1.6 : 1)) continue;
+        const s = this.slot(p, now); s.seen = now; s.p = p; if (now < s.busyUntil || now < s.nextAt) continue;
+        if (!s.song) { if (singing >= this.maxSingers || !s.rng.chance(Math.min(1, Math.max(0, dt)) / SONG_EVERY_S[kind])) continue;
+          const units = songUnits(kind, p, s.rng); if (!units.length) continue; s.song = { units, i: 0, step: 2 + s.rng.int(0, 2), kind }; singing++; }
+        this.claimed.add(p.key); const S = s.song, u = S.units[S.i];
+        const semis = LULL_STEPS[Math.max(0, Math.min(LULL_STEPS.length - 1, S.step))], call = S.kind === 'market';
+        const end = this.utter(s, voiceLang(p.lang, p.langs).lang, now, 'voice', false, d, { unit: u, loud: call ? 1.5 : 0.8, pitch: call ? 1.05 : Math.pow(2, (semis - 2) / 12) }); if (end == null) continue;
+        S.i++; S.step = Math.max(0, Math.min(LULL_STEPS.length - 1, S.step + (s.rng.chance(0.55) ? -1 : 1)));
+        if (S.i >= S.units.length) { s.song = undefined; s.nextAt = end + (call ? 6 + 10 * s.rng.next() : 12 + 25 * s.rng.next()); } else s.nextAt = end + (u.id.endsWith(':,') ? 0.6 : 0.06 + 0.1 * s.rng.next()); } }
     // coughs (G34): anyone past infancy within clearR now and then, not while they speak (C)
     for (const p of people) { if (p.age < 2) continue; const d = Math.hypot(p.x - listener.x, p.y + 1.5 - listener.y, p.z - listener.z); if (d > this.clearR) continue;
       if (!this.rng.chance(Math.min(1, Math.max(0, dt)) / this.coughEvery)) continue;

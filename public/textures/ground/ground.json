@@ -1,0 +1,69 @@
+{
+ "about": "D-354: the ground layers as one KTX2 array (tools/bake_world/ktx_ground.ts); layer order and the heights' mean and sd",
+ "src": "999724da02cc95d9",
+ "res": 2048,
+ "layers": [
+  "dust",
+  "stony",
+  "packed",
+  "straw",
+  "green",
+  "tilled",
+  "mud",
+  "cracked",
+  "rock",
+  "rockFar",
+  "scree",
+  "pebbles"
+ ],
+ "stats": {
+  "dust": {
+   "hMean": 0.4110611709893919,
+   "hSd": 0.08436829155243927
+  },
+  "stony": {
+   "hMean": 0.340807851155599,
+   "hSd": 0.07699986097961187
+  },
+  "packed": {
+   "hMean": 0.4317488277659697,
+   "hSd": 0.08392551510792888
+  },
+  "straw": {
+   "hMean": 0.3621331158806296,
+   "hSd": 0.0678909306734764
+  },
+  "green": {
+   "hMean": 0.3436825022977941,
+   "hSd": 0.07471044052478253
+  },
+  "tilled": {
+   "hMean": 0.49844656551585476,
+   "hSd": 0.09599467409139645
+  },
+  "mud": {
+   "hMean": 0.6454169179878982,
+   "hSd": 0.10630616138352664
+  },
+  "cracked": {
+   "hMean": 0.4844543307435279,
+   "hSd": 0.12394922100029282
+  },
+  "rock": {
+   "hMean": 0.5782500323127298,
+   "hSd": 0.12855499065939296
+  },
+  "rockFar": {
+   "hMean": 0.4265685287176394,
+   "hSd": 0.08559383497987944
+  },
+  "scree": {
+   "hMean": 0.6209631078383502,
+   "hSd": 0.0626248591592182
+  },
+  "pebbles": {
+   "hMean": 0.5958066454120711,
+   "hSd": 0.13805109213907285
+  }
+ }
+}
