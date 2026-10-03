@@ -266,34 +266,6 @@
 "owner": "C13"
 },
 {
-"id": "intro-stars-a",
-"e": -720,
-"n": 70,
-"eye": 1.9,
-"az": 86,
-"pitch": 17,
-"fov": 50,
-"day": 0,
-"hour": 4.43,
-"w": "clear",
-"why": "C11 opening shot 'stars' (92d6a6bf), first key: sunrise-1.15 h, the stars over Kuh-e Rahmat",
-"owner": "C11"
-},
-{
-"id": "intro-stars-b",
-"e": -706,
-"n": 72,
-"eye": 2.2,
-"az": 88,
-"pitch": 8,
-"fov": 48,
-"day": 0,
-"hour": 4.43,
-"w": "clear",
-"why": "C11 opening shot 'stars', last key",
-"owner": "C11"
-},
-{
 "id": "intro-town",
 "e": -320,
 "n": 862,
