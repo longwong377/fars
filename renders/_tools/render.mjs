@@ -67,6 +67,16 @@ for (const v of work) {
       for (let j = 0; j < N[1]; j++) for (let i = 0; i < N[0]; i++) { const h = await p.evaluate(([x, y]) => window.__parsa.pickW(x, y), [-1 + (2 * i + 1) / N[0], -1 + (2 * j + 1) / N[1]]).catch(() => null);
         if (h) { const k = `${h.name}|${h.parent}`; names[k] = (names[k] ?? 0) + 1; }
         if (h && h.ny > 0.7 && /^settlement|^house|^town|^q_/i.test(String(h.name || h.parent)) && !/ground|road|water|refuse|tree|haze|smoke|canal|channel|bank/i.test(String(h.name))) hits.push(h.p); }
+      // refine: a 5x5 sub-grid in every coarse cell that hit settlement geometry (the town is a small part of a 20 m frame)
+      const cells = []; for (let j = 0; j < N[1]; j++) for (let i = 0; i < N[0]; i++) cells.push([i, j]);
+      const isTown = h => h && /^settlement/i.test(String(h.name)) && !/ground|road|water|refuse|tree|haze|smoke|canal|channel|bank/i.test(String(h.name));
+      const hitCells = [];
+      for (const [i, j] of cells) { const h = await p.evaluate(([x, y]) => window.__parsa.pickW(x, y), [-1 + (2 * i + 1) / N[0], -1 + (2 * j + 1) / N[1]]).catch(() => null); if (isTown(h)) hitCells.push([i, j]); }
+      hits.length = 0;
+      for (const [i, j] of hitCells) for (let b = 0; b < 5; b++) for (let c = 0; c < 5; c++) {
+        const h = await p.evaluate(([x, y]) => window.__parsa.pickW(x, y), [-1 + (2 * i + (c + 0.5) / 5 * 2) / N[0], -1 + (2 * j + (b + 0.5) / 5 * 2) / N[1]]).catch(() => null);
+        if (h) { const k = `${h.name}|${h.parent}`; names[k] = (names[k] ?? 0) + 1; }
+        if (isTown(h) && h.ny > 0.7) hits.push(h.p); }
       let open = 0; for (const q of hits) { const top = Math.max(...hits.filter(r => Math.hypot(r[0] - q[0], r[2] - q[2]) < 15).map(r => r[1])); if (top - q[1] > 1.5) open++; }
       life.openToSky = hits.length ? +(open / hits.length).toFixed(3) : null; life.openSamples = hits.length; life.openNames = Object.entries(names).sort((x, y) => y[1] - x[1]).slice(0, 8); life.openS = +((Date.now() - t3) / 1000).toFixed(0); }
     appendFileSync(`${outDir}/life.jsonl`, JSON.stringify({ id: v.id, who: v.who, reheaded: v.reheaded, ...life }) + '\n');
