@@ -21,6 +21,7 @@ describe('KTX2 copies match their sources (D-740)', () => {
     for (const s of meta.skin) h.update(readFileSync(join(D, `skin_${String(s.layer).padStart(2, '0')}.jpg`)));
     for (const c of meta.cloth) { h.update(readFileSync(join(D, `cloth_${c.layer}.jpg`))); h.update(readFileSync(join(D, `cloth_${c.layer}_h.jpg`))); }
     const F = json('public/models/people/people_cloth.json').folds; if (F) h.update(readFileSync(join('public/models/people', F.file)));
+    if (existsSync('tools/humans/data/skin_pores.png')) h.update(readFileSync('tools/humans/data/skin_pores.png')); // (s18 C14: the skin layers' alpha)
     expect(h.digest('hex').slice(0, 16), 'run tools/bake_world/ktx_humans.ts').toBe(m.src);
   });
   it('the bark (ktx_bark.ts) and the loadMap images (ktx_maps.ts)', () => {
