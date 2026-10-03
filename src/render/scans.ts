@@ -57,6 +57,8 @@ export const SCAN_USE: Record<string, ScanUse> = {
   mudbrick: { scan: 'clay_floor_001', scale: 2.2, scale2: 9.7, alb: 0.6, height: 0.003, rough: 0.4, nor: 2.0 },
   mudbrick_painted: { scan: 'clay_floor_001', scale: 2.2, scale2: 9.7, alb: 0.5, height: 0.003, rough: 0.4, nor: 2.0 },
   palace_plaster: { scan: 'clay_floor_001', scale: 2.2, scale2: 9.7, alb: 0.45, height: 0.0025, rough: 0.4, nor: 1.6 }, // D-752
+  palace_crest: { scan: 'clay_floor_001', scale: 2.2, scale2: 9.7, alb: 0.45, height: 0.0025, rough: 0.4, nor: 1.6 }, // D-755
+  relief_ground: { scan: 'rock_boulder_dry', chroma: 0.2, hue: 0.2, scale: 1.3, scale2: 5.9, alb: 0.3, height: 0.0015, rough: 0.4, nor: 0.5 }, // D-755
   mudbrick_bare: { scan: 'clay_block_wall', scale: 1.9, alb: 0.5, height: 0.003, rough: 0.4 }, // D-334: the walls under construction
   // D-334: the palaces' roofs and exposed tops: the rolled clay-and-straw coat (a clay plaster scan; the roller, straw and cracks baked)
   roof_earth: { scan: 'clay_plaster', scale: 2.4, scale2: 10.3, alb: 0.6, height: 0.003, rough: 0.4 },
@@ -132,6 +134,7 @@ export const WALL_BAKE: Record<string, { tex: string; scale: number; nor: number
   mudbrick: { tex: 'palacewall_bake', scale: 2.61, nor: 2.2, cav: 0.25, ktx: true },
   mudbrick_painted: { tex: 'palacewall_bake', scale: 2.61, nor: 2.2, cav: 0.25, ktx: true },
   palace_plaster: { tex: 'palacewall_bake', scale: 2.61, nor: 2.2, cav: 0.25, ktx: true }, // D-752
+  palace_crest: { tex: 'palacewall_bake', scale: 2.61, nor: 2.2, cav: 0.25, ktx: true }, // D-755
   roof_earth: { tex: 'palaceroof_bake', scale: 3.13, nor: 1.8, cav: 0.3, ktx: true },
 };
 const BAKE = new Map<string, THREE.Texture>();
@@ -140,7 +143,7 @@ const BAKE = new Map<string, THREE.Texture>();
  *  timber). Drawn without one (no SCAN_USE entry, or a blend under ALB_MIN) such a surface is a procedural stand-in. Not here
  *  (no fitting scan: judged by T-A4): bronze, the glazed brick, the red-painted floors, reed matting, cloth */
 export const ALB_MIN = 0.3;
-export const SCANNABLE: Record<string, true> = Object.fromEntries(['limestone', 'limestone_merlon', 'limestone_carved', 'limestone_dark', 'frame_coat', 'palace_plaster',
+export const SCANNABLE: Record<string, true> = Object.fromEntries(['limestone', 'limestone_merlon', 'limestone_carved', 'limestone_dark', 'frame_coat', 'palace_plaster', 'palace_crest', 'relief_ground',
   'terrace', 'terrace_now', 'terrace_foot', 'stone_rough', 'stone_plain', 'takht_stone', 'nr_dressed', 'nr_rock', 'rubble', 'kaba_white', 'mudbrick', 'mudbrick_painted', 'roof_earth', 'mudbrick_bare',
   'house_brick', 'baked_brick', 'mud_plaster', 'house_plaster', 'house_socle', 'house_roof', 'mud_roof', 'plaster', 'village_mud', 'earth', 'court_fill', 'road', 'bank',
   'refuse', 'timber', 'roof_timber', 'house_timber', 'door_planks', 'scaffold'].map(k => [k, true]));
