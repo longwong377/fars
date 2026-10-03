@@ -70,6 +70,8 @@ const MUD: RGB = [0.56, 0.47, 0.36], POLE: RGB = [0.5, 0.43, 0.34], BRUSH: RGB =
 const sh = (c: RGB, k: number): RGB => [c[0] * k, c[1] * k, c[2] * k];
 /** s18 C2 (D-660): the roofs' straw-and-clay finish coat, sun-bleached (linear; C) */
 const ROOF_COAT: RGB = lin([0.74, 0.64, 0.5]);
+/** s18 C2 (D-661): the washes (sRGB): gypsum and lime whites (never pure: the loam shows through), yellow ochres, red ochres */
+const WASH = { white: [[0.86, 0.83, 0.76], [0.82, 0.8, 0.74], [0.88, 0.84, 0.75]] as RGB[], ochre: [[0.78, 0.62, 0.38], [0.74, 0.6, 0.4], [0.8, 0.66, 0.44]] as RGB[], red: [[0.66, 0.4, 0.28], [0.6, 0.36, 0.26], [0.7, 0.46, 0.33]] as RGB[] };
 const mixc = (a: RGB, b: RGB, t: number): RGB => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
 const smooth = (x: number) => { const t = Math.min(1, Math.max(0, x)); return t * t * (3 - 2 * t); };
 /** hash of integers to [0, 1) */
@@ -215,8 +217,23 @@ export class SiteHouses {
     const L = this.life(plot), c = plot >= 0 ? this.pcol[plot] : lin(MUD);
     const fresh = Math.max(0, 1 - L.sincePlaster / 18); // damp-dark and warmer when fresh, paler and greyer as it weathers
     let k = (0.96 + 0.05 * (1 - fresh)) * (court ? 1.02 : 0.99); if (add) k *= 1.05;
-    return [c[0] * k * (1 + 0.02 * fresh), c[1] * k, c[2] * k * (1 - 0.03 * fresh) * (add ? 0.96 : 1)];
+    const m: RGB = [c[0] * k * (1 + 0.02 * fresh), c[1] * k, c[2] * k * (1 - 0.03 * fresh) * (add ? 0.96 : 1)];
+    // s18 C2 (D-661, C12's holes audit #5: every house the one buff mud): the household's wash over the mud plaster, full in
+    // the court, thinner on the lane face (sun, rain and the passing load wear it back toward the mud), fading in the months
+    // since it was last renewed; an added room strip not yet washed
+    const W = this.washOf(plot); if (!W || add) return m; const f = W.k * (court ? 0.92 : 0.62) * (0.55 + 0.45 * Math.max(0, 1 - L.sincePlaster / 30));
+    return mixc(m, W.c, f);
   }
+  /** s18 C2 (D-661): a house's wash (C: gypsum and lime washes, white, and earth washes of yellow and red ochre, are the
+   *  region's and the period's: the Terrace's own gypsum plaster and red-painted floors, B; which household washes and with
+   *  what C): the better-off wash more often and more often white; most of the poor leave the bare mud */
+  private washOf(plot: number): { c: RGB; k: number } | null {
+    if (plot < 0 || !HOUSE_KINDS.has(this.s.plots[plot].kind)) return null; let w = this._wash.get(plot); if (w !== undefined) return w;
+    const L = this.life(plot), h = (hashString(`${this.s.plots[plot].id}:wash`) % 100000) / 100000, h2 = (hashString(`${this.s.plots[plot].id}:wash2`) % 1000) / 1000, st = L.standing;
+    const pW = 0.12 + 0.4 * st, pO = 0.1 + 0.08 * st, pR = 0.04 + 0.06 * st;
+    w = h < pW ? { c: lin(WASH.white[Math.floor(h2 * WASH.white.length)]), k: 0.7 + 0.25 * h2 } : h < pW + pO ? { c: lin(WASH.ochre[Math.floor(h2 * WASH.ochre.length)]), k: 0.55 + 0.3 * h2 } : h < pW + pO + pR ? { c: lin(WASH.red[Math.floor(h2 * WASH.red.length)]), k: 0.45 + 0.3 * h2 } : null;
+    this._wash.set(plot, w); return w; }
+  private _wash = new Map<number, { c: RGB; k: number } | null>();
 
   // ---- the far level ---------------------------------------------------------------------------------------------------
   /** every wall (partitions under the roofs left out), roof and large fitting of the site, each vertex tagged with its tile's

@@ -9894,6 +9894,20 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   stacks, heaps and folds drawn to 2.2 km; crop guards' reed shelters at irrigated plot edges and herders' wattle pens with
   their huts on the fallow (the kit's models), to 2.2 km (fieldFill.ts LAND). Census (plain_census, 18 Apr): bare 3.0 % and
   repeats 0.0 % as in s17; field trees near paths 25 -> 77.
+- Qanats unblocked (the lead's ask from C12's holes audit): Q-052 says no qanat in Fars is dated to the Achaemenids, not that
+  there were none; Polybius 10.28 has the Persian kings rewarding underground water works. By D-207 they are drawn, tier C
+  (qanats.ts): 56 lines (~2,700 shaft mounds, 20-45 m apart, larger upslope) from the hill-foot fans down onto the plain,
+  clear of the zones, Terrace, rivers, roads and villages, in 3 km tiles shown within ~3.2 km. blocklist.json's qanat entry
+  removed, ANACHRONISM_BLOCKLIST.md row marked unblocked, plain.json not_placed line removed, the plain test's banned-name
+  list updated. settlement.json, lives.json (others' files) still say "no qanats" in their notes.
+- Trees (trees/render.ts setDay): every day change after the first bake re-bakes the impostors in the worker, jumps too (C1's
+  sliced day jump made the 1.7 s main-thread bake the worst frame); the far trees follow within a second or two.
+- crossings.ts: one ford per place across roads (D-730's two roads share a line and a ford). tools/plain/meander.ts re-runs
+  (it undoes the last meander from the base course and prior samples it kept); re-run after D-730's rerouted roads.
+- The plain's frame budget (D-040's 2 M at the village wells) after the s17-int merge (+80 k of village door leaves): the fords'
+  and quarries' shared stone mesh cast its 361 k shadow triangles in every frame (the castShadow line sat inside a comment);
+  now within 300 m of a ford or 450 m of a quarry. The river apron in two steps (11 vertices a section, was 13); canal banks
+  at the canals' 25 m trace step (was 12.5).
 
 ## D-720 Follow thirty: the people answer from their own lives without the model, and the town's deeds and yesterday reach their talk (session 18, cloud C8; UD-07, UD-08, UD-11, UD-21, UD-24, UD-32)
 - Measured (tools/dev/follow30.ts; REVIEWS/follow30.json): thirty people drawn by seed across the town, the villages, the Terrace's
@@ -9961,6 +9975,11 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   No src edits (an audit).
 - B580: a landlocked house whose only lane contact is a corner cell keeps a 0.02-0.3 m slot between the two crossing 0.7 m walls whatever door is cut (measured at 10 cm). access.ts' last pass cuts up to three connected cells at that corner (the house's own or a neighbour's; never a door cell or a small plot) back to the lane, the door through the cut (a narrow 0.6 m door allowed there), a neighbour's room the cut strands given an inner door, kept when the house is then at least half reached and no other plot loses a reached place; the cut reaching most is kept. q_s4-0074 (100/100 cells), q_s4-0161 (91/141: its inside split by a narrow inner passage), q_w3-0122 and one more entered. Then a lane pocket no body walks into (q_w2-0077 and q_w2-0082 faced a 40-cell one whose one exit was a one-cell lane, 0.15 m of room) gets its one-cell corridor widened into the larger plot along it (and, if the two wall corners across the junction still leave a diagonal slot, one cell beyond), kept when the pocket is then reached and every plot keeps its reached places (a large yard may lose 0.2 %). Every house of the town can now be entered: shut houses 6 → 0, quarter plot cells reached 99.437 → 99.805 %, lane cells 99.742 → 100 % (reach_census.ts). town_plots.json regenerated. The nav grid (public/generated/nav.i16, tools/build_nav.ts) still holds the old doors: the people do not yet route through the new ones (asked of the lead).
 
+## D-661 The lower-city belt at the Terrace's foot; the houses washed, the doors painted (s18 cloud C2, the lead's call on C12's holes audit #4 and #5)
+- The rule that kept the Terrace's whole approach empty is gone (plan.ts): the town was nine blocks 0.5-2 km out in grass and the first frame an empty field with dark lumps before a lone platform. Five belt quarters (C) join the quarters to the Terrace's foot and run along the roads: q_b1 (N of the road west by q_w1), q_b3 (between q_w3 and the foot), q_b4 (on the road south between the Terrace and q_s1, the road its main street), q_b5 (between q_w1 and the officials' houses), q_b6 (on the road west, the processional way a 14 m main street through it). Kept open: the processional way, the stair's forecourt, the court's camps (court.json), and the people's walkable grid round the Terrace (e −620…262, n −245…185: the nav grid holds no town walls, so a quarter there would let people walk through houses; widening it means rebuilding the nav grid with the town's colliders, not done). Plots 1,505 → 2,244, homes 1,456 → 2,173 (town_plots.json), every one reached (reach_census: 0 shut, lane cells 100 %). The population is unchanged: households take the nearest houses of their zone, so the belt draws people in toward the Terrace and leaves more houses empty further out. Cost: the town's build grows with its plots (~+50 %); measured in the report.
+- The houses all one buff mud: each household's wash over the mud plaster (houses.ts washOf; C: gypsum and lime whites, yellow and red ochre earth washes), 12-52 % of houses white by standing, 10-18 % yellow ochre, 4-10 % red ochre, the rest bare mud; full in the court, thinner on the lane face, fading in the months since the last renewal; the roofs keep their earth coat. Street doors: 60 % bare weathered poplar, the rest painted red ochre, a blue-grey or a green-grey earth (towndoors.ts, an instance tint; C). Five more dyes in the cloths' palette (fillPlan.ts CLOTHS: weld-over-woad green, madder-over-woad purple, weld yellow, bright madder, deep woad) for the awnings, the washing and the market's cloth.
+- C5's q_w1 plot 141 (B691) is not a collider fault: plot index 141 is q_w1-0142, a pen whose street door opens onto a one-cell strip of the pen (its row 34) with the pen's own outer wall 0.8 m behind; the routes reach it (siteReach), the door walk walks into that wall.
+
 ## D-680 (s18, cloud C4): the far sun cascade; the Rahmat streak traced
 - sunShadows.ts: past the last cascade (600 m) nothing had a sun shadow, so the Terrace and town from the plain read flat-lit.
   A fifth, static map fitted to the box of the Terrace and the town (FAR_BOX: east -1480..330, north -1580..840, 4096²,
@@ -10001,3 +10020,20 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
 - Not mine to change (asked): src/data/blocklist.json (the 'qanat' term and the descriptions), tests/plain.test.ts:356
   ('qanat'), tools/chrono_to_md.py:12 (CHRONOLOGY.md is generated: the new line must go into the generator), and the data
   files (C13).
+
+## D-780 The court as a living spectacle, its dress dyed, its halls laid (s18 cloud C13; holes #10, #11, #14, #18; UD-09, UD-10, UD-29)
+- UD-09, UD-10 and UD-29 overrule "no procession is staged" (court.ts, court.json, COURT.md) and the `never` rules of E-24 and
+  E-35. src/people/ceremony.ts: the court's programme, a pure function of (seed, day): audiences (0.55 of mornings), the days of
+  the peoples' gifts (every delegation then at Persepolis goes up in the reliefs' order behind its usher, the leader bowing with
+  his hand before his mouth; the first a few days after the king comes, then every 10-16 days), the king's gifts and his dawn at
+  the magi's fire the morning after he comes, the tukta on a seeded day, great banquets in the Apadana (seats round low tables in
+  the bays; servers crossing the Terrace; lamps), rides and hunts with the king, escort, nobles, grooms and beaters on the plain,
+  royal-road couriers every day, grooms exercising the horses. court.ts reads it into each person's day (new: the chiliarch).
+  Every day, hour, count and place is C (sources in court.json `ceremony`). The king still never speaks to or reacts to the
+  visitor (brief 1.1).
+- Dress (looks.ts, garments.ts, delegations.json): madder, woad and weld were cheap: working dress dyed about 3 in 5, women 4 in
+  5, children's hems dyed; guards in the Susa archers' yellow, white and purple; torques on 60 % of Persians (40 % guards); bronze
+  rings for a share of working men; gold plaques on a third of the court robes (drawn as the rosette motif in gold-yellow).
+  people_look's rank test: court chroma > 1.5x the working dress's (was 2x; rank still shows).
+- Furnishings (furnish_palaces.ts): the Apadana laid for the banquets (a carpet and a table in each seated bay, lamp stands,
+  hangings on the W, E and N walls); with the court away the halls keep their hangings, and the Apadana a keeper's corner and lamps.

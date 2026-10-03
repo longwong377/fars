@@ -109,92 +109,590 @@
    ]
   },
   "beds": {
+   "canal": [
+    {
+     "file": "beds/canal_0.ogg",
+     "dur": 92.25,
+     "bytes": 731285,
+     "lufs": -23,
+     "src": "commons:File:Water flowing pouring trickling.ogg",
+     "licence": "CC0",
+     "author": "stephan",
+     "url": "https://commons.wikimedia.org/wiki/File:Water_flowing_pouring_trickling.ogg"
+    }
+   ],
    "drips": [
     {
      "file": "beds/drips_0.ogg",
-     "dur": 82.85,
-     "bytes": 482761,
+     "dur": 119.99,
+     "bytes": 635452,
      "lufs": -23,
-     "src": "esc50:compose:water_drops:drips",
-     "licence": "CC BY-NC",
-     "author": "mich3d, dobroide, vibe_crc, alienistcog, hybu, reinsamba, Robinhood76, Adam_N, ultradust, toiletrolltube, willstepp, l3ardoc, rafael45, arseniiv, cpttatosa, heifara",
-     "url": "https://github.com/karolpiczak/ESC-50"
+     "src": "freesound:628404",
+     "licence": "CC0",
+     "author": "xkeril",
+     "url": "https://freesound.org/people/xkeril/sounds/628404/"
+    }
+   ],
+   "dust_wind": [
+    {
+     "file": "beds/dust_wind_0.ogg",
+     "dur": 81.05,
+     "bytes": 430613,
+     "lufs": -23,
+     "src": "freesound:104319",
+     "licence": "CC0",
+     "author": "Proxima4",
+     "url": "https://freesound.org/people/Proxima4/sounds/104319/"
+    }
+   ],
+   "hall_tone": [
+    {
+     "file": "beds/hall_tone_0.ogg",
+     "dur": 119.99,
+     "bytes": 623677,
+     "lufs": -23,
+     "src": "freesound:451614",
+     "licence": "CC0",
+     "author": "kyles",
+     "url": "https://freesound.org/people/kyles/sounds/451614/"
     }
    ],
    "hearth": [
     {
      "file": "beds/hearth_0.ogg",
-     "dur": 120.01,
-     "bytes": 687197,
+     "dur": 119.99,
+     "bytes": 746726,
      "lufs": -23,
-     "src": "esc50:compose:crackling_fire:hearth",
-     "licence": "CC BY",
-     "author": "lgarrett, markfrancombe, Krisboruff, Everard, PhreaKsAccount, reinsamba, pcaeldries, Benboncan, dobroide, bogus, Glaneur de sons, sagetyrtle, andydonaldson6, SoundCollectah, Adam_N, matucha, MrAuralization, kingsrow, ReadeOnly, Vurca, amether, skyklan47, laribum, juskiddink",
-     "url": "https://github.com/karolpiczak/ESC-50"
+     "src": "freesound:501417",
+     "licence": "CC0",
+     "author": "visionear",
+     "url": "https://freesound.org/people/visionear/sounds/501417/"
+    },
+    {
+     "file": "beds/hearth_1.ogg",
+     "dur": 119.99,
+     "bytes": 797540,
+     "lufs": -23,
+     "src": "freesound:145774",
+     "licence": "CC0",
+     "author": "moxobna",
+     "url": "https://freesound.org/people/moxobna/sounds/145774/"
+    }
+   ],
+   "hillside_day": [
+    {
+     "file": "beds/hillside_day_0.ogg",
+     "dur": 119.99,
+     "bytes": 688857,
+     "lufs": -23,
+     "src": "freesound:393693",
+     "licence": "CC0",
+     "author": "gladkiy",
+     "url": "https://freesound.org/people/gladkiy/sounds/393693/"
+    }
+   ],
+   "hillside_night": [
+    {
+     "file": "beds/hillside_night_0.ogg",
+     "dur": 119.99,
+     "bytes": 729345,
+     "lufs": -23,
+     "src": "freesound:647658",
+     "licence": "CC0",
+     "author": "ValentinPetiteau",
+     "url": "https://freesound.org/people/ValentinPetiteau/sounds/647658/"
     }
    ],
    "orchard_day": [
     {
      "file": "beds/orchard_day_0.ogg",
-     "dur": 114.85,
-     "bytes": 626878,
+     "dur": 119.99,
+     "bytes": 651563,
      "lufs": -23,
-     "src": "esc50:compose:chirping_birds:orchard_day",
-     "licence": "CC BY-NC",
-     "author": "soundbytez, hanstimm, digifishmusic, cajo, inchadney, ducksingel, keweldog, urupin, dwareing, RSilveira_88, Julien Nicolas",
-     "url": "https://github.com/karolpiczak/ESC-50"
+     "src": "freesound:523386",
+     "licence": "CC0",
+     "author": "Anya_Media",
+     "url": "https://freesound.org/people/Anya_Media/sounds/523386/"
+    }
+   ],
+   "orchard_night": [
+    {
+     "file": "beds/orchard_night_0.ogg",
+     "dur": 119.99,
+     "bytes": 706240,
+     "lufs": -23,
+     "src": "freesound:410357",
+     "licence": "CC0",
+     "author": "felix.blume",
+     "url": "https://freesound.org/people/felix.blume/sounds/410357/"
+    }
+   ],
+   "plain_autumn_day": [
+    {
+     "file": "beds/plain_autumn_day_0.ogg",
+     "dur": 119.99,
+     "bytes": 717484,
+     "lufs": -23,
+     "src": "freesound:650337",
+     "licence": "CC0",
+     "author": "kvgarlic",
+     "url": "https://freesound.org/people/kvgarlic/sounds/650337/"
+    }
+   ],
+   "plain_dawn": [
+    {
+     "file": "beds/plain_dawn_0.ogg",
+     "dur": 116.57,
+     "bytes": 682876,
+     "lufs": -23,
+     "src": "freesound:426276",
+     "licence": "CC0",
+     "author": "marc.om",
+     "url": "https://freesound.org/people/marc.om/sounds/426276/"
+    }
+   ],
+   "plain_dusk": [
+    {
+     "file": "beds/plain_dusk_0.ogg",
+     "dur": 119.99,
+     "bytes": 681307,
+     "lufs": -23,
+     "src": "freesound:178136",
+     "licence": "CC BY",
+     "author": "klankbeeld",
+     "url": "https://freesound.org/people/klankbeeld/sounds/178136/"
+    }
+   ],
+   "plain_night_cold": [
+    {
+     "file": "beds/plain_night_cold_0.ogg",
+     "dur": 119.99,
+     "bytes": 639246,
+     "lufs": -23,
+     "src": "freesound:843781",
+     "licence": "CC0",
+     "author": "kvgarlic",
+     "url": "https://freesound.org/people/kvgarlic/sounds/843781/"
     }
    ],
    "plain_night_warm": [
     {
      "file": "beds/plain_night_warm_0.ogg",
-     "dur": 120.01,
-     "bytes": 785271,
+     "dur": 56.41,
+     "bytes": 375851,
      "lufs": -23,
-     "src": "esc50:compose:crickets:plain_night_warm",
-     "licence": "CC BY-NC",
-     "author": "J - Luc, Zozzy, mystiscool, sunsinger, LS, Christoff45, soundscalpel.com, truflabart, Tito Lahaye, becks77, rfhache, le_abbaye_Noirlac, FreethinkerAnon, ianjuby, thedogryan420, kslagerman, Mark_Ian, Leandros.Ntounis, Znalac, rhapsodize, frus, icuttv, cosmician, adneonlux, arseniiv, rayjensen, tagigobaso, Sclolex, john9, RSilveira_88",
-     "url": "https://github.com/karolpiczak/ESC-50"
+     "src": "freesound:175020",
+     "licence": "CC0",
+     "author": "sengjinn",
+     "url": "https://freesound.org/people/sengjinn/sounds/175020/"
+    },
+    {
+     "file": "beds/plain_night_warm_1.ogg",
+     "dur": 119.99,
+     "bytes": 641706,
+     "lufs": -23,
+     "src": "freesound:661435",
+     "licence": "CC0",
+     "author": "Brazilio123",
+     "url": "https://freesound.org/people/Brazilio123/sounds/661435/"
+    }
+   ],
+   "plain_spring_day": [
+    {
+     "file": "beds/plain_spring_day_0.ogg",
+     "dur": 119.99,
+     "bytes": 671913,
+     "lufs": -23,
+     "src": "freesound:852837",
+     "licence": "CC0",
+     "author": "bruno.auzet",
+     "url": "https://freesound.org/people/bruno.auzet/sounds/852837/"
+    },
+    {
+     "file": "beds/plain_spring_day_1.ogg",
+     "dur": 75.67,
+     "bytes": 409496,
+     "lufs": -23,
+     "src": "freesound:733467",
+     "licence": "CC BY",
+     "author": "klankbeeld",
+     "url": "https://freesound.org/people/klankbeeld/sounds/733467/"
+    }
+   ],
+   "plain_summer_day": [
+    {
+     "file": "beds/plain_summer_day_0.ogg",
+     "dur": 119.99,
+     "bytes": 667701,
+     "lufs": -23,
+     "src": "freesound:564166",
+     "licence": "CC0",
+     "author": "Aemyn",
+     "url": "https://freesound.org/people/Aemyn/sounds/564166/"
+    },
+    {
+     "file": "beds/plain_summer_day_1.ogg",
+     "dur": 119.99,
+     "bytes": 641706,
+     "lufs": -23,
+     "src": "freesound:661435",
+     "licence": "CC0",
+     "author": "Brazilio123",
+     "url": "https://freesound.org/people/Brazilio123/sounds/661435/"
+    }
+   ],
+   "plain_winter_day": [
+    {
+     "file": "beds/plain_winter_day_0.ogg",
+     "dur": 119.99,
+     "bytes": 681307,
+     "lufs": -23,
+     "src": "freesound:178136",
+     "licence": "CC BY",
+     "author": "klankbeeld",
+     "url": "https://freesound.org/people/klankbeeld/sounds/178136/"
     }
    ],
    "rain_heavy": [
     {
      "file": "beds/rain_heavy_0.ogg",
-     "dur": 120.01,
-     "bytes": 551162,
+     "dur": 119.99,
+     "bytes": 632581,
      "lufs": -23,
-     "src": "esc50:compose:thunderstorm:rain_heavy",
-     "licence": "CC BY-NC",
-     "author": "raoul_slayer, csengeri, Erdie, Robinhood76, inchadney, kijjaz, chrscrwfrd18, daveincamas",
-     "url": "https://github.com/karolpiczak/ESC-50"
+     "src": "freesound:501007",
+     "licence": "CC0",
+     "author": "RavenWolfProds",
+     "url": "https://freesound.org/people/RavenWolfProds/sounds/501007/"
     }
    ],
    "rain_light": [
     {
      "file": "beds/rain_light_0.ogg",
-     "dur": 109.45,
-     "bytes": 519782,
+     "dur": 119.99,
+     "bytes": 624987,
      "lufs": -23,
-     "src": "esc50:compose:rain:rain_light",
+     "src": "freesound:422052",
      "licence": "CC0",
-     "author": "cognito perceptu, uberhuberman, Walter_Odington, palem, vibe_crc, thammo, Q.K., liliangorini, nialldoran, bsyapril88, j1987, silencyo, sagetyrtle, Polmantz, klangfabrik, loopbasedmusic, Keygenerator, Mafon2, reelworldstudio, Zepp2010, Danjocross, pheiland, josephsardin, aumguy, asbestos bill, laura222, yzhamua, soundman9826, arseniiv, schafferdavid, jongrubbs, MrBoing",
-     "url": "https://github.com/karolpiczak/ESC-50"
+     "author": "florianreichelt",
+     "url": "https://freesound.org/people/florianreichelt/sounds/422052/"
+    }
+   ],
+   "rain_roof": [
+    {
+     "file": "beds/rain_roof_0.ogg",
+     "dur": 119.99,
+     "bytes": 617488,
+     "lufs": -23,
+     "src": "freesound:864897",
+     "licence": "CC BY",
+     "author": "BobVoldar",
+     "url": "https://freesound.org/people/BobVoldar/sounds/864897/"
+    }
+   ],
+   "river_day": [
+    {
+     "file": "beds/river_day_0.ogg",
+     "dur": 119.97,
+     "bytes": 998213,
+     "lufs": -23,
+     "src": "freesound:520972",
+     "licence": "CC0",
+     "author": "Antonio_Lai",
+     "url": "https://freesound.org/people/Antonio_Lai/sounds/520972/"
+    },
+    {
+     "file": "beds/river_day_1.ogg",
+     "dur": 119.99,
+     "bytes": 650826,
+     "lufs": -23,
+     "src": "freesound:519558",
+     "licence": "CC0",
+     "author": "Antonio_Lai",
+     "url": "https://freesound.org/people/Antonio_Lai/sounds/519558/"
+    }
+   ],
+   "river_night": [
+    {
+     "file": "beds/river_night_0.ogg",
+     "dur": 119.99,
+     "bytes": 725568,
+     "lufs": -23,
+     "src": "freesound:466955",
+     "licence": "CC0",
+     "author": "felix.blume",
+     "url": "https://freesound.org/people/felix.blume/sounds/466955/"
+    }
+   ],
+   "room_tone": [
+    {
+     "file": "beds/room_tone_0.ogg",
+     "dur": 111.71,
+     "bytes": 587105,
+     "lufs": -23,
+     "src": "freesound:637807",
+     "licence": "CC0",
+     "author": "kyles",
+     "url": "https://freesound.org/people/kyles/sounds/637807/"
+    }
+   ],
+   "snow_hush": [
+    {
+     "file": "beds/snow_hush_0.ogg",
+     "dur": 109.81,
+     "bytes": 580370,
+     "lufs": -23,
+     "src": "freesound:260634",
+     "licence": "CC0",
+     "author": "lwdickens",
+     "url": "https://freesound.org/people/lwdickens/sounds/260634/"
+    }
+   ],
+   "terrace_day": [
+    {
+     "file": "beds/terrace_day_0.ogg",
+     "dur": 114.75,
+     "bytes": 656761,
+     "lufs": -23,
+     "src": "freesound:454361",
+     "licence": "CC0",
+     "author": "kyles",
+     "url": "https://freesound.org/people/kyles/sounds/454361/"
+    },
+    {
+     "file": "beds/terrace_day_1.ogg",
+     "dur": 119.99,
+     "bytes": 630152,
+     "lufs": -23,
+     "src": "freesound:187756",
+     "licence": "CC0",
+     "author": "felix.blume",
+     "url": "https://freesound.org/people/felix.blume/sounds/187756/"
+    }
+   ],
+   "terrace_night": [
+    {
+     "file": "beds/terrace_night_0.ogg",
+     "dur": 119.99,
+     "bytes": 824122,
+     "lufs": -23,
+     "src": "freesound:325501",
+     "licence": "CC0",
+     "author": "kangaroovindaloo",
+     "url": "https://freesound.org/people/kangaroovindaloo/sounds/325501/"
+    }
+   ],
+   "town_dawn": [
+    {
+     "file": "beds/town_dawn_0.ogg",
+     "dur": 119.99,
+     "bytes": 678926,
+     "lufs": -23,
+     "src": "freesound:341737",
+     "licence": "CC0",
+     "author": "porporino",
+     "url": "https://freesound.org/people/porporino/sounds/341737/"
+    },
+    {
+     "file": "beds/town_dawn_1.ogg",
+     "dur": 119.99,
+     "bytes": 774675,
+     "lufs": -23,
+     "src": "freesound:809219",
+     "licence": "CC0",
+     "author": "nicotep",
+     "url": "https://freesound.org/people/nicotep/sounds/809219/"
+    }
+   ],
+   "town_day": [
+    {
+     "file": "beds/town_day_0.ogg",
+     "dur": 119.99,
+     "bytes": 619519,
+     "lufs": -23,
+     "src": "freesound:276946",
+     "licence": "CC0",
+     "author": "gladkiy",
+     "url": "https://freesound.org/people/gladkiy/sounds/276946/"
+    },
+    {
+     "file": "beds/town_day_1.ogg",
+     "dur": 119.99,
+     "bytes": 727520,
+     "lufs": -23,
+     "src": "freesound:272458",
+     "licence": "CC0",
+     "author": "vonfleisch",
+     "url": "https://freesound.org/people/vonfleisch/sounds/272458/"
+    }
+   ],
+   "town_dusk": [
+    {
+     "file": "beds/town_dusk_0.ogg",
+     "dur": 103.47,
+     "bytes": 482429,
+     "lufs": -23,
+     "src": "freesound:580947",
+     "licence": "CC0",
+     "author": "yake01",
+     "url": "https://freesound.org/people/yake01/sounds/580947/"
+    }
+   ],
+   "town_night": [
+    {
+     "file": "beds/town_night_0.ogg",
+     "dur": 119.99,
+     "bytes": 626541,
+     "lufs": -23,
+     "src": "freesound:47479",
+     "licence": "CC BY",
+     "author": "Audiactiva",
+     "url": "https://freesound.org/people/Audiactiva/sounds/47479/"
+    }
+   ],
+   "village_dawn": [
+    {
+     "file": "beds/village_dawn_0.ogg",
+     "dur": 119.99,
+     "bytes": 672511,
+     "lufs": -23,
+     "src": "freesound:482927",
+     "licence": "CC0",
+     "author": "etienne.leplumey",
+     "url": "https://freesound.org/people/etienne.leplumey/sounds/482927/"
+    }
+   ],
+   "village_day": [
+    {
+     "file": "beds/village_day_0.ogg",
+     "dur": 119.99,
+     "bytes": 623649,
+     "lufs": -23,
+     "src": "freesound:221675",
+     "licence": "CC BY",
+     "author": "nebulousflynn",
+     "url": "https://freesound.org/people/nebulousflynn/sounds/221675/"
+    }
+   ],
+   "village_night": [
+    {
+     "file": "beds/village_night_0.ogg",
+     "dur": 119.99,
+     "bytes": 880530,
+     "lufs": -23,
+     "src": "freesound:178505",
+     "licence": "CC0",
+     "author": "patobottos",
+     "url": "https://freesound.org/people/patobottos/sounds/178505/"
     }
    ],
    "wind_gusts": [
     {
      "file": "beds/wind_gusts_0.ogg",
-     "dur": 109.51,
-     "bytes": 507260,
+     "dur": 119.99,
+     "bytes": 548291,
      "lufs": -23,
-     "src": "esc50:compose:wind:wind_gusts",
-     "licence": "CC BY-NC",
-     "author": "Benboncan, eliasheuninck, Jovica, dobroide, kangaroovindaloo, klangfabrik, TheSoundcatcher, Bosk1, Leandros.Ntounis, inchadney, toiletrolltube",
-     "url": "https://github.com/karolpiczak/ESC-50"
+     "src": "freesound:256125",
+     "licence": "CC0",
+     "author": "PLukx",
+     "url": "https://freesound.org/people/PLukx/sounds/256125/"
     }
    ]
   },
   "oneshots": {
+   "a_donkey_braying": [
+    {
+     "file": "oneshots/a_donkey_braying_0_0.ogg",
+     "dur": 2.37,
+     "bytes": 15478,
+     "src": "freesound:157763",
+     "licence": "CC0",
+     "author": "felix.blume",
+     "url": "https://freesound.org/people/felix.blume/sounds/157763/"
+    },
+    {
+     "file": "oneshots/a_donkey_braying_0_1.ogg",
+     "dur": 1.58,
+     "bytes": 9440,
+     "src": "freesound:157763",
+     "licence": "CC0",
+     "author": "felix.blume",
+     "url": "https://freesound.org/people/felix.blume/sounds/157763/"
+    },
+    {
+     "file": "oneshots/a_donkey_braying_0_2.ogg",
+     "dur": 0.41,
+     "bytes": 2277,
+     "src": "freesound:157763",
+     "licence": "CC0",
+     "author": "felix.blume",
+     "url": "https://freesound.org/people/felix.blume/sounds/157763/"
+    },
+    {
+     "file": "oneshots/a_donkey_braying_1_0.ogg",
+     "dur": 0.73,
+     "bytes": 3898,
+     "src": "freesound:152938",
+     "licence": "CC0",
+     "author": "felix.blume",
+     "url": "https://freesound.org/people/felix.blume/sounds/152938/"
+    },
+    {
+     "file": "oneshots/a_donkey_braying_1_1.ogg",
+     "dur": 0.75,
+     "bytes": 4288,
+     "src": "freesound:152938",
+     "licence": "CC0",
+     "author": "felix.blume",
+     "url": "https://freesound.org/people/felix.blume/sounds/152938/"
+    }
+   ],
+   "adze": [
+    {
+     "file": "oneshots/adze_0_0.ogg",
+     "dur": 0.22,
+     "bytes": 1279,
+     "src": "freesound:536736",
+     "licence": "CC0",
+     "author": "egomassive",
+     "url": "https://freesound.org/people/egomassive/sounds/536736/"
+    },
+    {
+     "file": "oneshots/adze_1_0.ogg",
+     "dur": 0.21,
+     "bytes": 1171,
+     "src": "freesound:753925",
+     "licence": "CC0",
+     "author": "xkeril",
+     "url": "https://freesound.org/people/xkeril/sounds/753925/"
+    },
+    {
+     "file": "oneshots/adze_1_1.ogg",
+     "dur": 0.2,
+     "bytes": 1075,
+     "src": "freesound:753925",
+     "licence": "CC0",
+     "author": "xkeril",
+     "url": "https://freesound.org/people/xkeril/sounds/753925/"
+    },
+    {
+     "file": "oneshots/adze_1_2.ogg",
+     "dur": 0.19,
+     "bytes": 1076,
+     "src": "freesound:753925",
+     "licence": "CC0",
+     "author": "xkeril",
+     "url": "https://freesound.org/people/xkeril/sounds/753925/"
+    },
+    {
+     "file": "oneshots/adze_2_0.ogg",
+     "dur": 0.27,
+     "bytes": 1418,
+     "src": "freesound:421928",
+     "licence": "CC0",
+     "author": "micahlg",
+     "url": "https://freesound.org/people/micahlg/sounds/421928/"
+    }
+   ],
    "bark": [
     {
      "file": "oneshots/bark_0_0.ogg",
@@ -269,6 +767,156 @@
      "url": "http://www.freesound.org/people/Bobby%20Beck/sounds/32318/"
     }
    ],
+   "bee_eater": [
+    {
+     "file": "oneshots/bee_eater_0_0.ogg",
+     "dur": 2.75,
+     "bytes": 19853,
+     "src": "freesound:587004",
+     "licence": "CC BY",
+     "author": "Victor_Natas",
+     "url": "https://freesound.org/people/Victor_Natas/sounds/587004/"
+    },
+    {
+     "file": "oneshots/bee_eater_0_1.ogg",
+     "dur": 1.79,
+     "bytes": 12497,
+     "src": "freesound:587004",
+     "licence": "CC BY",
+     "author": "Victor_Natas",
+     "url": "https://freesound.org/people/Victor_Natas/sounds/587004/"
+    },
+    {
+     "file": "oneshots/bee_eater_0_2.ogg",
+     "dur": 0.38,
+     "bytes": 2353,
+     "src": "freesound:587004",
+     "licence": "CC BY",
+     "author": "Victor_Natas",
+     "url": "https://freesound.org/people/Victor_Natas/sounds/587004/"
+    },
+    {
+     "file": "oneshots/bee_eater_1_0.ogg",
+     "dur": 0.35,
+     "bytes": 1990,
+     "src": "freesound:17584",
+     "licence": "CC BY",
+     "author": "dobroide",
+     "url": "https://freesound.org/people/dobroide/sounds/17584/"
+    },
+    {
+     "file": "oneshots/bee_eater_1_1.ogg",
+     "dur": 1.26,
+     "bytes": 6556,
+     "src": "freesound:17584",
+     "licence": "CC BY",
+     "author": "dobroide",
+     "url": "https://freesound.org/people/dobroide/sounds/17584/"
+    }
+   ],
+   "bellows": [
+    {
+     "file": "oneshots/bellows_0_0.ogg",
+     "dur": 0.41,
+     "bytes": 2283,
+     "src": "freesound:609757",
+     "licence": "CC0",
+     "author": "LarsErikErtzgaardRingen",
+     "url": "https://freesound.org/people/LarsErikErtzgaardRingen/sounds/609757/"
+    },
+    {
+     "file": "oneshots/bellows_0_1.ogg",
+     "dur": 0.4,
+     "bytes": 2428,
+     "src": "freesound:609757",
+     "licence": "CC0",
+     "author": "LarsErikErtzgaardRingen",
+     "url": "https://freesound.org/people/LarsErikErtzgaardRingen/sounds/609757/"
+    },
+    {
+     "file": "oneshots/bellows_0_2.ogg",
+     "dur": 0.39,
+     "bytes": 2329,
+     "src": "freesound:609757",
+     "licence": "CC0",
+     "author": "LarsErikErtzgaardRingen",
+     "url": "https://freesound.org/people/LarsErikErtzgaardRingen/sounds/609757/"
+    },
+    {
+     "file": "oneshots/bellows_1_0.ogg",
+     "dur": 0.46,
+     "bytes": 2394,
+     "src": "freesound:567083",
+     "licence": "CC0",
+     "author": "cabled_mess",
+     "url": "https://freesound.org/people/cabled_mess/sounds/567083/"
+    },
+    {
+     "file": "oneshots/bellows_1_1.ogg",
+     "dur": 0.47,
+     "bytes": 2439,
+     "src": "freesound:567083",
+     "licence": "CC0",
+     "author": "cabled_mess",
+     "url": "https://freesound.org/people/cabled_mess/sounds/567083/"
+    },
+    {
+     "file": "oneshots/bellows_1_2.ogg",
+     "dur": 0.47,
+     "bytes": 2476,
+     "src": "freesound:567083",
+     "licence": "CC0",
+     "author": "cabled_mess",
+     "url": "https://freesound.org/people/cabled_mess/sounds/567083/"
+    }
+   ],
+   "black_kite": [
+    {
+     "file": "oneshots/black_kite_0_0.ogg",
+     "dur": 0.19,
+     "bytes": 1148,
+     "src": "freesound:38304",
+     "licence": "CC BY",
+     "author": "dobroide",
+     "url": "https://freesound.org/people/dobroide/sounds/38304/"
+    },
+    {
+     "file": "oneshots/black_kite_0_1.ogg",
+     "dur": 0.19,
+     "bytes": 1163,
+     "src": "freesound:38304",
+     "licence": "CC BY",
+     "author": "dobroide",
+     "url": "https://freesound.org/people/dobroide/sounds/38304/"
+    },
+    {
+     "file": "oneshots/black_kite_0_2.ogg",
+     "dur": 0.18,
+     "bytes": 1142,
+     "src": "freesound:38304",
+     "licence": "CC BY",
+     "author": "dobroide",
+     "url": "https://freesound.org/people/dobroide/sounds/38304/"
+    },
+    {
+     "file": "oneshots/black_kite_1_0.ogg",
+     "dur": 0.69,
+     "bytes": 3695,
+     "src": "freesound:18598",
+     "licence": "CC BY",
+     "author": "dobroide",
+     "url": "https://freesound.org/people/dobroide/sounds/18598/"
+    },
+    {
+     "file": "oneshots/black_kite_1_1.ogg",
+     "dur": 0.21,
+     "bytes": 1284,
+     "src": "freesound:18598",
+     "licence": "CC BY",
+     "author": "dobroide",
+     "url": "https://freesound.org/people/dobroide/sounds/18598/"
+    }
+   ],
    "bleat": [
     {
      "file": "oneshots/bleat_0_0.ogg",
@@ -334,6 +982,156 @@
      "url": "http://www.freesound.org/people/swiftoid/sounds/182508/"
     }
    ],
+   "bow": [
+    {
+     "file": "oneshots/bow_0_0.ogg",
+     "dur": 0.88,
+     "bytes": 4127,
+     "src": "commons:File:Deep twang of loose bow string.ogg",
+     "licence": "CC0",
+     "author": "stephan",
+     "url": "https://commons.wikimedia.org/wiki/File:Deep_twang_of_loose_bow_string.ogg"
+    },
+    {
+     "file": "oneshots/bow_0_1.ogg",
+     "dur": 1.14,
+     "bytes": 5344,
+     "src": "commons:File:Deep twang of loose bow string.ogg",
+     "licence": "CC0",
+     "author": "stephan",
+     "url": "https://commons.wikimedia.org/wiki/File:Deep_twang_of_loose_bow_string.ogg"
+    },
+    {
+     "file": "oneshots/bow_0_2.ogg",
+     "dur": 0.61,
+     "bytes": 2992,
+     "src": "commons:File:Deep twang of loose bow string.ogg",
+     "licence": "CC0",
+     "author": "stephan",
+     "url": "https://commons.wikimedia.org/wiki/File:Deep_twang_of_loose_bow_string.ogg"
+    },
+    {
+     "file": "oneshots/bow_0_3.ogg",
+     "dur": 0.48,
+     "bytes": 2399,
+     "src": "commons:File:Deep twang of loose bow string.ogg",
+     "licence": "CC0",
+     "author": "stephan",
+     "url": "https://commons.wikimedia.org/wiki/File:Deep_twang_of_loose_bow_string.ogg"
+    }
+   ],
+   "bray": [
+    {
+     "file": "oneshots/bray_0_0.ogg",
+     "dur": 2.37,
+     "bytes": 15478,
+     "src": "freesound:157763",
+     "licence": "CC0",
+     "author": "felix.blume",
+     "url": "https://freesound.org/people/felix.blume/sounds/157763/"
+    },
+    {
+     "file": "oneshots/bray_0_1.ogg",
+     "dur": 1.58,
+     "bytes": 9440,
+     "src": "freesound:157763",
+     "licence": "CC0",
+     "author": "felix.blume",
+     "url": "https://freesound.org/people/felix.blume/sounds/157763/"
+    },
+    {
+     "file": "oneshots/bray_0_2.ogg",
+     "dur": 0.41,
+     "bytes": 2277,
+     "src": "freesound:157763",
+     "licence": "CC0",
+     "author": "felix.blume",
+     "url": "https://freesound.org/people/felix.blume/sounds/157763/"
+    },
+    {
+     "file": "oneshots/bray_1_0.ogg",
+     "dur": 0.73,
+     "bytes": 3898,
+     "src": "freesound:152938",
+     "licence": "CC0",
+     "author": "felix.blume",
+     "url": "https://freesound.org/people/felix.blume/sounds/152938/"
+    },
+    {
+     "file": "oneshots/bray_1_1.ogg",
+     "dur": 0.75,
+     "bytes": 4288,
+     "src": "freesound:152938",
+     "licence": "CC0",
+     "author": "felix.blume",
+     "url": "https://freesound.org/people/felix.blume/sounds/152938/"
+    },
+    {
+     "file": "oneshots/bray_1_2.ogg",
+     "dur": 0.64,
+     "bytes": 3543,
+     "src": "freesound:152938",
+     "licence": "CC0",
+     "author": "felix.blume",
+     "url": "https://freesound.org/people/felix.blume/sounds/152938/"
+    }
+   ],
+   "broom": [
+    {
+     "file": "oneshots/broom_0_0.ogg",
+     "dur": 0.3,
+     "bytes": 1649,
+     "src": "freesound:138067",
+     "licence": "CC0",
+     "author": "daboy291",
+     "url": "https://freesound.org/people/daboy291/sounds/138067/"
+    },
+    {
+     "file": "oneshots/broom_0_1.ogg",
+     "dur": 0.28,
+     "bytes": 1572,
+     "src": "freesound:138067",
+     "licence": "CC0",
+     "author": "daboy291",
+     "url": "https://freesound.org/people/daboy291/sounds/138067/"
+    },
+    {
+     "file": "oneshots/broom_0_2.ogg",
+     "dur": 0.33,
+     "bytes": 1788,
+     "src": "freesound:138067",
+     "licence": "CC0",
+     "author": "daboy291",
+     "url": "https://freesound.org/people/daboy291/sounds/138067/"
+    },
+    {
+     "file": "oneshots/broom_1_0.ogg",
+     "dur": 0.28,
+     "bytes": 1548,
+     "src": "freesound:378313",
+     "licence": "CC0",
+     "author": "13F_Panska_Koprivikova_Klara",
+     "url": "https://freesound.org/people/13F_Panska_Koprivikova_Klara/sounds/378313/"
+    },
+    {
+     "file": "oneshots/broom_1_1.ogg",
+     "dur": 0.26,
+     "bytes": 1482,
+     "src": "freesound:378313",
+     "licence": "CC0",
+     "author": "13F_Panska_Koprivikova_Klara",
+     "url": "https://freesound.org/people/13F_Panska_Koprivikova_Klara/sounds/378313/"
+    },
+    {
+     "file": "oneshots/broom_1_2.ogg",
+     "dur": 0.28,
+     "bytes": 1604,
+     "src": "freesound:378313",
+     "licence": "CC0",
+     "author": "13F_Panska_Koprivikova_Klara",
+     "url": "https://freesound.org/people/13F_Panska_Koprivikova_Klara/sounds/378313/"
+    }
+   ],
    "buzz": [
     {
      "file": "oneshots/buzz_1_0.ogg",
@@ -388,6 +1186,259 @@
      "licence": "CC BY",
      "author": "CGEffex",
      "url": "http://www.freesound.org/people/CGEffex/sounds/99955/"
+    }
+   ],
+   "camel": [
+    {
+     "file": "oneshots/camel_1_0.ogg",
+     "dur": 0.27,
+     "bytes": 1644,
+     "src": "freesound:693564",
+     "licence": "CC0",
+     "author": "schots",
+     "url": "https://freesound.org/people/schots/sounds/693564/"
+    },
+    {
+     "file": "oneshots/camel_1_1.ogg",
+     "dur": 0.37,
+     "bytes": 2025,
+     "src": "freesound:693564",
+     "licence": "CC0",
+     "author": "schots",
+     "url": "https://freesound.org/people/schots/sounds/693564/"
+    },
+    {
+     "file": "oneshots/camel_1_2.ogg",
+     "dur": 0.2,
+     "bytes": 1271,
+     "src": "freesound:693564",
+     "licence": "CC0",
+     "author": "schots",
+     "url": "https://freesound.org/people/schots/sounds/693564/"
+    },
+    {
+     "file": "oneshots/camel_2_0.ogg",
+     "dur": 3.36,
+     "bytes": 16662,
+     "src": "freesound:675449",
+     "licence": "CC0",
+     "author": "craigsmith",
+     "url": "https://freesound.org/people/craigsmith/sounds/675449/"
+    },
+    {
+     "file": "oneshots/camel_2_1.ogg",
+     "dur": 2.67,
+     "bytes": 13185,
+     "src": "freesound:675449",
+     "licence": "CC0",
+     "author": "craigsmith",
+     "url": "https://freesound.org/people/craigsmith/sounds/675449/"
+    },
+    {
+     "file": "oneshots/camel_2_2.ogg",
+     "dur": 1.29,
+     "bytes": 6617,
+     "src": "freesound:675449",
+     "licence": "CC0",
+     "author": "craigsmith",
+     "url": "https://freesound.org/people/craigsmith/sounds/675449/"
+    }
+   ],
+   "chase": [
+    {
+     "file": "oneshots/chase_0_0.ogg",
+     "dur": 0.19,
+     "bytes": 1083,
+     "src": "freesound:450874",
+     "licence": "CC0",
+     "author": "kyles",
+     "url": "https://freesound.org/people/kyles/sounds/450874/"
+    },
+    {
+     "file": "oneshots/chase_0_1.ogg",
+     "dur": 0.19,
+     "bytes": 1068,
+     "src": "freesound:450874",
+     "licence": "CC0",
+     "author": "kyles",
+     "url": "https://freesound.org/people/kyles/sounds/450874/"
+    },
+    {
+     "file": "oneshots/chase_0_2.ogg",
+     "dur": 0.19,
+     "bytes": 1074,
+     "src": "freesound:450874",
+     "licence": "CC0",
+     "author": "kyles",
+     "url": "https://freesound.org/people/kyles/sounds/450874/"
+    },
+    {
+     "file": "oneshots/chase_0_3.ogg",
+     "dur": 0.19,
+     "bytes": 1085,
+     "src": "freesound:450874",
+     "licence": "CC0",
+     "author": "kyles",
+     "url": "https://freesound.org/people/kyles/sounds/450874/"
+    },
+    {
+     "file": "oneshots/chase_0_4.ogg",
+     "dur": 0.2,
+     "bytes": 1077,
+     "src": "freesound:450874",
+     "licence": "CC0",
+     "author": "kyles",
+     "url": "https://freesound.org/people/kyles/sounds/450874/"
+    },
+    {
+     "file": "oneshots/chase_0_5.ogg",
+     "dur": 0.2,
+     "bytes": 1142,
+     "src": "freesound:450874",
+     "licence": "CC0",
+     "author": "kyles",
+     "url": "https://freesound.org/people/kyles/sounds/450874/"
+    }
+   ],
+   "child_laugh": [
+    {
+     "file": "oneshots/child_laugh_0_0.ogg",
+     "dur": 0.47,
+     "bytes": 2675,
+     "src": "freesound:371342",
+     "licence": "CC0",
+     "author": "Iamgiorgio",
+     "url": "https://freesound.org/people/Iamgiorgio/sounds/371342/"
+    },
+    {
+     "file": "oneshots/child_laugh_0_1.ogg",
+     "dur": 0.3,
+     "bytes": 1813,
+     "src": "freesound:371342",
+     "licence": "CC0",
+     "author": "Iamgiorgio",
+     "url": "https://freesound.org/people/Iamgiorgio/sounds/371342/"
+    },
+    {
+     "file": "oneshots/child_laugh_0_2.ogg",
+     "dur": 0.28,
+     "bytes": 1656,
+     "src": "freesound:371342",
+     "licence": "CC0",
+     "author": "Iamgiorgio",
+     "url": "https://freesound.org/people/Iamgiorgio/sounds/371342/"
+    },
+    {
+     "file": "oneshots/child_laugh_1_0.ogg",
+     "dur": 0.42,
+     "bytes": 2500,
+     "src": "freesound:342838",
+     "licence": "CC0",
+     "author": "tuhinpaul",
+     "url": "https://freesound.org/people/tuhinpaul/sounds/342838/"
+    },
+    {
+     "file": "oneshots/child_laugh_1_1.ogg",
+     "dur": 0.26,
+     "bytes": 1607,
+     "src": "freesound:342838",
+     "licence": "CC0",
+     "author": "tuhinpaul",
+     "url": "https://freesound.org/people/tuhinpaul/sounds/342838/"
+    },
+    {
+     "file": "oneshots/child_laugh_1_2.ogg",
+     "dur": 0.26,
+     "bytes": 1629,
+     "src": "freesound:342838",
+     "licence": "CC0",
+     "author": "tuhinpaul",
+     "url": "https://freesound.org/people/tuhinpaul/sounds/342838/"
+    }
+   ],
+   "cicadas": [
+    {
+     "file": "oneshots/cicadas_1_0.ogg",
+     "dur": 0.19,
+     "bytes": 1214,
+     "src": "freesound:268962",
+     "licence": "CC0",
+     "author": "harryScary",
+     "url": "https://freesound.org/people/harryScary/sounds/268962/"
+    },
+    {
+     "file": "oneshots/cicadas_1_1.ogg",
+     "dur": 0.2,
+     "bytes": 1152,
+     "src": "freesound:268962",
+     "licence": "CC0",
+     "author": "harryScary",
+     "url": "https://freesound.org/people/harryScary/sounds/268962/"
+    },
+    {
+     "file": "oneshots/cicadas_1_2.ogg",
+     "dur": 0.18,
+     "bytes": 1151,
+     "src": "freesound:268962",
+     "licence": "CC0",
+     "author": "harryScary",
+     "url": "https://freesound.org/people/harryScary/sounds/268962/"
+    }
+   ],
+   "clink": [
+    {
+     "file": "oneshots/clink_0_0.ogg",
+     "dur": 0.65,
+     "bytes": 4921,
+     "src": "freesound:452379",
+     "licence": "CC0",
+     "author": "steffcaffrey",
+     "url": "https://freesound.org/people/steffcaffrey/sounds/452379/"
+    },
+    {
+     "file": "oneshots/clink_1_0.ogg",
+     "dur": 0.2,
+     "bytes": 1146,
+     "src": "freesound:624490",
+     "licence": "CC0",
+     "author": "ValentinPetiteau",
+     "url": "https://freesound.org/people/ValentinPetiteau/sounds/624490/"
+    },
+    {
+     "file": "oneshots/clink_1_1.ogg",
+     "dur": 0.2,
+     "bytes": 1142,
+     "src": "freesound:624490",
+     "licence": "CC0",
+     "author": "ValentinPetiteau",
+     "url": "https://freesound.org/people/ValentinPetiteau/sounds/624490/"
+    },
+    {
+     "file": "oneshots/clink_1_2.ogg",
+     "dur": 0.21,
+     "bytes": 1144,
+     "src": "freesound:624490",
+     "licence": "CC0",
+     "author": "ValentinPetiteau",
+     "url": "https://freesound.org/people/ValentinPetiteau/sounds/624490/"
+    },
+    {
+     "file": "oneshots/clink_2_0.ogg",
+     "dur": 0.7,
+     "bytes": 4746,
+     "src": "freesound:452371",
+     "licence": "CC0",
+     "author": "steffcaffrey",
+     "url": "https://freesound.org/people/steffcaffrey/sounds/452371/"
+    },
+    {
+     "file": "oneshots/clink_2_1.ogg",
+     "dur": 0.18,
+     "bytes": 1224,
+     "src": "freesound:452371",
+     "licence": "CC0",
+     "author": "steffcaffrey",
+     "url": "https://freesound.org/people/steffcaffrey/sounds/452371/"
     }
    ],
    "cluck": [
@@ -549,6 +1600,53 @@
      "url": "http://www.freesound.org/people/Barbamiz/sounds/116135/"
     }
    ],
+   "common_quail": [
+    {
+     "file": "oneshots/common_quail_0_0.ogg",
+     "dur": 0.35,
+     "bytes": 2052,
+     "src": "freesound:815875",
+     "licence": "CC0",
+     "author": "TheKingOfGeeks360",
+     "url": "https://freesound.org/people/TheKingOfGeeks360/sounds/815875/"
+    },
+    {
+     "file": "oneshots/common_quail_0_1.ogg",
+     "dur": 0.29,
+     "bytes": 1738,
+     "src": "freesound:815875",
+     "licence": "CC0",
+     "author": "TheKingOfGeeks360",
+     "url": "https://freesound.org/people/TheKingOfGeeks360/sounds/815875/"
+    },
+    {
+     "file": "oneshots/common_quail_1_0.ogg",
+     "dur": 0.19,
+     "bytes": 1169,
+     "src": "freesound:826096",
+     "licence": "CC0",
+     "author": "TheKingOfGeeks360",
+     "url": "https://freesound.org/people/TheKingOfGeeks360/sounds/826096/"
+    },
+    {
+     "file": "oneshots/common_quail_1_1.ogg",
+     "dur": 0.35,
+     "bytes": 2004,
+     "src": "freesound:826096",
+     "licence": "CC0",
+     "author": "TheKingOfGeeks360",
+     "url": "https://freesound.org/people/TheKingOfGeeks360/sounds/826096/"
+    },
+    {
+     "file": "oneshots/common_quail_1_2.ogg",
+     "dur": 0.34,
+     "bytes": 1990,
+     "src": "freesound:826096",
+     "licence": "CC0",
+     "author": "TheKingOfGeeks360",
+     "url": "https://freesound.org/people/TheKingOfGeeks360/sounds/826096/"
+    }
+   ],
    "crickets": [
     {
      "file": "oneshots/crickets_2_0.ogg",
@@ -576,6 +1674,62 @@
      "licence": "CC0",
      "author": "ianjuby",
      "url": "http://www.freesound.org/people/ianjuby/sounds/134802/"
+    }
+   ],
+   "dice": [
+    {
+     "file": "oneshots/dice_0_0.ogg",
+     "dur": 0.4,
+     "bytes": 2496,
+     "src": "freesound:94031",
+     "licence": "CC0",
+     "author": "LoafDV",
+     "url": "https://freesound.org/people/LoafDV/sounds/94031/"
+    },
+    {
+     "file": "oneshots/dice_0_1.ogg",
+     "dur": 0.2,
+     "bytes": 1140,
+     "src": "freesound:94031",
+     "licence": "CC0",
+     "author": "LoafDV",
+     "url": "https://freesound.org/people/LoafDV/sounds/94031/"
+    },
+    {
+     "file": "oneshots/dice_0_2.ogg",
+     "dur": 0.17,
+     "bytes": 980,
+     "src": "freesound:94031",
+     "licence": "CC0",
+     "author": "LoafDV",
+     "url": "https://freesound.org/people/LoafDV/sounds/94031/"
+    },
+    {
+     "file": "oneshots/dice_1_0.ogg",
+     "dur": 0.26,
+     "bytes": 1450,
+     "src": "freesound:235484",
+     "licence": "CC0",
+     "author": "ekfink",
+     "url": "https://freesound.org/people/ekfink/sounds/235484/"
+    },
+    {
+     "file": "oneshots/dice_1_1.ogg",
+     "dur": 0.33,
+     "bytes": 1778,
+     "src": "freesound:235484",
+     "licence": "CC0",
+     "author": "ekfink",
+     "url": "https://freesound.org/people/ekfink/sounds/235484/"
+    },
+    {
+     "file": "oneshots/dice_2_0.ogg",
+     "dur": 0.21,
+     "bytes": 1170,
+     "src": "freesound:545489",
+     "licence": "CC0",
+     "author": "wardoctor17",
+     "url": "https://freesound.org/people/wardoctor17/sounds/545489/"
     }
    ],
    "dogs_barking_in_the_night": [
@@ -681,6 +1835,82 @@
      "url": "http://www.freesound.org/people/kyles/sounds/51805/"
     }
    ],
+   "door_bar": [
+    {
+     "file": "oneshots/door_bar_0_0.ogg",
+     "dur": 0.28,
+     "bytes": 1547,
+     "src": "freesound:179728",
+     "licence": "CC0",
+     "author": "wjoojoo",
+     "url": "https://freesound.org/people/wjoojoo/sounds/179728/"
+    },
+    {
+     "file": "oneshots/door_bar_0_1.ogg",
+     "dur": 0.16,
+     "bytes": 1017,
+     "src": "freesound:179728",
+     "licence": "CC0",
+     "author": "wjoojoo",
+     "url": "https://freesound.org/people/wjoojoo/sounds/179728/"
+    }
+   ],
+   "door_shut": [
+    {
+     "file": "oneshots/door_shut_0_0.ogg",
+     "dur": 0.42,
+     "bytes": 2272,
+     "src": "freesound:402465",
+     "licence": "CC0",
+     "author": "LampEight",
+     "url": "https://freesound.org/people/LampEight/sounds/402465/"
+    },
+    {
+     "file": "oneshots/door_shut_0_1.ogg",
+     "dur": 0.16,
+     "bytes": 1063,
+     "src": "freesound:402465",
+     "licence": "CC0",
+     "author": "LampEight",
+     "url": "https://freesound.org/people/LampEight/sounds/402465/"
+    },
+    {
+     "file": "oneshots/door_shut_1_0.ogg",
+     "dur": 0.5,
+     "bytes": 2940,
+     "src": "freesound:275441",
+     "licence": "CC0",
+     "author": "Sandermotions",
+     "url": "https://freesound.org/people/Sandermotions/sounds/275441/"
+    },
+    {
+     "file": "oneshots/door_shut_1_1.ogg",
+     "dur": 0.27,
+     "bytes": 1478,
+     "src": "freesound:275441",
+     "licence": "CC0",
+     "author": "Sandermotions",
+     "url": "https://freesound.org/people/Sandermotions/sounds/275441/"
+    },
+    {
+     "file": "oneshots/door_shut_1_2.ogg",
+     "dur": 0.25,
+     "bytes": 1430,
+     "src": "freesound:275441",
+     "licence": "CC0",
+     "author": "Sandermotions",
+     "url": "https://freesound.org/people/Sandermotions/sounds/275441/"
+    },
+    {
+     "file": "oneshots/door_shut_2_0.ogg",
+     "dur": 0.74,
+     "bytes": 3717,
+     "src": "freesound:367221",
+     "licence": "CC0",
+     "author": "elliott.klein",
+     "url": "https://freesound.org/people/elliott.klein/sounds/367221/"
+    }
+   ],
    "fire_pop": [
     {
      "file": "oneshots/fire_pop_0_0.ogg",
@@ -735,6 +1965,53 @@
      "licence": "CC0",
      "author": "Everard",
      "url": "http://www.freesound.org/people/Everard/sounds/17808/"
+    }
+   ],
+   "golden_jackal": [
+    {
+     "file": "oneshots/golden_jackal_0_0.ogg",
+     "dur": 0.63,
+     "bytes": 3563,
+     "src": "freesound:737879",
+     "licence": "CC0",
+     "author": "Babadeda",
+     "url": "https://freesound.org/people/Babadeda/sounds/737879/"
+    },
+    {
+     "file": "oneshots/golden_jackal_0_1.ogg",
+     "dur": 0.81,
+     "bytes": 4406,
+     "src": "freesound:737879",
+     "licence": "CC0",
+     "author": "Babadeda",
+     "url": "https://freesound.org/people/Babadeda/sounds/737879/"
+    },
+    {
+     "file": "oneshots/golden_jackal_0_2.ogg",
+     "dur": 0.7,
+     "bytes": 3887,
+     "src": "freesound:737879",
+     "licence": "CC0",
+     "author": "Babadeda",
+     "url": "https://freesound.org/people/Babadeda/sounds/737879/"
+    },
+    {
+     "file": "oneshots/golden_jackal_0_3.ogg",
+     "dur": 0.68,
+     "bytes": 3817,
+     "src": "freesound:737879",
+     "licence": "CC0",
+     "author": "Babadeda",
+     "url": "https://freesound.org/people/Babadeda/sounds/737879/"
+    },
+    {
+     "file": "oneshots/golden_jackal_0_4.ogg",
+     "dur": 0.88,
+     "bytes": 5257,
+     "src": "freesound:737879",
+     "licence": "CC0",
+     "author": "Babadeda",
+     "url": "https://freesound.org/people/Babadeda/sounds/737879/"
     }
    ],
    "grunt": [
@@ -793,6 +2070,174 @@
      "url": "http://www.freesound.org/people/felix.blume/sounds/158746/"
     }
    ],
+   "hammer": [
+    {
+     "file": "oneshots/hammer_0_0.ogg",
+     "dur": 0.62,
+     "bytes": 4091,
+     "src": "freesound:96132",
+     "licence": "CC0",
+     "author": "BMacZero",
+     "url": "https://freesound.org/people/BMacZero/sounds/96132/"
+    },
+    {
+     "file": "oneshots/hammer_1_0.ogg",
+     "dur": 1.61,
+     "bytes": 12584,
+     "src": "freesound:321889",
+     "licence": "CC0",
+     "author": "Duasun",
+     "url": "https://freesound.org/people/Duasun/sounds/321889/"
+    },
+    {
+     "file": "oneshots/hammer_1_1.ogg",
+     "dur": 1.28,
+     "bytes": 8611,
+     "src": "freesound:321889",
+     "licence": "CC0",
+     "author": "Duasun",
+     "url": "https://freesound.org/people/Duasun/sounds/321889/"
+    },
+    {
+     "file": "oneshots/hammer_1_2.ogg",
+     "dur": 1.31,
+     "bytes": 9287,
+     "src": "freesound:321889",
+     "licence": "CC0",
+     "author": "Duasun",
+     "url": "https://freesound.org/people/Duasun/sounds/321889/"
+    },
+    {
+     "file": "oneshots/hammer_2_0.ogg",
+     "dur": 0.34,
+     "bytes": 2016,
+     "src": "freesound:103071",
+     "licence": "CC0",
+     "author": "alan3809",
+     "url": "https://freesound.org/people/alan3809/sounds/103071/"
+    },
+    {
+     "file": "oneshots/hammer_2_1.ogg",
+     "dur": 0.3,
+     "bytes": 1806,
+     "src": "freesound:103071",
+     "licence": "CC0",
+     "author": "alan3809",
+     "url": "https://freesound.org/people/alan3809/sounds/103071/"
+    }
+   ],
+   "herd_bells": [
+    {
+     "file": "oneshots/herd_bells_0_0.ogg",
+     "dur": 0.76,
+     "bytes": 4135,
+     "src": "freesound:397343",
+     "licence": "CC0",
+     "author": "fmiramar_",
+     "url": "https://freesound.org/people/fmiramar_/sounds/397343/"
+    },
+    {
+     "file": "oneshots/herd_bells_0_1.ogg",
+     "dur": 0.57,
+     "bytes": 3162,
+     "src": "freesound:397343",
+     "licence": "CC0",
+     "author": "fmiramar_",
+     "url": "https://freesound.org/people/fmiramar_/sounds/397343/"
+    },
+    {
+     "file": "oneshots/herd_bells_0_2.ogg",
+     "dur": 1.16,
+     "bytes": 6835,
+     "src": "freesound:397343",
+     "licence": "CC0",
+     "author": "fmiramar_",
+     "url": "https://freesound.org/people/fmiramar_/sounds/397343/"
+    },
+    {
+     "file": "oneshots/herd_bells_1_0.ogg",
+     "dur": 1.59,
+     "bytes": 12320,
+     "src": "freesound:397349",
+     "licence": "CC0",
+     "author": "fmiramar_",
+     "url": "https://freesound.org/people/fmiramar_/sounds/397349/"
+    },
+    {
+     "file": "oneshots/herd_bells_1_1.ogg",
+     "dur": 1.6,
+     "bytes": 12027,
+     "src": "freesound:397349",
+     "licence": "CC0",
+     "author": "fmiramar_",
+     "url": "https://freesound.org/people/fmiramar_/sounds/397349/"
+    },
+    {
+     "file": "oneshots/herd_bells_1_2.ogg",
+     "dur": 1.57,
+     "bytes": 12126,
+     "src": "freesound:397349",
+     "licence": "CC0",
+     "author": "fmiramar_",
+     "url": "https://freesound.org/people/fmiramar_/sounds/397349/"
+    }
+   ],
+   "hoe": [
+    {
+     "file": "oneshots/hoe_0_0.ogg",
+     "dur": 0.54,
+     "bytes": 2700,
+     "src": "freesound:384362",
+     "licence": "CC0",
+     "author": "Ali_6868",
+     "url": "https://freesound.org/people/Ali_6868/sounds/384362/"
+    },
+    {
+     "file": "oneshots/hoe_0_1.ogg",
+     "dur": 0.35,
+     "bytes": 1899,
+     "src": "freesound:384362",
+     "licence": "CC0",
+     "author": "Ali_6868",
+     "url": "https://freesound.org/people/Ali_6868/sounds/384362/"
+    },
+    {
+     "file": "oneshots/hoe_0_2.ogg",
+     "dur": 0.37,
+     "bytes": 1948,
+     "src": "freesound:384362",
+     "licence": "CC0",
+     "author": "Ali_6868",
+     "url": "https://freesound.org/people/Ali_6868/sounds/384362/"
+    },
+    {
+     "file": "oneshots/hoe_1_0.ogg",
+     "dur": 0.22,
+     "bytes": 1229,
+     "src": "freesound:353907",
+     "licence": "CC0",
+     "author": "dr19",
+     "url": "https://freesound.org/people/dr19/sounds/353907/"
+    },
+    {
+     "file": "oneshots/hoe_1_1.ogg",
+     "dur": 0.23,
+     "bytes": 1265,
+     "src": "freesound:353907",
+     "licence": "CC0",
+     "author": "dr19",
+     "url": "https://freesound.org/people/dr19/sounds/353907/"
+    },
+    {
+     "file": "oneshots/hoe_1_2.ogg",
+     "dur": 0.39,
+     "bytes": 1969,
+     "src": "freesound:353907",
+     "licence": "CC0",
+     "author": "dr19",
+     "url": "https://freesound.org/people/dr19/sounds/353907/"
+    }
+   ],
    "hooded_crows": [
     {
      "file": "oneshots/hooded_crows_0_0.ogg",
@@ -838,6 +2283,295 @@
      "licence": "CC0",
      "author": "nigelcoop",
      "url": "http://www.freesound.org/people/nigelcoop/sounds/75162/"
+    }
+   ],
+   "hoof": [
+    {
+     "file": "oneshots/hoof_0_0.ogg",
+     "dur": 0.27,
+     "bytes": 1476,
+     "src": "freesound:233345",
+     "licence": "CC0",
+     "author": "Ornery",
+     "url": "https://freesound.org/people/Ornery/sounds/233345/"
+    },
+    {
+     "file": "oneshots/hoof_0_1.ogg",
+     "dur": 0.17,
+     "bytes": 979,
+     "src": "freesound:233345",
+     "licence": "CC0",
+     "author": "Ornery",
+     "url": "https://freesound.org/people/Ornery/sounds/233345/"
+    },
+    {
+     "file": "oneshots/hoof_0_2.ogg",
+     "dur": 0.26,
+     "bytes": 1468,
+     "src": "freesound:233345",
+     "licence": "CC0",
+     "author": "Ornery",
+     "url": "https://freesound.org/people/Ornery/sounds/233345/"
+    },
+    {
+     "file": "oneshots/hoof_0_3.ogg",
+     "dur": 0.23,
+     "bytes": 1350,
+     "src": "freesound:233345",
+     "licence": "CC0",
+     "author": "Ornery",
+     "url": "https://freesound.org/people/Ornery/sounds/233345/"
+    },
+    {
+     "file": "oneshots/hoof_0_4.ogg",
+     "dur": 0.18,
+     "bytes": 1117,
+     "src": "freesound:233345",
+     "licence": "CC0",
+     "author": "Ornery",
+     "url": "https://freesound.org/people/Ornery/sounds/233345/"
+    },
+    {
+     "file": "oneshots/hoof_1_0.ogg",
+     "dur": 0.5,
+     "bytes": 2729,
+     "src": "freesound:538697",
+     "licence": "CC0",
+     "author": "bruno.auzet",
+     "url": "https://freesound.org/people/bruno.auzet/sounds/538697/"
+    },
+    {
+     "file": "oneshots/hoof_1_1.ogg",
+     "dur": 0.57,
+     "bytes": 2996,
+     "src": "freesound:538697",
+     "licence": "CC0",
+     "author": "bruno.auzet",
+     "url": "https://freesound.org/people/bruno.auzet/sounds/538697/"
+    },
+    {
+     "file": "oneshots/hoof_1_2.ogg",
+     "dur": 0.18,
+     "bytes": 1081,
+     "src": "freesound:538697",
+     "licence": "CC0",
+     "author": "bruno.auzet",
+     "url": "https://freesound.org/people/bruno.auzet/sounds/538697/"
+    },
+    {
+     "file": "oneshots/hoof_1_3.ogg",
+     "dur": 0.17,
+     "bytes": 1031,
+     "src": "freesound:538697",
+     "licence": "CC0",
+     "author": "bruno.auzet",
+     "url": "https://freesound.org/people/bruno.auzet/sounds/538697/"
+    },
+    {
+     "file": "oneshots/hoof_1_4.ogg",
+     "dur": 0.17,
+     "bytes": 1062,
+     "src": "freesound:538697",
+     "licence": "CC0",
+     "author": "bruno.auzet",
+     "url": "https://freesound.org/people/bruno.auzet/sounds/538697/"
+    }
+   ],
+   "hoopoe": [
+    {
+     "file": "oneshots/hoopoe_0_0.ogg",
+     "dur": 1.83,
+     "bytes": 9397,
+     "src": "freesound:185512",
+     "licence": "CC BY",
+     "author": "dobroide",
+     "url": "https://freesound.org/people/dobroide/sounds/185512/"
+    },
+    {
+     "file": "oneshots/hoopoe_0_1.ogg",
+     "dur": 2.31,
+     "bytes": 11669,
+     "src": "freesound:185512",
+     "licence": "CC BY",
+     "author": "dobroide",
+     "url": "https://freesound.org/people/dobroide/sounds/185512/"
+    },
+    {
+     "file": "oneshots/hoopoe_0_2.ogg",
+     "dur": 1.48,
+     "bytes": 8031,
+     "src": "freesound:185512",
+     "licence": "CC BY",
+     "author": "dobroide",
+     "url": "https://freesound.org/people/dobroide/sounds/185512/"
+    },
+    {
+     "file": "oneshots/hoopoe_1_0.ogg",
+     "dur": 7.72,
+     "bytes": 43248,
+     "src": "commons:File:Green Wood Hoopoe (Phoeniculus purpureus) (022A-WA03044X0020-0009M0).ogg",
+     "licence": "CC BY",
+     "author": "Wikimedia Commons contributor",
+     "url": "https://commons.wikimedia.org/wiki/File:Green_Wood_Hoopoe_(Phoeniculus_purpureus)_(022A-WA03044X0020-0009M0).ogg"
+    },
+    {
+     "file": "oneshots/hoopoe_1_1.ogg",
+     "dur": 0.79,
+     "bytes": 4814,
+     "src": "commons:File:Green Wood Hoopoe (Phoeniculus purpureus) (022A-WA03044X0020-0009M0).ogg",
+     "licence": "CC BY",
+     "author": "Wikimedia Commons contributor",
+     "url": "https://commons.wikimedia.org/wiki/File:Green_Wood_Hoopoe_(Phoeniculus_purpureus)_(022A-WA03044X0020-0009M0).ogg"
+    }
+   ],
+   "house_sparrow": [
+    {
+     "file": "oneshots/house_sparrow_0_0.ogg",
+     "dur": 0.36,
+     "bytes": 2005,
+     "src": "freesound:543827",
+     "licence": "CC0",
+     "author": "Profispiesser",
+     "url": "https://freesound.org/people/Profispiesser/sounds/543827/"
+    },
+    {
+     "file": "oneshots/house_sparrow_0_1.ogg",
+     "dur": 0.35,
+     "bytes": 1919,
+     "src": "freesound:543827",
+     "licence": "CC0",
+     "author": "Profispiesser",
+     "url": "https://freesound.org/people/Profispiesser/sounds/543827/"
+    },
+    {
+     "file": "oneshots/house_sparrow_0_2.ogg",
+     "dur": 0.32,
+     "bytes": 1803,
+     "src": "freesound:543827",
+     "licence": "CC0",
+     "author": "Profispiesser",
+     "url": "https://freesound.org/people/Profispiesser/sounds/543827/"
+    },
+    {
+     "file": "oneshots/house_sparrow_1_0.ogg",
+     "dur": 0.98,
+     "bytes": 5216,
+     "src": "freesound:628951",
+     "licence": "CC0",
+     "author": "Kimskell",
+     "url": "https://freesound.org/people/Kimskell/sounds/628951/"
+    },
+    {
+     "file": "oneshots/house_sparrow_1_1.ogg",
+     "dur": 0.34,
+     "bytes": 1925,
+     "src": "freesound:628951",
+     "licence": "CC0",
+     "author": "Kimskell",
+     "url": "https://freesound.org/people/Kimskell/sounds/628951/"
+    }
+   ],
+   "howl": [
+    {
+     "file": "oneshots/howl_0_0.ogg",
+     "dur": 6.34,
+     "bytes": 39903,
+     "src": "freesound:398430",
+     "licence": "CC0",
+     "author": "NaturesTemper",
+     "url": "https://freesound.org/people/NaturesTemper/sounds/398430/"
+    },
+    {
+     "file": "oneshots/howl_1_0.ogg",
+     "dur": 0.25,
+     "bytes": 1531,
+     "src": "freesound:158780",
+     "licence": "CC0",
+     "author": "Paresh",
+     "url": "https://freesound.org/people/Paresh/sounds/158780/"
+    },
+    {
+     "file": "oneshots/howl_1_1.ogg",
+     "dur": 1.77,
+     "bytes": 11561,
+     "src": "freesound:158780",
+     "licence": "CC0",
+     "author": "Paresh",
+     "url": "https://freesound.org/people/Paresh/sounds/158780/"
+    },
+    {
+     "file": "oneshots/howl_1_2.ogg",
+     "dur": 0.21,
+     "bytes": 1298,
+     "src": "freesound:158780",
+     "licence": "CC0",
+     "author": "Paresh",
+     "url": "https://freesound.org/people/Paresh/sounds/158780/"
+    },
+    {
+     "file": "oneshots/howl_2_0.ogg",
+     "dur": 5.36,
+     "bytes": 27604,
+     "src": "freesound:380156",
+     "licence": "CC0",
+     "author": "taure",
+     "url": "https://freesound.org/people/taure/sounds/380156/"
+    },
+    {
+     "file": "oneshots/howl_2_1.ogg",
+     "dur": 3.24,
+     "bytes": 16002,
+     "src": "freesound:380156",
+     "licence": "CC0",
+     "author": "taure",
+     "url": "https://freesound.org/people/taure/sounds/380156/"
+    }
+   ],
+   "little_owl": [
+    {
+     "file": "oneshots/little_owl_0_0.ogg",
+     "dur": 0.21,
+     "bytes": 1230,
+     "src": "freesound:392883",
+     "licence": "CC0",
+     "author": "clif_creates",
+     "url": "https://freesound.org/people/clif_creates/sounds/392883/"
+    },
+    {
+     "file": "oneshots/little_owl_0_1.ogg",
+     "dur": 0.15,
+     "bytes": 907,
+     "src": "freesound:392883",
+     "licence": "CC0",
+     "author": "clif_creates",
+     "url": "https://freesound.org/people/clif_creates/sounds/392883/"
+    },
+    {
+     "file": "oneshots/little_owl_0_2.ogg",
+     "dur": 0.2,
+     "bytes": 1240,
+     "src": "freesound:392883",
+     "licence": "CC0",
+     "author": "clif_creates",
+     "url": "https://freesound.org/people/clif_creates/sounds/392883/"
+    },
+    {
+     "file": "oneshots/little_owl_0_3.ogg",
+     "dur": 0.17,
+     "bytes": 1053,
+     "src": "freesound:392883",
+     "licence": "CC0",
+     "author": "clif_creates",
+     "url": "https://freesound.org/people/clif_creates/sounds/392883/"
+    },
+    {
+     "file": "oneshots/little_owl_1_0.ogg",
+     "dur": 0.88,
+     "bytes": 5061,
+     "src": "commons:File:Kcg-a̱nywan (little owl).ogg",
+     "licence": "CC0",
+     "author": "danjuma anthony",
+     "url": "https://commons.wikimedia.org/wiki/File:Kcg-a%CC%B1nywan_(little_owl).ogg"
     }
    ],
    "low": [
@@ -934,6 +2668,796 @@
      "url": "http://www.freesound.org/people/maphill/sounds/187201/"
     }
    ],
+   "mould": [
+    {
+     "file": "oneshots/mould_0_0.ogg",
+     "dur": 0.35,
+     "bytes": 1902,
+     "src": "freesound:376809",
+     "licence": "CC0",
+     "author": "Alex_hears_things",
+     "url": "https://freesound.org/people/Alex_hears_things/sounds/376809/"
+    },
+    {
+     "file": "oneshots/mould_0_1.ogg",
+     "dur": 0.29,
+     "bytes": 1625,
+     "src": "freesound:376809",
+     "licence": "CC0",
+     "author": "Alex_hears_things",
+     "url": "https://freesound.org/people/Alex_hears_things/sounds/376809/"
+    },
+    {
+     "file": "oneshots/mould_0_2.ogg",
+     "dur": 0.16,
+     "bytes": 998,
+     "src": "freesound:376809",
+     "licence": "CC0",
+     "author": "Alex_hears_things",
+     "url": "https://freesound.org/people/Alex_hears_things/sounds/376809/"
+    },
+    {
+     "file": "oneshots/mould_1_0.ogg",
+     "dur": 0.31,
+     "bytes": 1721,
+     "src": "freesound:231317",
+     "licence": "CC0",
+     "author": "jonccox",
+     "url": "https://freesound.org/people/jonccox/sounds/231317/"
+    },
+    {
+     "file": "oneshots/mould_1_1.ogg",
+     "dur": 0.44,
+     "bytes": 2308,
+     "src": "freesound:231317",
+     "licence": "CC0",
+     "author": "jonccox",
+     "url": "https://freesound.org/people/jonccox/sounds/231317/"
+    },
+    {
+     "file": "oneshots/mould_1_2.ogg",
+     "dur": 0.32,
+     "bytes": 1800,
+     "src": "freesound:231317",
+     "licence": "CC0",
+     "author": "jonccox",
+     "url": "https://freesound.org/people/jonccox/sounds/231317/"
+    }
+   ],
+   "nightjar": [
+    {
+     "file": "oneshots/nightjar_0_0.ogg",
+     "dur": 0.16,
+     "bytes": 1112,
+     "src": "freesound:474859",
+     "licence": "CC0",
+     "author": "jjbubo",
+     "url": "https://freesound.org/people/jjbubo/sounds/474859/"
+    },
+    {
+     "file": "oneshots/nightjar_0_1.ogg",
+     "dur": 0.16,
+     "bytes": 1131,
+     "src": "freesound:474859",
+     "licence": "CC0",
+     "author": "jjbubo",
+     "url": "https://freesound.org/people/jjbubo/sounds/474859/"
+    },
+    {
+     "file": "oneshots/nightjar_0_2.ogg",
+     "dur": 0.17,
+     "bytes": 1100,
+     "src": "freesound:474859",
+     "licence": "CC0",
+     "author": "jjbubo",
+     "url": "https://freesound.org/people/jjbubo/sounds/474859/"
+    },
+    {
+     "file": "oneshots/nightjar_1_0.ogg",
+     "dur": 4.91,
+     "bytes": 25080,
+     "src": "commons:File:Caprimulgus europaeus.ogg",
+     "licence": "CC0",
+     "author": "elsadono",
+     "url": "https://commons.wikimedia.org/wiki/File:Caprimulgus_europaeus.ogg"
+    },
+    {
+     "file": "oneshots/nightjar_1_1.ogg",
+     "dur": 5.67,
+     "bytes": 28852,
+     "src": "commons:File:Caprimulgus europaeus.ogg",
+     "licence": "CC0",
+     "author": "elsadono",
+     "url": "https://commons.wikimedia.org/wiki/File:Caprimulgus_europaeus.ogg"
+    }
+   ],
+   "pot_clink": [
+    {
+     "file": "oneshots/pot_clink_0_0.ogg",
+     "dur": 0.37,
+     "bytes": 2105,
+     "src": "freesound:453789",
+     "licence": "CC0",
+     "author": "kyles",
+     "url": "https://freesound.org/people/kyles/sounds/453789/"
+    },
+    {
+     "file": "oneshots/pot_clink_0_1.ogg",
+     "dur": 0.39,
+     "bytes": 2149,
+     "src": "freesound:453789",
+     "licence": "CC0",
+     "author": "kyles",
+     "url": "https://freesound.org/people/kyles/sounds/453789/"
+    },
+    {
+     "file": "oneshots/pot_clink_0_2.ogg",
+     "dur": 0.33,
+     "bytes": 1688,
+     "src": "freesound:453789",
+     "licence": "CC0",
+     "author": "kyles",
+     "url": "https://freesound.org/people/kyles/sounds/453789/"
+    },
+    {
+     "file": "oneshots/pot_clink_1_0.ogg",
+     "dur": 0.25,
+     "bytes": 1367,
+     "src": "freesound:610269",
+     "licence": "CC0",
+     "author": "leffrank",
+     "url": "https://freesound.org/people/leffrank/sounds/610269/"
+    },
+    {
+     "file": "oneshots/pot_clink_1_1.ogg",
+     "dur": 0.26,
+     "bytes": 1468,
+     "src": "freesound:610269",
+     "licence": "CC0",
+     "author": "leffrank",
+     "url": "https://freesound.org/people/leffrank/sounds/610269/"
+    },
+    {
+     "file": "oneshots/pot_clink_1_2.ogg",
+     "dur": 0.23,
+     "bytes": 1324,
+     "src": "freesound:610269",
+     "licence": "CC0",
+     "author": "leffrank",
+     "url": "https://freesound.org/people/leffrank/sounds/610269/"
+    }
+   ],
+   "pound": [
+    {
+     "file": "oneshots/pound_0_0.ogg",
+     "dur": 0.2,
+     "bytes": 1169,
+     "src": "freesound:388900",
+     "licence": "CC BY",
+     "author": "Australopithecusman",
+     "url": "https://freesound.org/people/Australopithecusman/sounds/388900/"
+    },
+    {
+     "file": "oneshots/pound_0_1.ogg",
+     "dur": 0.21,
+     "bytes": 1210,
+     "src": "freesound:388900",
+     "licence": "CC BY",
+     "author": "Australopithecusman",
+     "url": "https://freesound.org/people/Australopithecusman/sounds/388900/"
+    },
+    {
+     "file": "oneshots/pound_0_2.ogg",
+     "dur": 0.18,
+     "bytes": 1076,
+     "src": "freesound:388900",
+     "licence": "CC BY",
+     "author": "Australopithecusman",
+     "url": "https://freesound.org/people/Australopithecusman/sounds/388900/"
+    },
+    {
+     "file": "oneshots/pound_0_3.ogg",
+     "dur": 0.19,
+     "bytes": 1093,
+     "src": "freesound:388900",
+     "licence": "CC BY",
+     "author": "Australopithecusman",
+     "url": "https://freesound.org/people/Australopithecusman/sounds/388900/"
+    },
+    {
+     "file": "oneshots/pound_0_4.ogg",
+     "dur": 0.2,
+     "bytes": 1146,
+     "src": "freesound:388900",
+     "licence": "CC BY",
+     "author": "Australopithecusman",
+     "url": "https://freesound.org/people/Australopithecusman/sounds/388900/"
+    },
+    {
+     "file": "oneshots/pound_0_5.ogg",
+     "dur": 0.19,
+     "bytes": 1099,
+     "src": "freesound:388900",
+     "licence": "CC BY",
+     "author": "Australopithecusman",
+     "url": "https://freesound.org/people/Australopithecusman/sounds/388900/"
+    }
+   ],
+   "quench": [
+    {
+     "file": "oneshots/quench_0_0.ogg",
+     "dur": 0.19,
+     "bytes": 1146,
+     "src": "freesound:395864",
+     "licence": "CC0",
+     "author": "jokallset",
+     "url": "https://freesound.org/people/jokallset/sounds/395864/"
+    },
+    {
+     "file": "oneshots/quench_0_1.ogg",
+     "dur": 0.2,
+     "bytes": 1212,
+     "src": "freesound:395864",
+     "licence": "CC0",
+     "author": "jokallset",
+     "url": "https://freesound.org/people/jokallset/sounds/395864/"
+    },
+    {
+     "file": "oneshots/quench_1_0.ogg",
+     "dur": 1.11,
+     "bytes": 5783,
+     "src": "freesound:541035",
+     "licence": "CC BY",
+     "author": "Clearwavsound",
+     "url": "https://freesound.org/people/Clearwavsound/sounds/541035/"
+    }
+   ],
+   "quern": [
+    {
+     "file": "oneshots/quern_0_0.ogg",
+     "dur": 0.27,
+     "bytes": 1538,
+     "src": "freesound:337619",
+     "licence": "CC0",
+     "author": "werapol",
+     "url": "https://freesound.org/people/werapol/sounds/337619/"
+    },
+    {
+     "file": "oneshots/quern_0_1.ogg",
+     "dur": 0.34,
+     "bytes": 1970,
+     "src": "freesound:337619",
+     "licence": "CC0",
+     "author": "werapol",
+     "url": "https://freesound.org/people/werapol/sounds/337619/"
+    },
+    {
+     "file": "oneshots/quern_0_2.ogg",
+     "dur": 0.25,
+     "bytes": 1509,
+     "src": "freesound:337619",
+     "licence": "CC0",
+     "author": "werapol",
+     "url": "https://freesound.org/people/werapol/sounds/337619/"
+    },
+    {
+     "file": "oneshots/quern_0_3.ogg",
+     "dur": 0.25,
+     "bytes": 1420,
+     "src": "freesound:337619",
+     "licence": "CC0",
+     "author": "werapol",
+     "url": "https://freesound.org/people/werapol/sounds/337619/"
+    },
+    {
+     "file": "oneshots/quern_1_0.ogg",
+     "dur": 0.4,
+     "bytes": 2292,
+     "src": "commons:File:WWS Quern-stones.ogg",
+     "licence": "CC BY",
+     "author": "work with sounds museum of municipal engineering",
+     "url": "https://commons.wikimedia.org/wiki/File:WWS_Quern-stones.ogg"
+    },
+    {
+     "file": "oneshots/quern_1_1.ogg",
+     "dur": 0.26,
+     "bytes": 1564,
+     "src": "commons:File:WWS Quern-stones.ogg",
+     "licence": "CC BY",
+     "author": "work with sounds museum of municipal engineering",
+     "url": "https://commons.wikimedia.org/wiki/File:WWS_Quern-stones.ogg"
+    }
+   ],
+   "reed_warbler": [
+    {
+     "file": "oneshots/reed_warbler_0_0.ogg",
+     "dur": 0.31,
+     "bytes": 1609,
+     "src": "freesound:701168",
+     "licence": "CC0",
+     "author": "arnasarnas",
+     "url": "https://freesound.org/people/arnasarnas/sounds/701168/"
+    },
+    {
+     "file": "oneshots/reed_warbler_0_1.ogg",
+     "dur": 0.46,
+     "bytes": 2501,
+     "src": "freesound:701168",
+     "licence": "CC0",
+     "author": "arnasarnas",
+     "url": "https://freesound.org/people/arnasarnas/sounds/701168/"
+    },
+    {
+     "file": "oneshots/reed_warbler_0_2.ogg",
+     "dur": 0.36,
+     "bytes": 2026,
+     "src": "freesound:701168",
+     "licence": "CC0",
+     "author": "arnasarnas",
+     "url": "https://freesound.org/people/arnasarnas/sounds/701168/"
+    },
+    {
+     "file": "oneshots/reed_warbler_1_0.ogg",
+     "dur": 0.55,
+     "bytes": 3495,
+     "src": "freesound:34594",
+     "licence": "CC BY",
+     "author": "dobroide",
+     "url": "https://freesound.org/people/dobroide/sounds/34594/"
+    },
+    {
+     "file": "oneshots/reed_warbler_1_1.ogg",
+     "dur": 0.36,
+     "bytes": 2109,
+     "src": "freesound:34594",
+     "licence": "CC BY",
+     "author": "dobroide",
+     "url": "https://freesound.org/people/dobroide/sounds/34594/"
+    }
+   ],
+   "roar": [
+    {
+     "file": "oneshots/roar_0_0.ogg",
+     "dur": 1.46,
+     "bytes": 7888,
+     "src": "freesound:559600",
+     "licence": "CC0",
+     "author": "Podcapocalipsis",
+     "url": "https://freesound.org/people/Podcapocalipsis/sounds/559600/"
+    },
+    {
+     "file": "oneshots/roar_0_1.ogg",
+     "dur": 1.43,
+     "bytes": 7407,
+     "src": "freesound:559600",
+     "licence": "CC0",
+     "author": "Podcapocalipsis",
+     "url": "https://freesound.org/people/Podcapocalipsis/sounds/559600/"
+    },
+    {
+     "file": "oneshots/roar_0_2.ogg",
+     "dur": 0.9,
+     "bytes": 4887,
+     "src": "freesound:559600",
+     "licence": "CC0",
+     "author": "Podcapocalipsis",
+     "url": "https://freesound.org/people/Podcapocalipsis/sounds/559600/"
+    },
+    {
+     "file": "oneshots/roar_1_0.ogg",
+     "dur": 1.06,
+     "bytes": 5464,
+     "src": "freesound:69571",
+     "licence": "CC0",
+     "author": "Bidone",
+     "url": "https://freesound.org/people/Bidone/sounds/69571/"
+    },
+    {
+     "file": "oneshots/roar_1_1.ogg",
+     "dur": 1.04,
+     "bytes": 5344,
+     "src": "freesound:69571",
+     "licence": "CC0",
+     "author": "Bidone",
+     "url": "https://freesound.org/people/Bidone/sounds/69571/"
+    },
+    {
+     "file": "oneshots/roar_1_2.ogg",
+     "dur": 0.71,
+     "bytes": 3710,
+     "src": "freesound:69571",
+     "licence": "CC0",
+     "author": "Bidone",
+     "url": "https://freesound.org/people/Bidone/sounds/69571/"
+    }
+   ],
+   "saw": [
+    {
+     "file": "oneshots/saw_0_0.ogg",
+     "dur": 0.42,
+     "bytes": 2229,
+     "src": "commons:File:Campbell's-Monkeys-Use-Affixation-to-Alter-Call-Meaning-pone.0007808.s003.ogg",
+     "licence": "CC BY",
+     "author": "ouattara k lemasson a zuberb hler k",
+     "url": "https://commons.wikimedia.org/wiki/File:Campbell%27s-Monkeys-Use-Affixation-to-Alter-Call-Meaning-pone.0007808.s003.ogg"
+    }
+   ],
+   "scops_owl": [
+    {
+     "file": "oneshots/scops_owl_0_0.ogg",
+     "dur": 0.28,
+     "bytes": 1745,
+     "src": "freesound:429185",
+     "licence": "CC0",
+     "author": "SamuelGremaud",
+     "url": "https://freesound.org/people/SamuelGremaud/sounds/429185/"
+    },
+    {
+     "file": "oneshots/scops_owl_0_1.ogg",
+     "dur": 0.39,
+     "bytes": 2294,
+     "src": "freesound:429185",
+     "licence": "CC0",
+     "author": "SamuelGremaud",
+     "url": "https://freesound.org/people/SamuelGremaud/sounds/429185/"
+    },
+    {
+     "file": "oneshots/scops_owl_0_2.ogg",
+     "dur": 0.35,
+     "bytes": 2121,
+     "src": "freesound:429185",
+     "licence": "CC0",
+     "author": "SamuelGremaud",
+     "url": "https://freesound.org/people/SamuelGremaud/sounds/429185/"
+    },
+    {
+     "file": "oneshots/scops_owl_1_0.ogg",
+     "dur": 0.19,
+     "bytes": 1175,
+     "src": "commons:File:Otus sunia.ogg",
+     "licence": "CC0",
+     "author": "raghu",
+     "url": "https://commons.wikimedia.org/wiki/File:Otus_sunia.ogg"
+    },
+    {
+     "file": "oneshots/scops_owl_1_1.ogg",
+     "dur": 0.33,
+     "bytes": 1914,
+     "src": "commons:File:Otus sunia.ogg",
+     "licence": "CC0",
+     "author": "raghu",
+     "url": "https://commons.wikimedia.org/wiki/File:Otus_sunia.ogg"
+    }
+   ],
+   "scrape": [
+    {
+     "file": "oneshots/scrape_0_0.ogg",
+     "dur": 0.39,
+     "bytes": 2067,
+     "src": "freesound:59965",
+     "licence": "CC BY",
+     "author": "juskiddink",
+     "url": "https://freesound.org/people/juskiddink/sounds/59965/"
+    },
+    {
+     "file": "oneshots/scrape_0_1.ogg",
+     "dur": 0.73,
+     "bytes": 3828,
+     "src": "freesound:59965",
+     "licence": "CC BY",
+     "author": "juskiddink",
+     "url": "https://freesound.org/people/juskiddink/sounds/59965/"
+    },
+    {
+     "file": "oneshots/scrape_0_2.ogg",
+     "dur": 0.26,
+     "bytes": 1476,
+     "src": "freesound:59965",
+     "licence": "CC BY",
+     "author": "juskiddink",
+     "url": "https://freesound.org/people/juskiddink/sounds/59965/"
+    },
+    {
+     "file": "oneshots/scrape_1_0.ogg",
+     "dur": 0.27,
+     "bytes": 1497,
+     "src": "freesound:40541",
+     "licence": "CC BY",
+     "author": "hubertmichel",
+     "url": "https://freesound.org/people/hubertmichel/sounds/40541/"
+    },
+    {
+     "file": "oneshots/scrape_1_1.ogg",
+     "dur": 0.64,
+     "bytes": 3423,
+     "src": "freesound:40541",
+     "licence": "CC BY",
+     "author": "hubertmichel",
+     "url": "https://freesound.org/people/hubertmichel/sounds/40541/"
+    },
+    {
+     "file": "oneshots/scrape_1_2.ogg",
+     "dur": 0.22,
+     "bytes": 1291,
+     "src": "freesound:40541",
+     "licence": "CC BY",
+     "author": "hubertmichel",
+     "url": "https://freesound.org/people/hubertmichel/sounds/40541/"
+    }
+   ],
+   "see_see_partridge": [
+    {
+     "file": "oneshots/see_see_partridge_0_0.ogg",
+     "dur": 0.38,
+     "bytes": 2127,
+     "src": "freesound:153501",
+     "licence": "CC BY",
+     "author": "dobroide",
+     "url": "https://freesound.org/people/dobroide/sounds/153501/"
+    },
+    {
+     "file": "oneshots/see_see_partridge_0_1.ogg",
+     "dur": 0.31,
+     "bytes": 1737,
+     "src": "freesound:153501",
+     "licence": "CC BY",
+     "author": "dobroide",
+     "url": "https://freesound.org/people/dobroide/sounds/153501/"
+    },
+    {
+     "file": "oneshots/see_see_partridge_0_2.ogg",
+     "dur": 0.29,
+     "bytes": 1647,
+     "src": "freesound:153501",
+     "licence": "CC BY",
+     "author": "dobroide",
+     "url": "https://freesound.org/people/dobroide/sounds/153501/"
+    },
+    {
+     "file": "oneshots/see_see_partridge_0_3.ogg",
+     "dur": 0.31,
+     "bytes": 1739,
+     "src": "freesound:153501",
+     "licence": "CC BY",
+     "author": "dobroide",
+     "url": "https://freesound.org/people/dobroide/sounds/153501/"
+    },
+    {
+     "file": "oneshots/see_see_partridge_0_4.ogg",
+     "dur": 0.2,
+     "bytes": 1226,
+     "src": "freesound:153501",
+     "licence": "CC BY",
+     "author": "dobroide",
+     "url": "https://freesound.org/people/dobroide/sounds/153501/"
+    }
+   ],
+   "sickle": [
+    {
+     "file": "oneshots/sickle_0_0.ogg",
+     "dur": 0.18,
+     "bytes": 1066,
+     "src": "freesound:422590",
+     "licence": "CC0",
+     "author": "thewebbster",
+     "url": "https://freesound.org/people/thewebbster/sounds/422590/"
+    },
+    {
+     "file": "oneshots/sickle_0_1.ogg",
+     "dur": 0.17,
+     "bytes": 974,
+     "src": "freesound:422590",
+     "licence": "CC0",
+     "author": "thewebbster",
+     "url": "https://freesound.org/people/thewebbster/sounds/422590/"
+    },
+    {
+     "file": "oneshots/sickle_0_2.ogg",
+     "dur": 0.2,
+     "bytes": 1164,
+     "src": "freesound:422590",
+     "licence": "CC0",
+     "author": "thewebbster",
+     "url": "https://freesound.org/people/thewebbster/sounds/422590/"
+    },
+    {
+     "file": "oneshots/sickle_1_0.ogg",
+     "dur": 0.26,
+     "bytes": 1459,
+     "src": "freesound:478387",
+     "licence": "CC0",
+     "author": "elonen",
+     "url": "https://freesound.org/people/elonen/sounds/478387/"
+    },
+    {
+     "file": "oneshots/sickle_1_1.ogg",
+     "dur": 0.26,
+     "bytes": 1433,
+     "src": "freesound:478387",
+     "licence": "CC0",
+     "author": "elonen",
+     "url": "https://freesound.org/people/elonen/sounds/478387/"
+    },
+    {
+     "file": "oneshots/sickle_1_2.ogg",
+     "dur": 0.27,
+     "bytes": 1569,
+     "src": "freesound:478387",
+     "licence": "CC0",
+     "author": "elonen",
+     "url": "https://freesound.org/people/elonen/sounds/478387/"
+    }
+   ],
+   "skylark": [
+    {
+     "file": "oneshots/skylark_0_0.ogg",
+     "dur": 0.31,
+     "bytes": 1778,
+     "src": "freesound:848753",
+     "licence": "CC BY",
+     "author": "iainmccurdy",
+     "url": "https://freesound.org/people/iainmccurdy/sounds/848753/"
+    },
+    {
+     "file": "oneshots/skylark_0_1.ogg",
+     "dur": 0.27,
+     "bytes": 1525,
+     "src": "freesound:848753",
+     "licence": "CC BY",
+     "author": "iainmccurdy",
+     "url": "https://freesound.org/people/iainmccurdy/sounds/848753/"
+    },
+    {
+     "file": "oneshots/skylark_0_2.ogg",
+     "dur": 0.31,
+     "bytes": 3303,
+     "src": "freesound:848753",
+     "licence": "CC BY",
+     "author": "iainmccurdy",
+     "url": "https://freesound.org/people/iainmccurdy/sounds/848753/"
+    },
+    {
+     "file": "oneshots/skylark_0_3.ogg",
+     "dur": 0.39,
+     "bytes": 2188,
+     "src": "freesound:848753",
+     "licence": "CC BY",
+     "author": "iainmccurdy",
+     "url": "https://freesound.org/people/iainmccurdy/sounds/848753/"
+    },
+    {
+     "file": "oneshots/skylark_0_4.ogg",
+     "dur": 0.25,
+     "bytes": 2710,
+     "src": "freesound:848753",
+     "licence": "CC BY",
+     "author": "iainmccurdy",
+     "url": "https://freesound.org/people/iainmccurdy/sounds/848753/"
+    }
+   ],
+   "snort": [
+    {
+     "file": "oneshots/snort_0_0.ogg",
+     "dur": 1.04,
+     "bytes": 5631,
+     "src": "freesound:322454",
+     "licence": "CC BY",
+     "author": "GoodListener",
+     "url": "https://freesound.org/people/GoodListener/sounds/322454/"
+    },
+    {
+     "file": "oneshots/snort_1_0.ogg",
+     "dur": 0.95,
+     "bytes": 5064,
+     "src": "freesound:32043",
+     "licence": "CC BY",
+     "author": "ERH",
+     "url": "https://freesound.org/people/ERH/sounds/32043/"
+    },
+    {
+     "file": "oneshots/snort_1_1.ogg",
+     "dur": 0.4,
+     "bytes": 2183,
+     "src": "freesound:32043",
+     "licence": "CC BY",
+     "author": "ERH",
+     "url": "https://freesound.org/people/ERH/sounds/32043/"
+    },
+    {
+     "file": "oneshots/snort_1_2.ogg",
+     "dur": 0.34,
+     "bytes": 1930,
+     "src": "freesound:32043",
+     "licence": "CC BY",
+     "author": "ERH",
+     "url": "https://freesound.org/people/ERH/sounds/32043/"
+    },
+    {
+     "file": "oneshots/snort_2_0.ogg",
+     "dur": 1.42,
+     "bytes": 7374,
+     "src": "freesound:322443",
+     "licence": "CC BY",
+     "author": "GoodListener",
+     "url": "https://freesound.org/people/GoodListener/sounds/322443/"
+    },
+    {
+     "file": "oneshots/snort_2_1.ogg",
+     "dur": 1.18,
+     "bytes": 7065,
+     "src": "freesound:322443",
+     "licence": "CC BY",
+     "author": "GoodListener",
+     "url": "https://freesound.org/people/GoodListener/sounds/322443/"
+    }
+   ],
+   "swallow": [
+    {
+     "file": "oneshots/swallow_0_0.ogg",
+     "dur": 1.12,
+     "bytes": 6562,
+     "src": "freesound:580484",
+     "licence": "CC BY",
+     "author": "dobroide",
+     "url": "https://freesound.org/people/dobroide/sounds/580484/"
+    },
+    {
+     "file": "oneshots/swallow_0_1.ogg",
+     "dur": 0.38,
+     "bytes": 2301,
+     "src": "freesound:580484",
+     "licence": "CC BY",
+     "author": "dobroide",
+     "url": "https://freesound.org/people/dobroide/sounds/580484/"
+    },
+    {
+     "file": "oneshots/swallow_0_2.ogg",
+     "dur": 0.94,
+     "bytes": 5510,
+     "src": "freesound:580484",
+     "licence": "CC BY",
+     "author": "dobroide",
+     "url": "https://freesound.org/people/dobroide/sounds/580484/"
+    },
+    {
+     "file": "oneshots/swallow_0_3.ogg",
+     "dur": 0.8,
+     "bytes": 4570,
+     "src": "freesound:580484",
+     "licence": "CC BY",
+     "author": "dobroide",
+     "url": "https://freesound.org/people/dobroide/sounds/580484/"
+    },
+    {
+     "file": "oneshots/swallow_0_4.ogg",
+     "dur": 0.58,
+     "bytes": 3159,
+     "src": "freesound:580484",
+     "licence": "CC BY",
+     "author": "dobroide",
+     "url": "https://freesound.org/people/dobroide/sounds/580484/"
+    }
+   ],
+   "swifts": [
+    {
+     "file": "oneshots/swifts_0_0.ogg",
+     "dur": 1.19,
+     "bytes": 6264,
+     "src": "commons:File:Wilhelm Scream.ogg",
+     "licence": "CC0",
+     "author": "likely sheb wooley",
+     "url": "https://commons.wikimedia.org/wiki/File:Wilhelm_Scream.ogg"
+    },
+    {
+     "file": "oneshots/swifts_1_0.ogg",
+     "dur": 0.72,
+     "bytes": 3780,
+     "src": "commons:File:En-us-scream.ogg",
+     "licence": "CC0",
+     "author": "no machine readable author provided dvortygirl assumed based on copyright claims",
+     "url": "https://commons.wikimedia.org/wiki/File:En-us-scream.ogg"
+    }
+   ],
    "thunder": [
     {
      "file": "oneshots/thunder_0_0.ogg",
@@ -988,6 +3512,62 @@
      "licence": "CC0",
      "author": "raoul_slayer",
      "url": "http://www.freesound.org/people/raoul_slayer/sounds/101296/"
+    }
+   ],
+   "wash": [
+    {
+     "file": "oneshots/wash_0_0.ogg",
+     "dur": 0.47,
+     "bytes": 2592,
+     "src": "freesound:518475",
+     "licence": "CC0",
+     "author": "phonoflora",
+     "url": "https://freesound.org/people/phonoflora/sounds/518475/"
+    },
+    {
+     "file": "oneshots/wash_0_1.ogg",
+     "dur": 0.75,
+     "bytes": 4038,
+     "src": "freesound:518475",
+     "licence": "CC0",
+     "author": "phonoflora",
+     "url": "https://freesound.org/people/phonoflora/sounds/518475/"
+    },
+    {
+     "file": "oneshots/wash_0_2.ogg",
+     "dur": 0.33,
+     "bytes": 1890,
+     "src": "freesound:518475",
+     "licence": "CC0",
+     "author": "phonoflora",
+     "url": "https://freesound.org/people/phonoflora/sounds/518475/"
+    },
+    {
+     "file": "oneshots/wash_1_0.ogg",
+     "dur": 0.27,
+     "bytes": 1423,
+     "src": "freesound:104686",
+     "licence": "CC BY",
+     "author": "HerbertBoland",
+     "url": "https://freesound.org/people/HerbertBoland/sounds/104686/"
+    },
+    {
+     "file": "oneshots/wash_1_1.ogg",
+     "dur": 0.28,
+     "bytes": 1557,
+     "src": "freesound:104686",
+     "licence": "CC BY",
+     "author": "HerbertBoland",
+     "url": "https://freesound.org/people/HerbertBoland/sounds/104686/"
+    },
+    {
+     "file": "oneshots/wash_1_2.ogg",
+     "dur": 0.25,
+     "bytes": 1373,
+     "src": "freesound:104686",
+     "licence": "CC BY",
+     "author": "HerbertBoland",
+     "url": "https://freesound.org/people/HerbertBoland/sounds/104686/"
     }
    ],
    "water": [
@@ -1046,6 +3626,174 @@
      "url": "http://www.freesound.org/people/BranRainey/sounds/142349/"
     }
    ],
+   "wheel": [
+    {
+     "file": "oneshots/wheel_0_0.ogg",
+     "dur": 1.77,
+     "bytes": 9687,
+     "src": "freesound:538438",
+     "licence": "CC0",
+     "author": "bruno.auzet",
+     "url": "https://freesound.org/people/bruno.auzet/sounds/538438/"
+    },
+    {
+     "file": "oneshots/wheel_0_1.ogg",
+     "dur": 0.26,
+     "bytes": 1521,
+     "src": "freesound:538438",
+     "licence": "CC0",
+     "author": "bruno.auzet",
+     "url": "https://freesound.org/people/bruno.auzet/sounds/538438/"
+    },
+    {
+     "file": "oneshots/wheel_0_2.ogg",
+     "dur": 0.28,
+     "bytes": 1611,
+     "src": "freesound:538438",
+     "licence": "CC0",
+     "author": "bruno.auzet",
+     "url": "https://freesound.org/people/bruno.auzet/sounds/538438/"
+    },
+    {
+     "file": "oneshots/wheel_1_0.ogg",
+     "dur": 1.49,
+     "bytes": 8361,
+     "src": "freesound:438350",
+     "licence": "CC0",
+     "author": "craigsmith",
+     "url": "https://freesound.org/people/craigsmith/sounds/438350/"
+    },
+    {
+     "file": "oneshots/wheel_1_1.ogg",
+     "dur": 0.99,
+     "bytes": 5053,
+     "src": "freesound:438350",
+     "licence": "CC0",
+     "author": "craigsmith",
+     "url": "https://freesound.org/people/craigsmith/sounds/438350/"
+    },
+    {
+     "file": "oneshots/wheel_1_2.ogg",
+     "dur": 1.2,
+     "bytes": 6167,
+     "src": "freesound:438350",
+     "licence": "CC0",
+     "author": "craigsmith",
+     "url": "https://freesound.org/people/craigsmith/sounds/438350/"
+    }
+   ],
+   "whinny": [
+    {
+     "file": "oneshots/whinny_0_0.ogg",
+     "dur": 2.03,
+     "bytes": 11073,
+     "src": "freesound:347036",
+     "licence": "CC0",
+     "author": "Kubuzz",
+     "url": "https://freesound.org/people/Kubuzz/sounds/347036/"
+    },
+    {
+     "file": "oneshots/whinny_0_1.ogg",
+     "dur": 0.37,
+     "bytes": 1998,
+     "src": "freesound:347036",
+     "licence": "CC0",
+     "author": "Kubuzz",
+     "url": "https://freesound.org/people/Kubuzz/sounds/347036/"
+    },
+    {
+     "file": "oneshots/whinny_0_2.ogg",
+     "dur": 0.22,
+     "bytes": 1281,
+     "src": "freesound:347036",
+     "licence": "CC0",
+     "author": "Kubuzz",
+     "url": "https://freesound.org/people/Kubuzz/sounds/347036/"
+    },
+    {
+     "file": "oneshots/whinny_1_0.ogg",
+     "dur": 0.32,
+     "bytes": 1596,
+     "src": "freesound:149024",
+     "licence": "CC0",
+     "author": "foxen10",
+     "url": "https://freesound.org/people/foxen10/sounds/149024/"
+    },
+    {
+     "file": "oneshots/whinny_1_1.ogg",
+     "dur": 1.88,
+     "bytes": 9925,
+     "src": "freesound:149024",
+     "licence": "CC0",
+     "author": "foxen10",
+     "url": "https://freesound.org/people/foxen10/sounds/149024/"
+    },
+    {
+     "file": "oneshots/whinny_1_2.ogg",
+     "dur": 0.77,
+     "bytes": 4216,
+     "src": "freesound:149024",
+     "licence": "CC0",
+     "author": "foxen10",
+     "url": "https://freesound.org/people/foxen10/sounds/149024/"
+    }
+   ],
+   "whoop": [
+    {
+     "file": "oneshots/whoop_0_0.ogg",
+     "dur": 0.27,
+     "bytes": 1696,
+     "src": "commons:File:Giggling call of a spotted hyena (Crocuta crocuta) - 1472-6785-10-9-S4.oga",
+     "licence": "CC BY",
+     "author": "mathevon n koralek a weldele m glickman s theunissen f",
+     "url": "https://commons.wikimedia.org/wiki/File:Giggling_call_of_a_spotted_hyena_(Crocuta_crocuta)_-_1472-6785-10-9-S4.oga"
+    },
+    {
+     "file": "oneshots/whoop_0_1.ogg",
+     "dur": 0.27,
+     "bytes": 1699,
+     "src": "commons:File:Giggling call of a spotted hyena (Crocuta crocuta) - 1472-6785-10-9-S4.oga",
+     "licence": "CC BY",
+     "author": "mathevon n koralek a weldele m glickman s theunissen f",
+     "url": "https://commons.wikimedia.org/wiki/File:Giggling_call_of_a_spotted_hyena_(Crocuta_crocuta)_-_1472-6785-10-9-S4.oga"
+    },
+    {
+     "file": "oneshots/whoop_0_2.ogg",
+     "dur": 0.26,
+     "bytes": 1652,
+     "src": "commons:File:Giggling call of a spotted hyena (Crocuta crocuta) - 1472-6785-10-9-S4.oga",
+     "licence": "CC BY",
+     "author": "mathevon n koralek a weldele m glickman s theunissen f",
+     "url": "https://commons.wikimedia.org/wiki/File:Giggling_call_of_a_spotted_hyena_(Crocuta_crocuta)_-_1472-6785-10-9-S4.oga"
+    },
+    {
+     "file": "oneshots/whoop_1_0.ogg",
+     "dur": 0.23,
+     "bytes": 1354,
+     "src": "commons:File:Giggling call of a spotted hyena (Crocuta crocuta) - 1472-6785-10-9-S8.oga",
+     "licence": "CC BY",
+     "author": "mathevon n koralek a weldele m glickman s theunissen f",
+     "url": "https://commons.wikimedia.org/wiki/File:Giggling_call_of_a_spotted_hyena_(Crocuta_crocuta)_-_1472-6785-10-9-S8.oga"
+    },
+    {
+     "file": "oneshots/whoop_1_1.ogg",
+     "dur": 0.22,
+     "bytes": 838,
+     "src": "commons:File:Giggling call of a spotted hyena (Crocuta crocuta) - 1472-6785-10-9-S8.oga",
+     "licence": "CC BY",
+     "author": "mathevon n koralek a weldele m glickman s theunissen f",
+     "url": "https://commons.wikimedia.org/wiki/File:Giggling_call_of_a_spotted_hyena_(Crocuta_crocuta)_-_1472-6785-10-9-S8.oga"
+    },
+    {
+     "file": "oneshots/whoop_1_2.ogg",
+     "dur": 0.23,
+     "bytes": 1401,
+     "src": "commons:File:Giggling call of a spotted hyena (Crocuta crocuta) - 1472-6785-10-9-S8.oga",
+     "licence": "CC BY",
+     "author": "mathevon n koralek a weldele m glickman s theunissen f",
+     "url": "https://commons.wikimedia.org/wiki/File:Giggling_call_of_a_spotted_hyena_(Crocuta_crocuta)_-_1472-6785-10-9-S8.oga"
+    }
+   ],
    "wild_boar_grunting": [
     {
      "file": "oneshots/wild_boar_grunting_0_0.ogg",
@@ -1095,6 +3843,246 @@
    ]
   },
   "foot": {
+   "dust_run": [
+    {
+     "file": "foot/dust_run_0_0.ogg",
+     "dur": 0.18,
+     "bytes": 1100,
+     "src": "freesound:244590",
+     "licence": "CC0",
+     "author": "Cornwallis89",
+     "url": "https://freesound.org/people/Cornwallis89/sounds/244590/"
+    },
+    {
+     "file": "foot/dust_run_0_1.ogg",
+     "dur": 0.18,
+     "bytes": 1074,
+     "src": "freesound:244590",
+     "licence": "CC0",
+     "author": "Cornwallis89",
+     "url": "https://freesound.org/people/Cornwallis89/sounds/244590/"
+    },
+    {
+     "file": "foot/dust_run_0_2.ogg",
+     "dur": 0.22,
+     "bytes": 1332,
+     "src": "freesound:244590",
+     "licence": "CC0",
+     "author": "Cornwallis89",
+     "url": "https://freesound.org/people/Cornwallis89/sounds/244590/"
+    },
+    {
+     "file": "foot/dust_run_0_3.ogg",
+     "dur": 0.19,
+     "bytes": 1213,
+     "src": "freesound:244590",
+     "licence": "CC0",
+     "author": "Cornwallis89",
+     "url": "https://freesound.org/people/Cornwallis89/sounds/244590/"
+    },
+    {
+     "file": "foot/dust_run_1_0.ogg",
+     "dur": 0.26,
+     "bytes": 1419,
+     "src": "freesound:750797",
+     "licence": "CC0",
+     "author": "simonjeffery13",
+     "url": "https://freesound.org/people/simonjeffery13/sounds/750797/"
+    },
+    {
+     "file": "foot/dust_run_1_1.ogg",
+     "dur": 0.2,
+     "bytes": 1152,
+     "src": "freesound:750797",
+     "licence": "CC0",
+     "author": "simonjeffery13",
+     "url": "https://freesound.org/people/simonjeffery13/sounds/750797/"
+    },
+    {
+     "file": "foot/dust_run_1_2.ogg",
+     "dur": 0.23,
+     "bytes": 1271,
+     "src": "freesound:750797",
+     "licence": "CC0",
+     "author": "simonjeffery13",
+     "url": "https://freesound.org/people/simonjeffery13/sounds/750797/"
+    },
+    {
+     "file": "foot/dust_run_1_3.ogg",
+     "dur": 0.3,
+     "bytes": 1727,
+     "src": "freesound:750797",
+     "licence": "CC0",
+     "author": "simonjeffery13",
+     "url": "https://freesound.org/people/simonjeffery13/sounds/750797/"
+    }
+   ],
+   "dust_walk": [
+    {
+     "file": "foot/dust_walk_0_0.ogg",
+     "dur": 0.31,
+     "bytes": 1642,
+     "src": "freesound:854190",
+     "licence": "CC0",
+     "author": "GammaGool",
+     "url": "https://freesound.org/people/GammaGool/sounds/854190/"
+    },
+    {
+     "file": "foot/dust_walk_0_1.ogg",
+     "dur": 0.33,
+     "bytes": 1778,
+     "src": "freesound:854190",
+     "licence": "CC0",
+     "author": "GammaGool",
+     "url": "https://freesound.org/people/GammaGool/sounds/854190/"
+    },
+    {
+     "file": "foot/dust_walk_0_2.ogg",
+     "dur": 0.3,
+     "bytes": 1634,
+     "src": "freesound:854190",
+     "licence": "CC0",
+     "author": "GammaGool",
+     "url": "https://freesound.org/people/GammaGool/sounds/854190/"
+    },
+    {
+     "file": "foot/dust_walk_0_3.ogg",
+     "dur": 0.36,
+     "bytes": 1964,
+     "src": "freesound:854190",
+     "licence": "CC0",
+     "author": "GammaGool",
+     "url": "https://freesound.org/people/GammaGool/sounds/854190/"
+    },
+    {
+     "file": "foot/dust_walk_0_4.ogg",
+     "dur": 0.31,
+     "bytes": 1713,
+     "src": "freesound:854190",
+     "licence": "CC0",
+     "author": "GammaGool",
+     "url": "https://freesound.org/people/GammaGool/sounds/854190/"
+    },
+    {
+     "file": "foot/dust_walk_1_0.ogg",
+     "dur": 0.45,
+     "bytes": 2453,
+     "src": "freesound:636840",
+     "licence": "CC0",
+     "author": "Alex_hears_things",
+     "url": "https://freesound.org/people/Alex_hears_things/sounds/636840/"
+    },
+    {
+     "file": "foot/dust_walk_1_1.ogg",
+     "dur": 0.32,
+     "bytes": 1846,
+     "src": "freesound:636840",
+     "licence": "CC0",
+     "author": "Alex_hears_things",
+     "url": "https://freesound.org/people/Alex_hears_things/sounds/636840/"
+    },
+    {
+     "file": "foot/dust_walk_1_2.ogg",
+     "dur": 0.26,
+     "bytes": 1468,
+     "src": "freesound:636840",
+     "licence": "CC0",
+     "author": "Alex_hears_things",
+     "url": "https://freesound.org/people/Alex_hears_things/sounds/636840/"
+    },
+    {
+     "file": "foot/dust_walk_1_3.ogg",
+     "dur": 0.29,
+     "bytes": 1644,
+     "src": "freesound:636840",
+     "licence": "CC0",
+     "author": "Alex_hears_things",
+     "url": "https://freesound.org/people/Alex_hears_things/sounds/636840/"
+    },
+    {
+     "file": "foot/dust_walk_1_4.ogg",
+     "dur": 0.4,
+     "bytes": 2131,
+     "src": "freesound:636840",
+     "licence": "CC0",
+     "author": "Alex_hears_things",
+     "url": "https://freesound.org/people/Alex_hears_things/sounds/636840/"
+    }
+   ],
+   "earth_run": [
+    {
+     "file": "foot/earth_run_0_0.ogg",
+     "dur": 0.26,
+     "bytes": 1419,
+     "src": "freesound:750797",
+     "licence": "CC0",
+     "author": "simonjeffery13",
+     "url": "https://freesound.org/people/simonjeffery13/sounds/750797/"
+    },
+    {
+     "file": "foot/earth_run_0_1.ogg",
+     "dur": 0.2,
+     "bytes": 1152,
+     "src": "freesound:750797",
+     "licence": "CC0",
+     "author": "simonjeffery13",
+     "url": "https://freesound.org/people/simonjeffery13/sounds/750797/"
+    },
+    {
+     "file": "foot/earth_run_0_2.ogg",
+     "dur": 0.23,
+     "bytes": 1271,
+     "src": "freesound:750797",
+     "licence": "CC0",
+     "author": "simonjeffery13",
+     "url": "https://freesound.org/people/simonjeffery13/sounds/750797/"
+    },
+    {
+     "file": "foot/earth_run_0_3.ogg",
+     "dur": 0.3,
+     "bytes": 1727,
+     "src": "freesound:750797",
+     "licence": "CC0",
+     "author": "simonjeffery13",
+     "url": "https://freesound.org/people/simonjeffery13/sounds/750797/"
+    },
+    {
+     "file": "foot/earth_run_1_0.ogg",
+     "dur": 0.29,
+     "bytes": 1547,
+     "src": "freesound:264474",
+     "licence": "CC0",
+     "author": "aglinder",
+     "url": "https://freesound.org/people/aglinder/sounds/264474/"
+    },
+    {
+     "file": "foot/earth_run_1_1.ogg",
+     "dur": 0.32,
+     "bytes": 1710,
+     "src": "freesound:264474",
+     "licence": "CC0",
+     "author": "aglinder",
+     "url": "https://freesound.org/people/aglinder/sounds/264474/"
+    },
+    {
+     "file": "foot/earth_run_1_2.ogg",
+     "dur": 0.26,
+     "bytes": 1433,
+     "src": "freesound:264474",
+     "licence": "CC0",
+     "author": "aglinder",
+     "url": "https://freesound.org/people/aglinder/sounds/264474/"
+    },
+    {
+     "file": "foot/earth_run_1_3.ogg",
+     "dur": 0.31,
+     "bytes": 1650,
+     "src": "freesound:264474",
+     "licence": "CC0",
+     "author": "aglinder",
+     "url": "https://freesound.org/people/aglinder/sounds/264474/"
+    }
+   ],
    "earth_walk": [
     {
      "file": "foot/earth_walk_0_0.ogg",
@@ -1187,42 +4175,208 @@
      "url": "http://www.freesound.org/people/AdamWayneGistarb/sounds/243025/"
     }
    ],
-   "grass_walk": [
+   "grass_run": [
     {
-     "file": "foot/grass_walk_0_0.ogg",
-     "dur": 0.16,
-     "bytes": 1002,
-     "src": "esc50:4-194979-A-25.wav",
-     "licence": "CC BY",
-     "author": "soundmary",
-     "url": "http://www.freesound.org/people/soundmary/sounds/194979/"
+     "file": "foot/grass_run_0_0.ogg",
+     "dur": 0.28,
+     "bytes": 1115,
+     "src": "freesound:395562",
+     "licence": "CC0",
+     "author": "SoundsForHim",
+     "url": "https://freesound.org/people/SoundsForHim/sounds/395562/"
     },
     {
-     "file": "foot/grass_walk_0_1.ogg",
+     "file": "foot/grass_run_0_1.ogg",
      "dur": 0.18,
      "bytes": 1106,
-     "src": "esc50:4-194979-A-25.wav",
-     "licence": "CC BY",
-     "author": "soundmary",
-     "url": "http://www.freesound.org/people/soundmary/sounds/194979/"
+     "src": "freesound:395562",
+     "licence": "CC0",
+     "author": "SoundsForHim",
+     "url": "https://freesound.org/people/SoundsForHim/sounds/395562/"
     },
     {
-     "file": "foot/grass_walk_0_2.ogg",
-     "dur": 0.24,
-     "bytes": 1417,
-     "src": "esc50:4-194979-A-25.wav",
-     "licence": "CC BY",
-     "author": "soundmary",
-     "url": "http://www.freesound.org/people/soundmary/sounds/194979/"
+     "file": "foot/grass_run_0_2.ogg",
+     "dur": 0.36,
+     "bytes": 2017,
+     "src": "freesound:395562",
+     "licence": "CC0",
+     "author": "SoundsForHim",
+     "url": "https://freesound.org/people/SoundsForHim/sounds/395562/"
     },
     {
-     "file": "foot/grass_walk_0_3.ogg",
-     "dur": 0.28,
-     "bytes": 1612,
-     "src": "esc50:4-194979-A-25.wav",
-     "licence": "CC BY",
-     "author": "soundmary",
-     "url": "http://www.freesound.org/people/soundmary/sounds/194979/"
+     "file": "foot/grass_run_0_3.ogg",
+     "dur": 0.23,
+     "bytes": 1328,
+     "src": "freesound:395562",
+     "licence": "CC0",
+     "author": "SoundsForHim",
+     "url": "https://freesound.org/people/SoundsForHim/sounds/395562/"
+    },
+    {
+     "file": "foot/grass_run_1_0.ogg",
+     "dur": 0.2,
+     "bytes": 1188,
+     "src": "freesound:411148",
+     "licence": "CC0",
+     "author": "EvanSki",
+     "url": "https://freesound.org/people/EvanSki/sounds/411148/"
+    },
+    {
+     "file": "foot/grass_run_1_1.ogg",
+     "dur": 0.21,
+     "bytes": 1208,
+     "src": "freesound:411148",
+     "licence": "CC0",
+     "author": "EvanSki",
+     "url": "https://freesound.org/people/EvanSki/sounds/411148/"
+    },
+    {
+     "file": "foot/grass_run_1_2.ogg",
+     "dur": 0.2,
+     "bytes": 1201,
+     "src": "freesound:411148",
+     "licence": "CC0",
+     "author": "EvanSki",
+     "url": "https://freesound.org/people/EvanSki/sounds/411148/"
+    },
+    {
+     "file": "foot/grass_run_1_3.ogg",
+     "dur": 0.2,
+     "bytes": 1223,
+     "src": "freesound:411148",
+     "licence": "CC0",
+     "author": "EvanSki",
+     "url": "https://freesound.org/people/EvanSki/sounds/411148/"
+    }
+   ],
+   "grass_walk": [
+    {
+     "file": "foot/grass_walk_1_0.ogg",
+     "dur": 0.82,
+     "bytes": 4389,
+     "src": "freesound:559082",
+     "licence": "CC0",
+     "author": "Nox_Sound",
+     "url": "https://freesound.org/people/Nox_Sound/sounds/559082/"
+    },
+    {
+     "file": "foot/grass_walk_1_1.ogg",
+     "dur": 0.85,
+     "bytes": 4329,
+     "src": "freesound:559082",
+     "licence": "CC0",
+     "author": "Nox_Sound",
+     "url": "https://freesound.org/people/Nox_Sound/sounds/559082/"
+    },
+    {
+     "file": "foot/grass_walk_1_2.ogg",
+     "dur": 0.75,
+     "bytes": 4097,
+     "src": "freesound:559082",
+     "licence": "CC0",
+     "author": "Nox_Sound",
+     "url": "https://freesound.org/people/Nox_Sound/sounds/559082/"
+    },
+    {
+     "file": "foot/grass_walk_2_0.ogg",
+     "dur": 0.41,
+     "bytes": 2217,
+     "src": "freesound:384859",
+     "licence": "CC0",
+     "author": "Ali_6868",
+     "url": "https://freesound.org/people/Ali_6868/sounds/384859/"
+    },
+    {
+     "file": "foot/grass_walk_2_1.ogg",
+     "dur": 0.27,
+     "bytes": 1511,
+     "src": "freesound:384859",
+     "licence": "CC0",
+     "author": "Ali_6868",
+     "url": "https://freesound.org/people/Ali_6868/sounds/384859/"
+    },
+    {
+     "file": "foot/grass_walk_2_2.ogg",
+     "dur": 0.16,
+     "bytes": 1019,
+     "src": "freesound:384859",
+     "licence": "CC0",
+     "author": "Ali_6868",
+     "url": "https://freesound.org/people/Ali_6868/sounds/384859/"
+    }
+   ],
+   "gravel_run": [
+    {
+     "file": "foot/gravel_run_0_0.ogg",
+     "dur": 0.21,
+     "bytes": 1163,
+     "src": "freesound:584320",
+     "licence": "CC0",
+     "author": "Vendarro",
+     "url": "https://freesound.org/people/Vendarro/sounds/584320/"
+    },
+    {
+     "file": "foot/gravel_run_0_1.ogg",
+     "dur": 0.21,
+     "bytes": 1197,
+     "src": "freesound:584320",
+     "licence": "CC0",
+     "author": "Vendarro",
+     "url": "https://freesound.org/people/Vendarro/sounds/584320/"
+    },
+    {
+     "file": "foot/gravel_run_0_2.ogg",
+     "dur": 0.3,
+     "bytes": 1647,
+     "src": "freesound:584320",
+     "licence": "CC0",
+     "author": "Vendarro",
+     "url": "https://freesound.org/people/Vendarro/sounds/584320/"
+    },
+    {
+     "file": "foot/gravel_run_0_3.ogg",
+     "dur": 0.21,
+     "bytes": 1171,
+     "src": "freesound:584320",
+     "licence": "CC0",
+     "author": "Vendarro",
+     "url": "https://freesound.org/people/Vendarro/sounds/584320/"
+    },
+    {
+     "file": "foot/gravel_run_1_0.ogg",
+     "dur": 0.26,
+     "bytes": 1419,
+     "src": "freesound:750797",
+     "licence": "CC0",
+     "author": "simonjeffery13",
+     "url": "https://freesound.org/people/simonjeffery13/sounds/750797/"
+    },
+    {
+     "file": "foot/gravel_run_1_1.ogg",
+     "dur": 0.2,
+     "bytes": 1152,
+     "src": "freesound:750797",
+     "licence": "CC0",
+     "author": "simonjeffery13",
+     "url": "https://freesound.org/people/simonjeffery13/sounds/750797/"
+    },
+    {
+     "file": "foot/gravel_run_1_2.ogg",
+     "dur": 0.23,
+     "bytes": 1271,
+     "src": "freesound:750797",
+     "licence": "CC0",
+     "author": "simonjeffery13",
+     "url": "https://freesound.org/people/simonjeffery13/sounds/750797/"
+    },
+    {
+     "file": "foot/gravel_run_1_3.ogg",
+     "dur": 0.3,
+     "bytes": 1727,
+     "src": "freesound:750797",
+     "licence": "CC0",
+     "author": "simonjeffery13",
+     "url": "https://freesound.org/people/simonjeffery13/sounds/750797/"
     }
    ],
    "gravel_walk": [
@@ -1319,168 +4473,370 @@
    ],
    "leaves_walk": [
     {
-     "file": "foot/leaves_walk_0_0.ogg",
-     "dur": 0.24,
-     "bytes": 1421,
-     "src": "esc50:3-94342-A-25.wav",
+     "file": "foot/leaves_walk_1_0.ogg",
+     "dur": 0.36,
+     "bytes": 1990,
+     "src": "freesound:420390",
      "licence": "CC0",
-     "author": "Ryding",
-     "url": "http://www.freesound.org/people/Ryding/sounds/94342/"
+     "author": "Magdaadga",
+     "url": "https://freesound.org/people/Magdaadga/sounds/420390/"
     },
     {
-     "file": "foot/leaves_walk_0_1.ogg",
+     "file": "foot/leaves_walk_1_1.ogg",
+     "dur": 0.34,
+     "bytes": 1860,
+     "src": "freesound:420390",
+     "licence": "CC0",
+     "author": "Magdaadga",
+     "url": "https://freesound.org/people/Magdaadga/sounds/420390/"
+    },
+    {
+     "file": "foot/leaves_walk_1_2.ogg",
+     "dur": 0.45,
+     "bytes": 2419,
+     "src": "freesound:420390",
+     "licence": "CC0",
+     "author": "Magdaadga",
+     "url": "https://freesound.org/people/Magdaadga/sounds/420390/"
+    },
+    {
+     "file": "foot/leaves_walk_1_3.ogg",
+     "dur": 0.46,
+     "bytes": 2809,
+     "src": "freesound:420390",
+     "licence": "CC0",
+     "author": "Magdaadga",
+     "url": "https://freesound.org/people/Magdaadga/sounds/420390/"
+    },
+    {
+     "file": "foot/leaves_walk_1_4.ogg",
+     "dur": 0.17,
+     "bytes": 998,
+     "src": "freesound:420390",
+     "licence": "CC0",
+     "author": "Magdaadga",
+     "url": "https://freesound.org/people/Magdaadga/sounds/420390/"
+    },
+    {
+     "file": "foot/leaves_walk_2_0.ogg",
+     "dur": 0.25,
+     "bytes": 1348,
+     "src": "freesound:628400",
+     "licence": "CC0",
+     "author": "melle_teich",
+     "url": "https://freesound.org/people/melle_teich/sounds/628400/"
+    },
+    {
+     "file": "foot/leaves_walk_2_1.ogg",
+     "dur": 0.18,
+     "bytes": 1082,
+     "src": "freesound:628400",
+     "licence": "CC0",
+     "author": "melle_teich",
+     "url": "https://freesound.org/people/melle_teich/sounds/628400/"
+    },
+    {
+     "file": "foot/leaves_walk_2_2.ogg",
+     "dur": 0.16,
+     "bytes": 985,
+     "src": "freesound:628400",
+     "licence": "CC0",
+     "author": "melle_teich",
+     "url": "https://freesound.org/people/melle_teich/sounds/628400/"
+    },
+    {
+     "file": "foot/leaves_walk_2_3.ogg",
+     "dur": 0.28,
+     "bytes": 1610,
+     "src": "freesound:628400",
+     "licence": "CC0",
+     "author": "melle_teich",
+     "url": "https://freesound.org/people/melle_teich/sounds/628400/"
+    },
+    {
+     "file": "foot/leaves_walk_2_4.ogg",
+     "dur": 0.18,
+     "bytes": 1075,
+     "src": "freesound:628400",
+     "licence": "CC0",
+     "author": "melle_teich",
+     "url": "https://freesound.org/people/melle_teich/sounds/628400/"
+    }
+   ],
+   "mud_walk": [
+    {
+     "file": "foot/mud_walk_0_0.ogg",
      "dur": 0.35,
      "bytes": 1902,
-     "src": "esc50:3-94342-A-25.wav",
+     "src": "freesound:376809",
      "licence": "CC0",
-     "author": "Ryding",
-     "url": "http://www.freesound.org/people/Ryding/sounds/94342/"
+     "author": "Alex_hears_things",
+     "url": "https://freesound.org/people/Alex_hears_things/sounds/376809/"
     },
     {
-     "file": "foot/leaves_walk_0_2.ogg",
-     "dur": 0.19,
-     "bytes": 616,
-     "src": "esc50:3-94342-A-25.wav",
+     "file": "foot/mud_walk_0_1.ogg",
+     "dur": 0.29,
+     "bytes": 1625,
+     "src": "freesound:376809",
      "licence": "CC0",
-     "author": "Ryding",
-     "url": "http://www.freesound.org/people/Ryding/sounds/94342/"
+     "author": "Alex_hears_things",
+     "url": "https://freesound.org/people/Alex_hears_things/sounds/376809/"
     },
     {
-     "file": "foot/leaves_walk_0_3.ogg",
+     "file": "foot/mud_walk_0_2.ogg",
+     "dur": 0.16,
+     "bytes": 998,
+     "src": "freesound:376809",
+     "licence": "CC0",
+     "author": "Alex_hears_things",
+     "url": "https://freesound.org/people/Alex_hears_things/sounds/376809/"
+    },
+    {
+     "file": "foot/mud_walk_0_3.ogg",
+     "dur": 0.26,
+     "bytes": 1499,
+     "src": "freesound:376809",
+     "licence": "CC0",
+     "author": "Alex_hears_things",
+     "url": "https://freesound.org/people/Alex_hears_things/sounds/376809/"
+    },
+    {
+     "file": "foot/mud_walk_0_4.ogg",
      "dur": 0.32,
-     "bytes": 1813,
-     "src": "esc50:3-94342-A-25.wav",
+     "bytes": 1812,
+     "src": "freesound:376809",
      "licence": "CC0",
-     "author": "Ryding",
-     "url": "http://www.freesound.org/people/Ryding/sounds/94342/"
+     "author": "Alex_hears_things",
+     "url": "https://freesound.org/people/Alex_hears_things/sounds/376809/"
     },
     {
-     "file": "foot/leaves_walk_0_4.ogg",
-     "dur": 0.45,
-     "bytes": 2413,
-     "src": "esc50:3-94342-A-25.wav",
+     "file": "foot/mud_walk_1_0.ogg",
+     "dur": 0.46,
+     "bytes": 2574,
+     "src": "freesound:579766",
      "licence": "CC0",
-     "author": "Ryding",
-     "url": "http://www.freesound.org/people/Ryding/sounds/94342/"
+     "author": "OldGrump",
+     "url": "https://freesound.org/people/OldGrump/sounds/579766/"
     },
     {
-     "file": "foot/leaves_walk_0_5.ogg",
+     "file": "foot/mud_walk_1_1.ogg",
+     "dur": 0.43,
+     "bytes": 2210,
+     "src": "freesound:579766",
+     "licence": "CC0",
+     "author": "OldGrump",
+     "url": "https://freesound.org/people/OldGrump/sounds/579766/"
+    },
+    {
+     "file": "foot/mud_walk_1_2.ogg",
+     "dur": 0.27,
+     "bytes": 1579,
+     "src": "freesound:579766",
+     "licence": "CC0",
+     "author": "OldGrump",
+     "url": "https://freesound.org/people/OldGrump/sounds/579766/"
+    },
+    {
+     "file": "foot/mud_walk_1_3.ogg",
+     "dur": 0.34,
+     "bytes": 1925,
+     "src": "freesound:579766",
+     "licence": "CC0",
+     "author": "OldGrump",
+     "url": "https://freesound.org/people/OldGrump/sounds/579766/"
+    },
+    {
+     "file": "foot/mud_walk_1_4.ogg",
+     "dur": 0.22,
+     "bytes": 1323,
+     "src": "freesound:579766",
+     "licence": "CC0",
+     "author": "OldGrump",
+     "url": "https://freesound.org/people/OldGrump/sounds/579766/"
+    }
+   ],
+   "plaster_walk": [
+    {
+     "file": "foot/plaster_walk_0_0.ogg",
      "dur": 0.24,
-     "bytes": 1425,
-     "src": "esc50:3-94342-A-25.wav",
-     "licence": "CC0",
-     "author": "Ryding",
-     "url": "http://www.freesound.org/people/Ryding/sounds/94342/"
+     "bytes": 1287,
+     "src": "freesound:437150",
+     "licence": "CC BY",
+     "author": "d.n.audio.uk",
+     "url": "https://freesound.org/people/d.n.audio.uk/sounds/437150/"
     },
     {
-     "file": "foot/leaves_walk_0_6.ogg",
-     "dur": 0.23,
-     "bytes": 1351,
-     "src": "esc50:3-94342-A-25.wav",
-     "licence": "CC0",
-     "author": "Ryding",
-     "url": "http://www.freesound.org/people/Ryding/sounds/94342/"
+     "file": "foot/plaster_walk_0_1.ogg",
+     "dur": 0.33,
+     "bytes": 1688,
+     "src": "freesound:437150",
+     "licence": "CC BY",
+     "author": "d.n.audio.uk",
+     "url": "https://freesound.org/people/d.n.audio.uk/sounds/437150/"
     },
     {
-     "file": "foot/leaves_walk_0_7.ogg",
-     "dur": 0.19,
-     "bytes": 1134,
-     "src": "esc50:3-94342-A-25.wav",
-     "licence": "CC0",
-     "author": "Ryding",
-     "url": "http://www.freesound.org/people/Ryding/sounds/94342/"
+     "file": "foot/plaster_walk_0_2.ogg",
+     "dur": 0.28,
+     "bytes": 1454,
+     "src": "freesound:437150",
+     "licence": "CC BY",
+     "author": "d.n.audio.uk",
+     "url": "https://freesound.org/people/d.n.audio.uk/sounds/437150/"
     },
     {
-     "file": "foot/leaves_walk_0_8.ogg",
-     "dur": 0.19,
-     "bytes": 1137,
-     "src": "esc50:3-94342-A-25.wav",
-     "licence": "CC0",
-     "author": "Ryding",
-     "url": "http://www.freesound.org/people/Ryding/sounds/94342/"
+     "file": "foot/plaster_walk_0_3.ogg",
+     "dur": 0.33,
+     "bytes": 1627,
+     "src": "freesound:437150",
+     "licence": "CC BY",
+     "author": "d.n.audio.uk",
+     "url": "https://freesound.org/people/d.n.audio.uk/sounds/437150/"
     },
     {
-     "file": "foot/leaves_walk_0_9.ogg",
-     "dur": 0.25,
-     "bytes": 1429,
-     "src": "esc50:3-94342-A-25.wav",
-     "licence": "CC0",
-     "author": "Ryding",
-     "url": "http://www.freesound.org/people/Ryding/sounds/94342/"
+     "file": "foot/plaster_walk_0_4.ogg",
+     "dur": 0.27,
+     "bytes": 1410,
+     "src": "freesound:437150",
+     "licence": "CC BY",
+     "author": "d.n.audio.uk",
+     "url": "https://freesound.org/people/d.n.audio.uk/sounds/437150/"
+    },
+    {
+     "file": "foot/plaster_walk_1_0.ogg",
+     "dur": 0.28,
+     "bytes": 1521,
+     "src": "freesound:269458",
+     "licence": "CC BY",
+     "author": "paulmessier",
+     "url": "https://freesound.org/people/paulmessier/sounds/269458/"
+    },
+    {
+     "file": "foot/plaster_walk_1_1.ogg",
+     "dur": 0.33,
+     "bytes": 1773,
+     "src": "freesound:269458",
+     "licence": "CC BY",
+     "author": "paulmessier",
+     "url": "https://freesound.org/people/paulmessier/sounds/269458/"
+    },
+    {
+     "file": "foot/plaster_walk_1_2.ogg",
+     "dur": 0.22,
+     "bytes": 1262,
+     "src": "freesound:269458",
+     "licence": "CC BY",
+     "author": "paulmessier",
+     "url": "https://freesound.org/people/paulmessier/sounds/269458/"
+    },
+    {
+     "file": "foot/plaster_walk_1_3.ogg",
+     "dur": 0.24,
+     "bytes": 1348,
+     "src": "freesound:269458",
+     "licence": "CC BY",
+     "author": "paulmessier",
+     "url": "https://freesound.org/people/paulmessier/sounds/269458/"
+    },
+    {
+     "file": "foot/plaster_walk_1_4.ogg",
+     "dur": 0.27,
+     "bytes": 1492,
+     "src": "freesound:269458",
+     "licence": "CC BY",
+     "author": "paulmessier",
+     "url": "https://freesound.org/people/paulmessier/sounds/269458/"
     }
    ],
    "rug_walk": [
     {
-     "file": "foot/rug_walk_0_0.ogg",
+     "file": "foot/rug_walk_1_0.ogg",
      "dur": 0.27,
-     "bytes": 1439,
-     "src": "esc50:5-234855-A-25.wav",
+     "bytes": 1452,
+     "src": "freesound:371311",
      "licence": "CC0",
-     "author": "mlsulli",
-     "url": "http://www.freesound.org/people/mlsulli/sounds/234855/"
+     "author": "Iamgiorgio",
+     "url": "https://freesound.org/people/Iamgiorgio/sounds/371311/"
     },
     {
-     "file": "foot/rug_walk_0_1.ogg",
-     "dur": 0.24,
-     "bytes": 1312,
-     "src": "esc50:5-234855-A-25.wav",
-     "licence": "CC0",
-     "author": "mlsulli",
-     "url": "http://www.freesound.org/people/mlsulli/sounds/234855/"
-    },
-    {
-     "file": "foot/rug_walk_0_2.ogg",
+     "file": "foot/rug_walk_1_1.ogg",
      "dur": 0.22,
-     "bytes": 1274,
-     "src": "esc50:5-234855-A-25.wav",
+     "bytes": 1296,
+     "src": "freesound:371311",
      "licence": "CC0",
-     "author": "mlsulli",
-     "url": "http://www.freesound.org/people/mlsulli/sounds/234855/"
+     "author": "Iamgiorgio",
+     "url": "https://freesound.org/people/Iamgiorgio/sounds/371311/"
     },
     {
-     "file": "foot/rug_walk_0_3.ogg",
+     "file": "foot/rug_walk_1_2.ogg",
+     "dur": 0.22,
+     "bytes": 1282,
+     "src": "freesound:371311",
+     "licence": "CC0",
+     "author": "Iamgiorgio",
+     "url": "https://freesound.org/people/Iamgiorgio/sounds/371311/"
+    },
+    {
+     "file": "foot/rug_walk_1_3.ogg",
      "dur": 0.19,
-     "bytes": 1152,
-     "src": "esc50:5-234855-A-25.wav",
+     "bytes": 1162,
+     "src": "freesound:371311",
      "licence": "CC0",
-     "author": "mlsulli",
-     "url": "http://www.freesound.org/people/mlsulli/sounds/234855/"
+     "author": "Iamgiorgio",
+     "url": "https://freesound.org/people/Iamgiorgio/sounds/371311/"
     },
     {
-     "file": "foot/rug_walk_0_4.ogg",
+     "file": "foot/rug_walk_1_4.ogg",
      "dur": 0.19,
-     "bytes": 1113,
-     "src": "esc50:5-234855-A-25.wav",
+     "bytes": 1144,
+     "src": "freesound:371311",
      "licence": "CC0",
-     "author": "mlsulli",
-     "url": "http://www.freesound.org/people/mlsulli/sounds/234855/"
+     "author": "Iamgiorgio",
+     "url": "https://freesound.org/people/Iamgiorgio/sounds/371311/"
     },
     {
-     "file": "foot/rug_walk_0_5.ogg",
-     "dur": 0.26,
-     "bytes": 1483,
-     "src": "esc50:5-234855-A-25.wav",
+     "file": "foot/rug_walk_2_0.ogg",
+     "dur": 0.31,
+     "bytes": 1664,
+     "src": "freesound:761118",
      "licence": "CC0",
-     "author": "mlsulli",
-     "url": "http://www.freesound.org/people/mlsulli/sounds/234855/"
+     "author": "izzylikesnoise",
+     "url": "https://freesound.org/people/izzylikesnoise/sounds/761118/"
     },
     {
-     "file": "foot/rug_walk_0_6.ogg",
-     "dur": 0.29,
-     "bytes": 1613,
-     "src": "esc50:5-234855-A-25.wav",
+     "file": "foot/rug_walk_2_1.ogg",
+     "dur": 0.27,
+     "bytes": 1445,
+     "src": "freesound:761118",
      "licence": "CC0",
-     "author": "mlsulli",
-     "url": "http://www.freesound.org/people/mlsulli/sounds/234855/"
+     "author": "izzylikesnoise",
+     "url": "https://freesound.org/people/izzylikesnoise/sounds/761118/"
     },
     {
-     "file": "foot/rug_walk_0_7.ogg",
-     "dur": 0.29,
-     "bytes": 1593,
-     "src": "esc50:5-234855-A-25.wav",
+     "file": "foot/rug_walk_2_2.ogg",
+     "dur": 0.37,
+     "bytes": 1900,
+     "src": "freesound:761118",
      "licence": "CC0",
-     "author": "mlsulli",
-     "url": "http://www.freesound.org/people/mlsulli/sounds/234855/"
+     "author": "izzylikesnoise",
+     "url": "https://freesound.org/people/izzylikesnoise/sounds/761118/"
+    },
+    {
+     "file": "foot/rug_walk_2_3.ogg",
+     "dur": 0.34,
+     "bytes": 1848,
+     "src": "freesound:761118",
+     "licence": "CC0",
+     "author": "izzylikesnoise",
+     "url": "https://freesound.org/people/izzylikesnoise/sounds/761118/"
+    },
+    {
+     "file": "foot/rug_walk_2_4.ogg",
+     "dur": 0.39,
+     "bytes": 1971,
+     "src": "freesound:761118",
+     "licence": "CC0",
+     "author": "izzylikesnoise",
+     "url": "https://freesound.org/people/izzylikesnoise/sounds/761118/"
     }
    ],
    "snow_walk": [
@@ -1575,6 +4931,80 @@
      "url": "http://www.freesound.org/people/lwdickens/sounds/263501/"
     }
    ],
+   "stone_run": [
+    {
+     "file": "foot/stone_run_0_0.ogg",
+     "dur": 0.21,
+     "bytes": 1163,
+     "src": "freesound:584320",
+     "licence": "CC0",
+     "author": "Vendarro",
+     "url": "https://freesound.org/people/Vendarro/sounds/584320/"
+    },
+    {
+     "file": "foot/stone_run_0_1.ogg",
+     "dur": 0.21,
+     "bytes": 1197,
+     "src": "freesound:584320",
+     "licence": "CC0",
+     "author": "Vendarro",
+     "url": "https://freesound.org/people/Vendarro/sounds/584320/"
+    },
+    {
+     "file": "foot/stone_run_0_2.ogg",
+     "dur": 0.3,
+     "bytes": 1647,
+     "src": "freesound:584320",
+     "licence": "CC0",
+     "author": "Vendarro",
+     "url": "https://freesound.org/people/Vendarro/sounds/584320/"
+    },
+    {
+     "file": "foot/stone_run_0_3.ogg",
+     "dur": 0.21,
+     "bytes": 1171,
+     "src": "freesound:584320",
+     "licence": "CC0",
+     "author": "Vendarro",
+     "url": "https://freesound.org/people/Vendarro/sounds/584320/"
+    },
+    {
+     "file": "foot/stone_run_1_0.ogg",
+     "dur": 0.22,
+     "bytes": 1247,
+     "src": "freesound:584321",
+     "licence": "CC0",
+     "author": "Vendarro",
+     "url": "https://freesound.org/people/Vendarro/sounds/584321/"
+    },
+    {
+     "file": "foot/stone_run_1_1.ogg",
+     "dur": 0.2,
+     "bytes": 1190,
+     "src": "freesound:584321",
+     "licence": "CC0",
+     "author": "Vendarro",
+     "url": "https://freesound.org/people/Vendarro/sounds/584321/"
+    },
+    {
+     "file": "foot/stone_run_1_2.ogg",
+     "dur": 0.24,
+     "bytes": 1381,
+     "src": "freesound:584321",
+     "licence": "CC0",
+     "author": "Vendarro",
+     "url": "https://freesound.org/people/Vendarro/sounds/584321/"
+    },
+    {
+     "file": "foot/stone_run_1_3.ogg",
+     "dur": 0.19,
+     "bytes": 1110,
+     "src": "freesound:584321",
+     "licence": "CC0",
+     "author": "Vendarro",
+     "url": "https://freesound.org/people/Vendarro/sounds/584321/"
+    }
+   ],
    "stone_walk": [
     {
      "file": "foot/stone_walk_0_0.ogg",
@@ -1665,6 +5095,71 @@
      "licence": "CC BY",
      "author": "sinatra314",
      "url": "http://www.freesound.org/people/sinatra314/sounds/209472/"
+    }
+   ],
+   "water_walk": [
+    {
+     "file": "foot/water_walk_0_0.ogg",
+     "dur": 0.22,
+     "bytes": 1326,
+     "src": "freesound:265582",
+     "licence": "CC0",
+     "author": "aglinder",
+     "url": "https://freesound.org/people/aglinder/sounds/265582/"
+    },
+    {
+     "file": "foot/water_walk_0_1.ogg",
+     "dur": 0.37,
+     "bytes": 2020,
+     "src": "freesound:265582",
+     "licence": "CC0",
+     "author": "aglinder",
+     "url": "https://freesound.org/people/aglinder/sounds/265582/"
+    },
+    {
+     "file": "foot/water_walk_0_2.ogg",
+     "dur": 0.2,
+     "bytes": 1219,
+     "src": "freesound:265582",
+     "licence": "CC0",
+     "author": "aglinder",
+     "url": "https://freesound.org/people/aglinder/sounds/265582/"
+    },
+    {
+     "file": "foot/water_walk_0_3.ogg",
+     "dur": 0.22,
+     "bytes": 1242,
+     "src": "freesound:265582",
+     "licence": "CC0",
+     "author": "aglinder",
+     "url": "https://freesound.org/people/aglinder/sounds/265582/"
+    },
+    {
+     "file": "foot/water_walk_0_4.ogg",
+     "dur": 0.25,
+     "bytes": 1450,
+     "src": "freesound:265582",
+     "licence": "CC0",
+     "author": "aglinder",
+     "url": "https://freesound.org/people/aglinder/sounds/265582/"
+    },
+    {
+     "file": "foot/water_walk_1_0.ogg",
+     "dur": 0.55,
+     "bytes": 3049,
+     "src": "freesound:672205",
+     "licence": "CC0",
+     "author": "RomanKolachnik",
+     "url": "https://freesound.org/people/RomanKolachnik/sounds/672205/"
+    },
+    {
+     "file": "foot/water_walk_2_0.ogg",
+     "dur": 0.17,
+     "bytes": 1142,
+     "src": "freesound:672200",
+     "licence": "CC0",
+     "author": "RomanKolachnik",
+     "url": "https://freesound.org/people/RomanKolachnik/sounds/672200/"
     }
    ],
    "wood_walk": [
