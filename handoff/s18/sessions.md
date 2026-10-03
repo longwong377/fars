@@ -14,3 +14,4 @@
 | C10 the Terrace at 100-300 m | src/arch/ (not rooms, terrace_rooms, now), src/render/(monuments,reliefAtlas).ts | cloud-s18-c10-terrace | session_01VF48LTSeqX5SvZJDZWF8Xs |
 
 Ownership added during the session: C4 + src/world/(fire,firePlaces).ts (night light on the Terrace); C5 + src/people/(props,poseKit,playing).ts (props clipping); C2 + the paradise garden (in settlement/).
+| C11 the opening cinematic and its score (UD-38) | src/shell/intro.ts + cinematic files in src/shell/, src/audio/score*.ts, tools/score/, public/audio/score/ | cloud-s18-c11-cinematic | session_01Jf37fN3YK7tm9trGxq7J6p |
