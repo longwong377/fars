@@ -140,8 +140,10 @@ type RGB = [number, number, number];
  *  wrap per channel is base + curvature × scatter length (red scatters furthest: d'Eon & Luebke's sum-of-Gaussians
  *  widths are ~1–3 mm for red, well under 1 mm for blue), capped; flat skin keeps a small base wrap. */
 export const SKIN = {
-  f0: 0.028, roughSheen: 0.6, roughOil: 0.34, oilLobe: [0.1, 0.34] as [number, number],
-  scatter: [0.0028, 0.0011, 0.0006] as RGB, wrapBase: [0.1, 0.035, 0.018] as RGB, wrapMax: 0.55,
+  // (s18 C14 D-790, the reviewers' "plastic skin": the oily lobe broader and weaker (its glint lay on every forehead and cheek
+  // like varnish: 0.34 / 0.1-0.34 before), the sheen a little rougher, the terminator softer (more base wrap, red most))
+  f0: 0.028, roughSheen: 0.66, roughOil: 0.44, oilLobe: [0.06, 0.2] as [number, number],
+  scatter: [0.0028, 0.0011, 0.0006] as RGB, wrapBase: [0.16, 0.06, 0.03] as RGB, wrapMax: 0.6,
   /** full-scale heights (m) of the detail map's crease and age channels; the age channel scales with the age decade */
   crease: 0.00045, age: 0.0004,
   /** thin-part transmission: tint (light through ~2–5 mm of tissue is red) and strength (C) */

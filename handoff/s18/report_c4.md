@@ -36,8 +36,11 @@
   banquet never); fire light pools cannot be judged at Q=low in the cloud (few or no fire lights there); the night grade is
   post (high) only, unseen; town_glow keeps two red assertions about the sim's warm-evening hearths (C2's belt, routed);
   lint:lang is red on a texture not mine (public/textures/plaster001/arm.jpg unregistered).
-- Not done: seasonal cloud types, the snow cap by season (the snowline uniform exists, unverified), the 467/466 comet, the
-  spring flood and the dust-storm wall, heat shimmer by default (its composite graph unverified on a GPU: left opt-in).
+- Since: the comet of 467 (comet.ts: 75 evenings from mid-July, east of the sun, tail away from it; C, Plutarch Lys. 12 / Pliny
+  NH 2.149) and the season's clouds (cloudKind.ts: winter stratiform sheets, spring/summer cumulus, autumn cirrus veil).
+- Not done: the spring flood and the dust-storm wall (weather/river owners' systems), heat shimmer by default (its composite
+  graph unverified on a GPU: left opt-in); the snow cap exists through the shared snowline (January 725 m over the court:
+  Rahmat's tops and the far Zagros) but is unseen.
 
 ## What a player meets now
 - **Far views get sun shadows** (if the T4 confirms): past 600 m, where nothing had a sun shadow, a fifth map fitted to the

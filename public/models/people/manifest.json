@@ -4,20 +4,20 @@
   "people_cloth": {
    "files": {
     "people_cloth.json": {
-     "sha256": "cc2edc954315eb589f01f1a458c5780b0bdb84832d27ceb8613fdeaf1175ae4e",
-     "bytes": 37061
+     "sha256": "fe5bb2bea415cb5b94675ab92a85465423a4eca3091b5348fa716442c9f43a31",
+     "bytes": 36166
     },
     "people_cloth.bin": {
-     "sha256": "1596e092aad197d1aea9ab8a5a4ddee71180ef0e19b75809fb8918a971b56f8b",
-     "bytes": 602312
+     "sha256": "1f12de33b8692053c72cc3f418a82858753152b67c6ecc9ab90432ebf706ba99",
+     "bytes": 593168
     },
     "people_cloth_folds.png": {
-     "sha256": "81319126315ca5ab01f4b7da2dfcd7a93162aeb1fc581699ddeb13f3d3f5dce2",
-     "bytes": 1088455
+     "sha256": "9b2219326bdbe1cee28dd2eb0880599e63245862df39c7127a6af8bea1292c34",
+     "bytes": 1077548
     }
    },
-   "inHash": "a5ab7a80354509cffd00796f9d047bcf01985dfd948f3e09a07f1adbd2d46b15",
-   "bytes": 1727828,
+   "inHash": "b2abe452828d66d48933bc6bb391a0c391781d46a7346e2b723a9978f8cde31f",
+   "bytes": 1706882,
    "gpuBytes": 0,
    "stats": {
     "robe_skirt_men": {
@@ -346,18 +346,6 @@
      "over": [
       "robe_upper_women",
       "robe_skirt_women"
-     ]
-    },
-    "veil_women_s1": {
-     "verts": 2385,
-     "tris": 4576,
-     "levels": 1,
-     "edge0_cm": 3.68,
-     "edge_cm": 1.84,
-     "pinned": 0.311,
-     "over": [
-      "robe_upper_women_s1",
-      "robe_skirt_women_s1"
      ]
     },
     "belt_men": {
@@ -1108,41 +1096,23 @@
      "sampled": 24,
      "pushed": 0
     },
-    "veil@0|women#1": {
-     "rms_mm": 55.5,
-     "max_mm": 135,
-     "sampled": 621,
-     "pushed": 81
-    },
-    "veil@1|women#1": {
-     "rms_mm": 49.8,
-     "max_mm": 99,
-     "sampled": 117,
-     "pushed": 6
-    },
-    "veil@2|women#1": {
-     "rms_mm": 35.9,
-     "max_mm": 68.4,
-     "sampled": 24,
-     "pushed": 0
-    },
     "$folds": {
      "scale_mm": 12,
      "texelsPerMetre": 163.2,
      "charts": 25,
-     "samples": 364922
+     "samples": 360152
     }
    },
    "tier": "C",
    "src": "IR-CAND;IR-WOMEN;RELIEF-R",
    "blender": "5.0.1",
    "ktx": "ktx version: v4.4.2",
-   "build_s": 375,
+   "build_s": 373,
    "reproduced": {
     "files": {
-     "people_cloth.json": "cc2edc954315eb589f01f1a458c5780b0bdb84832d27ceb8613fdeaf1175ae4e",
-     "people_cloth.bin": "1596e092aad197d1aea9ab8a5a4ddee71180ef0e19b75809fb8918a971b56f8b",
-     "people_cloth_folds.png": "81319126315ca5ab01f4b7da2dfcd7a93162aeb1fc581699ddeb13f3d3f5dce2"
+     "people_cloth.json": "fe5bb2bea415cb5b94675ab92a85465423a4eca3091b5348fa716442c9f43a31",
+     "people_cloth.bin": "1f12de33b8692053c72cc3f418a82858753152b67c6ecc9ab90432ebf706ba99",
+     "people_cloth_folds.png": "9b2219326bdbe1cee28dd2eb0880599e63245862df39c7127a6af8bea1292c34"
     },
     "blender": "5.0.1"
    }

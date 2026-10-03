@@ -75,7 +75,7 @@ const EDGE = ARGS.edge ?? 0.026; // the simulation's mesh: refined until the mea
 // quarter either way and ripples the cut by a few millimetres), so the bodies of a group do not all wear the same folds
 // (outfits.ts gives body variant v the seed v mod seeds)
 const SEEDS: number = ARGS.seeds ?? 1, EVAR = [0, 1, -1, 0.5, -0.5];
-for (const [piece, P] of Object.entries(ARGS.pieces as Record<string, any>)) for (const group of P.groups as string[]) for (let seed = 0; seed < SEEDS; seed++) {
+for (const [piece, P] of Object.entries(ARGS.pieces as Record<string, any>)) for (const group of P.groups as string[]) for (let seed = 0; seed < (P.seeds ?? SEEDS); seed++) { // (s18 C14: a piece may keep fewer cuts: P.seeds)
   const key = `${piece}@0`, g: Geo | undefined = geos[key]; if (!g) { log('no geometry', key); continue; }
   const vid = ARGS.groups[group], v = A.byId[vid];
   const base = v.index * O.NV * 4 + O.pieceBase[key] * 4;

@@ -50,7 +50,8 @@ describe('the stair-noon-plain view (plain_view_census.ts)', () => {
     console.log(JSON.stringify(c));
     const sum = (o: Record<string, number> | undefined) => Object.values(o ?? {}).reduce((a, b) => a + b, 0);
     const fields = sum(c.classes['field:irrigated']) + sum(c.classes['field:rainfed']) + sum(c.classes['field:orchard']);
-    const ground = Object.entries(c.classes).filter(([k]) => k !== 'terrace' && k !== 'hill').reduce((a, [, v]) => a + sum(v as any), 0);
+    // (s18 lead 3, D-675: in 467 the town is not plain: the plain's ground is what lies beyond the town's sites and their trodden apron)
+    const ground = Object.entries(c.classes).filter(([k]) => k !== 'terrace' && k !== 'hill' && k !== 'town site' && k !== 'trodden').reduce((a, [, v]) => a + sum(v as any), 0);
     expect(fields / ground).toBeGreaterThan(0.4);
     expect(c.plotKeep['200-500']).toBeGreaterThan(0.9); expect(c.plotKeep['500-1k']).toBeGreaterThan(0.8);
     expect(sum(c.classes['worn path']) / ground).toBeLessThan(0.01);

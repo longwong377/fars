@@ -26,7 +26,7 @@ import { TranslationLayer } from './ui/translation';
 import { NOW_CAPTION } from './arch/now';
 import { PLACES } from './people/sim';
 import { buildWorld, WorldBuild } from './world/world';
-import { releaseUploadedTextures, releaseStats } from './world/cache/release';
+import { releaseUploadedTextures, releaseStats, markStaticGeometry, releaseUploadedGeometry } from './world/cache/release';
 import { dropPrefetched } from './world/cache/worldCache';
 import { BootProgress } from './shell/progress';
 import { prefetchBootFiles } from './core/prefetch';
@@ -110,6 +110,7 @@ async function boot() {
     await renderer.init();
   }
   const backend = (renderer.backend as any).isWebGPUBackend ? 'WebGPU' : 'WebGL2';
+  releaseUploadedGeometry(renderer); // D-740: static geometry's CPU arrays dropped once on the GPU (marked at ready; ?keepgeo off)
   releaseUploadedTextures(renderer); // D-354 (s15, page memory): a static texture's page copy dropped once it is on the GPU
   if (!P.has('nosafetynet')) installRenderSafetyNet(renderer); // D-740 (s18, the black screen): one bad binding skips one object, never the frame (?nosafetynet: off)
   const disposals = P.has('nodefer') ? null : deferDisposals(THREE as any); // D-740 (s18, the black screen): every dispose 3 frames late, never inside a frame that may bind it (?nodefer: off)
@@ -645,6 +646,7 @@ async function boot() {
     onDrawStart = pc.drawStart; onDrawEnd = pc.drawEnd; (api as any).compiling = pc.stats;
   }
   renderer.setAnimationLoop(() => { inAnimationLoop = true; try { void frame(); } finally { inAnimationLoop = false; } });
+  { const n = markStaticGeometry(scene); TRACE(`static geometry marked for release after upload: ${n} buffers`); } // D-740
   { const d = dropPrefetched(), n = Object.keys(d).length; if (n) TRACE(`world cache: ${n} prefetched units never read, dropped (${Object.values(d).reduce((a, b) => a + b, 0).toFixed(0)} MB)`); } // D-740
   prog.finish(); api.ready = true; (api as any).readyAt = Math.round(performance.now()); // (D-580: the page clock at ready; the harness sees it late when the main thread is busy)
   // (D-393: a ?norender page shows no frames, so the talk's model streams in from here instead of after the 5th frame)

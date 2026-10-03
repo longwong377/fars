@@ -25,6 +25,9 @@ import { Site, Plot, Wall, ROOF_T, DOOR_H, P2, ROOM, COURT, YARD, toLocal } from
 import { hashString } from '../../core/rng';
 import { fixturesOf, livesOf, HOUSE_KINDS, buildingPlot, BUILDING_WALL, type Fixture, type HouseLife } from './houseplan';
 import { kitOn, kitLog, kitPiece, kitFrame, KIT, scanVessel } from './kit';
+/** s18 C2 (lead 3's reset, the blind review: "the hatched decals with cut-out blotches read as a bug"): no plaster losses,
+ *  repair patches or bare brick on the kept, washed town of 467; its wear is the plaster scan's grain, the soot, the splash */
+const BRICK_LOSSES = false;
 /** D-324: the kit's brick losses (tools/blender/housekit.py brick_patch: 0.9 x 0.38 m, bricks ~33 cm, courses 11.5 cm) */
 const BRICK_W = 0.9, BRICK_H = 0.38;
 import { scanShape, modelFit, mergedModel } from '../../render/scanProps';
@@ -593,7 +596,7 @@ export class SiteHouses {
         // D-324: where the plaster has fallen off in the damp band over the footing, the brick courses show (the kit's losses,
         // near; the middle ring draws them flat, as the bare-brick decal): more on old walls and poor houses' (the household's bare
         // share), on the lane more than in the court, mostly low (they replace D-234's random bare-brick decals)
-        if (kitOn && we.plot >= 0 && len >= BRICK_W + 0.8) { const rate = (0.025 + 0.09 * L.bare + 0.03 * (L.age / 50)) * (sd.cls === 'open' ? 1 : 0.6) * (house ? 1 : 1.4), n = Math.floor(len * rate + hi(seed, si, 95));
+        if (BRICK_LOSSES && kitOn && we.plot >= 0 && len >= BRICK_W + 0.8) { const rate = (0.025 + 0.09 * L.bare + 0.03 * (L.age / 50)) * (sd.cls === 'open' ? 1 : 0.6) * (house ? 1 : 1.4), n = Math.floor(len * rate + hi(seed, si, 95));
           for (let q = 0; q < Math.min(n, 3); q++) { const s0 = sA + 0.4 + (len - 0.8 - BRICK_W) * hi(seed, si, q, 96), s1 = s0 + BRICK_W, y0 = Math.max(ysoc(s0), ysoc(s1)) + 0.42 + 1.1 * hi(seed, si, q, 97) ** 2, y1 = y0 + BRICK_H;
             if (y1 > Math.min(ytopF(s0), ytopF(s1)) - 0.35 || faceHoles.some(h => s0 < h.s1 + 0.3 && s1 > h.s0 - 0.3 && y0 < h.y1 + 0.3 && y1 > h.y0 - 0.3)) continue;
             if (this.lod) continue; // (s18 C2, D-667: the middle ring's flat bare-brick polygons read as hard-edged pale stickers on the T4: no loss drawn there)
@@ -742,7 +745,7 @@ export class SiteHouses {
   private faceDecals(we: WallEl, sd: Side, sg: number, floor: number, top: number, holes: Hole[], fx: Fixture[], out: [number, Dec][], seed: number) {
     const w = we.w, ax = w.v0 === w.v1 ? 0 : 1, sA = ax === 0 ? w.u0 : w.v0, sB = ax === 0 ? w.u1 : w.v1, cc = ax === 0 ? w.v0 : w.u0, len = sB - sA, L = this.life(we.plot);
     const clear = (a: number, b: number, y0: number, y1: number) => a > sA + 0.15 && b < sB - 0.15 && y0 > floor + 0.05 && y1 < top - 0.12 && !holes.some(h => a < h.s1 + 0.1 && b > h.s0 - 0.1 && y0 < h.y1 + 0.1 && y1 > h.y0 - 0.1);
-    const nP = Math.floor((len * L.patches) / 10 + hi(seed, 21)), nB = kitOn ? 0 : Math.floor((len * L.bare) / 10 + hi(seed, 22) * (sd.cls === 'open' ? 1 : 0.5)); // (D-324: the kit's brick losses stand for the bare brick)
+    const nP = BRICK_LOSSES ? Math.floor((len * L.patches) / 10 + hi(seed, 21)) : 0, nB = kitOn || !BRICK_LOSSES ? 0 : Math.floor((len * L.bare) / 10 + hi(seed, 22) * (sd.cls === 'open' ? 1 : 0.5)); // (D-324: the kit's brick losses stand for the bare brick)
     for (let k = 0; k < nP + nB; k++) { const bare = k >= nP; const wd = 0.3 + 0.9 * hi(seed, k, 31), ht = 0.25 + 0.6 * hi(seed, k, 32); const a = sA + (len - wd) * hi(seed, k, 33);
       const y0 = floor + (bare ? 0.35 + 1.4 * hi(seed, k, 34) ** 1.5 : 0.4 + (top - floor - 1) * hi(seed, k, 34)); if (clear(a, a + wd, y0, y0 + ht)) out.push([sg, { s0: a, s1: a + wd, y0, y1: y0 + ht, kind: bare ? 'bare' : 'patch', seed: seed * 7 + k }]); }
     // soot above the court's hearths, ovens and forges within 1.2 m of this face

@@ -1448,215 +1448,176 @@
    "rms": 0.03233,
    "max": 0.06559,
    "note": "hang: settled by Blender's cloth solver on f02 (2385 vertices, 1 Loop levels), low-passed to this level"
-  },
-  "veil@0|women#1": {
-   "n": 1242,
-   "group": "women",
-   "frame": "shell",
-   "d": {
-    "o": 396320,
-    "n": 3726,
-    "t": "i16"
-   },
-   "rms": 0.05549,
-   "max": 0.135,
-   "note": "hang: settled by Blender's cloth solver on f02 (2385 vertices, 1 Loop levels), low-passed to this level"
-  },
-  "veil@1|women#1": {
-   "n": 234,
-   "group": "women",
-   "frame": "shell",
-   "d": {
-    "o": 403772,
-    "n": 702,
-    "t": "i16"
-   },
-   "rms": 0.04979,
-   "max": 0.09903,
-   "note": "hang: settled by Blender's cloth solver on f02 (2385 vertices, 1 Loop levels), low-passed to this level"
-  },
-  "veil@2|women#1": {
-   "n": 48,
-   "group": "women",
-   "frame": "shell",
-   "d": {
-    "o": 405176,
-    "n": 144,
-    "t": "i16"
-   },
-   "rms": 0.03595,
-   "max": 0.0684,
-   "note": "hang: settled by Blender's cloth solver on f02 (2385 vertices, 1 Loop levels), low-passed to this level"
   }
  },
  "fuv": {
   "belt@0": {
-   "o": 405464,
+   "o": 396320,
    "n": 652,
    "t": "f32"
   },
   "belt@1": {
-   "o": 408072,
+   "o": 398928,
    "n": 246,
    "t": "f32"
   },
   "child_skirt@0": {
-   "o": 409056,
+   "o": 399912,
    "n": 3264,
    "t": "f32"
   },
   "child_skirt@1": {
-   "o": 422112,
+   "o": 412968,
    "n": 396,
    "t": "f32"
   },
   "child_upper@0": {
-   "o": 423696,
+   "o": 414552,
    "n": 1974,
    "t": "f32"
   },
   "child_upper@1": {
-   "o": 431592,
+   "o": 422448,
    "n": 642,
    "t": "f32"
   },
   "dress_skirt@0": {
-   "o": 434160,
+   "o": 425016,
    "n": 3808,
    "t": "f32"
   },
   "dress_skirt@1": {
-   "o": 449392,
+   "o": 440248,
    "n": 484,
    "t": "f32"
   },
   "dress_upper@0": {
-   "o": 451328,
+   "o": 442184,
    "n": 2156,
    "t": "f32"
   },
   "dress_upper@1": {
-   "o": 459952,
+   "o": 450808,
    "n": 628,
    "t": "f32"
   },
   "headcloth@0": {
-   "o": 462464,
+   "o": 453320,
    "n": 1544,
    "t": "f32"
   },
   "headcloth@1": {
-   "o": 468640,
+   "o": 459496,
    "n": 442,
    "t": "f32"
   },
   "kandys@0": {
-   "o": 470408,
+   "o": 461264,
    "n": 3590,
    "t": "f32"
   },
   "kandys@1": {
-   "o": 484768,
+   "o": 475624,
    "n": 694,
    "t": "f32"
   },
   "robe_skirt@0": {
-   "o": 487544,
+   "o": 478400,
    "n": 4048,
    "t": "f32"
   },
   "robe_skirt@1": {
-   "o": 503736,
+   "o": 494592,
    "n": 784,
    "t": "f32"
   },
   "robe_sleeves@0": {
-   "o": 506872,
+   "o": 497728,
    "n": 2880,
    "t": "f32"
   },
   "robe_sleeves@1": {
-   "o": 518392,
+   "o": 509248,
    "n": 384,
    "t": "f32"
   },
   "robe_upper@0": {
-   "o": 519928,
+   "o": 510784,
    "n": 2048,
    "t": "f32"
   },
   "robe_upper@1": {
-   "o": 528120,
+   "o": 518976,
    "n": 634,
    "t": "f32"
   },
   "trousers@0": {
-   "o": 530656,
+   "o": 521512,
    "n": 1322,
    "t": "f32"
   },
   "trousers@1": {
-   "o": 535944,
+   "o": 526800,
    "n": 370,
    "t": "f32"
   },
   "tunic_skirt@0": {
-   "o": 537424,
+   "o": 528280,
    "n": 2720,
    "t": "f32"
   },
   "tunic_skirt@1": {
-   "o": 548304,
+   "o": 539160,
    "n": 396,
    "t": "f32"
   },
   "tunic_upper@0": {
-   "o": 549888,
+   "o": 540744,
    "n": 2132,
    "t": "f32"
   },
   "tunic_upper@1": {
-   "o": 558416,
+   "o": 549272,
    "n": 598,
    "t": "f32"
   },
   "veil@0": {
-   "o": 560808,
+   "o": 551664,
    "n": 2484,
    "t": "f32"
   },
   "veil@1": {
-   "o": 570744,
+   "o": 561600,
    "n": 468,
    "t": "f32"
   },
   "work_skirt@0": {
-   "o": 572616,
+   "o": 563472,
    "n": 2720,
    "t": "f32"
   },
   "work_skirt@1": {
-   "o": 583496,
+   "o": 574352,
    "n": 396,
    "t": "f32"
   },
   "work_trousers@0": {
-   "o": 585080,
+   "o": 575936,
    "n": 1322,
    "t": "f32"
   },
   "work_trousers@1": {
-   "o": 590368,
+   "o": 581224,
    "n": 370,
    "t": "f32"
   },
   "work_upper@0": {
-   "o": 591848,
+   "o": 582704,
    "n": 1974,
    "t": "f32"
   },
   "work_upper@1": {
-   "o": 599744,
+   "o": 590600,
    "n": 642,
    "t": "f32"
   }
