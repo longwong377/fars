@@ -36,6 +36,7 @@ world-cache/townplan-sites.bin
 generated/sculpt_volute_1.bin
 world-cache/vsites-{seed}_high_seasonal_town.bin
 world-cache/fill-{seed}_high_seasonal_town.bin
+world-cache/plotcells-{seed}_high_seasonal_town.bin
 generated/sculpt_protome_0.bin
 generated/sculpt_protome_1.bin
 generated/sculpt_volute_0.bin
