@@ -17,7 +17,7 @@ describe('D-455 the stranger lives by his own choices', () => {
   it('the words: bread by the loaf, a day\'s hire', () => {
     const c = { day: 5, hh: 'h:1', q: 'q', job: 'farmer' };
     expect(strangerAsk('Sell me four loaves of bread.', c)).toMatchObject({ a: 'buy', good: 'grain', qty: 2 });
-    expect(strangerAsk('Can I buy some bread?', c)).toMatchObject({ a: 'buy', good: 'grain', qty: 1 });
+    expect(strangerAsk('Can I buy some bread?', c)).toMatchObject({ a: 'meal', what: 'bread' }); // (D-720: bread to eat now; loaves counted are stores)
     expect(strangerAsk('Sell me two measures of barley.', c)).toMatchObject({ a: 'buy', good: 'grain', qty: 20 });
     expect(strangerAsk('Is there work for today? I can carry loads.', c)).toMatchObject({ a: 'daywork' });
     expect(strangerAsk('Do you need a porter?', c)).toMatchObject({ a: 'daywork' });
@@ -59,5 +59,24 @@ describe('D-455 the stranger lives by his own choices', () => {
     const e = town(30), S = e.stranger(), day = hireDay(e); S.do({ a: 'daywork', day });
     const r = Economy.restore(JSON.parse(JSON.stringify(e.snapshot())), hs, { trust: true }), R = r.stranger();
     expect(R.dayHire?.day).toBe(day); expect(R.do({ a: 'daypaid', day } as SAct).ok).toBe(true);
+  });
+});
+
+describe('D-720 (the holes audit 4-12): the stranger buys a meal', () => {
+  it('bread, beer or a meal from a house or the market, eaten there: paid in weighed silver or barley, priced by the market', () => {
+    const e = town(30), S = e.stranger(), day = e.day, c0 = S.purse.cash;
+    const H = [...e.hh.values()].find(h => !h.dead && h.grain > h.eaters * 0.55 * 10 + 2)!;
+    const v = S.judge({ a: 'meal', day, hh: H.id, what: 'bread' }); expect(v.ok).toBe(true);
+    expect(S.do({ a: 'meal', day, hh: H.id, what: 'bread' }).ok).toBe(true); expect(S.purse.cash).toBeLessThan(c0);
+    expect(S.purse.cash).toBeCloseTo(c0 - 0.5 * e.price('grain', day) * 1.25, 3);
+    S.purse.grain = 5; const g0 = S.purse.grain;
+    expect(S.do({ a: 'meal', day, hh: MARKET, what: 'beer', barter: true }).ok).toBe(true); expect(S.purse.grain).toBeLessThan(g0);
+    S.purse.cash = 0; S.purse.grain = 0; expect(S.judge({ a: 'meal', day, hh: MARKET, what: 'meal' }).ok).toBe(false);
+  });
+  it('the words: "can I buy some bread" and "a jug of beer for barley" are meals; "sell me two sacks of barley" is grain', async () => {
+    const { strangerAsk } = await import('../src/people/speech/verbs');
+    expect(strangerAsk('Can I buy some bread?', { day: 1, hh: 'h:3', q: null, job: 'farmer' })).toMatchObject({ a: 'meal', what: 'bread', hh: 'h:3' });
+    expect(strangerAsk('I will pay barley for a jug of beer', { day: 1, hh: null, q: null, job: 'farmer' })).toMatchObject({ a: 'meal', what: 'beer', hh: 'market', barter: true });
+    expect(strangerAsk('Sell me two sacks of barley', { day: 1, hh: 'h:3', q: null, job: 'farmer' })).toMatchObject({ a: 'buy', good: 'grain' });
   });
 });
