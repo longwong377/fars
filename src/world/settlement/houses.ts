@@ -23,7 +23,7 @@ import { registerHouses } from '../interiors/ring';
 import { Batch, RGB, lin } from './geom';
 import { Site, Plot, Wall, ROOF_T, DOOR_H, P2, ROOM, COURT, YARD, toLocal } from './site';
 import { hashString } from '../../core/rng';
-import { fixturesOf, livesOf, HOUSE_KINDS, type Fixture, type HouseLife } from './houseplan';
+import { fixturesOf, livesOf, HOUSE_KINDS, buildingPlot, BUILDING_WALL, type Fixture, type HouseLife } from './houseplan';
 import { kitOn, kitLog, kitPiece, kitFrame, KIT, scanVessel } from './kit';
 /** D-324: the kit's brick losses (tools/blender/housekit.py brick_patch: 0.9 x 0.38 m, bricks ~33 cm, courses 11.5 cm) */
 const BRICK_W = 0.9, BRICK_H = 0.38;
@@ -116,18 +116,24 @@ export class SiteHouses {
   readonly plotTile: Int32Array; readonly big: Uint8Array;
   readonly lives: HouseLife[]; readonly fixtures: Fixture[]; readonly fixDesc: number[] = [];
   readonly doors: StreetDoor[] = [];
+  /** s18 C2 (D-665): the plot of the house being built here (houseplan.ts buildingPlot), or -1; its finished room */ readonly building: number = -1; private finished = -1;
+  /** is cell k an unfinished part of the house being built? */
+  private unbuilt(k: number) { return k >= 0 && this.s.cell[k] === this.building && this.building >= 0 && !(this.s.sub[k] === ROOM && this.s.room[k] === this.finished); }
   private fixByPlot = new Map<number, Fixture[]>(); private fitByPlot = new Map<number, Site['fittings']>(); private wallsByTile = new Map<number, WallEl[]>(); private roomsByTile = new Map<number, RoomEl[]>();
   private cs: number; private sn: number;
   constructor(readonly s: Site, readonly si: number, readonly H: (e: number, n: number) => number, readonly base: Float32Array, readonly local: Uint8Array, readonly pcol: RGB[], readonly pdesc: Int32Array, desc: { tier: string; src: string; note: string }[]) {
     this.cs = Math.cos(s.frame.theta); this.sn = Math.sin(s.frame.theta); registerHouses(this); // s17 C7 (D-610): the rooms round the eye furnished (interiors/ring.ts)
-    this.lives = livesOf(s); this.fixtures = fixturesOf(s);
+    this.building = buildingPlot(s); this.lives = livesOf(s); this.fixtures = fixturesOf(s).filter(f => f.plot !== this.building); // (s18 C2, D-665: the house being built keeps no household things yet)
     this.plotTile = new Int32Array(s.plots.length); this.big = new Uint8Array(s.plots.length);
     for (const p of s.plots) { const [i0, j0, i1, j1] = p.rect; this.big[p.idx] = p.area > 1500 || !HOUSE_KINDS.has(p.kind) && p.area > 600 ? 1 : 0; this.plotTile[p.idx] = this.tileAt(s.u0 + (i0 + i1) / 2, s.v0 + (j0 + j1) / 2); }
     for (const f of this.fixtures) { this.fixDesc.push(desc.length); desc.push({ tier: 'C', src: 'RECON', note: `${s.plots[f.plot].id}: ${f.note}` }); }
     // rooms: one element per room id (its cells' box; `full` when the room fills it)
     const rc = new Map<number, number[]>();
     for (let k = 0; k < s.cell.length; k++) if (s.cell[k] >= 0 && s.sub[k] === ROOM) { const r = s.room[k]; (rc.get(r) ?? rc.set(r, []).get(r)!).push(k); }
-    for (const [room, ks] of rc) { let i0 = 1e9, j0 = 1e9, i1 = -1, j1 = -1; for (const k of ks) { const i = k % s.W, j = (k / s.W) | 0; i0 = Math.min(i0, i); j0 = Math.min(j0, j); i1 = Math.max(i1, i + 1); j1 = Math.max(j1, j + 1); }
+    // (s18 C2, D-665: the house being built has its smallest room finished and roofed, the household living in it; the others
+    // stand at mid-height, open)
+    if (this.building >= 0) { let best = -1, ba = 1e9; for (const [room, ks] of rc) if (s.cell[ks[0]] === this.building && ks.length < ba) { ba = ks.length; best = room; } this.finished = best; }
+    for (const [room, ks] of rc) { if (s.cell[ks[0]] === this.building && room !== this.finished) continue; let i0 = 1e9, j0 = 1e9, i1 = -1, j1 = -1; for (const k of ks) { const i = k % s.W, j = (k / s.W) | 0; i0 = Math.min(i0, i); j0 = Math.min(j0, j); i1 = Math.max(i1, i + 1); j1 = Math.max(j1, j + 1); }
       const plot = s.cell[ks[0]], full = ks.length === (i1 - i0) * (j1 - j0);
       // the drain side: the side whose outside cells are most of them this plot's court (else open ground)
       const sideCells = (sd: number) => { const out: number[] = []; if (sd < 2) { const j = sd === 0 ? j0 - 1 : j1; for (let i = i0; i < i1; i++) out.push(s.inb(i, j) ? s.k(i, j) : -1); } else { const i = sd === 2 ? i0 - 1 : i1; for (let j = j0; j < j1; j++) out.push(s.inb(i, j) ? s.k(i, j) : -1); } return out; };
@@ -155,7 +161,7 @@ export class SiteHouses {
         this.walls.push({ w: pw, tile: this.big[plot] ? this.tileAt(mu, mv) : this.plotTile[plot], plot, room, street }); }
     }
     // street doors (the door system): hinge on the inner face at the jamb the life names, leaf across the opening
-    for (const p of s.plots) { if (!p.door || p.kind === 'garden') continue; const d = s.doorPoints(p)!; const nu = d.inside[0] - d.out[0], nv = d.inside[1] - d.out[1]; // inward (unit, axis)
+    for (const p of s.plots) { if (!p.door || p.kind === 'garden' || p.idx === this.building) continue; const d = s.doorPoints(p)!; const nu = d.inside[0] - d.out[0], nv = d.inside[1] - d.out[1]; // inward (unit, axis)
       const t = p.outerT / 2 + 0.04, hs = this.lives[p.idx]?.hinge ?? 1; const tu = -nv * hs, tv = nu * hs; // along the wall toward the hinge jamb
       const hu = d.mid[0] + nu * t + tu * 0.5, hv = d.mid[1] + nv * t + tv * 0.5, g = s.grid(hu, hv);
       const yawIn = Math.atan2(nv, nu), yawAlong = Math.atan2(-tv, -tu); // closed: the leaf runs from the hinge back across the opening
@@ -201,13 +207,14 @@ export class SiteHouses {
   private side(w: Wall, sg: number): Side {
     const s = this.s, ax = w.v0 === w.v1 ? 0 : 1, mu = (w.u0 + w.u1) / 2, mv = (w.v0 + w.v1) / 2, k = ax === 0 ? this.cellAt(mu, mv + sg * 0.5) : this.cellAt(mu + sg * 0.5, mv);
     if (k < 0 || s.cell[k] < 0) return { cls: 'open', plot: -1, roof: -1e9 };
-    const pl = s.cell[k]; return s.sub[k] === ROOM ? { cls: 'room', plot: pl, roof: this.base[pl] + s.plots[pl].height } : { cls: 'court', plot: pl, roof: -1e9 };
+    const pl = s.cell[k]; return s.sub[k] === ROOM && !this.unbuilt(k) ? { cls: 'room', plot: pl, roof: this.base[pl] + s.plots[pl].height } : { cls: 'court', plot: pl, roof: -1e9 };
   }
   /** a wall's foot and top as the plan builds it (the far level; build.ts before D-234) */
   wallSpan(w: Wall) {
+    const ax0 = w.v0 === w.v1 ? 0 : 1, mu0 = (w.u0 + w.u1) / 2, mv0 = (w.v0 + w.v1) / 2, unb = this.building >= 0 && [-1, 1].every(sg => { const k = ax0 === 0 ? this.cellAt(mu0, mv0 + sg * 0.5) : this.cellAt(mu0 + sg * 0.5, mv0); return k < 0 || this.s.cell[k] !== this.building || this.unbuilt(k); });
     const s = this.s, g0 = s.grid(w.u0, w.v0), g1 = s.grid(w.u1, w.v1), gm = s.grid((w.u0 + w.u1) / 2, (w.v0 + w.v1) / 2);
     const hA = this.H(g0[0], g0[1]), hB = this.H(g1[0], g1[1]), hM = this.H(gm[0], gm[1]), gmin = Math.min(hA, hB, hM), gmax = Math.max(hA, hB, hM);
-    let top = -Infinity, doorBase = Infinity; for (const sd of w.sides) { const b = this.local[sd.plot] ? gmin : this.base[sd.plot]; top = Math.max(top, b + sd.top); doorBase = Math.min(doorBase, b); }
+    let top = -Infinity, doorBase = Infinity; for (const sd of w.sides) { const b = this.local[sd.plot] ? gmin : this.base[sd.plot]; top = Math.max(top, b + (sd.plot === this.building && unb ? Math.min(sd.top, BUILDING_WALL) : sd.top)); doorBase = Math.min(doorBase, b); }
     return { gmin, gmax, top: Math.max(top, gmax + 0.9), y0: gmin - 0.4, doorBase, gm };
   }
   private owner(plot: number, part: number) { return (plot >= 0 ? this.pdesc[plot] : 0) * 32 + part; }
@@ -970,6 +977,15 @@ export class SiteHouses {
         if (alt % 3 === 2) { put('wo_fleece', sp.u, sp.v, sp.y + 0.01, r3 + 0.3, [1.6, 1, 1.5], { wool: CL[alt % 2], wool_d: CL[1] }); out[out.length - 1].day = true; } // (the wool taken in at dusk)
         else for (let k = 0; k < 3; k++) { const o = (k - 1) * 0.55; put('wo_dung_cakes', sp.u + ca * o, sp.v + sa * o, sp.y + 0.012, r3 + 1.4 + 0.5 * hi(f.plot, 70 + k), [0.9, 1, 0.9]); } }
       else { const L = Math.min(f.len, 2.6) / 3; put('fill_line', sp.u, sp.v, sp.y - 0.9, r3, [L, 1, 1], { cloth_a: CL[alt % CL.length], cloth_b: CL[(alt >> 2) % CL.length] }); out[out.length - 1].day = true; } }
+    // s18 C2 (D-665): the house being built: scaffold poles along its long walls, brick stacks and the mud-mixing heap in its
+    // open rooms, a brick mould, a water jar, the spoil of the footing trench (C: mud brick laid a few courses a day, moulded
+    // and dried on the spot)
+    if (this.building >= 0) { const P = s.plots[this.building], [i0, j0, i1, j1] = P.rect, U = i1 - i0, V = j1 - j0, alongU = U >= V, L = alongU ? U : V, D = alongU ? V : U, y = this.base[this.building];
+      const at = (a: number, b: number): [number, number] => alongU ? [s.u0 + i0 + a, s.v0 + j0 + b] : [s.u0 + i0 + b, s.v0 + j0 + a], r0 = yaw(alongU ? 0 : Math.PI / 2, s.u0 + i0, s.v0 + j0);
+      const free = (u: number, v: number) => { const k = this.cellAt(u, v); return k >= 0 && this.unbuilt(k); };
+      for (const side of [0.85, D - 0.85]) for (let a = 1.6; a + 1.4 < L; a += 3.2) { const [u, v] = at(a, side); if (free(u, v)) { put('fill_scaffold', u, v, y, r0, [1, 1, 1]); out[out.length - 1].at = 'site'; } }
+      const things: [string, number, number, number, Record<string, RGB>?][] = [['wo_brick_stack', 0.35, 0.5, 1], ['wo_brick_stack', 0.55, 0.42, 0.9], ['wo_brick_stack', 0.72, 0.58, 1.1], ['wo_mud_heap', 0.25, 0.55, 1.2], ['tool_mould', 0.3, 0.38, 1], ['jar_water', 0.42, 0.35, 0.9], ['wo_spoil', 0.85, 0.5, 1.3, { earth: [0.56, 0.48, 0.38] }], ['sack_lying', 0.62, 0.65, 1], ['tool_hoe', 0.28, 0.66, 1]];
+      for (const [m, fa, fb, sc, col] of things) { const [u, v] = at(L * fa, D * fb); if (!free(u, v)) continue; put(m, u, v, this.gl(u, v), r0 + fa * 2, [sc, sc, sc], col); out[out.length - 1].at = 'site'; } }
     return out;
   }
   private roofSpot(f: Fixture): { u: number; v: number; y: number } | null {
