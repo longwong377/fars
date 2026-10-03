@@ -9836,3 +9836,17 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   new parameters stay in relief_atlas.ts: the atlas test reads "not current", as it already did since D-510's polychromy
   change. To finish: `RELIEF_WORK=T:/fars-blender/reliefs node C:/Users/Administrator/fars/tools/dev/gpu_slot.mjs v4 -- npx tsx
   tools/blender/relief_atlas.ts --jobs=5 --reuse` (~8 min bake + pack), then commit the two KTX2 files and the index.
+
+## D-690 Crowds, doors and the walk: people standing keep ~1 m apart, never stand in a doorway, and make way for the stranger (s18 cloud C5)
+- popview.ts: standing out of doors SEP 1.0 m (was 0.6; rooms and tents 0.7), spread on slightly uneven rings to 12 m (rooms 5 m) in the same court or open ground; a
+  place fuller than that leaves the rest undrawn (stats.crowded) instead of stacking them on the spot. Doorways and their aprons
+  (DOOR_CLEAR 1.5 m either side, the opening's width + 0.35 m) are kept clear: the Terrace's doorways (setDoorways; built once
+  if world.ts does not hand them over) and the town's and villages' door edges. A group at a social act (talk, rest, game, meal,
+  shelter, mourning, play) faces its middle. Making way (C): within 2.4 m of the stranger (3.2 m by a doorway) a person standing
+  steps up to 0.85 m off the stranger's way, to the side they stand on, never across it unless on it, to a clear place, turned
+  toward the stranger, by an amount that follows the distance (no jumps); posts held turn only; the crowd turns the head (react
+  'turn'). Measured (node, day 25 10:00, people on): door passages blocked by a person 35 -> 0 (Terrace 118 -> 130/130, rooms
+  326 -> 330/330, town street 367 -> 395/399, the 4 left touch only walls: B690); bots Terrace 40/40 (two seeds; s17 36/40),
+  town 40/40 seed 1, 39/40 seed 2 (an animal lying in a lane). The s17 town misses: q_s2's pen 180 holds walled-off ground no
+  body reaches (walkers.ts now samples plot cells reachable from their door), and a person stepping across the walker's way in
+  q_s2's 1.4 m lanes (fixed).
