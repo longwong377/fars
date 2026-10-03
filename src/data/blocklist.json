@@ -30,8 +30,8 @@
   },
   {
    "id": "modern-landscape",
-   "what": "modern roads, asphalt, power lines, tents, fields in rectangular modern layout, villages, plantations, eucalyptus/pine plantations",
-   "reason": "modern",
+   "what": "modern roads, asphalt, power lines, modern tents, fields in rectangular modern layout, modern villages, plantations, eucalyptus/pine plantations",
+   "reason": "modern (s18 D-771: court camps, herders' tents and the plain's villages are probable in 467)",
    "terms": [
     "asphalt",
     "power line",
@@ -161,8 +161,8 @@
   },
   {
    "id": "gold-everything",
-   "what": "gilding outside attested zones",
-   "reason": "trope",
+   "what": "gilding everywhere: gold as the default finish of buildings, walls or everyday things",
+   "reason": "trope (s18 D-771: was \"gilding outside attested zones\"; gold where most probable is allowed: jewellery of rank, spear butts, the throne, fittings, relief details)",
    "terms": []
   },
   {
@@ -218,8 +218,8 @@
   },
   {
    "id": "later-animals",
-   "what": "domestic cat as house pet (uncertain), turkey, water buffalo",
-   "reason": "verify",
+   "what": "turkey, water buffalo",
+   "reason": "later introductions (s18 D-771: the domestic cat is unblocked as a yard and store mouser, C)",
    "terms": [
     "turkey",
     "water buffalo"
@@ -350,11 +350,9 @@
   },
   {
    "id": "qanat",
-   "what": "qanat shafts and galleries in the plain",
-   "reason": "not dated to the Achaemenid period (Q-052): **not placed**; unblock only with evidence",
-   "terms": [
-    "qanat"
-   ]
+   "what": "qanat shafts and galleries in the plain: ALLOWED (s18 D-771)",
+   "reason": "silence is not absence: Persian-period qanats are dated elsewhere in the empire (Ayn Manawir, 5th c. BCE, B) and Polybius 10.28 ties them to Persian rule (B claim); a few on the Kuh-e Rahmat fans are probable (Q-052, C)",
+   "terms": []
   },
   {
    "id": "windcatcher",

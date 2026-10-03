@@ -79,7 +79,9 @@ export function lifeOf(p: Plot): HouseLife {
 
 /** the parapet (m above the roof) of a house of this standing: a low mud lip for the poorest, a knee-high wall (privacy for
  *  sleeping on the roof) for the better-off (C; the region's village roofs, RECOLLECTION, NOT SEEN) */
-export const parapetOf = (p: Plot, st: number) => +(0.22 + 0.4 * st + (h01(p.id + ':parapet') - 0.5) * 0.12).toFixed(2);
+// (s18 C2, D-662: was 0.22-0.62 m: from 20 m up and the Terrace every roof sat in a tray of its parapets and the town read as
+// open-topped boxes, round after round of review; most of the region's flat roofs have a lip, a few a knee-high wall: C)
+export const parapetOf = (p: Plot, st: number) => +(0.1 + 0.24 * st * st + (h01(p.id + ':parapet') - 0.5) * 0.1).toFixed(2);
 
 /** rows of settlement.json town_elements the house parts and fixtures name (lint:chrono fail-closed) */
 export const FIX_ROW: Record<FixKind, string> = {

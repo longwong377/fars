@@ -1,13 +1,15 @@
-// The main theme, "Pārsa" (D-760; UD-38, UD-39): the opening's score, about 2:20, D minor with the Phrygian and harmonic-
-// minor colours of the region's modes heard through a Western orchestra (C: an original score, out of world).
+// The main theme, "Pārsa" (D-760; UD-38, UD-39): the title film's score, about 2:25, in D minor. Majesty from harmony,
+// brass, choir and rhythm, in the manner of the great historical scores, and none of the "ancient Persia" cliché the brief
+// bans (§11, blocklist 'music-cliche': no duduk, oud or santur, no augmented-second "exotic" modes, no ethnic solo wailing
+// as the theme's identity); the period's own colour, harps and frame drums, only lightly (an original score, out of world).
 //
 // Form (bars of 4/4; the film's edit is cut to the marks):
-//   1-6    night        the low D, the hall breathing; the ney's call (the theme's head) from far off
-//   7-14   theme        A, the duduk alone over the strings, the frame drum's heartbeat from bar 11
+//   1-6    night        the low D, the hall breathing; the alto flute's call (the theme's head) from far off
+//   7-14   theme        A, the solo cello over the strings, the drum's heartbeat from bar 11
 //   15-18  build        the low strings' ostinato (3+3+2), horns swelling Dm-Bb-Gm-A, the drums gathering
 //   19-26  tutti        A in horns and celli, the violins and then the trumpets an octave above, choir, taiko
 //   27-34  rise         B: Bb-F-C-Dm-Gm-Dm/F-Eb-A, the Eb major (the Phrygian II) its summit
-//   35-38  title, coda  the arrival on D (the title card), and the duduk's last phrase over the open fifth
+//   35-38  title, coda  the arrival on D (the title card), and the solo horn's last phrase over the open fifth
 import { Tempo, line, chords, pc, type Cue, type LNote, type Part } from '../lib/write';
 import { KIT } from '../orchestra';
 
@@ -64,18 +66,13 @@ const parts: Part[] = [
   { id: 'vc_fifth', inst: 'vc', art: 'sus', notes: voiced(1, 6, VC), dyn: [[0, 0.15], [bar(2), 0.32], [bar(5), 0.45], [bar(7), 0.35]], lead: 0.5 },
   { id: 'choir_night', inst: 'choir', art: 'sus', notes: chords([[bar(3), 8, 'D3 A3 D4'], [bar(5), 8, 'D3 A3 D4 F4']]), dyn: [[bar(3), 0.0], [bar(4), 0.22], [bar(5), 0.28], [bar(6) + 2, 0.36], [bar(7), 0.2]], lead: 1 },
   { id: 'vn_shimmer', inst: 'vn1', art: 'trem', notes: chords([[bar(4), 12, 'A5 D6']]), dyn: [[bar(4), 0.0], [bar(5), 0.12], [bar(6) + 3, 0.2], [bar(7), 0.05]], gain: -6 },
-  { id: 'ney_call', inst: 'afl', art: 'leg', notes: line('D5:1.5 A4:.5 G4:1 F4:.5 E4:.5 | F4:2.5 E4:.5 D4:1', bar(3)).concat(line('D5:1 C5:.5 A4:.5 | G4:3', bar(5) + 1)),
-    dyn: [[bar(3), 0.25], [bar(3) + 2, 0.5], [bar(4) + 3, 0.3], [bar(5) + 1, 0.4], [bar(6) + 1, 0.5], [bar(6) + 4, 0.15]],
-    bend: [[bar(3) - 0.3, -1], [bar(3) + 0.25, 0], [bar(5) + 0.7, -0.8], [bar(5) + 1.2, 0]], depth: 0.75, pan: -0.35 },
+  { id: 'flute_call', inst: 'afl', art: 'leg', notes: line('D5:1.5 A4:.5 G4:1 F4:.5 E4:.5 | F4:2.5 E4:.5 D4:1', bar(3)).concat(line('D5:1 C5:.5 A4:.5 | G4:3', bar(5) + 1)),
+    dyn: [[bar(3), 0.25], [bar(3) + 2, 0.5], [bar(4) + 3, 0.3], [bar(5) + 1, 0.4], [bar(6) + 1, 0.5], [bar(6) + 4, 0.15]], depth: 0.75, pan: -0.35 },
   { id: 'kit_night', inst: 'kit', art: 'hit', notes: [{ b: 0, d: 4, p: KIT.rumble }, { b: bar(1) + 0.02, d: 4, p: KIT.gong }, { b: bar(6), d: 2, p: KIT.bigDrum }, { b: bar(7) - KIT_LEAD(KIT.swellMid), d: 4, p: KIT.swellMid }], dyn: [] },
 
-  // ---------------------------------------------------------------- theme (7-14): the duduk alone
-  { id: 'duduk_A', inst: 'eh', art: 'leg', notes: line(A, bar(7)),
-    dyn: [[bar(7), 0.45], [bar(8) + 2, 0.5], [bar(9), 0.42], [bar(10), 0.62], [bar(10) + 3, 0.4], [bar(11), 0.55], [bar(12), 0.62], [bar(13) + 2, 0.5], [bar(14), 0.48], [bar(14) + 3.5, 0.25]],
-    // the reed's bends: a scoop into the first note, the fall at the phrase ends, the inflected E-flat of the cadence (a
-    // quarter-tone shading of the E, as the region's lutes and reeds bend it: C)
-    bend: [[bar(7) - 0.2, -0.7], [bar(7) + 0.3, 0], [bar(8) + 1.4, 0], [bar(8) + 1.5, -0.25], [bar(8) + 1.62, 0], [bar(10) + 2.6, 0], [bar(10) + 3, -0.5], [bar(11) - 0.1, 0],
-      [bar(13) + 2.0, 0], [bar(13) + 2.4, -0.45], [bar(13) + 2.9, 0], [bar(14) + 3.2, 0], [bar(14) + 4, -0.6]] },
+  // ---------------------------------------------------------------- theme (7-14): the solo cello
+  { id: 'cello_A', inst: 'vcSolo', art: 'leg', vib: 0.6, notes: line(A, bar(7)),
+    dyn: [[bar(7), 0.45], [bar(8) + 2, 0.5], [bar(9), 0.42], [bar(10), 0.62], [bar(10) + 3, 0.4], [bar(11), 0.55], [bar(12), 0.62], [bar(13) + 2, 0.5], [bar(14), 0.48], [bar(14) + 3.5, 0.25]] },
   { id: 'cb_A', inst: 'cb', art: 'sus', notes: voiced(7, 14, CB), dyn: [[bar(7), 0.3], [bar(10), 0.4], [bar(11), 0.36], [bar(14), 0.42]] },
   { id: 'vc_A', inst: 'vc', art: 'sus', notes: voiced(7, 14, VC), dyn: [[bar(7), 0.25], [bar(10), 0.38], [bar(11), 0.32], [bar(13), 0.4], [bar(14), 0.45]] },
   { id: 'va_A', inst: 'va', art: 'sus', notes: voiced(9, 14, VA), dyn: [[bar(9), 0.1], [bar(10), 0.3], [bar(13), 0.35], [bar(14), 0.4]], lead: 0.3 },
@@ -148,9 +145,8 @@ const parts: Part[] = [
   { id: 'taiko_D', inst: 'taiko', art: 'hit', notes: [{ b: bar(35), d: 2, p: 36, acc: '>' }, { b: bar(38), d: 2, p: 33 }], dyn: [] },
   { id: 'timp_D', inst: 'timp', art: 'hit', notes: [{ b: bar(35), d: 2, p: pc('D2'), acc: '>' }], dyn: [] },
   { id: 'cym_D', inst: 'cym', art: 'hit', notes: [{ b: bar(35), d: 2, p: pc('G3') }], dyn: [] },
-  { id: 'duduk_coda', inst: 'eh', art: 'leg', notes: line('r:2 D5:1 C5:1 | A4:1 G4:.5 F4:.5 E4:1 F4:.5 E4:.5 | D4:3.5', bar(36)),
-    dyn: [[bar(36) + 2, 0.4], [bar(37), 0.5], [bar(37) + 3, 0.4], [bar(38), 0.35], [bar(39) + 1, 0.05]],
-    bend: [[bar(36) + 1.8, -0.6], [bar(36) + 2.3, 0], [bar(37) + 3.0, 0], [bar(37) + 3.3, -0.4], [bar(37) + 3.7, 0], [bar(38) + 4, 0], [bar(39) + 1.5, -0.5]] },
+  { id: 'horn_coda', inst: 'hnSolo', art: 'leg', notes: line('r:2 D5:1 C5:1 | A4:1 G4:.5 F4:.5 E4:1 F4:.5 E4:.5 | D4:3.5', bar(36)),
+    dyn: [[bar(36) + 2, 0.4], [bar(37), 0.5], [bar(37) + 3, 0.4], [bar(38), 0.35], [bar(39) + 1, 0.05]] },
 ];
 
 function KIT_LEAD(key: number) { return ({ 48: 6.0, 49: 3.5, 50: 1.8 } as Record<number, number>)[key] * (70 / 60); } // a swell's run-up in beats (~at 70 BPM)
@@ -158,6 +154,7 @@ function KIT_LEAD(key: number) { return ({ 48: 6.0, 49: 3.5, 50: 1.8 } as Record
 const marks: Record<string, number> = {};
 for (const [k, b] of Object.entries({ night: 1, call: 3, theme: 7, heartbeat: 11, build: 15, tutti: 19, trumpets: 23, rise: 27, summit: 33, title: 35, coda: 36, last: 38 })) marks[k] = +tempo.s(bar(b)).toFixed(3);
 marks.end = +tempo.s(bar(39) + 3).toFixed(3);
+for (let b = 1; b <= 39; b++) marks[`bar${b}`] = +tempo.s(bar(b)).toFixed(3); // the film's cuts land on bars
 
 const cue: Cue = { id: 'main_theme', title: 'Pārsa (main theme)', tags: ['main', 'film'], tempo, parts, seconds: tempo.s(bar(39) + 3), marks, lufs: -16 };
 export default cue;

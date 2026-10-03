@@ -120,3 +120,28 @@ export class InteriorRing {
 }
 /** the one ring (Settlement adds its group and moves it) */
 export const interiorRing = new InteriorRing();
+
+/** s18 C2 (D-664, for C1: people at real work objects): a house's work objects in world terms, what its household works at:
+ *  the indoor hearth, the quern, the kneading trough, the cooking pot, the mortar, the looms and the workshop's tools of its
+ *  craft from its rooms' plans (the same plans the ring draws), and the court's own fittings (hearth, oven, forge, kiln,
+ *  quern, loom, trough, well). `e, n` grid metres, `y` the floor's height, `rot` the thing's turn (radians CCW from grid
+ *  east), `room` the room id (−1: the court). Empty when the plot is unknown or not a house. */
+export interface WorkObject { kind: string; e: number; n: number; y: number; rot: number; room: number; inside: boolean; note: string; shared?: boolean }
+const WORK = new Set(['hearth', 'quern', 'kneading', 'cookpot', 'mortar', 'loom_ground', 'loom_upright', 'spinning', 'anvil', 'bellows', 'wheel', 'vat', 'pigments', 'mould', 'seal_bench', 'weigh_table', 'basin', 'jar_water', 'milkpot']);
+const COURT_WORK = new Set(['hearth', 'oven', 'forge', 'kiln', 'quern', 'loom', 'trough', 'well', 'grind_slab', 'anvil', 'vat', 'tannur']);
+export function houseWorkObjects(plotId: string, day = 0): WorkObject[] {
+  for (const ref of REG) { const hs = ref.deref(); if (!hs) continue; const s = hs.s, plot = s.plots.findIndex(p => p.id === plotId); if (plot < 0) continue;
+    const h = Object.assign(Object.create(hs), { life: (q: number) => (hs as any).life(q) as HouseLife, day }) as HouseView & Houses, out: WorkObject[] = [];
+    for (const room of hs.rooms) { if (room.plot !== plot) continue; const x = roomPlan(h, room); if (!x) continue;
+      for (const it of x.plan.items) { if (!WORK.has(it.k)) continue; const [e, n] = s.grid(it.u, it.v);
+        out.push({ kind: it.k, e, n, y: hs.gl(it.u, it.v) + it.y, rot: s.frame.theta + it.rot, room: room.room, inside: true, note: it.note ?? it.k }); } }
+    for (const f of s.fittings) { if (f.plot !== plot || !COURT_WORK.has(f.kind)) continue; const [e, n] = s.grid(f.u, f.v);
+      out.push({ kind: f.kind, e, n, y: hs.gl(f.u, f.v), rot: s.frame.theta + f.rot, room: -1, inside: false, note: `the court's ${f.kind}` }); }
+    // a household without its own oven bakes at a neighbour's (the shared oven of the lane's houses: C): the nearest court oven
+    // of the site within 40 m of its door, marked `shared`
+    if (!out.some(o => o.kind === 'oven' || o.kind === 'tannur') && s.plots[plot].door) { const d = s.doorPoints(s.plots[plot])!; let best: (typeof s.fittings)[0] | null = null, bd = 40;
+      for (const f of s.fittings) if (f.kind === 'oven' && f.plot !== plot) { const x = Math.hypot(f.u - d.out[0], f.v - d.out[1]); if (x < bd) { bd = x; best = f; } }
+      if (best) { const [e, n] = s.grid(best.u, best.v); out.push({ kind: 'oven', e, n, y: hs.gl(best.u, best.v), rot: s.frame.theta + best.rot, room: -1, inside: false, shared: true, note: `the oven in ${best.plot >= 0 ? s.plots[best.plot].id : 'the lane'}'s court, ${bd.toFixed(0)} m from the door, shared with the neighbours` }); } }
+    return out; }
+  return [];
+}

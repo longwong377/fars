@@ -37,7 +37,7 @@ import { sunTimes } from './calendar';
 /** D-292: the ways of holding or laying down a small child that go with humming it to sleep */
 const LULL_MODES = new Set(['arms', 'lap', 'cradle', 'mat', 'nurse']);
 import { nearCascadesOnly } from './humanGPU';
-import { propGeometry, propUnionGeometry, paintedBox, paintedModel, PROP_NOTES, PROPS, PROP_CLASSES, propSlot, placeProp, interleave, BABE_CLASS } from './props';
+import { propGeometry, propUnionGeometry, paintedBox, paintedModel, PROP_NOTES, PROPS, PROP_CLASSES, propSlot, placeProp, interleave, BABE_CLASS, setDown, GOODS_POSES, CARRY_POSE } from './props';
 import { babeKind, babeLength, holdBabe, holdHand, placeBabe, tintFor, BABE_NOTES, type BabeMode } from './babes';
 import { h32, salt } from './hash';
 import { marksOf } from './marks';
@@ -453,7 +453,7 @@ export class Crowd {
     return out;
   }
   /** D-245: a person's voice plays from `from` to `to` (world time); the voices took them (see Person.claimedAt) */
-  voice(key: string, from: number, to: number, now: number) { const p = this.persons.get(key); if (p) { p.voiceFrom = from; p.voiceTo = to; p.claimedAt = now; } }
+  voice(key: string, from: number, to: number, now: number, words?: string) { const p = this.persons.get(key); if (p) { p.voiceFrom = from; p.voiceTo = to; p.claimedAt = now; p.face.say = words ? { text: words, t0: from, seconds: to - from } : null; } } // (D-790 C14: the words (IPA or transliteration) the mouth shapes: humanRig/face.ts)
   /** D-245: the talkers the voices hold this frame (their jaw moves only with their voice) */
   claimVoices(keys: Iterable<string>, now: number) { for (const k of keys) { const p = this.persons.get(k); if (p) p.claimedAt = now; } }
   /** a person is speaking (address → speech line): the jaw moves for `seconds` */
@@ -561,6 +561,9 @@ export class Crowd {
       if (imp && p.perf && act === 'walk' && !p.perf.animals) { const hurt = imp === 1 && p.pid >= 0 ? this.view?.pop.injuryOn?.(p.pid, Math.floor((this.sim?.t ?? 0) / 24)) : null;
         p.perf = { ...p.perf, anim: imp === 1 ? 'limp' : 'feel', prop: 'staff', note: p.deedLimp && !vp?.impair ? 'limping on a staff, a leg broken in a fight or a fall (the deeds: DeedWorld.injuryOf; C)' : hurt ? `limping on a staff, ${hurt.how} some days ago (gap hunter C, C-D19: hurts of the heavy work; C: D-292)` : imp === 1 ? 'a lame man walking with a staff (gap audit item 37: injuries of the building sites and the fields are to be expected; C)' : 'a blind elder feeling the way with a staff, led by a child of the house when one walks with them (gap audit item 37; C)' }; } }
     p.anim = p.perf ? p.perf.anim : e?.anim ?? 'idle';
+    // D-691: a walker of the population with goods in the plan's words and no prop of the act carries them as they are carried
+    // (the basket before the body in both hands, the sack and the jar on the shoulder, the head jar on the head)
+    if (vp && vp.moving && vp.prop && p.anim === 'walk' && !p.perf?.prop && CARRY_POSE[vp.prop]) p.anim = CARRY_POSE[vp.prop] as AnimId;
   }
   private lastTime = 0;
   /** shared work objects this frame: one per place (the threshing floor) or one per group (the bier, at its bearers' centre) */
@@ -865,7 +868,10 @@ export class Crowd {
     if (p.poseFrame < 0) g.prevPalette.set(g.palette.subarray(o, o + PALETTE_STRIDE), o);
     p.poseFrame = this.frame;
     const par = { v: 0 }, sc = p.look.scale;
-    p.prop = prop1 && placeProp(prop1, this.rigS, po, sc, time, 0, p.propM, par) ? prop1 : null; p.ip[0] = par.v;
+    // (D-691: goods held in a pose not made for them are set down beside the body: a basket between hanging hands sank
+    // into the hips, a seated woman's into her lap)
+    const down = !!prop1 && !!GOODS_POSES[prop1] && !GOODS_POSES[prop1].includes(anim);
+    p.prop = prop1 && (down ? setDown(PROPS[prop1]?.geom ?? prop1, this.rigS, sc, p.propM) : placeProp(prop1, this.rigS, po, sc, time, 0, p.propM, par)) ? prop1 : null; p.ip[0] = down ? 0 : par.v;
     p.prop2 = prop2 && placeProp(prop2, this.rigS, po, sc, time, 1, p.propM2, par) ? prop2 : null; p.ip[1] = par.v;
     // D-215: the children held or put down beside (babes.ts: their kind by age and way of holding, their size by age)
     const B = vpC?.babes; if (B?.length) { const L = p.babeProps ?? (p.babeProps = []); L.length = B.length;

@@ -85,7 +85,8 @@ const fatEff = (z: number) => z + (z > 0 ? 0.14 * z * z : 0);
 
 /** the region frames of a variant in bind space (cached): breasts, buttocks, cheeks (centre x for the left side, y, z, and
  *  the radius), the thighs' and upper arms' middle heights */
-export interface RegionFrame { breast: [number, number, number, number]; butt: [number, number, number, number]; cheek: [number, number, number, number]; thighY: number; /** the nose tip's height and depth */ nose: [number, number] }
+export interface RegionFrame { breast: [number, number, number, number]; butt: [number, number, number, number]; cheek: [number, number, number, number]; thighY: number; /** the nose tip's height and depth */ nose: [number, number];
+  /** D-790: the mouth (the lips' meeting line height, the lips' front depth, the half-width at the corners) and the brows' height */ mouth: [number, number, number, number] }
 const frames = new WeakMap<HumanVariant, RegionFrame>();
 export function regionFrame(A: HumanAssets, v: HumanVariant): RegionFrame {
   const hit = frames.get(v); if (hit) return hit;
@@ -102,20 +103,31 @@ export function regionFrame(A: HumanAssets, v: HumanVariant): RegionFrame {
   const nose = A.meta.landmarks.nose_tip, chin = A.meta.landmarks.chin;
   const ny = nose !== undefined ? P[A.orig.indexOf(nose) * 3 + 1] : j(HB.head, 1) + 0.07, nz = nose !== undefined ? P[A.orig.indexOf(nose) * 3 + 2] : j(HB.head, 2) + 0.1;
   const cy = chin !== undefined ? P[A.orig.indexOf(chin) * 3 + 1] : ny - 0.06;
+  // D-790: the mouth from the mesh: the lips meet between the lowest unweighted and the highest jaw-weighted front vertex on
+  // the midline below the nose; their front is the foremost point within a centimetre of that line
+  let yU = Infinity, yL = -Infinity;
+  for (let i = 0; i < A.NO; i++) { if (A.part[i] !== PART.head) continue; const x = P[i * 3], y = P[i * 3 + 1], z = P[i * 3 + 2]; if (Math.abs(x) > 0.004 || y > ny - 0.01 || y < ny - 0.075 || z < nz - 0.04) continue;
+    let jw = 0; for (let k = 0; k < 4; k++) if (A.skinIndex[i * 4 + k] === HB.jaw) jw += A.skinWeight[i * 4 + k] / 255;
+    if (jw < 0.1) yU = Math.min(yU, y); else if (jw > 0.5) yL = Math.max(yL, y); }
+  const my = Number.isFinite(yU) && Number.isFinite(yL) ? (yU + yL) / 2 : ny - 0.045; let mz = nz - 0.02;
+  for (let i = 0; i < A.NO; i++) { if (A.part[i] !== PART.head) continue; const x = P[i * 3], y = P[i * 3 + 1], z = P[i * 3 + 2]; if (Math.abs(x) < 0.012 && Math.abs(y - my) < 0.01 && z < nz - 0.004) mz = Math.max(mz, z); }
+  const eyeY = (j(HB.eye_l, 1) + j(HB.eye_r, 1)) / 2, child = v.meta.group === 'child';
   const fr: RegionFrame = { breast: [bx, by, bz - 0.035, br], butt: [tx, ty, tz + 0.05, 0.1], cheek: [0.042, (ny + cy) / 2, nz - 0.045, 0.034],
-    thighY: (j(HB.thigh_l, 1) + j(HB.calf_l, 1)) / 2, nose: [ny, nz] };
+    thighY: (j(HB.thigh_l, 1) + j(HB.calf_l, 1)) / 2, nose: [ny, nz], mouth: [my, mz, child ? 0.02 : f ? 0.0225 : 0.0245, eyeY + (child ? 0.022 : 0.026)] };
   frames.set(v, fr); return fr;
 }
 
-/** extra texels of the person's palette row (after the 59 bones' 177 texels): 3 virtual bones = 9 texels = 36 floats.
+/** extra texels of the person's palette row (after the 59 bones' 177 texels): 4 virtual bones = 12 texels = 48 floats.
  *  [0] breast centre (left x, y, z, R)   [1] bust k−1, fall (m), buttocks k−1, cheeks k−1   [2] buttock centre, R
  *  [3] left breast spring (x, y, z), belly spring y   [4] right breast spring, belly spring z
  *  [5] buttock spring y, z, thigh springs l, r   [6] cheek centre, R   [7] fat belly (dome amount), upper arm springs l, r, jowl spring
- *  [8] thigh middle y, soft-tissue visibility (0 off), nose tip y, z (the cheek centre's w is the nose's k−1; the cheeks' radius is CHEEK_R) */
+ *  [8] thigh middle y, soft-tissue visibility (0 off), nose tip y, z (the cheek centre's w is the nose's k−1; the cheeks' radius is CHEEK_R)
+ *  D-790 the face while speaking and listening (face.ts; humanRig writes [10] and [11] each solve):
+ *  [9] mouth line y, lips' front z, mouth half-width, brow y   [10] round, wide, press, tuck   [11] smile, brow up, knit, face on (1) */
 /** the cheeks' and the nose's field radii (m, C) */
 export const CHEEK_R = 0.034, NOSE_R = 0.03;
-export const EXTRA_BONES = 3, EXTRA_FLOATS = EXTRA_BONES * 12;
-export const EX = { breastC: 0, k: 4, buttC: 8, sprBL: 12, sprBR: 16, spr5: 20, cheekC: 24, ex7: 28, ex8: 32 } as const;
+export const EXTRA_BONES = 4, EXTRA_FLOATS = EXTRA_BONES * 12;
+export const EX = { breastC: 0, k: 4, buttC: 8, sprBL: 12, sprBR: 16, spr5: 20, cheekC: 24, ex7: 28, ex8: 32, mouth: 36, vis: 40, brow: 44 } as const;
 
 /** a person's body for the rig: per-bone bind-space girth transforms (12 floats each: 3×3 + translation, identity where
  *  unchanged), the stoop (rad, spread over spine and neck), the static extras, and the soft-tissue parameters */
@@ -165,6 +177,7 @@ export function bodyRigFor(A: HumanAssets, v: HumanVariant, s: BodyShape): BodyR
   ex[EX.ex7] = clamp(0.22 * (s.belly - 0.6), 0, 0.6); // the fat belly: the D-292 dome's amount (0.15 m × amount proud; C)
   ex[EX.ex8] = F.thighY; ex[EX.ex8 + 1] = 1; ex[EX.ex8 + 2] = F.nose[0]; ex[EX.ex8 + 3] = F.nose[1];
   ex[EX.cheekC + 3] = clamp(0.1 * s.nose, -0.3, 0.4);
+  ex.set(F.mouth, EX.mouth); ex[EX.brow + 3] = 1;
   const soft = (1 - s.firm);
   const mass = (k: number) => Math.max(0, 1 + k);
   return { girth, bones, stoop: clamp(s.posture, -1, 3) * 0.06, extras: ex, shape: s,
@@ -203,10 +216,39 @@ export function bodyFieldOffset(x: number, y: number, z: number, bone: number, e
       out[0] += w * k * 0.7 * dx; out[1] += w * k * dy; out[2] += w * k * 1.2 * dz; }
     if (R > 0) { const dx = x - cx, dy = y - cy, dz = z - cz, q = Math.max(0, 1 - (dx * dx + dy * dy + dz * dz) / (R * R)), w = q * q * sstep(cz - 0.012, cz + 0.004, z);
       const k = ex[EX.k + 3]; out[0] += w * k * dx; out[1] += w * (k * dy + ex[EX.ex7 + 3] * (1 - sstep(cy - 0.02, cy + 0.02, y))); out[2] += w * k * dz; } }
+  if (face && HEAD_BONES.includes(bone)) faceOffset(x, y, z, ex, out);
   // thighs and upper arms: the whole section rides its spring (a few millimetres), fading toward the joints
   const ty = ex[EX.ex8];
   if (bone === HB.thigh_l || bone === HB.thigh_r) { const w = Math.max(0, 1 - ((y - ty) / 0.16) ** 2); out[1] += w * ex[EX.spr5 + (bone === HB.thigh_l ? 2 : 3)]; }
   if (bone === HB.upperarm_l || bone === HB.upperarm_r) out[1] += 0.7 * ex[EX.ex7 + (bone === HB.upperarm_l ? 1 : 2)];
+  return out;
+}
+
+/** D-790: the face's motion field (face.ts controls in the extras [10], [11]; the frame in [9]), added to `out` for a bind
+ *  point on the head or jaw (humanMaterial mirrors it term for term). The lips: rounding draws the corners in and pushes the
+ *  lips forward; spreading and the smile draw them out (the smile up and back, the cheeks rising); pressing rolls the lips
+ *  together; the tuck lifts the lower lip back under the upper teeth. The brows: lifted, or knit (inner ends down and in). */
+export const FACE_FIELD = { lipY: 0.03, lipYc: 0.012, kx: 1.55, front: [0.035, 0.012], round: [0.42, 0.0075], wide: 0.2, smile: [0.0045, 0.08, 0.003],
+  press: 0.0018, tuck: [0.0035, 0.0045], browR: [0.032, 0.035, 0.022], browUp: 0.0055, knit: [0.0028, 0.003], cheekUp: 0.0028 } as const;
+export function faceOffset(x: number, y: number, z: number, ex: ArrayLike<number>, out: number[]) {
+  const on = ex[EX.brow + 3], W = ex[EX.mouth + 2]; if (!on || !(W > 0)) return out;
+  const F = FACE_FIELD, my = ex[EX.mouth], mz = ex[EX.mouth + 1], by = ex[EX.mouth + 3];
+  const rd = ex[EX.vis], wd = ex[EX.vis + 1], pr = ex[EX.vis + 2], tk = ex[EX.vis + 3], sm = ex[EX.brow], bu = ex[EX.brow + 1], kn = ex[EX.brow + 2];
+  const dx = x, dy = y - my, ax = Math.abs(x), sg = x >= 0 ? 1 : -1;
+  const front = sstep(mz - F.front[0], mz - F.front[1], z);
+  const q = Math.max(0, 1 - (dx / (F.kx * W)) ** 2 - (dy / F.lipY) ** 2), wM = q * q * front;
+  const ql = Math.max(0, 1 - (dx / (1.15 * W)) ** 2 - (dy / F.lipYc) ** 2), wL = ql * front;
+  const corner = sstep(0.35 * W, W, ax), up = sstep(-0.002, 0.004, dy), lo = 1 - up;
+  out[0] += dx * wM * (-F.round[0] * rd + F.wide * wd + F.smile[1] * sm);
+  out[1] += wM * (0.15 * dy * rd + corner * F.smile[0] * sm) + wL * (-F.press * pr * up + F.press * pr * lo + F.tuck[0] * tk * lo);
+  out[2] += wL * (F.round[1] * rd - F.press * pr - F.tuck[1] * tk * lo) - wM * corner * (0.002 * wd + F.smile[2] * sm);
+  // the cheeks rise with the smile (over the cheekbone, above the mouth's corners)
+  const cx = ax - 1.6 * W, cy = y - (my + 0.028), qc = Math.max(0, 1 - (cx / 0.025) ** 2 - (cy / 0.022) ** 2);
+  out[1] += qc * qc * front * F.cheekUp * sm;
+  // the brows
+  const bx = ax - F.browR[0], byy = y - by, qb = Math.max(0, 1 - (bx / F.browR[1]) ** 2 - (byy / F.browR[2]) ** 2), wB = qb * qb * sstep(mz - 0.06, mz - 0.035, z);
+  const inner = 1 - sstep(0.012, 0.035, ax);
+  out[1] += wB * (F.browUp * bu - F.knit[0] * kn * inner); out[0] -= wB * sg * F.knit[1] * kn * inner;
   return out;
 }
 

@@ -24,6 +24,95 @@ first-time player would hit.
 - **Owner** is taken from handoff/s18/sessions.md. 'Unowned' means the file belongs to no s18 agent, so by the rules it
   goes to C7 or the lead.
 
+## LEDGER: sent to / status (C12 keeps this; the lead dispatches from it). Updated 2026-10-03 06:25 UTC against s17-int 4cda1f6f and the agent branches.
+
+How the status column is read:
+- **DONE** means it is merged into s17-int.
+- **DONE-b** means it is done on the agent's branch but not yet merged.
+- **WIP** means it is on the agent's stated list (handoff/s18/lead_handoff.md).
+- **SENT** means it was dispatched but no commit has been seen.
+- **UNSENT** means no owner action is recorded: the lead dispatches these.
+
+None of it is verified in a render yet (pagecheck and C6 are the check).
+
+| row | hole (short) | sent to | status | evidence |
+|---|---|---|---|---|
+| 1 | empty world | C1, C5 | WIP | C1 f0eb96b0 nine building gangs (DONE-b); C5's top item is the drawing drop |
+| 2 | court timing: a new game before the arrival | C1 | DONE-b | f0eb96b0 "a new game with the court in residence" |
+| 3 | Terrace colour part 2 (reliefs, capitals, colossi, frames, inscriptions) | C10 | **SENT, no action seen** | C10's D-750 commits are merlons, hangings, standards and blind windows; no relief or capital paint |
+| 4 | town shape (belt at the Terrace foot) | C2 | DONE | 5819c8ef D-661 lower-city belt, 739 plots |
+| 5 | houses one buff mud | C2 | DONE | 5819c8ef washes, painted doors, dyes |
+| 6 | ruin weathering (grime, lichen, boulder scan, rough timber) | C10 | **SENT, no action seen** | no grime.ts or scans.ts commit |
+| 7 | night black, no player light | C4, C5 | WIP | C4 on night light; C5 player lamp listed |
+| 8 | public site behind | Vagon | DONE (s17); s18 pending | c3bde8ab deployed 04:50; s18 waits on a Vagon budget run |
+| 9 | talk hidden | C8, C11 | DONE | 3f07b3e6 E speaks to anyone; ed032cd1 one talk key; c20cefad panel (DONE-b) |
+| 10 | court ceremony never happens | C13 | DONE | e9341d07 the programme; 4a2db721 proskynesis (DONE-b) |
+| 11 | clothes undyed | C13, C2 | DONE | e9341d07 dyed dress and jewellery; 5819c8ef more dyes |
+| 12 | sound mostly synthesis | Vagon, C8 | DONE (mostly) | fb250784 115 of 121 recorded sets |
+| 13 | plain work places, brick fields, houses being built | C3, C2 | DONE / WIP | 08243142 works built; C2 half-built house open |
+| 14 | halls stored, bare windows, hangings, ceilings, banners | C10, C13 | partly | 946ae757 porch hangings and standards; 1afbf0e5 blind windows; **ceilings unpainted, shutters and grilles, banners in wind, off-season hall dress: no action seen** |
+| 15 | speech in isolated words, hums, wordless songs | C8 | **SENT, no action seen** | C8 has done talk only; the murmur, songs and model-driven overheard talk are untouched |
+| 16 | water (river, paradise feed, qanats, ferry, ditches) | C3, C2 | partly | 563ab492 qanats; eb41c068 meander; **the ferry or bridge on the Kur, field ditches and shadufs, the paradise feed: UNSENT** |
+| 17 | world does not notice the player | C5, C8 | WIP | cddd96c0 trespass (DONE-b); C5 visitor default listed |
+| 18 | horses, gallop, hunt | C13, C9 | partly | e9341d07 rides, hunts, couriers; b29e8735 asks C9 for the gallop |
+| 19 | shrines and household cult | C1, C2 | WIP | C1 "household religion" listed; the town shrine (C2): **UNSENT** |
+| 20 | estates, pavilion, Naqsh painted | C15 | SENT 06:0x | 99aa8f83 C15 started |
+| 21 | snow cap, comet, floods, dust storms, run-off, shimmer | C4 | WIP | C4: snow cap, comet, shimmer; **floods, dust-storm wall, run-off in lanes: UNSENT** |
+| 22 | broken-looking faults | C4, C6, C2, C10 | SENT 06:0x | the black ridge (C4), cameras facing walls (C6), **the Treasury floor's mirror (C10): UNSENT** |
+| 23 | walk-only speed, no mount | C5 | SENT 06:0x | "rides (row 23)" on C5's list |
+| 24 | faces | C14 | DONE | 82866584 faces that speak; 3f1040ac |
+| 25 | memory and load | C9 | WIP | KTX2 merged (memory 5.35 -> 4.55 GB cloud) |
+| u1 | royal women never appear; the litters | C13 | **UNSENT** | |
+| u2 | punishment never shown | (CLAUDE.md: as evidence) | KEEP | |
+| u3 | personal seals worn | C13 | **UNSENT** | |
+| u4 | toddlers walking, barefoot poor, stripping in heat | C14, C13 | **UNSENT** | |
+| u5 | cats, ducks, geese, bats, rats, storks, flies | C9 | **UNSENT** | same as P2-4 |
+| u6 | latrines, roof sleeping, fruit drying on roofs | C2 | **UNSENT** | |
+| u7 | Diodorus' triple wall and bronze gates | C10 | **UNSENT** | low |
+| u8 | trees and planters on the Terrace; the "Penelope" statue | C10 | **UNSENT** | low |
+| u9 | portico floors and ceremonial courts paved or limed | C10 | **UNSENT** | |
+| u10 | baked prose for seed 1 only | C8 | DONE-b | 0c1b9d46 junk baked lives removed |
+| u11 | Quality change needs a reload (no note); debug sliders shown | C11 | SENT? | "polished out-of-world text" (92d6a6bf), unverified |
+| C1 | life simulated but not drawn | C5 (+ C9's finding) | WIP | the top item; pagecheck D-772 measures it |
+| C2 | working land empty in the sim | C1, C3 | WIP | works built (C3); people at the works spots next (C1) |
+| F1 | faces, lips, guards' dress and pose | C14, C13 | DONE | 82866584 visemes; e9341d07 guards in the court robe |
+| P2-1 | (retracted) | | | |
+| P2-2 | the delegations' animals and chariots | C13 | DONE | 54655633 gift animals |
+| P2-3 | patterned robes; the throne's lion bands; relief pupils | C13, C10 | partly | dyed dress (C13); **lion bands and pupils (C10): UNSENT** |
+| P2-4 | storks, bats, cats; mules and camels on the plain; reins; turning wheels | C9 | **UNSENT** | |
+| P2-5 | tower stairs and walkable roofs; the Hadish balcony | C10 | **UNSENT** | |
+| P2-6 | the drums' ramp and ascent | C10, C1 | **UNSENT** | |
+| P2-7 | festive dress, toys, necklaces | C13 | SENT 06:0x | |
+| P2-8 | blocklist wording | C12 | DONE | 257ab230 |
+| P2-9 | Rahmat quarries, E-foot cistern, Akhor Rostam niches | C3, C10, C15 | SENT 06:0x | |
+| P2-10 | soil moisture; gates barred at night | C3, C5 | WIP | both on the agents' lists |
+| stale | 'court ABSENT default' in the data files | C13 | **SENT, no action seen** | court.json, events_calendar.json, population.json:9, town.json:3 not changed |
+| 4-1 | the world never notices you | C5, C8, C13 | WIP | cddd96c0 trespass (DONE-b); C5 visitor default |
+| 4-2 | nothing moves in the wind | C3 | DONE | 677621a9 one wind for every plant |
+| 4-3 | invisible walls, glued escort | C5 | WIP | src/world/visitor on C5's list |
+| 4-4 | the house mimed: quern, oven, hearth, meal | C1, C2, C8 | partly | C1 "meals kept" listed; **an indoor hearth (interiors: unowned) and work objects for grind, knead and bake: UNSENT** |
+| 4-5 | wild herds behave like force fields | C9 | **UNSENT** | beasts.ts is unowned |
+| 4-6 | score clichés, wiring, switch | C11 | DONE (clichés, cut) | a2a70619 re-oriented, no duduk; **the Score toggle and its own slider: unverified** |
+| 4-7 | court details | C13 | DONE | 4b0b21b2 parasol furled indoors, prince, weapon bearer; 4a2db721 bow; parasol following the king: C5 listed |
+| 4-8 | out-of-world text reads as a dev tool | C11, C8, C1, C5 | partly | c20cefad talk panel; 92d6a6bf polished text; chronicle (C1) listed; visitor strings (C5) |
+| 4-9 | night sky flat | C4 | WIP | the C4 list covers all four |
+| 4-10 | animals keep clock hours | C9 | DONE-b | 2fa8251e; **birdsong hours in soundscape.ts (unowned): UNSENT** |
+| 4-11 | no footprints or dust | C5 | **UNSENT** | |
+| 4-12 | season-blind market; can't buy food | C8, C2 | partly | c6c2a110 buy bread, beer, a meal (DONE-b); **seasonal goods and fewer market squares (C2 fillPlan): UNSENT** |
+| W1, W2, W10 | names; month labels | C1 | WIP | on C1's list |
+| W3, W4 | crown; guards' kit | C13 | DONE | 4b0b21b2 plain kidaris, gorytos |
+| W5, W6, W13, W14, W15, W17, W22 | dialogue fixes | C8 | DONE-b | 0c1b9d46 |
+| W7 | Pulvar/Medus | C3, C8, C1 | partly | 677621a9 data names; **history.ts:40 (C1) and life.ts:308 (C8): unverified** |
+| W8 | "tomb attributed to Xerxes" | C3 | DONE | 677621a9 "the second tomb being cut" |
+| W9 | 'Frataraka' in a 467 name | C2 | **UNSENT** | |
+| W11 | washing lines across the lanes | C2 | SENT? | C2 "stiff laundry" open; the move to roofs not seen |
+| W12 | commoners' tables | interiors (unowned) | **UNSENT** | |
+| W16 | talk download size in Settings | C11 | SENT? | unverified |
+| W18 | halmi used as a palace pass | C5 | **UNSENT** | |
+| W19 | millet; nightingale | C3; soundscape (unowned) | WIP / **UNSENT** | millet on C3's list; nightingale unowned |
+| W20 | delegation gifts as stand-ins | C13 | partly | gift animals; **objects (bows, shields, tusk): UNSENT** |
+| W21 | figurines; latrines and refuse pits | C1; C2 | WIP / **UNSENT** | |
+
 ## The pattern behind most of these holes
 
 At least 9 tests or code rules enforce an absence that later directions overrode. Any fill must change them too.
@@ -161,7 +250,7 @@ New holes this pass found (not in pass 1), ranked:
 
 | # | Hole | Evidence | 467 BC most probably (tier) | Fix | Owner |
 |---|---|---|---|---|---|
-| P2-1 | **Skin tone is not tied to origin**: a Kushite, an Indian and a Persian are drawn from the same range | DECISIONS D-092 (DECISIONS.md:229): "Nothing is tied to origin: no evidence was read" | Kushite, Indian, Egyptian and Arab workers and delegates visibly darker. The Apadana delegations are the evidence of who came. (A for who; B for skin) | S | C13 (looks) |
+| P2-1 | ~~RETRACTED (third pass): skin tone IS tied to origin since D-155 (looks.ts ORIGIN_TONE, Q-240: Egyptian 0.62, Indian 0.68, Kushite 0.84 … Thracian 0.2); D-092's line was superseded.~~ Was: **Skin tone is not tied to origin**: a Kushite, an Indian and a Persian are drawn from the same range | DECISIONS D-092 (DECISIONS.md:229): "Nothing is tied to origin: no evidence was read" | Kushite, Indian, Egyptian and Arab workers and delegates visibly darker. The Apadana delegations are the evidence of who came. (A for who; B for skin) | S | C13 (looks) |
 | P2-2 | **The delegations' animals, chariots and dress are left out**: lioness, okapi, ibex and chariots "NOT drawn", animals "stay at the camp"; mantles, cloaks, shawls, tassels and the chin wrap "not modelled" | delegations.json:5-87; fauna.json:76; COURT.md:90-112,191 | The Apadana stair reliefs (A): every delegation leads its gifts and animals up the stair. | M | C13 + C9 (fauna) |
 | P2-3 | **Nobles' and delegates' robes are plain; the throne's lion bands are not drawn; relief eyes have no pupils** | Q-427 "every other garment plain"; Q-238; RELIEFS_AND_COLOUR:114,117 | Patterned borders (the Susa archers, the Oxus finds, B). Lion bands on the throne covers (B). Painted pupils. | S–M | C13 (dress); C10 (throne, reliefs) |
 | P2-4 | **No storks, bats, cats, rats or flies; mules and camels left off the plain for budget; no herders' bands on the move; reins not drawn and wheels do not turn** | fauna.json:85,103; Q-563; DECISIONS.md:3888-3890; blocklist `later-animals` keeps cats out | Storks on columns and roofs (a Fars signature), bats at dusk, cats as mousers in the stores (long kept in Egypt and the Near East), turning wheels. (B) | M | C9 (fauna, smallLife); the wheels and reins belong to C9 or V5 |
@@ -233,5 +322,93 @@ At 0.3–3 m (V3, s17 report_people.md):
 5. Pass-1 #4 and #5, town shape and colour (C2).
 6. **F1** faces, lips, guards' dress and pose (new; C13 + C14).
 7. Pass-1 #9 plus the newcomer's ten minutes: talk undiscoverable (C11, C8, C5).
-8. **P2-1 / P2-2** skin by origin; the delegations with their animals (new; C13, C9).
+8. **P2-2** the delegations with their animals (new; C13, C9). (P2-1 retracted.)
 9. The stale "court absent default" text in 9 files (new; C13, lead).
+
+# Fourth pass: a stranger's walk through 467 BC, judged by top AAA open worlds and by an Achaemenid scholar
+
+Method:
+- I walked the code and data in four parallel walks: the approach, stair and court; the town and a home; the plain, sky and
+  year; and the voice, the words and the music.
+- Nothing was rendered.
+- Owners follow handoff/s18/sessions.md. "Unowned" means no s18 agent holds the file, so it goes to C7 or the lead by the
+  rules.
+
+**What already holds up (none of it needs work):**
+- **The sky.**
+  - Stars are precessed to 467 (HYG catalogue with astronomy-engine; Polaris is not at the pole).
+  - Planets, Moon phase and eclipses are computed for the real dates.
+  - Sunrise is computed for 29.9° N.
+- **The calendar.** Parker and Dubberstein Babylonian months; 1 Nisannu of Xerxes' year 19 = 17 April 467.
+- **Crops and trees.**
+  - The crops are right: no rice, dates, cotton or citrus.
+  - The trees are right: no eucalyptus or pine.
+- **Animals.** Lions in the reeds, onager, gazelle, cheetah and 27 bird species.
+- **The Terrace's numbers.**
+  - XPa above each Gate colossus in three languages.
+  - The bull and lamassu types are at the right Gate doors.
+  - The Grand Stair has 63 + 48 steps with ~10.8 cm risers and a double reverse flight.
+  - Every column count is right.
+  - The Hall of 100 Columns is drawn about 30 % raised.
+  - The audience panel is still at the centre of the Apadana stairs.
+  - Herodotus' apple and pomegranate spear butts are there.
+- **Daily life.**
+  - Barley bread, beer, wine and sesame oil.
+  - Carinated Achaemenid bowls and saucer lamps.
+  - Elamite on clay; Aramaic in ink on leather.
+  - Weighed silver, no coins in daily use.
+  - Mats and chests; stools only in richer houses.
+- **Talk.**
+  - Languages by origin, with Aramaic as the lingua franca.
+  - The talk prompt knows the king and year.
+  - Artabanus' plot is fenced off.
+  - Each voice is unique.
+  - In-world music uses Pythagorean tuning.
+
+## A. What breaks presence, ranked (screen share × time × how jarring)
+
+| # | Hole | Evidence | Right (tier) | Fix | Owner |
+|---|---|---|---|---|---|
+| 4-1 | **The world never notices the stranger.** By default you walk through the Gate, into the "Harem" among 300 women, into the Treasury, and up to the enthroned king, and nobody reacts. Walking into a family's house or room draws a nod ("the town sees strangers every day"). | `settings.ts:26` playerMode 'observer'; `court.json:90` "never staged … no reaction"; `converse/sight.ts:39-85` checks only where the person is, never where the stranger is; `:83` | B: guards on every stair and door relief; a stranger in the house or before the throne is an alarm. The default goes to visitor (owned). Guards bar even an observer. People shout a trespasser out of the house, and the lane hears of it (a trespass deed). | S default; M reactions | C5 (default), C13 (court), C8 (sight, deeds) |
+| 4-2 | **Nothing moves in the wind.** Grass, sward, stubble, thistle and camelthorn are static. Crops, reeds and trees sway on one fixed world axis, swinging evenly with no lean and no gusts, while the hearth smoke follows the real wind. Walking through barley parts nothing. | `plain/groundCover.ts` (no positionNode or time term); `groundFlora.ts:141`; `plain/crops.ts:33,44`; `plain/riparian.ts:76`; `trees/render.ts:209`; `hearthSmoke.ts:174` windWorld | A: AAA's main life cue (Ghost of Tsushima, RDR2). Pass windWorld() as a uniform, add a travelling gust wave and a steady lean, and bend plants around the player. | S–M | C3 |
+| 4-3 | **The visitor mode is invisible walls and a glued escort.** A closed zone teleports you back. The Apadana and every palace are closed even on court days, so a stranger can never be led in, though delegations are. The escort is pinned 1.4 m in front of the camera, swings with the mouse and has no collision. | `main.ts:477` teleport; `world/visitor/controller.ts:62,79`; `access.json:353` | AAA practice: a guard steps in and lowers his spear. An errand puts the stranger at the back of a petitioners' party led in by an usher. The escort walks at the shoulder on the nav grid. | M | C5 (visitor; src/world/visitor is unowned, give it to C5) |
+| 4-4 | **The house is mimed.** Grinding, kneading and baking happen on a random court cell with no quern, trough or oven (no work objects). Only 22 % of courts have an oven, yet everyone bakes at home. No house has an indoor hearth (35 % have no hearth at all). Winter nights get a fleece, not a fire. The evening meal is a 0.3 h "placeholder" warming. | `popgeo.ts:207`; `activities.ts:150` bake has no work object; `town_rules.ts:19` ovenShare 0.22; `interiors/plan.ts:207-216`, `:242`; `quarter.ts:357`; `population.ts:2534` "A placeholder activity" | B: the saddle quern and tannur; hearths in Iron Age Iranian rooms (Hasanlu, Nush-i Jan, Godin). Snap each act to its object or the neighbour's oven, add a room hearth lit in the cold season, and give the main meal 1–1.5 h of cooking. | M | C1 (popgeo, population); C2 (ovens: town_rules, quarter); interiors unowned (C7); C8 (activities) |
+| 4-5 | **Wild animals behave like force fields.** Onager and gazelle slide round the player on a 150 m circle and snap back. No flight, no scatter, no alarm, silent hooves. Herds never walk to water at dawn and dusk. | `beasts.ts:114-117` keepAway; `:119` BEAST_CALLS night calls only; `:94` | A: a flee state with heading, speed and timer, then regroup out of sight (RDR2). Hoofbeats and alarm snorts. The dawn walk to the river. | M | Unowned (src/world/beasts.ts): C9 (fauna) |
+| 4-6 | **The score uses the project's own banned clichés, is not wired, and has no switch.** A solo "duduk" (cor anglais), a ney, D minor in equal temperament, "Phrygian/harmonic-minor colours". Brief §11 bans "equal-temperament harmony, and oud, duduk, santur or orchestral 'ancient Persia' clichés". D-760 is cited in code but missing from DECISIONS.md. `startScore` and `themeTrack` are never called; the 146 s theme with a 124.7 s "title" mark is set against an 85 s opening with no title card. One slider is shared with musicians in the world. | `tools/score/cues/00_main_theme.ts:1-10,73`; `tools/score/orchestra.ts:12`; `blocklist.json` music-cliche; `public/audio/score/manifest.json`; `score.ts:31` | UD-38/39 allow an out-of-world score but don't require the Gladiator duduk. Record D-760. Write the theme without duduk or hijaz shorthand, or render it in a Pythagorean Scala tuning (sfizz). Cut it to the opening's 85 s, add a Score toggle and slider, and duck it near performers. | M | C11 (in progress: check before calling it broken) |
+| 4-7 | **The court ceremony's details are wrong.** The parasol bearer walks his own route, so the parasol is often not over the king, and he holds it up indoors under the canopy. The audience lacks the bow with the hand before the mouth, the hazarapatiš who presents petitioners, the crown prince and the weapon bearer. | `activities.ts:428-429`; `court.ts:885,778`; `furnish_palaces.ts:311`; `court.json` king.label | B: the door jambs show the parasol always over the king; the Treasury audience relief shows a canopy, a Mede hand to mouth, and the prince behind. | M | C13 (court; activities.ts notes are C8's) |
+| 4-8 | **The out-of-world text looks like a dev tool.** The talk panel: inline Georgia, a lowercase prompt, raw sim verbs ("…: done") and raw `why` strings. Every tablet reading carries a licence and BLOCKERS paragraph. The Treasury text says "No Persepolis Treasury text could be read for this build (B18)". The map footer: "OpenStreetMap ruin traces and the Phase 4 corrections". The chronicle shows "(D-209)", "(C)", unglossed BAR/halmi/šip, clock times, and raw zone ids ("turned back at hall100"). Controls lists F3 as "Evidence overlay" though it is the dev HUD with [PLACEHOLDER]. The loading text says "no map" while M is the map. Settings show "Ultra (full target)" and a "World seed 123…" label. | `converse/ui.ts:63-66,165-167`; `ui/translation.ts:65,172,184,241`; `people/calendar.ts:294-361`; `world/visitor/controller.ts:75-87`; `ui/shell.ts:48,113,233,249` | AAA polish: prose verbs; one line "English: the project's own translation (tier C)"; place-name labels; glosses on first use; "at the first watch". | S each | C11 (ui, shell, translation, converse panel styling), C1 (chronicle lines in people/calendar.ts), C5 (visitor strings) |
+| 4-9 | **The night sky is flat.** The Moon is a blank white disc (no maria, no orange moonrise). Stars stay at full brightness down to 0° (no extinction, no twinkle). One cumulus layer all year (no cirrus, no winter stratus). No heat shimmer on summer afternoons. | `sky/skySystem.ts:276,287`; `sky/clouds.ts:29`; `sky/halo.ts:5`; `render/pipeline.ts:66` `?heat=1` only | A: the near side of the Moon is fixed. A PD NASA albedo map, air-mass reddening (already computed at `skySystem.ts:433`), extinction (`extinctionK` exists), a seasonal 2D cirrus deck, and the shimmer on by default. | S–M | C4 |
+| 4-10 | **Animals keep the wrong hours.** Birds keep fixed clock hours: sparrows and crows until 18:30 in December (sunset 17:08), no sparrows at a 04:53 June sunrise. Jackals start before a June sunset. The bats' sunset table runs 10–23 min late. Birdsong hours are fixed too. | `wildlife.ts:33-34,106,476`; `audio/soundscape.ts:150-154` | A: tie the windows to sun.rise and sun.set, as beasts.ts:104 and the cock crow already do. | S | C9 (wildlife); soundscape unowned (C7) |
+| 4-11 | **The stranger leaves no trace.** No footprints in snow, mud or dust, no dust kicked up, crops not flattened. | none in src/world or src/player | A: a standard AAA feedback loop. | M | C5 |
+| 4-12 | **The market is season-blind, and the stranger can't buy a meal.** Fresh pomegranates and apples all year; no bread, beer, onions or live animals; "every square of every quarter is a market". The stranger eats off-screen from his purse and can't buy bread or beer or sit down to eat. | `fillPlan.ts:6,42-55`; `speech/stranger.ts:367`; the SAct goods are grain, fuel and goods only | C: seasonal goods (`economy/plans.ts:46` has the list); bread and beer sellers at their doors (lives.json lane_seller); fewer market squares. | S–M | C2 (fillPlan); speech/stranger unowned (C8) |
+
+## B. Cheap scholar's winces (each S, under an hour)
+
+| # | Wince | Evidence | Right (tier) | Owner |
+|---|---|---|---|---|
+| W1 | Ordinary men are named after Darius' Six (Vidarna, Vindafarnā, Utāna, Bagabuxša, Gaubaruva, Ardumaniš) | `population.ts:2150` DB_MEN | A: DB §68. Drop them from the everyday pool, as the kings and the "liars" already are | C1 |
+| W2 | 144 of 158 Persian women's names are built mechanically from 14 elements × ~10 endings, giving doubled names (*Čiθračiθrā) and royal elements on poor women (*Xšaθrastrī). Men use Elamite tablet spellings, wives Old Persian with diacritics. A thin pool falls back to any culture (a Greek sister of an Elamite girl). | `names_recalled.json` _meta; `population.ts:2192` | A/B: one display register (the tablets' Elamite spelling, or plain Latin th/ch/kh); drop doubled and xšaθra- names; fall back to a related pool (Syrian to Babylonian, Ionian to Lydian) and keep a family's culture | C1 (+ the names data) |
+| W3 | The king's crown has a crenellated rim | `outfits.ts:348` | B: at Persepolis (the Treasury relief, the jambs) a plain, slightly flaring cylinder; the crenellated crown is Bisitun's and the coins' | C13 |
+| W4 | Shield guards also carry bow and quiver (`always: [... 'quiver','bow']`), against the data's own note. Median-dress guards wear a lappeted hood. Their activity text says "bow and quiver" where the Median files carry a gorytos. 30 % of Persian guards wear the Susa fillet. | `outfits.ts:356,367,337`; `looks.ts:229,285`; `court.ts:506,522,584` | B: Apadana and Tripylon guards carry spear and shield, or spear, bow and quiver. Median dress means a rounded felt cap, a gorytos and an akinakes. The fluted headdress for Persian spearmen. | C13 |
+| W5 | "About two weeks ago": Persis had no seven-day week | `converse/words.ts:29`; `converse/life.ts:188` | B: days, half-months, months | C8 |
+| W6 | The stranger's day wage is paid in silver (1/30 shekel) | `speech/stranger.ts:67` | A: hired labour was paid in kind (barley QA plus beer or wine; WAGE_GRAIN exists at :58) | unowned (C8) |
+| W7 | People say "the river Pulvar" (a modern name); the data calls it "Araxes? of the Greeks" | `converse/life.ts:308`; `people/history.ts:40`; `plain.json:312,1286` | B: Pulvar = Medus, Kur = Araxes (Strabo 15.3.6, Curtius 5.4.7); in talk, "the river" or "the little river" | C8 (life), C1 (history), C3 (plain.json) |
+| W8 | The map says "Tomb attributed to Xerxes" while he is alive; plus "Ka'ba-ye Zardosht" and "?" in labels | `plain.json:2802` | "The king's tomb being cut"; "the stone tower"; no question marks on labels | C3 |
+| W9 | A present-in-467 building is named after the post-Achaemenid "Frataraka" complex, and that name is drawn on the map | `settlement.json:266` | "~1 ha building N of the Terrace" | C2 |
+| W10 | The clock leads with the Babylonian month and gives Old Persian names for only 4 months ("others unknown"), though events_calendar.json holds all 12 Elamite and Old Persian names | `core/calendar.ts:32`; `core/clock.ts:28` | A: Persepolis scribes dated by the Elamite months; Old Persian 9 of 12 attested (DB) | C1 |
+| W11 | Washing lines strung across the lanes (a modern Mediterranean image) | `fillPlan.ts:12` | C: dried on flat roofs and court walls | C2 |
+| W12 | Low wooden tables for meals in most houses | `interiors/plan.ts:265` | C: a cloth on the mat; tables are elite | unowned (interiors: C7) |
+| W13 | Spoken replies are padded with random dictionary nouns ("spearman… one… bread") | `converse/voice.ts:53` | Pad with hums, never bare nouns | C8 |
+| W14 | The fallback lines say "sir" and dodge the king ("the king is in his halls…") | `converse/ownlines.ts:55,119` | "my lord"; "Xšayaršā the king, son of Darius, in his nineteenth year" | C8 |
+| W15 | The reply fence treats 'coin', 'asia' and 'europe' as modern, misses hello, hey, yeah, cool and "no problem", and an NPC silently takes "coins" as silver | `converse/fence.ts:15`; `speech/verbs.ts:49`; `talk.ts:200` | A: darics and sigloi were struck from c. 500 (rare in Persis): the NPC is puzzled and says "silver, weighed". Asia and Europe are Herodotus' own words. Add the slang. | C8 |
+| W16 | The talk download is quoted as "about 0.5 GB"; it is ~1.1 GB (TALK_MB) | `ui/shell.ts:261`; `converse/models.ts:44` | Generate the figure from TALK_MB | C11 |
+| W17 | Loan interest is "a tenth more after the harvest" in one place and ~20 % a year in another | `economy/plans.ts:352` vs `economy/world.ts:7` | B: Neo-Babylonian loans ran ~20 % a year | C8 |
+| W18 | The halmi (a travel and ration authorisation) is used as a palace pass | `world/visitor/controller.ts:75-87`; `visitor/access.ts:1` | B for what a halmi is: call it "your master's sealed letter", or label the use C | C5 |
+| W19 | No millet beside the sesame, though the code's own Herodotus 3.117 note pairs them; no nightingale in the spring gardens | `plain/seasonal.ts:64`; `soundscape.ts:150-185` | B | C3; soundscape unowned |
+| W20 | Gifts are stand-ins (Elamite bows and Gandharan shields drawn as cloth, the Kushite tusk as a sack, armlets as bowls) | `delegations.json:16,64,100` | B: the Apadana reliefs show distinct objects | C13 (+ C14 props) |
+| W21 | No household figurines (Babylonian, Elamite and Egyptian homes; research rule overturned in D-771), no latrine or refuse pit | grep finds none in src | B/C | C2 / interiors (C7) |
+| W22 | `src/data/lives_baked_s1.json` still ships (a 2-year-old remembering brickmaking, a married 7-year-old, a kite), gated off by D-348 | `converse/ui.ts:73-78` | Delete or regenerate | C8 |
+
+Not cheap, recorded:
+- **Kokoro voices.** The voice pools borrow modern accents: Persians get British and Hindi prosody, Greeks Italian (`neural/identity.ts:37`). Honest tier C, but audible: PLACEHOLDER-QUALITY (C8).
+- **"Persepolis … 467 BCE" on the title** is fine: it is out-of-world English, the user's own layer. The fence's ban applies only to in-world speech.

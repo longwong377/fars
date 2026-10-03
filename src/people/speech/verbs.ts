@@ -38,6 +38,11 @@ export function strangerAsk(words: string, c: VerbCtx): SAct | null {
   // hospitality
   if (hh && /\b((can|may|could) i (stay|sleep|rest|spend the night|lodge)( here| with you| in your house| tonight)?|do you have (a place|room|a corner) (for me )?to sleep|(can|could) you (put me up|take me in)|guest[- ]right|i ask (your )?hospitality|shelter for the night)\b/.test(w)) return { a: 'stay', day, hh };
   if (/\b(thank you for (your )?(hospitality|the bed|the meals?)|i must (go|leave|be on my way)|i('ll| will) (leave|go) (now|tomorrow))\b/.test(w)) return { a: 'leave_stay', day };
+  // D-720 (4-12): a meal bought and eaten here: bread, beer, a meal, for silver or barley (from the house spoken to, else the
+  // market's sellers); asked for without paying, it is a gift asked (the talk's own grammar)
+  { const m = /\b(bread|loaf|loaves|beer|a meal|meal|something to eat|food|stew|porridge)\b/.exec(w);
+    if (m && /\b(buy|sell me|pay|paying|for (silver|barley|grain|a shekel)|how much|what do you want for|trade|give you (silver|barley|grain))\b/.test(w) && !/\b(measures?|sacks?|loads?)\b|\b(\d+|two|three|four|five|ten)\s+(loa(f|ves)|jars?)\b/.test(w))
+      return { a: 'meal', day, hh: hh ?? 'market', what: /beer/.test(m[1]) ? 'beer' : /bread|loa/.test(m[1]) ? 'bread' : 'meal', barter: /\b(barley|grain)\b/.test(w) }; }
   // buying and selling (haggled by the simulation: speech/haggle.ts)
   // (D-455: a loaf is half a kilo of the grain's worth, bread with no count a day's two loaves, C; a measure 10 kg, a sack or load 30)
   const qtyOf = (w: string) => { const m = /\b(\d+|a|one|two|three|four|five|ten)\s+(measures?|sacks?|loads?|jars?|loaves?|loaf)\b/.exec(w); const n = m ? ({ a: 1, one: 1, two: 2, three: 3, four: 4, five: 5, ten: 10 } as Record<string, number>)[m[1]] ?? Number(m[1]) : 1;
