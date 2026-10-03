@@ -9851,3 +9851,7 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
 - D-474 correction: re-measured on the tip with the ground fix (de0c067a, built, cold, T4, a train sharing the GPU): page ready
   41.6 s (morning ~42), first frames seen 58.9 s (45.5), shaders settled 931 s (753), memory 10.57 GB (10.48), frame 170 ms
   (117), validation errors 1 (15). The "181 s settled" above was the bugged build that drew no ground. Decision unchanged.
+- D-474 REVERSED (03:50 UTC): s14-int is NOT pushed. The user's instruction for the day: push s14-int only after the
+  built-site load and the budget pass; the budget does not pass (first frames 45.5 -> 58.9 s, shaders settled 753 -> 931 s).
+  V10 (branch s17-loadback, D-479) wins the load back; the built site is re-measured and s14-int pushed only when no metric is
+  worse than the morning's. The final scoreboard (renders/2026-10-03T02-27-39-final2) and s17-int stand as they are.
