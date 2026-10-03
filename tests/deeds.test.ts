@@ -99,3 +99,12 @@ describe('D-459 a talk turn carries the deed (stand-in model)', () => {
     expect(sim.deeds.minds.feelOf(pid, 'player', day).anger).toBeGreaterThan(0.2);
   });
 });
+
+describe('D-720 (C7\'s CI): the deeds\' save round trip', () => {
+  it('a world run live, saved, loaded and saved again gives the same deeds save, byte for byte', async () => {
+    const { PeopleSim } = await import('../src/people/sim'); const { nav, envOf } = await import('./sim_fixture');
+    const a = new PeopleSim(1, nav(), envOf(1), { asks: true }); a.jumpTo(12 * 24 + 10);
+    const s1 = JSON.stringify(a.deeds.save()), b = new PeopleSim(1, nav(), envOf(1), { asks: true }); b.load(JSON.parse(JSON.stringify(a.save())));
+    expect(JSON.stringify(b.deeds.save())).toBe(s1);
+  }, 600_000);
+});
