@@ -147,6 +147,22 @@ describe('the rooms: measured impulse responses by room kind (D-620)', () => {
   });
 });
 
+describe('without the recordings the synthesis plays (D-620)', () => {
+  const u = { hour: 12, month: 3, windMs: 6, rain: 0.6, insideSpace: 'open', nearColumns: false, stepPhase: 0, running: false, surface: 'earth' as const, fires: [{ id: 'f', lit: true, pos: { x: 3, y: 0, z: 0 } }], listener: { x: 0, y: 1.6, z: 0 }, worksite: null, workHours: false, place: { town: 1, water: 0, trees: 0, midden: 0, animals: 0 } };
+  for (const [name, sections, fail] of [['no manifest', null, []], ['every listed file missing', { beds: { town_day: [{ file: 'beds/town_day_0.ogg', dur: 120 }], rain_light: [{ file: 'beds/rain_light_0.ogg', dur: 120 }], hearth: [{ file: 'beds/hearth_0.ogg', dur: 120 }] }, oneshots: { bark: [{ file: 'oneshots/bark_0.ogg', dur: 1 }] }, foot: { earth_walk: [{ file: 'foot/earth_walk_0.ogg', dur: 0.4 }] } }, ['.ogg']]] as const) {
+    it(`${name}: beds, strikes, thunder and steps all synthesise, nothing throws`, async () => {
+      const { ctx, e } = engineOn(), { lib } = sections ? fakeLib(ctx, sections as unknown as Manifest['sections'], [...fail]) : { lib: new SoundLibrary('/', { fetch: async () => null, decode: async () => { throw new Error('no'); } }) };
+      lib.start(ctx as unknown as BaseAudioContext); await flush();
+      const sound = new Soundscape(e, lib); let step = 0;
+      for (let i = 0; i < 300; i++) { sound.update(1 / 30, { ...u, stepPhase: (step += 0.25) }); ctx.advance(1 / 30); if (i % 30 === 0) { sound.strike('bark', { x: 4, y: 0, z: 0 }); await flush(); } }
+      sound.thunder(0, 1);
+      expect(sound.shots.played).toBe(0); expect(sound.beds.recorded.size).toBe(0); expect(e.irMeasured).toBe(false);
+      expect(ctx.starts.filter(n => n.kind === 'source').length).toBeGreaterThan(20); // the synthesised streams, strikes and steps
+      expect(lib.state).toBe(sections ? 'ready' : 'none');
+    });
+  }
+});
+
 describe('the fetch screens (D-620)', () => {
   it('licences: CC0, CC BY, CC BY-NC taken; SA, ND and sampling+ refused', () => {
     expect(licenceClass('Creative Commons 0')).toBe('CC0'); expect(licenceClass('http://creativecommons.org/publicdomain/zero/1.0/')).toBe('CC0');

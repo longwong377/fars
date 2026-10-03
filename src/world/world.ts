@@ -59,7 +59,7 @@ import { buildGlazedFrieze } from '../arch/glazed';
 import { updateReliefs, settleReliefs, buildReliefShadow, ReliefSet } from '../arch/reliefs';
 import { setReliefShadow, refreshReliefShadow } from '../render/reliefShadow';
 import { FireSystem, fireLight, type FireKind } from './fire';
-import { placeFires, townPorts } from './firePlaces';
+import { placeFires, townPorts, addCampHearths } from './firePlaces';
 import { loadFireOcc } from './fireOcc';
 export { apadanaTorches, inDoorway } from './firePlaces';
 import { buildTreasuryGoods, buildScribesRoom, buildRoomFittings } from './furnish';
@@ -137,10 +137,10 @@ import { Conversations, addressIntents, speak, type SpeakerLike } from '../peopl
 import { sunTimes } from '../people/calendar';
 import { Rng } from '../core/rng';
 import type { WeatherSystem } from '../weather/weatherState';
-import { CourtCampTents } from './courtCamps';
+import { CourtCampTents, campItems } from './courtCamps';
 import { NearSolids, SOLID_R } from './solids';
 import type { AnimalInst } from '../people/animals';
-import { CAMPS } from '../people/camps';
+import { CAMPS, tentStands } from '../people/camps';
 import { Fauna, FAC as FAUNA_FAC, grazingSites, type VillageIn } from './fauna';
 import { Traffic, type Mover } from './traffic';
 import { quarrySites } from './plain/quarries';
@@ -429,6 +429,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   sim.routeSearchesPerStep = 1; // at most one new route search per render frame (D-024)
   // D-199: the court's camps (court setting only): the tents of the court's camp and of the retinue's camps (camps.ts)
   const campTents = sim.pop.court ? new CourtCampTents(sim.pop.court.tents, (e, n) => terrain.heightAt(e, -n), phys) : null; if (campTents) root.add(campTents.group);
+  if (sim.pop.court) addCampHearths(fire, campItems(sim.pop.court.tents), (e, n) => terrain.heightAt(e, -n), ti => tentStands(sim.pop.court!.tents[ti], sim.t)); // D-530: the court camps' hearths (C3's ask)
   // people's bodies (D-090): MakeHuman-derived variants in period dress, instanced per costume and LOD, pooled (D-093)
   const humans = await humansP;
   const crowd = new Crowd(sim, seed, humans); root.add(crowd.group);

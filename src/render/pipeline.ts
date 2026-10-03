@@ -77,7 +77,12 @@ export const SSR_MISS_D = 8;
 /** sun contact shadows (D-157): screen-space rays toward the sun, 0.6 m long, against depth samples 6 cm thick; they darken
  *  only the pixel's share of direct sun (estimated as below), where the shadow map's texels and bias (6 cm, D-146) leave a
  *  plinth or a step nosing without its contact shadow */
-export const SSS_MAX_DISTANCE = 0.6, SSS_THICKNESS = 0.06;
+export const SSS_MAX_DISTANCE = 1.0, SSS_THICKNESS = 0.12;
+/** D-480 (contact, the art direction: nothing floats): the contact AO (the SSGI's short-range term) is sharpened by this power in
+ *  the composite (a jar, a door jamb or a wall foot meeting the ground darkens its last decimetres); the lab measured the 0.6 m /
+ *  6 cm contact rays stepping through walls (sss debug view all-white beside a sunlit plinth), so they reach 1 m with 12 cm
+ *  samples. C */
+export const CONTACT_AO_POW = 1.8;
 /** D-355: the screen-space passes' resolution (× the drawing buffer) per quality; TRAA resolves the upsampled result */
 export const POST_SCALE: Partial<Record<Quality, { ssgi: number; ssr: number; sss: number }>> = {
   high: { ssgi: 1, ssr: 1, sss: 1 },
@@ -218,7 +223,7 @@ export class Pipeline {
         node.thickness.value = SSGI_THICKNESS; node.useLinearThickness.value = true;
         node.aoNearRadius.value = SSGI_CONTACT_RADIUS; node.nearSteps.value = SSGI_CONTACT_STEPS;
       }
-      const aoTex = node.getAONode(), aoFull = aoTex.r, aoNear = V.includes('orig') ? aoTex.r : aoTex.g, bounce = node.getGINode().rgb;
+      const aoTex = node.getAONode(), aoFull = aoTex.r, aoNear = V.includes('orig') ? aoTex.r : aoTex.g.pow(CONTACT_AO_POW), bounce = node.getGINode().rgb;
       // sky pixels come out of the SSGI pass with AO 1 and GI 0 (patched node), so the composite leaves them unchanged
       const ao0 = mix(mix(aoFull, min(aoFull, aoNear), this.ab.contact), aoNear, w);
       // D-309b: outside the probe volumes, the sky the built world leaves visible (skyVis.ts), with the SSGI's AO (min)

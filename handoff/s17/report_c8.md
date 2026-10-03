@@ -17,4 +17,6 @@
 
 **Census also covers activity foley**: all 25 work sounds the performances ask for are listed (5 fetched; footsteps, fire and murmur are layers). **Rooms**: the 8 measured impulse responses play per room kind (hall_large for the great halls, hall_medium, room_small, court for courts and lanes, gorge for the slopes, open, wood, chamber), tested end to end.
 
-**Tests**: sound_recorded 14/14; audio, audio_population, door_sounds, occlusion, waterworks, farcrowd, voices_unique pass; lint:lang 26/26; guards pass; 183/183 files decode in headless Chromium at their listed lengths.
+**Fallback**: tested that with no manifest, or with every listed file missing, beds, strikes, thunder and steps all play the synthesis and nothing throws (the world sounds as it did before D-620 if the recordings never arrive).
+
+**Tests** (after the last merge of cloud-s17-int, 00:15 UTC): sound_recorded 16/16; audio, audio_population, door_sounds, occlusion, waterworks, farcrowd, voices_unique pass; lint:lang 25/26 (the failure is not C8's: public/textures/dirt_floor/arm.jpg, merged from cloud-s17-int, is not registered as checked for text); guards pass; 183/183 files decode in headless Chromium at their listed lengths.
