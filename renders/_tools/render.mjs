@@ -35,6 +35,13 @@ for (const v of work) {
       wait = await p.evaluate(() => { const a = window.__parsa, P = a.people?.(), H = a.humans?.(); return { t: P?.t ?? null, pending: H?.view?.pending ?? null }; });
       if (wait.t !== null && Math.abs(wait.t - target) < 0.05 && !wait.pending) break;
       await p.evaluate(() => window.__parsa.tick()); }
+    // a face view (v.face): the camera 0.5 m before the nearest simulated person to (e, n) still and in the open (a talker
+    // first), at face height, looking at them
+    if (v.face) { const who = await p.evaluate(([e, n]) => { const g = (window.__parsa.people?.()?.agents ?? []).filter(x => !x.offmap);
+        const d = x => Math.hypot(x.e - e, x.n - n) + (x.walking ? 30 : 0) - (/talk|chat|convers|gossip|haggl|sell/i.test(String(x.act)) ? 20 : 0);
+        g.sort((x, y) => d(x) - d(y)); return g[0] ?? null; }, [v.e, v.n]);
+      if (who) { const az = v.az, r = az * Math.PI / 180, ce = who.e - 0.5 * Math.sin(r), cn = who.n - 0.5 * Math.cos(r);
+        a[0] = ce; a[1] = cn; a[2] = v.eye ?? 1.5; a[3] = az; a[4] = v.pitch ?? 0; v.who = `${who.name} (${who.role}, ${who.act}) at ${who.e},${who.n}`; console.log('face:', v.who); } }
     await p.evaluate(a => window.__parsa.view(...a), a);
     for (let i = 0; i < +(v.frames ?? process.env.FRAMES ?? 3); i++) await p.evaluate(() => window.__parsa.renderOnce());
     // people drawn here vs the sim's count for the spot (the lead's ask, s18): skinned + impostors drawn, the population view's
@@ -43,7 +50,7 @@ for (const v of work) {
       const near = r => (P?.agents ?? []).filter(g => !g.offmap && Math.hypot(g.e - e, g.n - n) < r).length;
       return { skinned: (H.perf?.drawn ?? []).reduce((x, y) => x + y, 0), imp: H.impPerf?.drawn ?? H.impostors ?? null, popKept: H.view?.candidates ?? null, popVisible: H.view?.visible ?? null, popPending: H.view?.pending ?? null, agents60: near(60), agents150: near(150), simT: P?.t != null ? +P.t.toFixed(3) : null }; }, [v.e, v.n]).catch(e => ({ err: String(e).slice(0, 80) }));
     life.waitS = +((Date.now() - tw) / 1000).toFixed(0); life.target = +target.toFixed(3);
-    appendFileSync(`${outDir}/life.jsonl`, JSON.stringify({ id: v.id, ...life }) + '\n');
+    appendFileSync(`${outDir}/life.jsonl`, JSON.stringify({ id: v.id, who: v.who, ...life }) + '\n');
     const tf = Date.now(); await p.screenshot({ path: `${outDir}/${v.id}.png`, timeout: 1800000 }); const tshot = ((Date.now() - tf) / 1000).toFixed(0);
     const st = await p.evaluate(() => { const s = window.__parsa.stats(); return { dc: s.drawCalls, tri: s.triangles, be: s.backend }; }).catch(() => ({}));
     const line = `${v.id} ${((Date.now() - t1) / 1000).toFixed(0)}s (shot ${tshot}s) ${JSON.stringify(st)} life ${JSON.stringify(life)}`; console.log(T(), line); appendFileSync(`${outDir}/log.txt`, line + '\n');
