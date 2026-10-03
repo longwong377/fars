@@ -1,6 +1,8 @@
 # PĀRSA s18 status board (lead 4 from 11:55 UTC; one page; replaces the scattered notes for "where are we")
 Updated 12:05 UTC, s17-int fd762af7 (C2 decals off + C10 kit merged) (= cloud-s17-int). Plan and finish line: handoff/s18/reset.md. Lost work: lost_work.md.
 
+## Lead 4 closed (13:53 UTC): live = s14-int ab009bc8 (D-813, Pages green 13:06). All agent sessions archived; only the next lead remains. Review cycle 2 never landed (C6 archived before pushing; cycle 1 = 3/10, 3/10). Next lead, in order: (1) one GPU review render of ab009bc8 on the Vagon T4 (BATCH=1, the 13 views of renders/_sets/review.json) + two blind reviewers; (2) merge C13's robe 0f68c08c after rebuilding impostors.mjs + scans.ktx2 (lost_work.md); (3) reds: town_glow smoke, religion.test x3, funeral carry_bier (C1 branch), econ_plans 'nobody moves without a walk'; (4) town walkers 1-2 % in page (target 5 %), town bot stuck 8.25 %; (5) C10 site kit colliders, C2 awnings off, banquet empty.
+
 ## Finish (UD-40): presentable by 93 % weekly usage. Feature freeze now; agents land only green review fixes; the lead deploys the best DEPLOY OK head and stops work in flight before 93 %.
 
 ## Broken or unknown, first
