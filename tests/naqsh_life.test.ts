@@ -24,12 +24,13 @@ describe('Naqsh-e Rustam in 467 (D-800)', () => {
     expect(facadePaint(F, 0, 18, 0.3, 0)[1], 'the lower arm is bare').toBe(0);
     expect(facadePaint(F, 0, 27.3, 0.3, 0)[1], 'the architrave is painted').toBeGreaterThan(0.5);
   });
-  it('the captions are the edition\'s Old Persian (ARIo Q007154-6), lost lines uncut', () => {
+  it('the captions\' Old Persian is prepared from the edition (ARIo Q007154-6), lost lines blank, and not yet carved', () => {
     expect((CAP as any).DNc.op_signs[0]).toMatch(/^ga-u-ba-ru-u-va : pa-a-ta-i-ša-u-va-ra-i-ša/); // Gaubaruva Pātišuvariš
     expect((CAP as any).DNd.op_signs[0]).toMatch(/^a-sa-pa-ca-na-a : va-ça-ba-ra/); // Aspacanā vaçabara
     const L = (CAP as any).DNe.lines as (string[] | null)[]; expect(L.length).toBe(30); expect(L.filter(x => !x).length).toBe(12); expect(L[0]![0]).toBe('i-ya-ma : pa-a-ra-sa');
     const note = String((buildNaqsh(T, R.nrAncientFootAsl).texts.getObjectByName('nr-inscriptions-carved') as THREE.Mesh).userData.note);
-    expect(note).toMatch(/DNc: \d+ signs/); expect(note).toMatch(/DNe1: \d+ signs/); expect(note).not.toMatch(/DOES NOT FIT/); expect(note).toMatch(/Elamite and Babylonian/);
+    // not carved until the inscription data carries them (only the data's own texts are cut, §10; tests/language.test.ts)
+    expect(note).not.toMatch(/DNc: \d+ signs/); expect(note).toMatch(/captions DNc, DNd, DNe/); expect(note).toMatch(/Elamite and Babylonian/);
   });
   it('the second tomb\'s scaffold and spoil, the keepers\' house at the people\'s house, the offering table', () => {
     expect(KEEPERS_HOUSE).toEqual(NAQSH.house);
