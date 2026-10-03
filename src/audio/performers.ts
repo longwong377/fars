@@ -34,6 +34,7 @@ import type { Performance } from './music';
 import { tierOf } from './musicClaims';
 import { MESOPOTAMIAN_MODES, GREEK_MODES } from './tuning';
 import type { PlayKind } from '../people/playing';
+import { isBanquetNight, ceremonyHours } from '../people/ceremony';
 
 export interface PerformerAgent { id: number; role: string; origin: string; sex: 'm' | 'f'; seed: number; offmap: boolean; walking: boolean;
   task: { act: string; place: string } | null; pos: [number, number]; y: number }
@@ -47,6 +48,9 @@ export interface MusicCtx {
   foul: boolean;
   /** the hall where the court's women play (grid centre, size, floor): the Hadish's measured room */
   courtHall?: { cx: number; cy: number; sx: number; sy: number; fl: number } | null;
+  /** D-780: the Apadana's hall (the great banquets: people/ceremony.ts): its floor height; the musicians stand in the bays
+   *  beside the throne. Absent: no banquet music */
+  banquetHall?: { fl: number } | null;
 }
 /** a person of the population out of doors now (popview.ts ViewPerson with the person's sex and age): the herders */
 export interface PopPerformer { pid: number; sex: 'm' | 'f'; age: number; act: string; why: string; place: string; e: number; n: number; y: number; moving: boolean; seed: number }
@@ -54,7 +58,7 @@ export interface PopPerformer { pid: number; sex: 'm' | 'f'; age: number; act: s
  *  placed in the hall (extra). `pos`: where the sound comes from (the mouth or the instrument); an extra stands on the
  *  floor at `extra.floor`. `play`: what the performer is seen doing (playing.ts) */
 export interface GigPart { key: string; agentId?: number; pid?: number; extra?: { sex: 'm' | 'f'; seed: number; /** facing, grid degrees (0 north, 90 east) */ heading: number; anim: 'sit' | 'idle'; floor: number }; pos: { e: number; n: number; y: number }; perf: Performance | null; play?: PlayKind }
-export interface Gig { id: string; kind: 'quern_song' | 'mason_song' | 'court_supper' | 'court_night' | 'herder_pipe' | 'magus_chant' | 'women_drum'; place: string; parts: GigPart[]; claims: string[]; tier: string;
+export interface Gig { id: string; kind: 'quern_song' | 'mason_song' | 'court_supper' | 'court_night' | 'court_banquet' | 'herder_pipe' | 'magus_chant' | 'women_drum'; place: string; parts: GigPart[]; claims: string[]; tier: string;
   /** hours (sim) when this stretch of playing ends */
   until: number;
   /** what you see: PLACEHOLDER when the playing or the instrument is not shown */
@@ -156,8 +160,17 @@ export function musicAt(agents: readonly PerformerAgent[], c: MusicCtx, pop: rea
     }
   }
   // --- the court (setting only)
+  // D-780: a great banquet in the Apadana (people/ceremony.ts): the king's women musicians play through it, pieces of a few
+  // minutes with pauses (Parmenion's list of the king's musician women, Athenaeus 13.608, a claim: ATH13-PARM, B; the
+  // Madaktu musicians, M-19: B type; the number, the place and the frame drum among them C); the supper in the Hadish is not
+  // held that night (the king dines at the banquet)
+  const bh = c.banquetHall, banquet = !!bh && c.courtToday && isBanquetNight(c.seed, day) ? ceremonyHours(c.seed, day).banquet : null;
+  if (banquet && bh && h >= banquet[0] + 0.3 && h < banquet[1] - 0.2) {
+    const P = 0.075, k = Math.floor((h - banquet[0] - 0.3) / P), from = day * 24 + banquet[0] + 0.3 + k * P, to = from + 0.055;
+    if (c.t < to) out.push(courtGig(c, { cx: 10.15, cy: -23.4, sx: 6, sy: 6, fl: bh.fl }, 'court_banquet', `court:banquet:${day}:${k}`, to, 5, 3, ['M-01', 'M-03', 'M-04', 'M-13', 'M-16', 'M-17', 'M-19', 'M-20'], 'apadana', true));
+  }
   const hall = c.courtHall;
-  if (hall) {
+  if (hall && !banquet) {
     const supperFrom = c.sun.set + 0.5, supperTo = c.sun.set + 2.5;
     if (c.courtToday && h >= supperFrom && h < supperTo) {
       const P = 0.075, k = Math.floor((h - supperFrom) / P), from = day * 24 + supperFrom + k * P, to = from + 0.05;
@@ -179,7 +192,7 @@ function window(seed: number, key: string, block: number, min: number, max: numb
   return { from, to: from + len };
 }
 
-function courtGig(c: MusicCtx, hall: NonNullable<MusicCtx['courtHall']>, kind: 'court_supper' | 'court_night', key: string, until: number, singers: number, harps: number, claims: string[]): Gig {
+function courtGig(c: MusicCtx, hall: NonNullable<MusicCtx['courtHall']>, kind: 'court_supper' | 'court_night' | 'court_banquet', key: string, until: number, singers: number, harps: number, claims: string[], place = 'hadish', drum = false): Gig {
   const r = new Rng(c.seed, key), pieceSeed = r.int(0, 1e9), tonic = r.range(196, 247), modeId = MESOPOTAMIAN_MODES[r.int(0, 6)].id, tempo = r.range(66, 92);
   // the women stand together in the north half of the hall, facing south: the harpists in front, the singers behind (C;
   // the Madaktu musicians stand and walk, M-19); the sound from the harp's strings (1.2 m) and the singers' mouths (1.5 m)
@@ -189,7 +202,9 @@ function courtGig(c: MusicCtx, hall: NonNullable<MusicCtx['courtHall']>, kind: '
     perf: { id: `${key}:harp${i}`, instrument: 'harp', tradition: 'mesopotamian', context: 'court', modeId, pieceSeed, tonic, tempo, seed: r.int(0, 1e9), claims } });
   for (let i = 0; i < singers; i++) parts.push({ key: `court:singer:${i}`, extra: { sex: 'f', seed: 7100 + i, heading: 180, anim: 'idle', floor: hall.fl }, pos: at(i, singers, 1), play: 'sing',
     perf: i === 0 ? { id: `${key}:voices`, instrument: 'voice', register: 'f', voices: singers, tradition: 'mesopotamian', context: 'court', modeId, pieceSeed, tonic, tempo, seed: r.int(0, 1e9), claims } : null });
-  return { id: key, kind, place: 'hadish', claims, tier: tierOf(claims), until, parts,
+  if (drum) parts.push({ key: 'court:drummer:0', extra: { sex: 'f', seed: 7200, heading: 180, anim: 'idle', floor: hall.fl }, pos: { e: hall.cx + (harps + 1) * 0.65, n: hall.cy + 4, y: hall.fl + 1.2 }, play: 'frame_drum',
+    perf: { id: `${key}:drum`, instrument: 'frame_drum', tradition: 'mesopotamian', context: 'court', tempo, seed: r.int(0, 1e9), claims } });
+  return { id: key, kind, place, claims, tier: tierOf(claims), until, parts,
     visual: { placeholder: false, note: 'the court women in the court dress (D-215, B20c closed): the many-folded robe belted at the front, the crenellated crown and the long veil down the back (IR-WOMEN, the Pazyryk women: B; cut, sizes and colours C), gold at the ears and wrists, the eyes lined (C). The harps and the playing and singing are modelled (D-200, C)' } };
 }
 /** the parts that sound (a chorus sings from its leader's place; the other singers only sit with her) */

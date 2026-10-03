@@ -14,7 +14,7 @@ import sources from '../src/data/sources.json';
 import courtJson from '../src/data/court.json';
 
 const nav = new NavGrid(new Int16Array(readFileSync('public/generated/nav.i16').buffer.slice(0)), new Uint8Array(readFileSync('public/generated/nav_edges.u8')));
-const env = () => ({ rain: 0, lightning: 0, windMs: 2, tempC: 18, dust: 0 });
+const env = () => ({ rain: 0, lightning: false, windMs: 2, tempC: 18, dust: 0 });
 
 describe('the court’s programme (ceremony.ts)', () => {
   it('every kind of event happens in a residence, inside it, on the right days; deterministic; sources resolve', () => {

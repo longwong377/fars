@@ -19,7 +19,7 @@ def arg(k, d=None):
     return argv[argv.index(k) + 1] if k in argv else d
 SHOT = arg('--shot', 'all'); RES = [int(x) for x in arg('--res', '960x402').split('x')]; FPS = int(arg('--fps', '12'))
 SAMPLES = int(arg('--samples', '24')); OUT = arg('--out', '/tmp/film_frames'); WORK = arg('--work', os.path.join(ROOT, 'tools/film/work'))
-EVERY = int(arg('--every', '1')); STILL = '--only-still' in argv; THREADS = int(arg('--threads', '0')); OFFSET = int(arg('--offset', '0'))
+EVERY = int(arg('--every', '1')); STILL = '--only-still' in argv; THREADS = int(arg('--threads', '0')); OFFSET = int(arg('--offset', '0')); GPU = '--gpu' in argv
 MODELS = arg('--models', WORK)  # where glb_plain.mjs left the readable copies of the game's models
 M = json.load(open(os.path.join(ROOT, 'public/audio/score/manifest.json')))['cues']['main_theme']['marks']
 CARVE = json.load(open(os.path.join(WORK, 'carve.json')))
@@ -29,7 +29,17 @@ def bar(n): return M[f'bar{n}']
 def reset():
     bpy.ops.wm.read_factory_settings(use_empty=True)
     sc = bpy.context.scene
-    sc.render.engine = 'CYCLES'; sc.cycles.device = 'CPU'; sc.cycles.samples = SAMPLES; sc.cycles.use_denoising = True
+    sc.render.engine = 'CYCLES'; sc.cycles.device = 'CPU'
+    if GPU:  # Vagon's T4: OptiX, else CUDA
+        prefs = bpy.context.preferences.addons['cycles'].preferences
+        for kind in ('OPTIX', 'CUDA'):
+            try:
+                prefs.compute_device_type = kind; prefs.get_devices()
+                if any(d.type == kind for d in prefs.devices):
+                    for d in prefs.devices: d.use = d.type == kind
+                    sc.cycles.device = 'GPU'; break
+            except Exception: pass
+    sc.cycles.samples = SAMPLES; sc.cycles.use_denoising = True
     sc.cycles.denoiser = 'OPENIMAGEDENOISE'; sc.cycles.use_adaptive_sampling = True; sc.cycles.adaptive_threshold = 0.03
     sc.cycles.max_bounces = 6; sc.cycles.volume_bounces = 1; sc.cycles.glossy_bounces = 3; sc.cycles.transmission_bounces = 2
     sc.cycles.volume_step_rate = 4.0; sc.cycles.caustics_reflective = False; sc.cycles.caustics_refractive = False
@@ -250,6 +260,8 @@ def s_stylus(sc):
     """the reed stylus presses wedges into wet clay; each impression is there as it lifts away"""
     Wd = CARVE['wedges']; sx = 0.08; sy = sx * Wd['h'] / Wd['w']
     base = grid_displaced('clay', sx, sy, 700, 480, os.path.join(WORK, 'wedge0.png'), 0.0, clay())
+    # the rest of the slab of clay round the worked patch, so no edge is ever in the frame
+    bpy.ops.mesh.primitive_plane_add(size=0.6, location=(0, 0, -0.0004)); bpy.context.active_object.data.materials.append(base.data.materials[0])
     mods = []
     for i in range(len(Wd['list'])):
         img = bpy.data.images.load(os.path.join(WORK, f'wedge{i}.png')); img.colorspace_settings.name = 'Non-Color'
@@ -269,8 +281,11 @@ def s_stylus(sc):
         if k is None: k = 0
         q = Wd['list'][k]; x, y = px2w(q['x'] + 0.25 * q['len'] * math.cos(q['ang']), q['y'] + 0.25 * q['len'] * math.sin(q['ang'])); tp = presses[k]
         dz = 0.02 * (1 - ease(1 - abs(t - (tp + 0.15)) / 0.6)) if abs(t - (tp + 0.15)) < 0.6 else 0.02
-        st.location = (x, y, 0.08 + dz - 0.0); st.rotation_euler = (math.radians(28), 0, -q['ang'] + math.radians(90))
-        u = (t - T0) / (T1 - T0); c.location = (lerp(-0.03, 0.02, u), -0.12, 0.085); look(c, (lerp(-0.012, 0.012, u), 0, 0)); c.data.dof.focus_distance = (c.location - Vector((x, y, 0))).length
+        st.rotation_euler = (math.radians(-32), math.radians(10), 0); axis = st.rotation_euler.to_matrix() @ Vector((0, 0, 1))
+        st.location = Vector((x, y, dz)) + axis * 0.08  # the reed's tip on the clay (its origin is its middle, 0.08 m up its axis)
+        # the lens follows the reed's tip, a little behind it (eased, never snapping between impressions)
+        aim = up.aim = Vector((x, y, 0)) if not hasattr(up, 'aim') else up.aim.lerp(Vector((x, y, 0)), 0.12)
+        u = (t - T0) / (T1 - T0); c.location = (aim.x * 0.6 + lerp(-0.012, 0.012, u), aim.y - 0.075, 0.1); look(c, aim + Vector((0, 0.006, 0.004))); c.data.dof.focus_distance = (c.location - aim).length
     return up
 
 @shot('tablet', bar(5), bar(7))

@@ -37,10 +37,21 @@ describe('the score director (D-760)', () => {
 
 describe('the score on disk (D-760)', () => {
   const man = 'public/audio/score/manifest.json';
-  it('has the main theme and every cue in Opus and AAC, each under 6 MB', () => {
-    expect(existsSync(man)).toBe(true);
-    const m = JSON.parse(readFileSync(man, 'utf8')) as Catalogue; expect(m.cues.main_theme).toBeTruthy();
-    for (const id of Object.keys(m.cues)) for (const e of ['ogg', 'm4a']) {
-      const f = `public/audio/score/${id}.${e}`; expect(existsSync(f), f).toBe(true); expect(statSync(f).size).toBeLessThan(6e6); }
+  const m = JSON.parse(readFileSync(man, 'utf8')) as Catalogue;
+  it('has the theme (in the film) and every cue of the world in Opus, each under 4 MB; the opening\'s also in AAC', () => {
+    expect(m.cues.main_theme?.marks?.title).toBeGreaterThan(100);
+    for (const [id, c] of Object.entries(m.cues)) { if (c.tags.includes('film')) continue;
+      for (const e of c.tags.includes('opening') ? ['webm', 'm4a'] : ['webm']) { const f = `public/audio/score/${id}.${e}`; expect(existsSync(f), f).toBe(true); expect(statSync(f).size).toBeLessThan(4e6); } }
+  });
+  it('holds an hour of music for the world, every hour of the day and the rain covered', () => {
+    const world = Object.values(m.cues).filter(c => !c.tags.includes('film'));
+    expect(world.reduce((a, c) => a + c.seconds, 0)).toBeGreaterThanOrEqual(3600);
+    for (const t of ['dawn', 'day', 'dusk', 'night', 'rain', 'terrace', 'road']) expect(world.filter(c => c.tags.includes(t)).length, t).toBeGreaterThanOrEqual(2);
+  });
+  it('cuts the opening on the bars of its music', async () => {
+    const { SHOTS, barAt, INTRO_SECONDS } = await import('../src/shell/intro');
+    let t = 0; const bars = Array.from({ length: 40 }, (_, i) => barAt(i + 1));
+    for (const s of SHOTS) { t += s.dur; expect(bars.some(b => Math.abs(b - t) < 0.01), `${s.id} ends at ${t.toFixed(2)} s`).toBe(true); }
+    expect(bars.some(b => Math.abs(b - INTRO_SECONDS) < 0.01)).toBe(true);
   });
 });
