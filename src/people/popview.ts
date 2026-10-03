@@ -141,6 +141,10 @@ export const SPREAD_R = { inside: 5, out: 12 } as const;
 /** D-690: people standing make way for the stranger within YIELD_R m (YIELD_DOOR_R by a doorway: doorways first), by up to
  *  YIELD_STEP m, turned toward the stranger (C: a step aside, a glance) */
 export const YIELD_R = 2.4, YIELD_DOOR_R = 3.2, YIELD_STEP = 0.85;
+/** D-697: where the court's groups spend a court day (court.json places: the forecourt before the N stair, the Apadana's N portico) */
+const COURT_ANCHOR: Record<string, P2> = { visitor: [0, 80], royal_guard: [0, 80], nobles: [0, 35], officials: [0, 35], herald: [0, 35], table: [0, 35] };
+/** D-697: a walker over the route budget asks again after this long (h: half a game minute) */
+const ROUTE_RETRY_H = 0.008;
 /** D-697: a state this far out of date (h) is not drawn until it is evaluated again */
 const STALE_H = 0.05;
 /** D-692: the plan budget after a jump in time: the first update's ms, then that many updates at the last ms */
@@ -211,7 +215,13 @@ export class PopView {
       if (xy) homeOf.set(H.id, xy); }
     for (const p of P.persons) { const h = homeOf.get(p.hh) ?? homeOf.get(p.hh2); if (h) { A[p.id * 4] = h[0]; A[p.id * 4 + 1] = h[1]; }
       const terraceWork = p.zone === 'terrace' || ['builder', 'porter', 'camp', 'caretaker', 'guard'].includes(p.job) || p.work === 'treasury_inside' || p.work === 'treasury_store' || p.work === 'treasury_desk';
-      if (terraceWork) { A[p.id * 4 + 2] = TER[0]; A[p.id * 4 + 3] = TER[1]; }
+      // (D-697: the court's people work at the Terrace: anchored by their camps alone they were planned after 38,000 others,
+      // and a jump to a court day showed 4 of the 560 the plans put within 60 m of the Apadana's N court for seconds)
+      // (and by their group's place on the Terrace, not its centre: tied with every Terrace worker at one point they ranked
+      // 10,000-15,000th)
+      const K = P.court, g = K && p.id >= K.first && p.id < K.end ? K.member(p.id)?.g : undefined, ga = g ? COURT_ANCHOR[g] : undefined;
+      if (ga) { A[p.id * 4 + 2] = ga[0]; A[p.id * 4 + 3] = ga[1]; }
+      else if (terraceWork || (g && g !== 'retinue' && g !== 'courier')) { A[p.id * 4 + 2] = TER[0]; A[p.id * 4 + 3] = TER[1]; }
       // (D-692: a work place of its own, a town workshop 'ws:3', 'ws_textile' and the like: where the geo puts it, once per
       // place. Anchored only by their homes, the Treasury's workshop hands of q_s1 living up to 1.6 km off were planned
       // last, after thousands: a second after a jump the view lacked 28 of the 117 people near cov-266)
@@ -308,7 +318,7 @@ export class PopView {
       if (i1 < P.n - 1) to = this.spotAt(s, P, i1 + 1, this.indoorAt(P, i1 + 1, P.t1[i1] + 1e-6)); else { const Q = this.planOf(s, d + 1, true); if (Q) { let k = 0; while (k < Q.n - 1 && Q.where[k] === ROAD) k++; to = this.spotAt(s, Q, k, this.indoorAt(Q, k, this.segT0(Q, k) + 1e-6)); } }
       if (!from?.ok || !to?.ok) { this.stats.unresolved++; return hide(T1, `walking between places not built (${from?.what ?? '?'} → ${to?.what ?? '?'})`); }
       const r = this.routeFor(s, from, to);
-      if (r === undefined) { this.stats.routeWait++; if (shown(from)) { s.mode = 1; s.spot = from; s.route = null; s.wp = i0 > 0 ? P.withP[i0 - 1] : -1; s.act = i0 > 0 ? ACTS[P.act[i0 - 1]] : 'rest'; s.why = i0 > 0 ? P.why[i0 - 1] : -1; s.pl = i0 > 0 ? P.place[i0 - 1] : -1; s.carry = -1; s.speed = 0; s.what = `${from.what} (waiting for a route)`; } else s.mode = 0; s.v0 = t; s.v1 = t; return; } // over this update's search budget: ask again
+      if (r === undefined) { this.stats.routeWait++; if (shown(from)) { s.mode = 1; s.spot = from; s.route = null; s.wp = i0 > 0 ? P.withP[i0 - 1] : -1; s.act = i0 > 0 ? ACTS[P.act[i0 - 1]] : 'rest'; s.why = i0 > 0 ? P.why[i0 - 1] : -1; s.pl = i0 > 0 ? P.place[i0 - 1] : -1; s.carry = -1; s.speed = 0; s.what = `${from.what} (waiting for a route)`; } else s.mode = 0; s.v0 = t; s.v1 = t + ROUTE_RETRY_H; return; } // over this update's search budget: ask again a little later (D-697: asked every update, the far walkers of a court day re-planned ~1.3 M times)
       if (r === null) { this.stats.unresolved++; return hide(T1, `no route ${from.what} → ${to.what}`); }
       const D = (T1 - T0) * 3600, v = r.len / Math.max(1, D), nat = this.pace(s.pid);
       let S0 = T0; if (v < MIN_PACE) { S0 = T1 - r.len / nat / 3600; this.stats.lateLeaves++; } else if (v > MAX_PACE) this.stats.hurried++;
@@ -335,7 +345,7 @@ export class PopView {
       if (i > 0 && ip >= 0 && P.where[ip] !== ROAD && P.where[ip] !== AWAY) pr = this.spotAt(s, P, ip, this.indoorAt(P, ip, this.segT0(P, i) - 1e-6)); }
     if (pr && pr.ok && sp.out && !indoor && Math.hypot(pr.e - sp.e, pr.n - sp.n) > 0.8) { // coming out (or across the court): walked from the start of the spell
       const r = this.routeFor(s, pr, sp);
-      if (r === undefined) { this.stats.routeWait++; s.mode = shown(pr) ? 1 : 0; s.spot = pr; s.route = null; s.v0 = t; s.v1 = t; return; }
+      if (r === undefined) { this.stats.routeWait++; s.mode = shown(pr) ? 1 : 0; s.spot = pr; s.route = null; s.v0 = t; s.v1 = t + ROUTE_RETRY_H; return; }
       if (r) { const dur = r.len / this.pace(s.pid) / 3600, t1 = Math.min(sT1, sT0 + dur);
         if (t < t1) { this.stats.steps++; s.mode = 2; s.route = r; s.w0 = sT0; s.w1 = t1; s.wOut = true; s.spot = sp; s.v0 = sT0; s.v1 = t1; s.act = 'walk'; s.why = P.why[i]; s.wp = P.withP[i]; s.pl = -1; s.carry = -1; s.speed = r.len / Math.max(1, (t1 - sT0) * 3600); s.what = `stepping ${pr.what} → ${sp.what}`; if (!pr.out) s.entry = 1; return; }
         v0 = t1; } }
@@ -348,7 +358,7 @@ export class PopView {
       // (into a room or a tent that is built, or in under a Terrace roof: a room not built is left at the boundary)
       if (nx && nx.ok && nIn && (nx.inside || (nx.out && nx.roof)) && Math.hypot(nx.e - sp.e, nx.n - sp.n) > 0.8) {
         const r = this.routeFor(s, sp, nx);
-        if (r === undefined) { this.stats.routeWait++; v1 = t; } // (over this update's search budget: ask again)
+        if (r === undefined) { this.stats.routeWait++; v1 = t + ROUTE_RETRY_H; } // (over this update's search budget: ask again a little later)
         else if (r) { const dur = r.len / this.pace(s.pid) / 3600, w0 = Math.max(v0, sT1 - dur);
           if (t >= w0) { this.stats.stepsIn++; s.mode = 2; s.route = r; s.w0 = w0; s.w1 = sT1; s.wOut = true; s.spot = nx; s.v0 = w0; s.v1 = sT1; s.act = 'walk'; s.why = P.why[i]; s.wp = P.withP[i]; s.pl = -1; s.carry = -1; s.speed = r.len / Math.max(1, (sT1 - w0) * 3600); s.what = `going in: ${sp.what} → ${nx.what}`; return; }
           v1 = w0; } } }

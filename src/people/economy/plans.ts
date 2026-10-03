@@ -51,7 +51,7 @@ const BUY_WHY: Record<StallGood, [string, ActivityId][]> = {
   wares: [['looking over the stalls for a new cooking pot and haggling for it', 'carry_jar'], ['buying a needle and a knife, after much looking', 'walk'], ['bartering barley for a bowl and a spindle', 'carry_jar']],
   grain: [['buying a measure of barley at the stalls, the price argued over', 'carry_sack']], fuel: [['buying a bundle of brushwood for the oven', 'carry_sack']],
   flock: [['buying cheese and a little wool to spin', 'carry_jar']], produce: [['buying onions and greens for the pot', 'carry_jar'], ['bartering a measure of barley for fruit and eggs', 'carry_jar']],
-  beer: [['buying a jar of beer for the evening', 'carry_jar']] };
+  beer: [['fetching the house’s beer for the evening, in a jar', 'carry_jar']] };
 
 type Role = 'errand' | 'man' | 'woman' | 'worker' | 'thief' | 'bound' | 'house';
 /** one economy-driven stretch of a person's day, before it is fitted to the day */

@@ -541,6 +541,7 @@ otherwise only threshold ids or existing files, and never loses a reference (`te
 | UD-37 | a 13th agent: the out-of-world screens to the AAA standard and a gorgeous intro cinematic; libraries only for culture-neutral materials and nature, every culturally shaped thing built by the project to its period kit | sessions/s17-vagon.md |
 | UD-38 | the opening cinematic directed to the AAA bar (skippable, may cover the load) with an original non-diegetic score (Vangelis/Zimmer-like), which may also play in the game without repeating | src/shell/intro.ts, handoff/s18/sessions.md |
 | UD-39 | the opening cinematic may be pre-rendered and stylised (a AAA game opening or a historical TV title sequence); the main theme in the video, a very long soundtrack, Hollywood level, never recognisable as AI | src/shell/intro.ts, handoff/s18/sessions.md |
+| UD-40 | presentable (deployed, lit, playable) before weekly usage reaches 93 %; feature freeze, only green review fixes land, nothing left in flight past it | handoff/s18/STATUS.md |
 
 ## 13. Revision log
 
