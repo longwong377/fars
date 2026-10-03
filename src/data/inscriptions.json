@@ -7127,5 +7127,83 @@
    "restored": 2,
    "paren": 0
   }
+ },
+ "DNc": {
+  "ario": "Q007154",
+  "op_translit": "Gau̯baruva Pātišuvariš Dārayavahau̯š xšāyaθiyahyā ṛštibara",
+  "el_atf": "",
+  "el_cuneiform": "",
+  "el_unmapped": [],
+  "bab_atf": "",
+  "bab_cuneiform": "",
+  "bab_unmapped": [],
+  "tier": {
+   "text": "A (standard edition, via CC0 mirror)",
+   "op_signs": "A (the published sign-by-sign edition, ARIo in CATF, CC0; data/corpus/ario_dn_captions.catf; s18 C15 D-800); restorations C",
+   "el_bab": "not in ARIo (Q-1730)"
+  },
+  "op_signs": [
+   "ga-u-ba-ru-u-va : pa-a-ta-i-ša-u-va-ra-i-ša : da-a-ra",
+   "ya-va-ha-u-ša : xa-ša-a-ya-θa-i-ya-ha-ya-a : ra-ta-i-ba-ra"
+  ],
+  "op_lined": true,
+  "op_words": []
+ },
+ "DNd": {
+  "ario": "Q007155",
+  "op_translit": "Aspacanā vaçabara Dārayavahau̯š xšāyaθiyahyā isuvām dārayati",
+  "el_atf": "",
+  "el_cuneiform": "",
+  "el_unmapped": [],
+  "bab_atf": "",
+  "bab_cuneiform": "",
+  "bab_unmapped": [],
+  "tier": {
+   "text": "A (standard edition, via CC0 mirror)",
+   "op_signs": "A (the published sign-by-sign edition, ARIo in CATF, CC0; data/corpus/ario_dn_captions.catf; s18 C15 D-800); restorations C",
+   "el_bab": "not in ARIo (Q-1730)"
+  },
+  "op_signs": [
+   "a-sa-pa-ca-na-a : va-ça-ba-ra : da-a-ra-ya-va-ha-u-ša : xa-ša"
+  ],
+  "op_lined": true,
+  "op_words": []
+ },
+ "DNe": {
+  "ario": "Q007156",
+  "op_translit": "iyam Pārsa iyam Māda iyam Ūja iyam Parθava iyam Harai̯va iyam Bāxtriya x iyam Uvārazmiy iyam Zranka iyam Hara.uvatiya x x iyam Hinduya x iyam Sakā tigraxau̯dā iyam Bābiruš iyam Aθuriya x x iyam Armina x iyam Spardiya iyam Yau̯na x x x x x iyam Maciyā iyam Kṛkā",
+  "el_atf": "",
+  "el_cuneiform": "",
+  "el_unmapped": [],
+  "bab_atf": "",
+  "bab_cuneiform": "",
+  "bab_unmapped": [],
+  "tier": {
+   "text": "A (standard edition, via CC0 mirror)",
+   "op_signs": "A (the published sign-by-sign edition, ARIo in CATF, CC0; data/corpus/ario_dn_captions.catf; s18 C15 D-800); the 12 lines lost in the edition not carved; restorations C",
+   "el_bab": "not in ARIo (Q-1730)"
+  },
+  "op_signs": [
+   "i-ya-ma : pa-a-ra-sa",
+   "i-ya-ma : ma-a-da",
+   "i-ya-ma : u-va-ja",
+   "i-ya-ma : pa-ra-θa-va",
+   "i-ya-ma : ha-ra-i-va",
+   "i-ya-ma : ba-a-xa-ta-ra-i-ya",
+   "i-ya-ma : u-va-a-ra-za-mi-i-ya",
+   "i-ya-ma : za-ra-ka",
+   "i-ya-ma : ha-ra-u-va-ta-i-ya",
+   "i-ya-ma : ha-i-du-u-ya",
+   "i-ya-ma : sa-ka-a : ta-i-ga-ra-xa-u-da-a",
+   "i-ya-ma : ba-a-ba-i-ru-u-ša",
+   "i-ya-ma : a-θa-u-ra-i-ya",
+   "i-ya-ma : a-ra-mi-i-na",
+   "i-ya-ma : sa-pa-ra-di-i-ya",
+   "i-ya-ma : ya-u-na",
+   "i-ya-ma : ma-ca-i-ya-a",
+   "i-ya-ma : ka-ra-ka-a"
+  ],
+  "op_lined": true,
+  "op_words": []
  }
 }

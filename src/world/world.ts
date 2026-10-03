@@ -367,11 +367,12 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     plain.data.rivers.rivers.forEach((r, k) => { halfW[k] = r.topWidth / 2; wet.addPolyline(r, 5, k); });
     for (const c of plain.data.canals) wet.addPolyline(c.pts as [number, number][], 5, 9);
     for (const m of townMiddens) dung.add(m[0], m[1]); if ((FAUNA_FAC as any).tannery) dung.add((FAUNA_FAC as any).tannery[0], (FAUNA_FAC as any).tannery[1]); // the tannery's flies (D-255)
+    const drawn = (e: number, n: number) => terrain.surfaceAt(e, -n); // s18 (C3): flora and rocks sit on the drawn terrain, not the nav grid's height (they floated on crests)
     const ground = (e: number, n: number) => { const y = nav.heightAt(e, n); return Number.isFinite(y) ? y : terrain.surfaceAt(e, -n); }; // D-356: the drawn surface (heightAt, the bilinear placement height, floats up to ~0.5 m on the mid ring)
     // (session 10, the planets-dusk render: a thistle grew out of the Terrace's paving; built ground, the Terrace and the town's
     // plots, holds no flora and no small life but the middens' flies)
     const terr = (FOOTPRINTS as any).terrace.polygon as [number, number][], inPoly = (P: [number, number][], x: number, y: number) => { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const [xi, yi] = P[i], [xj, yj] = P[j]; if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c; } return c; };
-    const built = (e: number, n: number) => inPoly(terr, e, n) || !!settlement?.plan.sites.some(s0 => { const s = s0 as any; const [u, v] = toLocal(s.frame, e, n), i = s.ci(u), j = s.cj(v); return s.inb(i, j) && s.cell[s.k(i, j)] >= 0; });
+    const built = (e: number, n: number) => inPoly(terr, e, n) || !!settlement?.plan.sites.some(s0 => { const s = s0 as any; const [u, v] = toLocal(s.frame, e, n); return Math.abs(u) < s.W / 2 + 2 && Math.abs(v) < s.H / 2 + 2; }); // s18 (C3, Vagon's floating lane plants): no flora, rocks or small life anywhere inside a town site, lanes and courts included
     const ctxAt = (e: number, n: number): CellCtx => {
       if (dung.any(e, n, 6)) return 'midden';
       if (built(e, n)) return 'none';
@@ -380,7 +381,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       if (sl > 0.3) return 'rock';
       return landUseAt(plain.data.zones, e, -n).use === 'natural' ? 'steppe' : 'field';
     };
-    return { life: new SmallLife(seed, { ground, ctxAt }), flora: new GroundFlora(seed, { ground, ctxAt }), rocks: new GroundRocks(seed, { ground, ctxAt }), ctx: ctxAt };
+    return { life: new SmallLife(seed, { ground, ctxAt }), flora: new GroundFlora(seed, { ground: drawn, ctxAt }), rocks: new GroundRocks(seed, { ground: drawn, ctxAt }), ctx: ctxAt };
   })();
   // session 10 (gap hunter C, C-F08/C-F09): droppings and sherds on the roads the traffic uses, more at the stair foot's halt and
   // the station (roadLitter.ts)

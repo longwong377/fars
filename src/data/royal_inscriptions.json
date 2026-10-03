@@ -18,13 +18,15 @@
   { "id": "DPf", "where": "the Terrace south wall", "versions": { "el": 1 }, "tier": "B / C", "spec": "terrace.r_south_wall_inscriptions" },
   { "id": "DPg", "where": "the Terrace south wall", "versions": { "bab": 1 }, "tier": "B / C", "spec": "terrace.r_south_wall_inscriptions" },
   { "id": "DNa", "where": "the tomb of Darius I, upper register behind the king", "versions": { "op": 1 }, "tier": "B (the tomb) / C (the panel)", "spec": "plain.json naqsh_e_rustam" },
-  { "id": "DNb", "where": "the tomb of Darius I, façade between the columns left of the door (the edition's restorations carved, C; 6 stretches lost and not restored left as uncut blanks: a placeholder)", "versions": { "op": 1 }, "tier": "B / C", "spec": "plain.json naqsh_e_rustam" }
+  { "id": "DNb", "where": "the tomb of Darius I, façade between the columns left of the door (the edition's restorations carved, C; 6 stretches lost and not restored left as uncut blanks: a placeholder)", "versions": { "op": 1 }, "tier": "B / C", "spec": "plain.json naqsh_e_rustam" },
+  { "id": "DNc", "where": "the tomb of Darius I, over Gobryas, the king's spear-bearer, at the top of the left side panel (place C)", "versions": { "op": 1 }, "tier": "B (the text, ARIo Q007154) / C (the place)", "spec": "plain.json naqsh_e_rustam" },
+  { "id": "DNd", "where": "the tomb of Darius I, over Aspathines, below Gobryas on the left side panel (place C)", "versions": { "op": 1 }, "tier": "B (the text, ARIo Q007155) / C (the place)", "spec": "plain.json naqsh_e_rustam" },
+  { "id": "DNe", "where": "the tomb of Darius I, beside the throne-bearers: each people's name by its bearer, the 18 lines the edition keeps of 30 (places C; lines 29-30, with no bearer of their own drawn, under each tier's last)", "versions": { "op": 1 }, "tier": "B (the text, ARIo Q007156) / C (the places)", "spec": "plain.json naqsh_e_rustam" }
  ],
  "missing": [
   { "id": "XPg", "what": "Xerxes' text on 'many glazed bricks' of the Apadana (the plaque's copy is carved, D-214)", "why": "glazed signs were moulded or painted in the glaze, which the carving (incised signs) does not draw, and where in the brickwork the text bricks were set is not read (the rosette frieze of D-214 carries no text); not drawn rather than drawn on a guess", "q": "Q-290" },
   { "id": "DNa", "what": "the Elamite and Babylonian versions beside the Old Persian on the tomb", "why": "not in the corpus read (the ARIo mirror's DNa is Old Persian only); nothing is carved that the corpus lacks", "q": "Q-290" },
-  { "id": "DNb", "what": "the Elamite and Babylonian versions of DNb on the tomb façade", "why": "not in the corpus read", "q": "Q-290" },
-  { "id": "DNc, DNd, DNe", "what": "the captions on the tomb of Darius: Gobryas (DNc) and Aspathines (DNd) beside their figures, and the labels of the throne-bearers' nations (DNe)", "why": "not in src/data/inscriptions.json; the ARIo edition has their Old Persian (Q007154-Q007156, the mirror and the CATF: D-214 found them) but the captions' fields on the tomb are not placed, and the tomb is the plain workstream's (naqsh.ts): not carved in this pass", "q": "Q-290" }
+  { "id": "DNb", "what": "the Elamite and Babylonian versions of DNb on the tomb façade", "why": "not in the corpus read", "q": "Q-290" }
  ],
  "hidden": [
   { "id": "DPh", "what": "the gold and silver foundation plates in stone boxes under the Apadana's NE and SE corners", "status": "modelled sealed (buildFoundationDeposits), text as data, not carved on any surface" },

@@ -604,6 +604,38 @@
     "notes": [],
     "edition_restored_words": []
    }
+  },
+  "DNc": {
+   "op": {
+    "en": "Gobryas, a Patischorian, the spear-bearer of Darius the king.",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [
+     "The carved signs are the edition's; the words run on across the two lines as on the stone."
+    ]
+   }
+  },
+  "DNd": {
+   "op": {
+    "en": "Aspathines, the vaçabara (a court title: perhaps 'garment-bearer' or 'bow-bearer') of Darius the king, holds the battle-axe (?).",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [
+     "Only the first words survive on the stone as the edition reads it (the title and the king's name, the rest lost); the translation follows ARIo's running text.",
+     "vaçabara: the meaning of the title is uncertain."
+    ]
+   }
+  },
+  "DNe": {
+   "op": {
+    "en": "This is the Persian. This is the Mede. This is the Elamite. This is the Parthian. This is the Arian. This is the Bactrian. […] This is the Chorasmian. This is the Drangianian. This is the Arachosian. […] […] This is the Indian. […] This is the Scythian with the pointed cap. This is the Babylonian. This is the Assyrian. […] […] This is the Armenian. […] This is the Sardian. This is the Ionian. […] […] […] […] […] This is the Macian. This is the Carian.",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [
+     "Each line is the caption beside one throne-bearer; […] marks a line the edition does not keep, left uncut on the tomb.",
+     "Lines 29-30 (the Macian and the Carian) have no bearer of their own on this façade (it draws 28): they are cut under the captions of each tier's last bearer (C)."
+    ]
+   }
   }
  }
 }
