@@ -1,7 +1,7 @@
 # s18 cloud sessions (the cloud lead's list; ids for send_message). Integration: s17-int (= cloud-s17-int, kept equal).
 | agent | owns (src) | branch | session |
 |---|---|---|---|
-| cloud lead (3, from 09:15 UTC; was lead 2 session_01KpNq4F3cEPrA46Jxc87gdC, lead 1 session_01JNSEZTcqarLMRgqNU97TUk) | merges, records, src/world/world.ts | s17-int, cloud-s17-int | session_01GjWB3aLFkyHS4b49tGdbWb |
+| cloud lead (4 session_01FVaAkDttRx7Qh5wgtspapV from 11:55 UTC; 3 session_01GjWB3aLFkyHS4b49tGdbWb retired; was lead 2 session_01KpNq4F3cEPrA46Jxc87gdC, lead 1 session_01JNSEZTcqarLMRgqNU97TUk) | merges, records, src/world/world.ts | s17-int, cloud-s17-int | session_01GjWB3aLFkyHS4b49tGdbWb |
 | C1 the new-day tick | src/people/(population,popgeo,sim,aims,calendar,camps,construction,court,courtYear,roofs,history).ts, src/people/living/, src/core/(clock,calendar,newGame,save).ts | cloud-s18-c1-tick | session_01TCmiCNLpccQXVw4kTNTFHs |
 | C2 town roofs and lane fill | src/world/settlement/ (not surfaces.ts), src/world/(fill,fillPlan,roadLitter).ts | cloud-s18-c2-town | session_01RGjJPi9t8WReu1nyCPdtcP |
 | C3 river and plain | src/world/plain/, src/world/(groundRocks,groundFlora).ts, src/world/trees/ | cloud-s18-c3-plain | session_01E16PQ59QUzWsnjBYjgoLUu |

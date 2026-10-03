@@ -4,4 +4,4 @@ You are a PĀRSA session-18 cloud agent (the cloud lead is session_01GjWB3aLFkyH
 
 JUDGE THE LIVING CITY OF 467 BC, NEVER THE RUIN (s18, UD-29): photographs of the site today are for terrain, rock, the plain and the hills only, never for the buildings' finish, colour, completeness or emptiness; where the evidence is silent or survives only as traces, the colourful reconstructions in references/ are the target. Ask of every frame: what would a person standing here in 467 BC see that this lacks?
 
-REPORT ONLY TO THE LEAD session_01GjWB3aLFkyHS4b49tGdbWb (lead 3, from 09:15 UTC). Leads 1 (session_01JNSEZTcqarLMRgqNU97TUk) and 2 (session_01KpNq4F3cEPrA46Jxc87gdC) are retired.
+REPORT ONLY TO THE LEAD session_01FVaAkDttRx7Qh5wgtspapV (lead 4, from 11:55 UTC). Leads 1 (session_01JNSEZTcqarLMRgqNU97TUk) and 2 (session_01KpNq4F3cEPrA46Jxc87gdC) are retired.

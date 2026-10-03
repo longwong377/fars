@@ -75,6 +75,48 @@ do you do, what has happened to you this year, what troubles you). The full repl
   at most near the listener; lullabies sung with words every other phrase. **Unheard** in the cloud (formant/neural). The magi's
   recitation is still wordless (the ritual rule: no invented liturgy).
 
+## The lead's last asks (the round trip, the plans, the chains)
+- **Broken, not mine (patch ready):** `handoff/s18/c8_plans_ask.patch`, four lines in files I do not own. population.ts:
+  outOfDoors' trips to the well, the lane and the market are kept out of the dust as well as the rain (275 of econ_plans' 283
+  problems); a child's lane play keeps the household's own hours; `relationsSnapshot()` in key and day order (day_jump's "tomorrow
+  made ready" failed on a reordered save since my merge c8525e3f: the larger deed sample relates people in another order when a day
+  is made ahead; the relations are the same). living/world.ts: its errands use `relabelHousehold` (deeds/engine.ts). With the
+  patch: econ_plans 0 problems, day_jump 3/3. Without it: econ_plans 1 problem left, day_jump fails.
+- **Broken before me:** living_world "a day is the same whatever the sim's present" fails at s17-int before my first merge too
+  (463f93da^1: 46085 vs 46068 talks); its save-replay test then failed on save size, now on one plan. Not looked into further.
+- **Asks and rumours survive a save, exactly:** the loaded world drifted from the fourth day (pruned and rounded feelings, memories
+  of only the saved deeds, 60 of up to 400 ended goals while the running world read the rest: vows of thanks, the spurned who
+  leave, revenge on the last wrong). The running world is cut to the saved state each evening (minds.canon, goals.canon); the save
+  keeps every wrong done; revenge reads wrongs only. Test (deeds.test.ts): saved at day 12, loaded, run to day 20: asks, rumours,
+  the economy, minds and goals equal the unbroken run (fails with canon off). minds.test "saved small and loaded" passes (527 KB).
+- **Farmer 11543's plough:** with the walks (walkedIn) the field-house moves were walked, but he was still called home three times
+  a day: each who came to sit with the sick laid "at the work (tend body) with X" on the head of the house too. Now the helper
+  alone goes, "tending the sick in the house of X"; the head's day stands.
+- **The walk issues (econ_plans):** 283 → 1 (0 with the patch). Mine: a meal "back from the threshing floor" after the work was put
+  aside (the suffix dropped); a little one taken to the mother's market stretch without a walk (walks there first); a deeds stretch
+  cutting the household's hours to a piece with none of it there ("at home").
+- **The chains' missing links, hunger first** (tools/dev/chain_census.ts, seed 1, 30 days live; REVIEWS/chains_lean.json and
+  chains_harvest.json): there was no hunger in the famine chain: 'hunger' came only after a fortnight of short eating, and help came
+  first. Now a house that cannot buy the bread it needs goes short (hunger, from what emptied its bins: the harvest, the price, a
+  theft; once a month, not again in the month after help came), and what it does next is from the hunger. The census counts
+  theft → accusation → arrest (it looked only for a direct cause).
+
+  | lean month (day 300) | before | after |
+  |---|---|---|
+  | economy chains | 1,292 | 2,065 |
+  | all chains (census count) | 7,537 | 8,562 |
+  | harvest/price → hunger | 0 | 34 |
+  | hunger → help (kin, neighbours) | 0 | 872 |
+  | hunger → sale/loan | 0 | 101 |
+  | hunger → petition/relief | 0 | 1 |
+  | hunger → theft | 0 | 0 |
+  | theft → arrest/suit | 0 | 5 |
+  | hunger events | 0 | 234 |
+
+  The harvest month (day 150) is calm: 1 hunger, 828 chains (787 before the market fix). **Still thin:** hunger rarely ends in a
+  theft or a petition: the kin and the neighbours carry the hungry first (as the economy intends, D-344); theft runs 9 a month,
+  mostly petty (D-347).
+
 ## The thirty, before → after (replies grounded of 5; thin spots)
 | seed/pid | kind | person | replies | thin before | thin after |
 |---|---|---|---|---|---|

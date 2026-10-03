@@ -1850,7 +1850,7 @@ export class Population {
     const ev = this.rel.get(this.relKey(a, b)); if (ev) for (const [x, dv] of ev) if (x < d) v += dv * Math.exp(-(d - x) / L.affinity.tau_days);
     return Math.max(-1, Math.min(1, v));
   }
-  relationsSnapshot() { return [...this.rel.entries()]; }
+  relationsSnapshot() { return [...this.rel.entries()].sort((a, b) => a[0] - b[0]).map(([k, v]) => [k, [...v].sort((x, y) => x[0] - y[0])] as [number, [number, number][]]); } // (D-720: in key and day order: a day made ready ahead relates in another order, the same relations)
   relationsRestore(s: [number, [number, number][]][]) { this.rel.clear(); for (const [k, v] of s) this.rel.set(k, v.slice()); this.planCache.clear(); this.planCount = 0; this.rawCache.clear(); this.rawCount = 0; }
   /** E-74: disputes today in their real contexts; both parties' plans include them; the relationship sours */
   drawDisputes(d: number, C: DayCtx) {
@@ -1979,7 +1979,7 @@ export class Population {
     const p = this.persons[pid], hid = this.home(pid, d), H = this.households[hid]; if (!H || (H.zone !== 'town' && H.zone !== 'plain') || p.zone === 'transient' || p.agent >= 0) return segs;
     if (segs.some(x => x.act === 'offmap' || x.act === 'lie_ill') || this.mourning(pid, d)) return segs;
     const age = this.ageOn(pid, d), home = H.home, W: Where = H.zone === 'plain' ? 'plain' : 'town', wx = this.cal.ctx(d).wx, u = (k: number) => u01(this.seed, S_OUT, pid, d, k);
-    const dry = (a: number, b: number) => rainHours(wx, a - 0.3, b + 0.3) === 0 && !(wx.stormH && a < wx.stormH[1] + 0.5 && b > wx.stormH[0] - 0.5);
+    const dry = (a: number, b: number) => rainHours(wx, a - 0.3, b + 0.3) === 0 && !(wx.stormH && a < wx.stormH[1] + 0.5 && b > wx.stormH[0] - 0.5) && !(wx.dustH && a < wx.dustH[1] && b > wx.dustH[0]);
     let out = segs; const own = () => { if (out === segs) out = segs.slice(); };
     const lane = `lane:${H.q}:${hid}`, step = 0.02;
     // the others of the house who are "with" this one in their own day (a child with its mother): she does not leave them
@@ -1992,27 +1992,30 @@ export class Population {
     const home2 = (a: number, b: number) => mem.filter(m => m !== pid && this.basePlan(m, d).every(y => y.t1 <= a || y.t0 >= b || y.place === home)).length >= 2;
     const free = (a: number, b: number) => !withMe.some(([x, y]) => x < b && y > a) && (!together.some(([x, y]) => x < b && y > a) || (!few && home2(a, b)));
     const swap = (x: Seg, parts: Seg[]) => { own(); const i = out.indexOf(x); if (i >= 0) out.splice(i, 1, ...parts.filter(y => y.t1 - y.t0 > 1e-6)); };
-    if (age >= 14 && age <= 65 && !this.nurslings(pid, d).length && !segs.some(x => MIND_WHY.test(x.why))) {
-      const n = 3 + Math.floor(u(1) * 3);
-      const okSeg = (x: Seg) => x.place === home && x.where !== 'road' && x.with === undefined && ['rest', 'craft', 'spin', 'talk'].includes(x.act) && !/nurs|asleep|siesta/.test(x.why) && (!few || !/household/.test(x.why)) && x.t1 > 7.5 && x.t0 < 18.5 && Math.min(x.t1, 18.5) - Math.max(x.t0, 7.5) >= 0.9;
+    // (D-651: a grown-up 4-6 errands, a child of 8-13 sent on 2-3: C12's pagecheck wants walkers in every town view)
+    const child = age >= 8 && age <= 13;
+    if (((age >= 14 && age <= 65) || child) && !this.nurslings(pid, d).length && !segs.some(x => MIND_WHY.test(x.why))) {
+      const n = child ? 2 + Math.floor(u(1) * 2) : 4 + Math.floor(u(1) * 3);
+      const okSeg = (x: Seg) => x.place === home && x.where !== 'road' && x.with === undefined && (child ? ['play', 'rest'] : ['rest', 'craft', 'spin', 'talk']).includes(x.act) && !/nurs|asleep|siesta|minding|little/.test(x.why) && (!few || !/household/.test(x.why)) && x.t1 > 7.5 && x.t0 < 18.5 && Math.min(x.t1, 18.5) - Math.max(x.t0, 7.5) >= 0.6;
       for (let k = 0; k < n; k++) { const cand = out.filter(okSeg); if (!cand.length) break; // (among the day's stretches at home that can spare it: an hour picked at random mostly missed them)
         const x = cand[Math.floor(u(10 + k) * cand.length)], lo = Math.max(x.t0, 7.5), hi = Math.min(x.t1, 18.5), t = lo + u(60 + k) * Math.max(0, hi - lo - 0.8);
         const v = u(20 + k), nb = H.kin.find(o => this.households[o]?.q === H.q) ?? -1;
         // (the well: a word with the women there; the house's own water is the planner's, counted jar by jar: planCheck's water)
-        const [place, act, stay, why, back]: [string, ActivityId, number, string, string | undefined] = v < 0.4 ? [`well:${H.q}:${hid}`, 'talk', 0.2 + 0.15 * u(30 + k), 'talking with the neighbours at the well', undefined]
+        const [place, act, stay, why, back]: [string, ActivityId, number, string, string | undefined] = child ? (v < 0.5 && nb >= 0 ? [`lane:${H.q}:${nb}`, 'talk', 0.1 + 0.15 * u(30 + k), 'sent to kin with a message from home', undefined] : [`market:${H.q}`, 'exchange', 0.1 + 0.15 * u(30 + k), 'sent to the market ground for the house', 'basket'])
+          : v < 0.4 ? [`well:${H.q}:${hid}`, 'talk', 0.2 + 0.15 * u(30 + k), 'talking with the neighbours at the well', undefined]
           : v < 0.65 ? [`market:${H.q}`, 'exchange', 0.3 + 0.4 * u(30 + k), 'at the market ground, buying and selling a little', 'basket']
           : [nb >= 0 ? `lane:${H.q}:${nb}` : lane, 'talk', 0.3 + 0.5 * u(30 + k), nb >= 0 ? 'talking with kin at their door' : 'talking with the neighbours in the lane', undefined];
-        const w = Math.min(0.4, Math.max(0.08, this.walkH(home, place, d, W, W))), len = 2 * w + stay; // (5 minutes at least: the long way round, through the lanes) if (x.t1 - x.t0 < len + 0.2) continue;
+        const w = Math.min(0.4, Math.max(0.1, this.walkH(home, place, d, W, W))), len = 2 * w + stay; /* (6 minutes at least: the long way round, through the lanes) */ if (x.t1 - x.t0 < len + 0.1) continue;
         const a = Math.min(Math.max(t, x.t0 + 0.05), x.t1 - len - 0.05); if (!dry(a, a + len) || !free(a, a + len)) continue;
         const heat = /heat/.test(x.why) && x.act === 'rest' ? { why: 'resting at home' } : {}; // (a rest through the heat cut by an errand is a rest at home either side)
-        swap(x, [{ ...x, t1: a, ...heat }, { od: 1, t0: a, t1: a + w, place: `road:${W}`, act: 'walk', why: why.endsWith('at the well') ? 'going down to the well' : why.startsWith('at the market') ? 'going to the market ground' : 'going to see a neighbour', where: 'road' },
+        swap(x, [{ ...x, t1: a, ...heat }, { od: 1, t0: a, t1: a + w, place: `road:${W}`, act: 'walk', why: why.endsWith('at the well') ? 'going down to the well' : /market/.test(why) ? 'going to the market ground' : why.startsWith('sent to kin') ? 'running to kin with a message' : 'going to see a neighbour', where: 'road' },
           { od: 1, t0: a + w, t1: a + w + stay, place, act, why, where: W }, { od: 1, t0: a + w + stay, t1: a + len, place: `road:${W}`, act: 'walk', why: 'walking home', where: 'road', ...(back ? { carry: back } : {}) }, { ...x, t0: a + len, ...heat }]); } }
     // the children's play out in the lane before their door (by day, dry, nobody's charge)
     // (the play of a house's court goes out as one, the playmates of other houses with it: the draw is the house's and the
     // day's, so whoever plays there that day is in the lane; never with a little one, or a child someone small is with)
     const kid = (x: number) => { const a = this.ageOn(x, d); return a >= 5 && a <= 13; };
     if (age >= 5 && age <= 13) for (const x of [...out]) { const ph = x.place.startsWith('h:') ? +x.place.slice(2) : -1, PH = this.households[ph];
-      if (!PH || x.act !== 'play' || /minding|little|baby/.test(x.why) || (x.with !== undefined && !kid(x.with)) || x.t0 < 7 || x.t1 > 19 || x.t1 - x.t0 < 0.5 || !dry(x.t0, x.t1) || u01(this.seed, S_OUT, ph, d, 40) >= 0.8) continue;
+      if (!PH || x.act !== 'play' || /minding|little|baby/.test(x.why) || (x.with !== undefined && !kid(x.with)) || x.t0 < 7 || x.t1 > 19 || x.t1 - x.t0 < 0.5 || !dry(x.t0, x.t1) || u01(this.seed, S_OUT, ph, d, 40) >= 0.8 || !free(x.t0, x.t1)) continue;
       if (this.membersOn(ph, d).some(m => !kid(m) && m !== pid && this.basePlan(m, d).some(y => y.with === pid && y.t0 < x.t1 && y.t1 > x.t0))) continue;
       swap(x, [{ od: 1, t0: x.t0, t1: x.t0 + step, place: `road:${W}`, act: 'walk', why: 'out to the lane', where: 'road' }, { ...x, od: 1, t0: x.t0 + step, t1: x.t1 - step, place: `lane:${PH.q}:${ph}`, why: 'playing in the lane with the other children' }, { od: 1, t0: x.t1 - step, t1: x.t1, place: `road:${W}`, act: 'walk', why: 'back in', where: 'road' }]); }
     // the heat of the day in the lane's shade and on the doorstep (a house's draw, so the house is together there: its "with the

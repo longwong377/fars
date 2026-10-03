@@ -19,10 +19,7 @@ export const SMOKE_K = 4;
 /** particle emission (g/h) of a household hearth in each phase: lighting (2 kg/h of dung cake and twigs smouldering into
  *  flame, ~30 g/kg), cooking (1.5 kg/h flaming, ~12 g/kg), smouldering embers (0.4 kg/h, ~30 g/kg), a low evening fire kept
  *  for warmth and light (0.6 kg/h, ~12 g/kg) (all C) */
-// D-680: dung-cake fuel's factors raised (were flaming 18, smoulder 12, low 7.2: wood-like 12/30/12 g/kg): household dung
-// burning sits at ~20 g/kg flaming and ~40 smouldering in the stove literature's range (C, NOT SEEN), so the town's evening
-// smoke reads over the Terrace at dusk (τ 0.23 -> above 0.3 after the lower-city belt spread the households, D-661)
-export const HEARTH_GH = { out: 0, lighting: 60, flaming: 30, smoulder: 16, low: 12 } as const;
+export const HEARTH_GH = { out: 0, lighting: 60, flaming: 18, smoulder: 12, low: 7.2 } as const;
 /** a bread oven (tannur-type, C): fired with brushwood ~0.4 h (5 kg/h, ~15 g/kg), then the bread slapped on its hot wall
  *  over the embers (0.5 kg/h, ~20 g/kg) */
 export const OVEN_GH = { firing: 75, baking: 10 } as const;
@@ -85,9 +82,9 @@ export function addSpans(curve: Float32Array, spans: Span[], scale = 1) {
 
 // ---- the layer over a settlement ------------------------------------------------------------------------------------
 /** time for the evening layer to dilute into the air above it (s; C: entrainment through a surface inversion, 30-60 min) */
-export const DILUTE_S = 3600; // D-680: the long end of the range (was 2400): a still dusk under its inversion holds the town's smoke, and it reads over the Terrace (C)
+export const DILUTE_S = 2400;
 /** the slowest air that carries the smoke off (m/s): the down-valley drainage breeze of a still evening (C) */
-export const U_MIN = 0.35; // D-680: was 0.5 (C)
+export const U_MIN = 0.5;
 /** the longest drawn tail downwind (m) */
 export const TAIL_MAX = 1500;
 /** the layer's vertical profile: e^(−h/H1) − e^(−h/H2) (zero at the ground, the plumes' smoke spreading where they level
