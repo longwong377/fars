@@ -19,7 +19,10 @@ export type PoseBone = typeof POSE_BONES[number];
 type BoneName = PoseBone;
 
 export type AnimId = 'idle' | 'walk' | 'carry_shoulder' | 'carry_head' | 'carry_front' | 'guard' | 'guard_walk' | 'chisel' | 'grind' | 'knead'
-  | 'bake' | 'draw_water' | 'write' | 'eat' | 'sleep' | 'talk' | 'sit' | 'dice' | 'inspect' | 'play' | 'enthroned' | 'ride' | WorkAnim;
+  | 'bake' | 'draw_water' | 'write' | 'eat' | 'sleep' | 'talk' | 'sit' | 'dice' | 'inspect' | 'play' | 'enthroned' | 'ride'
+  /** s18 C14 (D-790): the court's service: pouring from a jug, carrying and setting down a dish, a fly-whisk over the king
+   *  (the bow is workAnims' proskynesis) */
+  | 'pour' | 'serve' | 'fan' | WorkAnim;
 export type E3 = [number, number, number];
 export interface Pose { rot: Partial<Record<BoneName, E3>>; hips: E3; /** strike/impact event this frame (for tool sounds) */ hit?: boolean;
   /** D-255: the sound of this frame's strike when it is not the performance's own (the smith's bellows and the hiss of the
@@ -225,6 +228,19 @@ export function pose(id: AnimId, t: number, ph: number, k: number, g: Gait = GAI
       // read as waving robots: the arms are taken 60 % of the way back to a standing capture's, the gesture kept, smaller; C)
       blendInto(p, loopAt(IDLES[pickOf(k, IDLES.length, 5)], t, k, 0.9 + 0.2 * fr(k * 0.37)), 0.6, TALK_DAMP); break;
     }
+    // s18 C14 (D-790): keyed over the standing capture's body (LAYERED), all C
+    case 'pour': { // a jug tipped two-handed over a cup held out below, every ~6 s; between pours the jug held before the chest
+      p = loopAt(IDLES[pickOf(k, IDLES.length, 5)], t, k, 0.9); r = p.rot; const q = fr(t / (5.5 + fr(k * 1.7)) + k), tip = q < 0.35 ? Math.sin(Math.PI * q / 0.35) : 0;
+      r.r_upper = [-0.75 - 0.25 * tip, 0, -0.18]; r.r_fore = [-1.0 + 0.35 * tip, 0, 0.2]; r.r_hand = [0, 0, -0.9 * tip]; r.l_upper = [-0.55, 0, 0.1]; r.l_fore = [-1.2 - 0.1 * tip, 0, -0.4];
+      r.spine = [0.08 + 0.12 * tip, 0, 0]; r.head = [0.25 + 0.1 * tip, 0, 0]; p.grip = [0.6, 0.9]; break; }
+    case 'serve': { // a dish carried forward in both hands, set down low and taken up again; the next
+      p = loopAt(IDLES[pickOf(k, IDLES.length, 5)], t, k, 0.9); r = p.rot; const q = fr(t / (7 + 2 * fr(k * 2.3)) + k), down = q > 0.45 && q < 0.75 ? Math.sin(Math.PI * (q - 0.45) / 0.3) : 0;
+      r.l_upper = [-0.6 + 0.25 * down, 0, 0.12]; r.r_upper = [-0.6 + 0.25 * down, 0, -0.12]; r.l_fore = [-1.1 + 0.5 * down, 0, -0.35]; r.r_fore = [-1.1 + 0.5 * down, 0, 0.35];
+      r.spine = [0.05 + 0.45 * down, 0, 0]; r.chest = [0.1 * down, 0, 0]; r.head = [0.15 + 0.1 * down, 0, 0]; const h = p.hips; p.hips = [h[0], h[1] - 0.05 * down, h[2]]; p.grip = [0.5, 0.5]; break; }
+    case 'fan': { // a fly-whisk swept over the king's head and shoulders from behind the throne, a towel over the other arm (the Treasury audience relief: B; the rhythm C)
+      p = loopAt(IDLES[pickOf(k, IDLES.length, 5)], t, k, 0.8); r = p.rot; const w = Math.sin(t * 2.6 + k * 6);
+      r.r_upper = [-1.9, 0.25 * w, -0.25 + 0.15 * w]; r.r_fore = [-0.7, 0, 0.15 * w]; r.r_hand = [0.2 * w, 0, 0.4 * w]; r.l_upper = [-0.35, 0, 0.12]; r.l_fore = [-1.35, 0, -0.5];
+      r.head = [0.1, 0.1 * w, 0]; p.grip = [0.3, 1]; break; }
     case 'play': { // running about in place (children; D-333: a running capture)
       p = gaitPose('run', t * 7 + k, k, 2.8); break;
     }
@@ -239,7 +255,7 @@ export function pose(id: AnimId, t: number, ph: number, k: number, g: Gait = GAI
 }
 const DEV = new Float32Array(54);
 /** the layer's weight per authored cycle (the king on his throne keeps nearly still: the relief's stillness, C) */
-const LAYERED: Partial<Record<AnimId, number>> = { chisel: 0.6, draw_water: 0.6, grind: 0.35, knead: 0.35, bake: 0.35, write: 0.4, eat: 0.5, dice: 0.5, enthroned: 0.2, ride: 0.4, inspect: 0 };
+const LAYERED: Partial<Record<AnimId, number>> = { chisel: 0.6, draw_water: 0.6, grind: 0.35, knead: 0.35, bake: 0.35, write: 0.4, eat: 0.5, dice: 0.5, enthroned: 0.2, ride: 0.4, inspect: 0, pour: 0, serve: 0, fan: 0 };
 const SEATED_L = new Set<AnimId>(['write', 'eat', 'dice']);
 const WORK = new Set<string>(WORK_ANIMS);
-export const ANIMS: AnimId[] = ['idle', 'walk', 'carry_shoulder', 'carry_head', 'carry_front', 'guard', 'guard_walk', 'chisel', 'grind', 'knead', 'bake', 'draw_water', 'write', 'eat', 'sleep', 'talk', 'sit', 'dice', 'inspect', 'play', 'enthroned', 'ride', ...WORK_ANIMS];
+export const ANIMS: AnimId[] = ['idle', 'walk', 'carry_shoulder', 'carry_head', 'carry_front', 'guard', 'guard_walk', 'chisel', 'grind', 'knead', 'bake', 'draw_water', 'write', 'eat', 'sleep', 'talk', 'sit', 'dice', 'inspect', 'play', 'enthroned', 'ride', 'pour', 'serve', 'fan', ...WORK_ANIMS];
