@@ -93,6 +93,12 @@ export function townFill(sites: Site[], seed = 1, villages: Site[] = [], markets
   const mk = new Map<Site, [number, number][]>(); for (const xy of markets) { const s = sites.find(x => { const [u, v] = toLocal(x.frame, xy[0], xy[1]); return x.inb(x.ci(u), x.cj(v)); }); if (s) (mk.get(s) ?? mk.set(s, []).get(s)!).push(toLocal(s.frame, xy[0], xy[1])); else openMarket(xy, sites, seed, items, st); }
   for (const s of sites) { const n0 = items.length; siteFill(s, seed, items, st, false, mk.get(s)); for (let k = n0; k < items.length; k++) items[k].dy += TOWN_LIFT; }
   for (const s of villages) siteFill(s, seed, items, st, true);
+  // s18 C2 (D-670, C12 4-12): the fruit on the stalls by the season (no fresh pomegranates in spring): the fresh fruit at the
+  // harvest only, and in the warm and the cold months the same spreads sell dried fruit and nuts (raisins, dried apricots,
+  // dates, walnuts: C, the PF rations' dried fruit, B)
+  const DRIED: RGB[] = [[0.3, 0.16, 0.12], [0.66, 0.38, 0.14], [0.45, 0.3, 0.18], [0.52, 0.4, 0.26]];
+  for (let k = items.length - 1; k >= 0; k--) { const it = items[k]; if (it.m !== 'fill_produce' || it.at !== 'market' || it.seas !== undefined) continue;
+    it.seas = 1; items.push({ ...it, seas: 6, col: { ...(it.col ?? {}), fruit: DRIED[strHash(`${it.e},${it.n}`) % DRIED.length] } }); }
   // (s17 C1: the plan is cached as JSON in the baked world, 21-25 MB with the villages (C4): positions to the centimetre, turns
   // and sizes to the thousandth, the sale hour to the minute's hundredth; nothing the eye or the colliders can tell)
   const r2 = (x: number) => Math.round(x * 100) / 100, r3 = (x: number) => Math.round(x * 1000) / 1000;
@@ -118,6 +124,7 @@ function openMarket(xy: [number, number], sites: Site[], seed: number, items: Fi
     else { items.push({ m: 'mat', e, n, dy: 0, rot: rot + (u01(k, 4) - 0.5) * 0.2, s: [0.62, 1, 0.66], day: true, at: 'market' }); st.market++; }
     const ce = stall ? e - fe * 0.4 : e, cn = stall ? n - fn * 0.4 : n;
     for (const [m, x, y, z, sc, col] of TRADES[trade](u01(k, 5))) { const zz = stall ? z : (z - 0.6) * 0.45, xx = stall ? x : x * 0.62, sj = sc * (0.93 + 0.14 * u01(k, x * 10, z * 10, 5)), gone = u01(k, x * 10, z * 10, 6);
+      if (!free(ce + rx * xx + fe * zz, cn + rv * xx + fn * zz)) continue; // (s18 C2: no good over a plot)
       items.push({ m, e: ce + rx * xx + fe * zz, n: cn + rv * xx + fn * zz, dy: stall ? y : 0.012, rot: rot + (u01(k, x * 10, z * 10) - 0.5) * 0.5, s: [sj, sj, sj], col, day: true, ...(gone < 0.45 ? { until: 12.5 + 6 * gone / 0.45 } : {}), at: 'market' }); st.market++; } }
 }
 /** s17 C1 (D-550): no two things of the same model within 15 m that look the same (scale within 3 %, the same colours, turned
@@ -208,6 +215,7 @@ export function siteFill(s: Site, seed: number, items: FillItem[], st: FillStats
       const rx = -c.dv, rv = c.du; // the stall's local +x in (u, v): its front (du, dv) turned clockwise
       for (const [m, x, y, z, sc, col] of TRADES[trade](u01(k, 2))) {
         const gu = c.u + rx * x + c.du * z, gv = c.v + rv * x + c.dv * z, [e, n] = toG(gu, gv), [de, dn] = dirG(c.du, c.dv);
+        if ([[-0.06, -0.06], [0.06, -0.06], [-0.06, 0.06], [0.06, 0.06]].some(([a, b]) => !open(s.at(s.ci(gu + a), s.cj(gv + b))))) continue; // (s18 C2: a good over a plot's wall or in it, or on a cell's edge: left off)
         const jit = (u01(k, x * 10, z * 10) - 0.5) * 0.5; if (!open(s.at(s.ci(gu), s.cj(gv)))) continue;
         // (s17 C1: each heap its own size; by the afternoon some goods are sold and gone: a stall is fullest in the morning)
         const sj = sc * (0.93 + 0.14 * u01(k, x * 10, z * 10, 5)), gone = u01(k, x * 10, z * 10, 6);
@@ -219,7 +227,8 @@ export function siteFill(s: Site, seed: number, items: FillItem[], st: FillStats
   // their household's spread): along the walls within MARKET_R of the point, every 2.6 m, a seller's spread on a reed mat (a
   // trade's goods, set out by day, sold out through the afternoon), a stall with its awning where the lane is wide; clear of
   // doors and fittings, the lane left passable (C: the analogues as for the squares' markets)
-  for (const [mu, mv] of markets) for (const R of [MARKET_R, MARKET_R * 2]) { const spots: [number, number][] = [];
+  for (const [mu, mv] of markets) { const n0 = items.length;
+  for (const R of [MARKET_R, MARKET_R * 2]) { const spots: [number, number][] = [];
     if (R > MARKET_R && items.some(it => it.at === 'market' && Math.hypot(...toLocal(s.frame, it.e, it.n).map((x, q) => x - [mu, mv][q]) as [number, number]) < MARKET_R)) break; // (the near ring held the market)
     const cand: { u: number; v: number; du: number; dv: number; w: number; d: number }[] = [];
     for (let j = Math.max(0, s.cj(mv) - R); j <= Math.min(H - 1, s.cj(mv) + R); j++) for (let i = Math.max(0, s.ci(mu) - R); i <= Math.min(W - 1, s.ci(mu) + R); i++) {
@@ -238,6 +247,9 @@ export function siteFill(s: Site, seed: number, items: FillItem[], st: FillStats
         if (!open(s.at(s.ci(gu), s.cj(gv)))) continue; const sj = sc * (0.93 + 0.14 * u01(k, x * 10, z * 10, 5)), gone = u01(k, x * 10, z * 10, 6);
         items.push({ m, e, n, dy: stall ? y : 0.012, rot: rotFacing(de, dn) + (u01(k, x * 10, z * 10) - 0.5) * 0.5, s: [sj, sj, sj], col, day: true, ...(gone < 0.45 ? { until: 12.5 + 6 * gone / 0.45 } : {}), at: 'market' }); st.market++; } } }
 
+  // (s18 C2, D-666: a point on the open ground of the site's raster, no wall within reach to set the spreads along: the
+  // open-ground market there, as for a point outside every site)
+  if (!items.slice(n0).some(it => it.at === 'market')) openMarket(toG(mu, mv), [s], seed, items, st); }
   // 2. the lane frontage and 3. the washing lines
   const lines: [number, number][] = [];
   for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) { const k = j * W + i, c = s.cell[k]; if (c !== LANE && c !== SQUARE && !(outside && c === OUT)) continue;

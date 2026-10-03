@@ -40,7 +40,7 @@ for (const s of shots) {
   for (const f of frames) if (f % step === frames[0] % step) L.push(`file '${join(FR, s.d, `${String(f).padStart(5, '0')}.png`)}'`, `duration ${(1 / rate).toFixed(6)}`);
   L.push(L[L.length - 2]); writeFileSync(list, L.join('\n') + '\n');
   const up = rate >= 24 ? 'fps=24' : `fps=${rate},minterpolate=fps=24:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1`;
-  execFileSync('ffmpeg', ['-y', '-v', 'error', '-f', 'concat', '-safe', '0', '-i', list, '-vf', `${up},tpad=stop_mode=clone:stop_duration=1`, '-t', len.toFixed(4), '-c:v', 'ffv1', '-pix_fmt', 'yuv444p', clip]);
+  execFileSync('ffmpeg', ['-y', '-v', 'error', '-f', 'concat', '-safe', '0', '-i', list, '-vf', `tpad=stop_mode=clone:stop_duration=${(2 / rate).toFixed(3)},${up},tpad=stop_mode=clone:stop_duration=4`, '-t', len.toFixed(4), '-c:v', 'ffv1', '-pix_fmt', 'yuv444p', clip]);
   clips.push(clip); t = s.t1;
   console.log(`${s.d.padEnd(14)} ${s.t0.toFixed(2)}-${s.t1.toFixed(2)} s, ${frames.length} frames at ${rate} fps`);
 }

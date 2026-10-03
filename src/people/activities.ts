@@ -106,7 +106,6 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
     variants: [
       // D-780 (s18 C13): the court's programme (people/ceremony.ts, court.ts): riding with the king, to the hunt and at exercise;
       // grooms leading the king's horses; a delegate leading his people's gift animals up the Apadana's stair (the reliefs, B)
-      { when: /in a curtained litter/, work: [{ kind: 'litter', at: [0, 0, 0], follow: true }], note: 'a royal woman carried in her curtained litter, her attendants about her (claims, B; the litter C: D-780)' },
       { when: /in the royal chariot/, anim: 'charioteer', sound: undefined, animals: { kind: 'chariot', species: ['horse', 'horse', 'horse', 'horse'], pace: 2.2 }, work: [{ kind: 'chariot', at: [0, 0, 0.05], follow: true }],
         note: 'the king driving out in the royal chariot (the reliefs, B), four horses abreast (C14 D-790: the four-horse team C; its wheels turn; the reins in his hands)' },
       { when: /on horseback/, anim: 'ride', sound: undefined, animals: { kind: 'mount', species: ['horse_saddle'], pace: 1.8 },
@@ -174,7 +173,8 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
     variants: [{ when: /in Aramaic/, prop: 'leather', prop2: 'pen', note: 'writing Aramaic with a reed pen and ink on a sheet of leather on the left palm (Aramaic ink epigraphs on Persepolis tablets: B; leather documents in the chancery: B by analogy; posture C; the writing on the sheet is not drawn: D-221)' }] },
   eat: { anim: 'eat', sound: 'murmur', tier: 'C', note: 'sitting and eating bread (rations: B)',
     // D-359: the bread brought along on an errand or a summons (economy/plans.ts feed)
-    variants: [{ when: /at the king’s banquet/, anim: 'sit', prop: 'bowl', note: 'seated at a low table at the king’s banquet, eating and drinking (Heracleides in Athenaeus 4.145: a claim, B; C: D-780)' },
+    variants: [{ when: /reclining on a couch at the king’s banquet/, anim: 'recline', prop: 'bowl', work: [{ kind: 'feast_couch', at: [0, 0, 0] }], note: 'reclining on a gilded couch at the king’s banquet, nearest the throne, propped on the left elbow on the bolster, the cup in hand (Herodotus 9.80-82: the couches, B claim; reclining: the Assurbanipal garden relief and the Greek banquet of the period, analogy; C: D-780)' },
+      { when: /at the king’s banquet/, anim: 'sit', prop: 'bowl', note: 'seated at a low table at the king’s banquet, eating and drinking (Heracleides in Athenaeus 4.145: a claim, B; C: D-780)' },
       { when: /^bread and water brought along/, prop: 'bread', note: 'eating a flat loaf brought along from home, wrapped in a cloth, where the day’s business holds them (C: D-359)' }] },
   sleep: { anim: 'sleep', tier: 'C', note: 'lying asleep on a mat (C)',
     variants: [
