@@ -48,7 +48,7 @@ const KIDX: Record<FloraKind, number> = { cushion: 1, camelthorn: 2, thistle: 3,
  *  stems) and tinted with the kinds' measured, seasonal colours (C for the forms). */
 export const FLORA_SCANS: Record<FloraKind, { ids: string[]; fit: 'box' | 'height' }> = {
   cushion: { ids: ['shrub_03_v1', 'shrub_03_v2', 'shrub_03_v3', 'shrub_03_v4'], fit: 'box' },
-  camelthorn: { ids: ['shrub_03_v1', 'shrub_03_v2', 'shrub_03_v3', 'shrub_03_v4'], fit: 'height' },
+  camelthorn: { ids: ['shrub_03_v1', 'shrub_03_v2', 'shrub_03_v3', 'shrub_03_v4', 'didelta_spinosa_v1', 'didelta_spinosa_v2'], fit: 'height' },
   thistle: { ids: ['nettle_plant_v1', 'nettle_plant_v2', 'nettle_plant_v5', 'nettle_plant_v6'], fit: 'height' },
   shrub: { ids: ['searsia_burchellii', 'searsia_lucida_v1', 'wild_rooibos_bush_v1'], fit: 'height' },
   grass: { ids: ['grass_medium_01_v1', 'grass_medium_01_v2', 'grass_medium_01_v3', 'grass_medium_01_v4', 'grass_medium_02_v1', 'grass_medium_02_v2', 'grass_medium_02_v3', 'grass_bermuda_01_v1', 'grass_bermuda_01_v2', 'grass_bermuda_01_v3'], fit: 'height' },

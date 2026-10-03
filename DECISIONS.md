@@ -9940,6 +9940,9 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   moss, a succulent, the fruit model, a garden tree), 11 MB. groundFlora.ts gains four kinds drawn only from scans: wild shrubs
   (Searsia, a broom-like bush), bunch grasses (straw by summer; also at the water), dead wood (rare) and the spring flowers
   (March-May); the old kinds prefer the scans over the modelled cards (the T4's pale floating blobs). Memo keys widened (x8).
+- The fishermen's shore (the water look's life): two more kit models (a_wo_skiff, a_wo_net_poles); every ~1.1 km of river
+  within 10 km a fish trap in the shallows, a skiff drawn up on the bank and a net drying on poles, with 'fish' and 'mend'
+  spots for C1 (waterworksLayout().spots).
 
 ## D-720 Follow thirty: the people answer from their own lives without the model, and the town's deeds and yesterday reach their talk (session 18, cloud C8; UD-07, UD-08, UD-11, UD-21, UD-24, UD-32)
 - Measured (tools/dev/follow30.ts; REVIEWS/follow30.json): thirty people drawn by seed across the town, the villages, the Terrace's

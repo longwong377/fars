@@ -11464,6 +11464,102 @@
     2.682776689529419
    ],
    "tex": 1024
+  },
+  "m_wo_skiff": {
+   "file": "models/props/m_wo_skiff.glb",
+   "of": "wo_skiff",
+   "role": "model",
+   "parts": [
+    "wood_d",
+    "wood"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/model_props.py (D-325)",
+   "bytes": 34204,
+   "sha256": "968e102b1806984cba5d0f557d1183f9c0c493de40e6edd4e4ccd60c939f11b9",
+   "tris": {
+    "lod0": 752,
+    "lod1": 298,
+    "lod2": 298
+   },
+   "partTris": {
+    "lod0__wood_d": 148,
+    "lod0__wood": 604,
+    "lod1__wood_d": 58,
+    "lod1__wood": 240,
+    "lod2__wood_d": 58,
+    "lod2__wood": 240
+   },
+   "box": [
+    [
+     -0.6242914795875549,
+     -0.30431026220321655,
+     -2.2068796157836914
+    ],
+    [
+     0.6299999952316284,
+     0.4285424053668976,
+     2.5383198261260986
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    1.2542914748191833,
+    0.7328526675701141,
+    4.74519944190979
+   ],
+   "tex": 0
+  },
+  "m_wo_net_poles": {
+   "file": "models/props/m_wo_net_poles.glb",
+   "of": "wo_net_poles",
+   "role": "model",
+   "parts": [
+    "wood_d",
+    "cord",
+    "wood"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/model_props.py (D-325)",
+   "bytes": 64572,
+   "sha256": "8ad727b6f5879bc17a056a7cb7a662922022dda0eae818ba97a28499a5ae704f",
+   "tris": {
+    "lod0": 1404,
+    "lod1": 547,
+    "lod2": 331
+   },
+   "partTris": {
+    "lod0__wood_d": 792,
+    "lod0__cord": 356,
+    "lod0__wood": 256,
+    "lod1__wood_d": 316,
+    "lod1__cord": 129,
+    "lod1__wood": 102,
+    "lod2__wood_d": 100,
+    "lod2__cord": 129,
+    "lod2__wood": 102
+   },
+   "box": [
+    [
+     -1.6404850482940674,
+     -0.015196152031421661,
+     -0.05000000074505806
+    ],
+    [
+     1.6295229196548462,
+     1.8749762773513794,
+     0.05000000074505806
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    3.2700079679489136,
+    1.890172429382801,
+    0.10000000149011612
+   ],
+   "tex": 0
   }
  }
 }
