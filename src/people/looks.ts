@@ -76,7 +76,7 @@ const WEAR_BY: Record<string, { s: [number, number]; f: [number, number]; soil: 
   king: { s: [0.9, 1], f: [0, 0.05], soil: [0.05, 0.12] }, court_woman: { s: [0.7, 1], f: [0, 0.2], soil: [0.04, 0.12] }, envoy: { s: [0.4, 0.9], f: [0.05, 0.35], soil: [0.2, 0.4] },
   envoy_short: { s: [0.4, 0.9], f: [0.05, 0.35], soil: [0.2, 0.4] }, envoy_bare: { s: [0.3, 0.8], f: [0.05, 0.4], soil: [0.2, 0.45] },
   median: { s: [0.45, 0.95], f: [0.05, 0.35], soil: [0.15, 0.35] }, woman: { s: [0.25, 1], f: [0.05, 0.6], soil: [0.15, 0.5] },
-  worker: { s: [0.15, 0.8], f: [0.05, 0.75], soil: [0.25, 0.65] }, child: { s: [0.1, 0.95], f: [0.05, 0.8], soil: [0.3, 0.65] }, // D-780: cheap dyes, not weak ones (C)
+  worker: { s: [0.15, 0.7], f: [0.05, 0.75], soil: [0.25, 0.65] }, child: { s: [0.1, 0.95], f: [0.05, 0.8], soil: [0.3, 0.65] }, // D-780: cheap dyes, not weak ones (C)
 };
 const LEATHER: RGB[] = [L(0.36, 0.24, 0.15), L(0.45, 0.31, 0.2), L(0.28, 0.19, 0.13), L(0.52, 0.38, 0.25)];
 /** undyed felt, tan to dark brown (C; no cream or light tan: a pale fluted cylinder in sunlight read as a modern cook's hat) */
