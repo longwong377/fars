@@ -25,7 +25,7 @@ import { toGrid, type Frame, type P2, type Site } from './site';
 export const EST = {
   white: [0.88, 0.85, 0.78], dado: [0.6, 0.3, 0.22], shaft: [0.62, 0.32, 0.23], band: [0.84, 0.66, 0.34], bandB: [0.32, 0.47, 0.62], cap: [0.3, 0.46, 0.6],
   arch: [0.8, 0.63, 0.33], glazeW: [0.9, 0.88, 0.8], glazeT: [0.22, 0.5, 0.58], glazeY: [0.86, 0.68, 0.26], glazeB: [0.18, 0.3, 0.55], roof: [0.66, 0.58, 0.45],
-  stoneW: [0.74, 0.72, 0.66], stoneD: [0.2, 0.19, 0.18], kerb: [0.6, 0.58, 0.53], plank: [0.5, 0.36, 0.24],
+  floor: [0.56, 0.27, 0.2], stoneW: [0.74, 0.72, 0.66], stoneD: [0.2, 0.19, 0.18], kerb: [0.6, 0.58, 0.53], plank: [0.5, 0.36, 0.24],
 } as const satisfies Record<string, [number, number, number]>;
 type C3 = readonly [number, number, number];
 
@@ -77,9 +77,8 @@ export function porch(X: Ctx, f: Frame, u0: number, u1: number, vCol: number, vB
   frieze(X, f, u0 - 0.3, u1 + 0.3, vCol + out * 0.3, H + 0.44, true, out);
   B(X, f, (u0 + u1) / 2, (vCol + vBack) / 2 + out * 0.3, (u1 - u0) / 2 + 0.6, dv / 2 + 0.7, H + 0.88, H + 1.18, 'mud', EST.roof, false, 'the porch roof: poles, matting and packed earth, its eave over the beam (C)');
   B(X, f, (u0 + u1) / 2, vCol + out * 0.62, (u1 - u0) / 2 + 0.6, 0.06, H + 0.62, H + 0.92, 'timber', EST.cap, false, 'the eave board painted blue (C)');
-  B(X, f, (u0 + u1) / 2, vBack + out * 0.06, (u1 - u0) / 2, 0.05, -0.1, 1.1, 'mud', EST.dado, false, 'the red dado on the porch\'s back wall (C: the Terrace\'s red-painted plaster)');
-  B(X, f, (u0 + u1) / 2, vBack + out * 0.06, (u1 - u0) / 2, 0.05, 1.1, H + 0.88, 'mud', EST.white, false, 'the porch\'s back wall: gypsum-white plaster (C)');
-  B(X, f, (u0 + u1) / 2, (vCol + vBack) / 2, (u1 - u0) / 2 + 0.3, dv / 2 + 0.2, -0.25, 0.05, X.group === 'estates' ? 'mud' : 'stone', EST.kerb, false, 'the porch floor: stone slabs (C)');
+  // (the back wall is the house's own: its doors open under the porch; its wash is the house's, settlement/houses.ts)
+  B(X, f, (u0 + u1) / 2, (vCol + vBack) / 2, (u1 - u0) / 2 + 0.3, dv / 2 + 0.2, -0.25, 0.04, X.group === 'estates' ? 'mud' : 'stone', EST.kerb, false, 'the porch floor: stone slabs (C)');
 }
 
 /** an estate's frame and its house's cells (plan.ts estateSite: the house block at cells hx0..hx0+34, hy0..hy0+34) */
@@ -137,13 +136,15 @@ export function pavilionProps2(props: Prop[], groups: Map<string, P2[]>, f: Fram
   frieze(X, f, -W / 2 - 0.3, W / 2 + 0.3, D / 2 - 0.9 + 0.32, 5.77, false, 1);
   B(X, f, 0.3, 0, D / 2 + 1.2, W / 2 + 1.2, 6.2, 6.55, 'mud', EST.roof, false, 'flat roof of poles, matting and earth with a deep eave (C)');
   B(X, f, D / 2 + 0.55, 0, 0.07, W / 2 + 1.2, 5.95, 6.25, 'timber', EST.cap, false, 'the eave board painted blue (C)');
-  B(X, f, 0, 0, D / 2, W / 2, 0.55, 0.6, 'stone', EST.kerb, false, 'the floor of stone slabs (C)');
+  B(X, f, D / 2 - 3.1, 0, 3.4, W / 2, 0.55, 0.6, 'stone', EST.kerb, false, 'the porch floor of stone slabs (C)');
+  B(X, f, -D / 2 + 3.6, 0, 3.4, W / 2 - 0.8, 0.55, 0.6, 'mud', EST.floor, false, 'the room\'s floor of lime plaster painted red (the Terrace\'s red-painted floors, B; C)');
 }
 
 /** the Dasht-e Gohar hall (frame hf, hallW across u, hallD along v; plan.ts) */
 export function goharHallProps(props: Prop[], hf: Frame, hallW: number, hallD: number) {
   const X: Ctx = { props, group: 'hall_gohar', row: 'hall_dasht_e_gohar', feature: 'zone_dasht_e_gohar', note: 'columned hall behind Takht-e Rustam ("hypostyle hall reburied behind the platform": search extract, C); size, plan, column form and paint C (s18 C15, D-800)' };
   B(X, hf, 0, 0, hallW / 2 + 1.0, hallD / 2 + 1.0, -0.45, 0.2, 'stone', EST.kerb, true, 'the hall\'s floor and stylobate of stone slabs (C)');
+  B(X, hf, -hallW / 2 + 6, 0, 6, hallD / 2, 0.2, 0.23, 'mud', EST.floor, false, 'the walled back half\'s floor: lime plaster painted red (the Terrace\'s red-painted floors, B; C)');
   for (let a = 0; a < 4; a++) for (let b = 0; b < 5; b++) column(X, hf, -hallW / 2 + 3 + a * 6, -hallD / 2 + 3 + b * 6, 6.2, 0.34, false, (a + b) % 2 === 1);
   for (let a = 0; a < 4; a++) B(X, hf, -hallW / 2 + 3 + a * 6, 0, 0.36, hallD / 2 + 0.3, 6.2, 6.7, 'timber', EST.arch, false, 'the main beams over the column rows, painted (C)');
   // the back wall (W) and side walls half the depth, white over a red dado; the frieze along the open front's beam
