@@ -124,7 +124,7 @@ export class Initiative implements GoalHost {
   /** what the person is set on and how they feel, for the talk's brief (out of world) */
   briefOf(pid: number, day: number): string[] { const out: string[] = [], G = this.goals;
     const mine = G.of(pid); if (mine.length) out.push(`You are set on ${mine.map(g => G.phrase(g, day)).join(', and ')}.`);
-    const pl = G.places.get(pid); if (pl) out.push(`You work for ${G.name(pl.master)} two days a week, paid by the day.`);
+    const pl = G.places.get(pid); if (pl) out.push(`You work for ${G.name(pl.master)} two days in each ten, paid by the day.`);
     for (const g of G.active.values()) if (g.who === pid && (g.kind === 'spouse' || g.kind === 'revenge' || g.kind === 'work' || g.kind === 'patron')) { out.push(g.kind === 'spouse' ? `${G.name(g.pid)}'s family has come to speak of a match with you.` : g.kind === 'revenge' ? `${G.name(g.pid)} bears you a grudge.` : g.kind === 'work' ? `${G.name(g.pid)} wants you to take him on.` : `${G.name(g.pid)} is trying to win your favour.`); break; }
     const m = this.moodOf(pid, day); if (Math.abs(m.v) > 0.25 && m.word) out.push(`You are ${m.word}.`);
     return out;

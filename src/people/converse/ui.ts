@@ -16,7 +16,6 @@ import { heardReply, heardReplyNeural, replyVoice, type HearIn } from './voice';
 import { unitsFor, voiceLang, WORDLESS } from '../../audio/voices';
 import { toFarsi, FarsiTranslator, type FarsiRoute } from './farsi';
 import type { Turn } from './prompt';
-import { bakedProse, bakedWho } from './bake';
 import { talkTurn } from './turn';
 import { TALK_MODEL } from './models';
 import { Approaches } from './approach';
@@ -74,9 +73,9 @@ export function mountConverse(c: Ctx) {
   const state = { approach: null as any, status: gpu ? 'idle' : 'no WebGPU: the people answer in their own lines', progress: 0, loaded: false, busy: false, last: null as any, history: new Map<number, Turn[]>(), log: [] as any[], /** D-315: the conversation in progress (person, its id) */ talking: null as null | { pid: number; conv: number; r: number }, /** D-379: the last words as the world heard them (who heard, the one spoken to, who turned to look; the render side reads it) */ heard: null as null | (Heard & { t: number; words: string }) };
   /** D-315: the conversation ends (the stranger walks off or closes the talk): the person goes back to the day */
   const endTalk = () => { const k = state.talking; if (!k) return; state.talking = null; c.world.people?.sim?.talk.release(k.pid, c.world.people.sim.t); };
-  // the baked prose layer (D-296): only for the world it was baked for (seed 1: src/data/lives_baked_s1.json)
-  let baked = new Map<number, any>(); if (c.seed === 1) import('../../data/lives_baked_s1.json').then(m => { baked = new Map(((m as any).default ?? m).rows.map((r: any) => [r.pid, r])); }).catch(() => {});
-  const prose = (pid: number) => { const b = baked.get(pid), p = c.world.people?.sim?.pop?.persons[pid]; return bakedProse(b && p && b.who === bakedWho(p) ? b : null); }; // (D-348: only while the pid is still the person it was baked for)
+  // (D-720, W22: the baked prose of seed 1 (D-296) is gone: it was junk under D-348's gate (a two-year-old remembering brickmaking,
+  // a married seven-year-old); the life record is the simulation's own. A new bake (tools/dev/bake_lives.mjs) can come back here)
+  const prose = (_pid: number): string | null => null;
   // D-336: the opt-in layer (settings.hearIn; ?hear=fa|en for tests) and the route of its Farsi (?farsi=llm|nllb; D-336 measured)
   const hearIn = (): HearIn => (P.get('hear') as HearIn | null) ?? c.settings?.hearIn ?? 'own';
   const faRoute = (): FarsiRoute => (P.get('farsi') as FarsiRoute | null) ?? FARSI_ROUTE; const nllb = new FarsiTranslator();

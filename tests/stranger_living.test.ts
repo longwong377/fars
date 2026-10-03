@@ -4,7 +4,7 @@ import { describe, it, expect } from 'vitest';
 import { Population } from '../src/people/population';
 import { Economy } from '../src/people/economy/world';
 import { householdsOf } from '../src/people/economy/chains';
-import { PLAYER, MARKET, DAY_WAGE, STR_LAG, chronicleLine, type SAct } from '../src/people/speech/stranger';
+import { PLAYER, MARKET, dayGrain, STR_LAG, chronicleLine, type SAct } from '../src/people/speech/stranger';
 import { strangerAsk } from '../src/people/speech/verbs';
 
 const pop = new Population(1), hs = householdsOf(pop);
@@ -36,20 +36,21 @@ describe('D-455 the stranger lives by his own choices', () => {
     expect(chronicleLine('sold_at_market', 'x')).toMatch(/grain sellers/);
     S.purse.cash = 0.001; expect(S.judge({ a: 'buy', day, hh: MARKET, good: 'grain', qty: 10 }).why).toMatch(/not the silver/);
   });
-  it('a day\'s hire: taken on once a day, paid a thirtieth of a shekel, refused while he has regular work', () => {
-    const e = town(30), S = e.stranger(), day = hireDay(e), c0 = S.purse.cash;
+  it('a day\'s hire: taken on once a day, paid a day\'s barley (D-720: in kind, not silver), refused while he has regular work', () => {
+    const e = town(30), S = e.stranger(), day = hireDay(e), c0 = S.purse.cash, g0 = S.purse.grain;
     expect(S.do({ a: 'daywork', day }).ok).toBe(true);
     expect(S.judge({ a: 'daywork', day }).ok).toBe(false);
-    expect(S.do({ a: 'daypaid', day }).ok).toBe(true); expect(S.purse.cash).toBeCloseTo(c0 + DAY_WAGE, 9);
+    expect(S.do({ a: 'daypaid', day }).ok).toBe(true); expect(S.purse.grain).toBeCloseTo(g0 + dayGrain(e.price('grain', e.day)), 6); expect(S.purse.cash).toBe(c0);
     expect(S.do({ a: 'daypaid', day }).ok).toBe(false); // (paid once)
     expect(evs(e, 'day_paid').length).toBe(1);
     const farm = [...e.hh.values()].find(h => S.hireCheck(h.id, e.day).ok);
     if (farm) { S.do({ a: 'seek_work', day: e.day, hh: farm.id }); expect(S.judge({ a: 'daywork', day: e.day + 1 }).why).toMatch(/work already/); }
   });
-  it('the loop: a month of carrying feeds him and his silver grows; a month idle eats it', () => {
-    const run = (work: boolean) => { const e = town(30), S = e.stranger(); S.hear('Aramaic', 50, 0, false, 30); const c0 = S.purse.cash;
+  it('the loop: a month of carrying feeds him and what he has grows; a month idle eats it', () => {
+    // (D-720: paid in barley: what he has is his silver and his barley at the market's price)
+    const run = (work: boolean) => { const e = town(30), S = e.stranger(); S.hear('Aramaic', 50, 0, false, 30); const has = () => S.purse.cash + S.purse.grain * e.price('grain', e.day); const c0 = has();
       for (let i = 0; i < 30; i++) { const d = e.day + 1; e.step(d); if (work && S.dayCheck(d).ok) { S.do({ a: 'daywork', day: d }); S.do({ a: 'daypaid', day: d }); } }
-      for (let i = 0; i < STR_LAG; i++) e.step(e.day + 1); return { e, S, dc: S.purse.cash - c0 }; };
+      for (let i = 0; i < STR_LAG; i++) e.step(e.day + 1); return { e, S, dc: has() - c0 }; };
     const w = run(true), idle = run(false);
     expect(w.dc).toBeGreaterThan(0.1); expect(idle.dc).toBeLessThan(0); expect(w.S.hungry).toBe(0);
     expect(evs(w.e, 'day_paid').length).toBeGreaterThanOrEqual(15);

@@ -16,7 +16,7 @@ import { marksOf, marksWords } from '../marks';
 import { aimsOf } from '../aims';
 import type { Economy } from '../economy/world';
 import { personaOf } from '../persona';
-import { numWords, ageWords, ordWords, countWords, spellDigits } from './words';
+import { numWords, ageWords, ordWords, countWords, spellDigits, daysAgoWords } from './words';
 import { toYou } from '../deeds/lately';
 
 export interface Kin { pid: number; name: string; rel: string; age: number; job: string; alive: boolean }
@@ -185,7 +185,7 @@ export function lifeRecord(pop: Population, cal: EventCalendar, pid: number, day
   if (age < 12) for (const o of pop.playmatesOf(pid, day)) if (friends.length < 4 && spokenName(pop, o)) friends.push({ name: spokenName(pop, o)!, how: `plays with them in the ${pop.households[pop.home(o, day)].zone === 'plain' ? 'village' : 'lane'}, a ${pop.persons[o].sex === 'm' ? 'boy' : 'girl'} of ${ageWords(pop.ageOn(o, day))}`, feeling: 'close' });
   // the year so far (the regnal year starts at day 0, the month of Nisanu: sim facts only)
   const year: string[] = [], quarrels: string[] = [];
-  const when = (d: number) => { const k = day - d; return k === 0 ? 'today' : k === 1 ? 'yesterday' : k < 8 ? `${numWords(k)} days ago` : k < 45 ? (Math.round(k / 7) === 1 ? 'about a week ago' : `about ${numWords(Math.round(k / 7))} weeks ago`) : `in the month ${MONTHS[dateOf(d).month - 1].op}`; };
+  const when = (d: number) => { const k = day - d; return k < 45 ? daysAgoWords(k) : `in the month ${MONTHS[dateOf(d).month - 1].op}`; }; // (D-720, W5: no weeks in Persis)
   // (D-720: the court's people came with the court, not with a work group sent to the Terrace)
   const cm = pop.court && pid >= pop.court.first && pid < pop.court.end ? pop.court.member(pid) : null;
   if (cm && p.arrive > 0 && p.arrive <= day) year.push(cm.role === 'petitioner' ? `came to Parsa ${when(p.arrive)} to put a petition before the king` : cm.role === 'delegate' ? `came to Parsa ${when(p.arrive)} with a delegation of their people bearing gifts for the king` : `came to Parsa with the king’s household from Šušan ${when(p.arrive)}`);

@@ -13,7 +13,7 @@ const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 export function hearAsPerson(said: string): Heard {
   let text = said; const unknown: string[] = [];
-  const hits = fenceHits(said).filter(h => h.kind !== 'script');
+  const hits = fenceHits(said).filter(h => h.kind !== 'script' && h.kind !== 'slang'); // (D-720: "hello" is the translation of his greeting)
   for (const h of hits) { if (h.term === 'digits') { text = text.replace(/\b\d[\d:,.]*\s*(bc|bce|ad|ce)?\b/gi, m => { unknown.push(m.trim()); return '…'; }); continue; }
     const re = new RegExp(`(^|[^\\p{L}])(${esc(h.term).replace(/[ _-]/g, '[ _-]?')}(e?s)?)(?=$|[^\\p{L}])`, 'giu');
     text = text.replace(re, (_m, pre, w) => { unknown.push(w); return `${pre}…`; }); }

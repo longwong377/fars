@@ -52,7 +52,7 @@ function mannerOf(L: LifeRecord): Manner {
   const t = `${L.temperament}; ${L.speech.join('; ')}`.toLowerCase();
   const oath = /oath: “([^”]+)”/.exec(L.speech.join('; '))?.[1] ?? null;
   const child = L.age < 13, old = L.age > 55;
-  const addr = /calls the stranger “child”/.test(t) ? 'child' : /formal, uses titles/.test(t) ? 'sir' : child ? 'stranger' : draw(L, 'addr', 1) < 0.5 ? 'friend' : 'stranger';
+  const addr = /calls the stranger “child”/.test(t) ? 'child' : /formal, uses titles/.test(t) ? 'my lord' : child ? 'stranger' : draw(L, 'addr', 1) < 0.5 ? 'friend' : 'stranger';
   return { addr, oath, child, old, terse: /wary|guarded|shy|sparing|few words|brusque|blunt|short-tempered|says little/.test(t), warm: /warm|open-hearted|friendly|cheerful|light-hearted|good-humoured|talks fast|tells everything/.test(t),
     curious: /curious|eager for news|inquisitive|asks the stranger questions/.test(t), pious: /pious|devout|careful of the gods|swears by the gods/.test(t), wit: /dry wit|\bdry\b|teasing|merry/.test(t), wary: /wary|guarded|shy and slow/.test(t) };
 }
@@ -116,7 +116,9 @@ function lifeAnswer(L: LifeRecord, said: string, M: Manner): string[] {
     return [pick(L, said, 4, ['A quiet year for us so far', 'Nothing much this year', 'This year has been quiet']), L.past[1] ? firstPerson(L.past[1]) : L.today.events[0] ? `today: ${cut(L.today.events[0], 12)}` : ''];
   }
   if (has(/\b(terrace|water|well|villages?|where|far|place|river|town)\b/)) return [`I live in ${home}`, nowSay(L)];
-  if (has(/\b(gods?|pray|king|festival|xerxes|offering)\b/)) return [M.oath ? `I swear ${M.oath}` : 'I swear by the gods', 'the king is in his halls and I am in mine'];
+  // (D-720, W14: the king is named as his people named him, his father and his year; what he does is not theirs to know)
+  if (has(/\b(king|xerxes|xšayaršā|khshayarsha)\b/)) return [M.child ? 'The king is Xšayaršā, the great king' : 'Xšayaršā is king, son of Dārayavauš, in the nineteenth year of his reign', /\b(what|how|does|did|will|where)\b/.test(s) ? 'what the king does is not for me to know' : M.pious && M.oath ? `may the gods keep him; ${M.oath}` : ''];
+  if (has(/\b(gods?|pray|festival|offering)\b/)) return [M.oath ? `I swear ${M.oath}` : 'I swear by the gods', L.today.events.find(e => /festival|offering/.test(e)) ? `today: ${cut(L.today.events.find(e => /festival|offering/.test(e))!, 10)}` : 'we make the offerings on the right days'];
   return [nowSay(L), kin && !M.terse ? `at home are ${kin}` : ''];
 }
 /** a reason of yesterday's plan said as a memory: "yesterday I was helping kin with their harvest", "yesterday: a night turn of water" */
@@ -152,6 +154,7 @@ export function ownReply(L: LifeRecord, said: string, o: AskOpts = {}, knows: Kn
     if (!lines.length || (!intent && /\?\s*$/.test(said) && !may && !willing)) lines.push(...lifeAnswer(L, said, M));
   }
   if (came && !told) lines.unshift(`I came to ${came.replace(/^want to /, '')}`);
+  if (/The stranger speaks of coins/.test(before)) lines.unshift(pick(L, said, 19, ['Coins? Silver is weighed here, on the scales', 'Struck pieces? We weigh our silver here', 'Those I seldom see; silver is weighed']));
   if (/angry with him/.test(feel) && !intent) lines.unshift('I have not forgotten what you did');
   else if (/grateful to him|fond of him/.test(feel) && !intent && draw(L, said, 8) < 0.6) lines.unshift(pick(L, said, 9, ['Ah, it is you again', 'Welcome back, friend', 'You again, and welcome']));
   // the manner: a wary or distrusting person gives one thing; a warm one adds a word; a pious one swears; a curious one asks back

@@ -67,6 +67,9 @@ export const MARKET = 'market';
 /** D-455: a day's hire at the market (porterage, loads carried), paid at evening: a thirtieth of a shekel (B: the Neo-Babylonian
  *  hire contracts' shekel a month for a hired man; C for Pārsa) after three hours at the work */
 export const DAY_WAGE = 1 / 30, DAY_HOURS = 3;
+/** D-720 (W6): the day's hire paid as it was, in kind: barley to the day's hire's worth at the market's price (the beer is drunk
+ *  at the stall); DAY_WAGE stays its worth in silver (the law's reckoning of days worked off, deeds/law.ts) */
+export const dayGrain = (grainPrice: number) => DAY_WAGE / Math.max(1e-6, grainPrice);
 /** D-455: the stalls' margin over the market's own price, and what they give for grain brought in (C; a house gets 0.9) */
 const STALL_SELL = 1.12, STALL_BUY = 0.82;
 /** the languages, by family (a related tongue is learned a third as fast from the other: C) */
@@ -229,7 +232,8 @@ export class Stranger {
       case 'daywork': { const v = this.dayCheck(day); if (!v.ok) { this.bump('daywork_refused'); return v; }
         const e = this.ev('day_hired', [this.E.market.dearEv], MARKET, PLAYER); this.dayHire = { day: s.day, ev: e }; return { ok: true, why: v.why, ev: [e] }; }
       case 'daypaid': { const D = this.dayHire; if (!D || D.day !== s.day || D.paid) return { ok: false, why: 'no hire to pay' };
-        D.paid = true; this.purse.cash += DAY_WAGE; this.deeds.labour++; const e = this.ev('day_paid', [D.ev], MARKET, PLAYER, DAY_WAGE); return { ok: true, why: 'paid for the day', ev: [e] }; }
+        // (D-720, W6: hired labour was paid in kind: barley, the day's ration (A, the Fortification texts), and beer drunk at the stall)
+        const g = dayGrain(this.E.price('grain', this.E.day)); D.paid = true; this.purse.grain += g; this.deeds.labour++; const e = this.ev('day_paid', [D.ev], MARKET, PLAYER, +g.toFixed(3)); return { ok: true, why: 'paid for the day in barley, with a jug of beer', ev: [e] }; }
     }
   }
   /** D-455: is there a day's hire at the market (no regular work or group, not already hired today, and loads to carry today:

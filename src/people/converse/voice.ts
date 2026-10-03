@@ -62,7 +62,8 @@ export function replyUnits(pop: Population, pid: number, day: number, english: s
     // alone often has a single line, heard again and again in the first world run)
     const U = unitsFor(lang); const cands = intentsOf(english).flatMap(intent => candidateLines({ langs: [LANG_LABEL[lang]], intent })?.lines ?? []).map(l => U.lines.find(u => u.id === l.id)).filter((u): u is Unit => !!u);
     const line = cands.length ? cands[r.int(0, cands.length - 1)] : null; if (line) units.push(line);
-    while (units.length < want && U.words.length) { const w = r.pick(U.words); if (!units.includes(w)) units.push(w); }
+    // (D-720, W13: never padded with bare dictionary nouns ("spearman… one… bread"): a hum of assent or thought instead)
+    while (units.length < want) units.push(r.pick(WORDLESS));
   } else { while (units.length < want) units.push(r.pick(WORDLESS)); }
   return { units, lang };
 }

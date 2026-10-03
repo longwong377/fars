@@ -351,7 +351,7 @@ export class EconPlans {
         step(me, 'man', errand(7, 15, x, [['exchange', this.dur(e, 1, 2), herd ? 'bargaining for ewes to make up the flock after the loss' : 'bargaining for a draught ox to replace the one the house lost']],
           ['walk', herd ? 'going to buy ewes' : 'going to buy an ox'], ['walk', herd ? 'driving the ewes home' : 'leading the new ox home'])); break; }
       case 'loan': case 'loan_refused': case 'repaid': { if (me === null || other === null) break; const L = this.headName(other, day);
-        const why = e.kind === 'loan' ? `asking at ${L} for a loan of silver; it is weighed out, to be repaid with a tenth more after the harvest`
+        const why = e.kind === 'loan' ? `asking at ${L} for a loan of silver; it is weighed out, to be repaid after the harvest with a fifth more for the year, reckoned by the months it runs`
           : e.kind === 'loan_refused' ? `asking at ${L} for a loan of silver; refused: ${E.events.some(x => x.actor === e.actor && x.kind === 'default' && x.day > day - 240 && x.day <= day) ? 'the house did not pay the last one' : 'the house has nothing left to pledge'}`
             : `bringing the silver owed back to ${L} and seeing it weighed`;
         step(me, 'man', errand(7, 18, `h:${other}`, [['talk', this.dur(e, 0.3, 0.7), why]], ['walk', `going to ${L}`], ['walk', 'going back'])); break; }
