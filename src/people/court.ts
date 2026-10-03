@@ -90,7 +90,7 @@ export function courtKeepClear(e: number, n: number): boolean {
   const Wt = COURT.visitors.waiting, L = Wt.line;
   if (Math.abs(e) < 6.8 && n > 60 && n < 100) return true;
   if (e > L.x - 1.6 && e < L.x + (L.lines - 1) * L.gap_m + 0.9 && n > L.y0 - 0.7 && n < L.y0 + L.n * L.step_m + 0.2) return true;
-  for (const x of Wt.stations_x) if (Math.abs(e - x) < 2.6) for (const y of Wt.stations_y) if (n > y - 1.6 && n < y + 4.8) return true;
+  for (const x of Wt.stations_x) if (Math.abs(e - x) < 2.6) for (const y of Wt.stations_y) if (n > y - 1.6 && n < y + 5.6) return true; // (D-780: rows 1.3 m deep)
   return false;
 }
 /** D-221: the acts of waiting that face the focus (talk faces the one talked to, work its work) */
