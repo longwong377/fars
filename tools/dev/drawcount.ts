@@ -22,7 +22,7 @@ const img = () => new THREE.DataTexture(new Uint8Array(4), 1, 1);
 const humans = { A, O, gpu: new HumanGPU(A, O, { skin: img(), eye: img() }, { capacity: 64 }), ms: { load: 0, outfits: 0, gpu: 0, worker: false } };
 const crowd = new Crowd(sim, 1, humans as any); crowd.view = view; crowd.imp = new CrowdImpostors(atlas); crowd.looksPerFrame = 1e9;
 const P = JSON.parse(readFileSync('tests/data/coverage_points.json', 'utf8')).points as any[];
-const views = [...['cov-252', 'cov-294', 'cov-350', 'cov-037', 'cov-098', 'cov-142', 'cov-266'].map(id => P.find(p => p.id === id)),
+const views = process.env.VIEWS ? JSON.parse(process.env.VIEWS) : [...['cov-252', 'cov-294', 'cov-350', 'cov-037', 'cov-098', 'cov-142', 'cov-266'].map(id => P.find(p => p.id === id)),
   { id: 'c6-lane', e: -478, n: -881, eye: 1.6, az: 189, pitch: -4, day: 0, hour: 10 }];
 const ground = (e: number, n: number) => { const g = W.nav.walkable(e, n) ? W.nav.heightAt(e, n) : NaN; return Number.isFinite(g) ? g : T.surfaceAt(e, -n); };
 let time = 0;
