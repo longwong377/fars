@@ -9570,6 +9570,8 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   probe); every second tile turned 35° and offset (detile); the block faces' claw hatching fades to a third past ~4 m (a
   regular diagonal hatching over every block at 5-30 m); the houses' foot damp 0.1 -> 0.2 and run-off 0.12 -> 0.2; the water's
   far-bank reflection follows SEASON (was a hard-coded green).
+- Third pass: the footings take 75 % of the scan's buff (sunlit they read cold white-grey); the palaces' plaster bays 1σ 0.07 -> 0.09
+  and rain wash 0.13 -> 0.17 (the Gate's 20 m wall read as one flat plane). Frames: shots/a4, t4.
 
 ## D-480 (s17, V1 light): light v1, the art direction's light and tone
 - Tone (toneLook.ts): the fitted AgX look re-graded for the art direction (AC Origins / RDR2: rich, warm, controlled highlights,
