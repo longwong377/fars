@@ -9772,3 +9772,14 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   weather probe only because the probe had no sky environment. The probe now prefilters a sky/ground sphere into skyEnv.
 - materials.ts (one line, uniform-driven, no new shader state): on walls the wet film runs in vertical streaks (wet 0.4-1.0 of
   the ground's), not an even 55 % film.
+
+## D-513 (s17, V4 terrace): the relief atlas re-baked with a deep undercut (the figures read as carved at 2-10 m)
+- The lead's two routes: (1) the CC-BY "Two Persian courtiers" scan (Objaverse 2af5acdf; a museum fragment, 980 k triangles,
+  checked in look.ts) as a carving-style source, (2) a Cycles re-bake of the existing relief geometry with real undercut depth.
+  Route 2 taken (it reaches all 221 figure definitions and 3,748 placements in one build inside the deadline; route 1 needs a
+  per-figure transfer). The Persepolis reliefs' dark contour line comes from the outline cut square to under: the undercut
+  now pulls the foot of every step of 0.2 relief depths or more (was 0.25) under its arris by 0.55 of the rise (was 0.3), up to
+  5 texels (was 3); the occlusion rays reach 3 relief depths (was 2), so folds and contour hollows hold shade. tools/blender/
+  relief_atlas.ts, baked on the CPU in slot batches (tools/dev/gpu_slot.mjs; ~4 s a figure at 6 jobs), packed and KTX2-encoded
+  as before; the atlas also takes D-510's polychromy change into its input hash. No new asset (the atlas is the project's own,
+  ASSET_LEDGER row "Carved-relief atlas" unchanged in kind). Tier C.

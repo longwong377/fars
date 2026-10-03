@@ -40,11 +40,11 @@ export const PAGE = 4096, GAP = 4;
 /** the undercut: the foot of a step at least STEP_MIN relief-depths high is pulled under its arris by UNDERCUT of the step's
  *  height, at most UNDER_REACH texels (C: the outlines of the Apadana reliefs are cut square to slightly under, read on the
  *  photographs of the guards' and delegates' heads, fars-assets/photos/reliefs/73117298_King_guard.jpg, 94697337) */
-export const STEP_MIN = 0.25, UNDERCUT = 0.3, UNDER_REACH = 3;
+export const STEP_MIN = 0.2, UNDERCUT = 0.55, UNDER_REACH = 5; // D-513: was 0.25, 0.3, 3 (the outlines read as flat cut-outs at 2-10 m: the undercut is what throws the dark contour)
 /** Cycles samples per texel: normals antialiased within the texel, occlusion from 64 rays (technical, C) */
 export const SAMPLES = { normal: 4, ao: 64 };
 /** occlusion rays reach AO_DEPTHS relief depths (the step's own shadow line and the folds, not the neighbouring figure) */
-export const AO_DEPTHS = 2;
+export const AO_DEPTHS = 3; // D-513: was 2 (the folds and the contour hollows darker)
 const log = (...a: unknown[]) => console.log('[relief_atlas]', ...a);
 mkdirSync(WORK, { recursive: true });
 const sha = (b: Buffer | Uint8Array) => createHash('sha256').update(b).digest('hex');
