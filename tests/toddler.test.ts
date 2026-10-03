@@ -12,3 +12,12 @@ describe('the toddler\'s walk', () => {
     expect(low, 'sat down at least once in 90 s').toBeLessThan(-0.15);
   });
 });
+describe('the bit, for reins and lead ropes (s18 C14)', () => {
+  it('sits at the head, ahead of the body, low when grazing, turned with the animal', async () => {
+    const { bitAt, ANIMAL_BUILD } = await import('../src/people/animals');
+    const a = { sp: 'horse' as const, x: 0, z: 0, yaw: 0, phase: 0, walk: 0, graze: 0, lie: 0, coat: 0.5 };
+    const up = bitAt(a, 0), down = bitAt({ ...a, graze: 1 }, 0), turned = bitAt({ ...a, yaw: Math.PI / 2 }, 0), B = ANIMAL_BUILD.horse;
+    expect(up[2]).toBeGreaterThan(0.3 * B.len); expect(up[1]).toBeGreaterThan(0.8 * B.h); expect(down[1]).toBeLessThan(0.35);
+    expect(turned[0]).toBeCloseTo(up[2], 3); expect(Math.abs(turned[2])).toBeLessThan(0.05);
+  });
+});
