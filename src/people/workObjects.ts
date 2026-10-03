@@ -20,6 +20,8 @@ export type WorkKind = 'drum_sledge' | 'brick_stack' | 'mud_heap' | 'brick_field
   | 'cart' | 'chariot' | 'wagon' | 'hurdles'
   // session 9 (G77): an ox cart with roof beams; s17 V3 (C3's ask): an ox cart with a rough-cut block from the quarry
   | 'cart_timber' | 'cart_stone'
+  // D-780 (holes u1): a royal woman's curtained litter
+  | 'litter'
   // D-215: children's play (gap audit item 26)
   | 'knucklebones' | 'toy_wheeled'
   // D-209: the lan set out before the fire, and the boiled meat of a sacrifice laid on soft grass
@@ -99,6 +101,7 @@ export const WORK_NOTES: Record<WorkKind, { tier: 'A' | 'B' | 'C'; note: string 
   cart_stone: { tier: 'C', note: 'an ox cart carrying one rough-cut limestone block from the quarry (about 1.2 × 0.6 × 0.9 m, ~1.7 t: a heavy load for one yoke at a slow walk), chocked with timbers, for the door and window frames (s17 V3, C3’s ask; the stone from Majdabad: construction.ts E-61, B; carts and loads C)' },
   cart_timber: { tier: 'C', note: 'an ox cart carrying five roof beams of ~6 m, lashed on and overhanging behind (session 9: roof timber for the building works, the Susa charter\'s timbers from far: A for Susa, B analogy; load C)' },
   chariot: { tier: 'B', note: 'a two-wheeled chariot with spoked wheels, a box for the driver and a pole to the yoke of two horses (chariots on the Apadana reliefs and the royal chariot of HDT 7.40-41: B; form, size and the eight spokes C); court setting only' },
+  litter: { tier: 'C', note: 'a curtained litter of a royal woman: a gilded frame on two carrying poles, a cloth roof and dyed curtains drawn to below the knee (the closed carriages of the Persian women: Plutarch Them. 26, HDT 7.83, claims, B; the form C: D-780)' },
   wagon: { tier: 'C', note: 'a covered four-wheeled wagon (harmamaxa) for the royal women on the road (HDT 7.83, a claim; RECOLLECTION, NOT SEEN): a box on solid wheels under an arched cloth cover, a pole to the yoke (form and size C); court setting only' },
   hurdles: { tier: 'C', note: 'the state poultry yard: a ring of wattle hurdles and a low mud-brick coop (poultry and their fodder: PF 2034, IR-PET, B; where and how kept C)' },
   knucklebones: { tier: 'B', note: 'five knucklebones (astragali of sheep or goats) in the dust, thrown and gathered by children: astragali are common finds of the period (B object; the children’s game C)' },
@@ -160,7 +163,7 @@ const WORK_OVERRIDE: Partial<Record<WorkKind, Record<string, [RGB, number, numbe
 export const MODELLED_WORK: WorkKind[] = ['drum_sledge', 'brick_stack', 'mud_heap', 'brick_field', 'mortar_tub', 'brick_course', 'beam', 'loom', 'dung_cakes', 'fodder', 'fleece', 'butchery', 'hides',
   'threshing_floor', 'stooks', 'sheaves', 'sheaf', 'grain_heap', 'spoil', 'press', 'brushwood', 'pigment_slab', 'bier', 'wash_stone', 'drying_rack', 'target', 'ard', 'chariot', 'wagon', 'hurdles',
   'knucklebones', 'toy_wheeled', 'offering_set', 'grass_bed', 'anvil', 'bellows_stand', 'bellows', 'stake', 'weigh_table', 'seal_bench', 'tan_beam', 'tan_vat', 'hide_frames', 'fold', 'drum_haul',
-  'sledge', 'drum_rough', 'fish_trap', 'snare', 'hives', 'cart_timber'];
+  'sledge', 'drum_rough', 'fish_trap', 'snare', 'hives', 'cart_timber', 'litter'];
 /** a work model's parts painted (null when not loaded) */
 function woParts(id: string, kind: WorkKind | '', M?: THREE.Matrix4): THREE.BufferGeometry[] | null {
   const p = modelParts(id, 0, M); if (!p) return null;
@@ -334,6 +337,14 @@ export function workGeometry(kind: WorkKind): THREE.BufferGeometry {
       for (const x of [-0.5, 0.5]) g.push(P(box(0.04, 0.6, 0.72, x, R + 0.07, -0.05), [0.5, 0.2, 0.12], 0.8));
       g.push(P(rod([0, R + 0.05, 0.36], [0, 1.02, 1.6], 0.04, 0.035, 6), WOOD)); g.push(P(rod([0, 1.02, 1.6], [0, 1.22, 2.9], 0.035, 0.03, 6), WOOD));
       g.push(P(rod([-0.62, 1.24, 2.9], [0.62, 1.24, 2.9], 0.04, 0.04, 6), WOOD));
+      return merge(g); }
+    case 'litter': { const g: THREE.BufferGeometry[] = [], GILT: RGB = [0.62, 0.48, 0.28], CUR: RGB = [0.5, 0.12, 0.1], ROOF: RGB = [0.24, 0.26, 0.42];
+      // the person walks inside it: the poles at the bearers' hip height along the way, the curtains from the roof to 0.4 m (C)
+      for (const x of [-0.5, 0.5]) g.push(P(rod([x, 1.0, -1.7], [x, 1.0, 1.7], 0.035, 0.035, 6), WOOD));
+      for (const x of [-0.46, 0.46]) for (const z of [-0.62, 0.62]) g.push(P(rod([x, 0.45, z], [x, 2.0, z], 0.025, 0.025, 5), GILT, 0.6, 0.35));
+      g.push(P(box(0.98, 0.06, 1.3, 0, 2.0, 0), ROOF, 0.9)); g.push(P(box(1.02, 0.08, 1.34, 0, 1.94, 0), GILT, 0.6, 0.35));
+      for (const x of [-0.47, 0.47]) g.push(P(box(0.02, 1.5, 1.22, x, 0.45, 0), CUR, 0.95));
+      for (const z of [-0.63, 0.63]) g.push(P(box(0.92, 1.5, 0.02, 0, 0.45, z), CUR, 0.95));
       return merge(g); }
     case 'wagon': { const g: THREE.BufferGeometry[] = [], R = 0.42;
       for (const z of [-0.95, 0.95]) for (const x of [-0.82, 0.82]) g.push(P(new THREE.CylinderGeometry(R, R, 0.09, 12).rotateZ(Math.PI / 2).translate(x, R, z), WOOD_D));

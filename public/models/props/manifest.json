@@ -10838,6 +10838,60 @@
     0.3022218495607376
    ],
    "tex": 0
+  },
+  "m_wo_litter": {
+   "file": "models/props/m_wo_litter.glb",
+   "of": "wo_litter",
+   "role": "model",
+   "parts": [
+    "wood",
+    "gilt",
+    "blue",
+    "red"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/model_props.py (D-325)",
+   "bytes": 89764,
+   "sha256": "fc18c51482d1e00dad59c3352ddde21bc371090b20d323d61f7cc813a5ebe881",
+   "tris": {
+    "lod0": 1664,
+    "lod1": 940,
+    "lod2": 590
+   },
+   "partTris": {
+    "lod0__wood": 600,
+    "lod0__gilt": 188,
+    "lod0__blue": 108,
+    "lod0__red": 768,
+    "lod1__wood": 200,
+    "lod1__gilt": 180,
+    "lod1__blue": 60,
+    "lod1__red": 500,
+    "lod2__wood": 200,
+    "lod2__gilt": 180,
+    "lod2__blue": 60,
+    "lod2__red": 150
+   },
+   "box": [
+    [
+     -0.5330826044082642,
+     0.44999998807907104,
+     -1.6598236560821533
+    ],
+    [
+     0.5613513588905334,
+     2.059999942779541,
+     1.6585475206375122
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    1.0944339632987976,
+    1.60999995470047,
+    3.3183711767196655
+   ],
+   "tex": 0
   }
  }
 }
