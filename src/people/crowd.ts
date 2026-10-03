@@ -59,6 +59,7 @@ import type { AnimId } from './anim';
 import type { NearPerson } from '../audio/voices';
 import { voiceIdentity, nearPerson, type VoiceIdentity } from './talkers';
 import { Reactions, reactPose, SIGHT_POLL_S } from './react';
+import { Prints } from '../player/prints';
 import { SIGHT_M, type Near } from './converse/sight';
 /** poses in which people sit, kneel or lie (the seat pass rests them on the ground; coats and back-carried weapons are
  *  laid aside) */
@@ -249,13 +250,15 @@ export class Crowd {
   /** hidden behind the walls of the court or yard they stand in, from a camera outside it and below the wall tops */
   private walledOff(vp: ViewPerson, camY: number) { return vp.wall > 0 && vp.plot !== this.camPlot && camY < vp.y + vp.wall - 0.3; }
   private camAt = new THREE.Vector3();
+  /** D-695: the stranger's footprints, and where they were last frame (their pace, for the dust) */
+  readonly prints = new Prints(); private playerPrev: THREE.Vector3 | null = null;
   /** `sim` null: a crowd of extras only (the human lab page, tests) */
   /** the herds' calls (bleats, brays, barks, clucks) draw on the world seed's own stream, never Math.random (MASTER_PLAN §6 order, step 1) */
   private snd: Rng;
   constructor(readonly sim: PeopleSim | null, readonly seed: number, readonly humans: HumanSystem) {
     this.snd = new Rng(seed, 'crowd.calls');
     this.group.name = 'people';
-    this.group.add(humans.gpu.group);
+    this.group.add(humans.gpu.group); this.group.add(this.prints.mesh);
     // (s18 C5, D-693: the bone and person tables sized for the whole pool and its extras now, before any material is compiled
     // or drawn: growing them mid-play swaps the textures under compiled materials (HumanGPU.grow), and every frame with more
     // than the 256 default attached lost its bodies on the GPU: empty courts, a body in the bind pose)
@@ -649,6 +652,11 @@ export class Crowd {
   update(time: number, cam: THREE.Vector3, playerPos: THREE.Vector3 | null, camera?: THREE.Camera) {
     const t0 = performance.now(); this.now = time; const dt = Math.max(0, Math.min(0.5, time - this.lastTime)); this.lastTime = time; this.reactions.clock = time;
     if (playerPos && this.sim && time >= this.reactions.nextPoll) this.pollSight(time, playerPos, cam); // (D-395: the people react to the stranger on sight)
+    // D-695 (C12's 4-11): the stranger's own prints in dust and mud, and the dust their steps raise on dry ground (as a walker's)
+    if (playerPos && dt > 0) { this.prints.step(playerPos, time);
+      const pp = this.playerPrev, v = pp ? Math.hypot(playerPos.x - pp.x, playerPos.z - pp.z) / dt : 0;
+      if (pp && v > 0.5 && v < 4 && this.dustTap) this.dustTap('walk', playerPos.x, playerPos.y - 0.85, playerPos.z, Math.atan2(playerPos.x - pp.x, playerPos.z - pp.z), v, 7919);
+      (this.playerPrev ??= new THREE.Vector3()).copy(playerPos); }
     if (camera) { this.lastCamera = camera; camera.updateMatrixWorld(); this.pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse); this.frustum.setFromProjectionMatrix(this.pm); this.wide.copy(this.frustum); for (const pl of this.wide.planes) pl.constant += 3; }
     this.frame++;
     // the air's temperature now (the sim's weather; once a frame), for the dress of the cold
