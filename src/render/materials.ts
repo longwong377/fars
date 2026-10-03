@@ -82,6 +82,10 @@ export const SURF_AB = uniform(1);
 /** D-285's A/B switch (window.__parsaSurf.d285): 0 = the surfaces before D-285 (no soiling of the stone, no plastering campaign
  *  or rain wash on the mud plaster, the D-157 foot band and 3 m run-off everywhere), so a render can compare both at one exposure */
 export const SURF_D285 = uniform(1);
+/** D-477's A/B switch (window.__parsaSurf.v9): 0 = the earthen walls before D-477 (no weathered base, crest, wash streaks, coats or
+ *  fallen plaster), so a render can compare both at one exposure */
+export const SURF_V9 = uniform(1);
+if (typeof globalThis !== 'undefined') (globalThis as any).__parsaSurf = { ...((globalThis as any).__parsaSurf ?? {}), v9: SURF_V9 };
 /** D-300: the Now view's modern gravel forecourt W of the Terrace (0 = the 467 plain; set by src/world/nowview.ts). Photograph #24
  *  (2019) shows pale grey gravel from the camera to the wall's foot: display rgb 143/121/112 against the render's earth 99/85/62
  *  in calib-24-now. The earth there takes a per-channel factor (linear, from those means through the display curve, C: the
@@ -218,7 +222,22 @@ export interface SurfaceDef {
   paint?: { ground: [number, number, number]; dado: { h: number; col: [number, number, number] }; bands: { col: [number, number, number]; w: number }[]; frieze: { h: number; col: [number, number, number]; edge: { col: [number, number, number]; w: number } } };
   /** D-285: the plastering campaign and the weather on a mud-plastered wall (PlasterWeatherDef) */
   plasterWeather?: PlasterWeatherDef;
+  /** D-477: the weathering of an earthen wall read at 5-30 m (EarthWeatherDef; arch meshes with y0/ytop) */
+  earthWeather?: EarthWeatherDef;
 }
+/** D-477 (C; s17 scoreboard: mud walls at 5-30 m read as smooth plaster boxes). The weathering of a mud-plastered wall, scaled to
+ *  read at 5-30 m (AC Origins / Kingdom Come 2 earthen walls; the region's kahgel villages): all on vertical outer faces of arch
+ *  meshes, from the height over the wall's foot (y0) and under its top (ytop), none where those are unset (fittings).
+ *  - base: splash and rising damp to ~`base.h` m (±40 %, ragged), darker by `dark` and toward the earth by `dirt`, a speckle of
+ *    splashed mud in its lowest 0.4 m;
+ *  - top: the crest's `top.h` m bleached by `bleach` (sun, the fines washed out) and its last ~12 cm rounded (`round`: the normal
+ *    tilted up, so the eroded crest catches the sky as a soft lip);
+ *  - wash: mud streaks from the earth top down the face, ~0.7 m wide, of lengths 0.3-1 × `wash.len` m (each ends where its water
+ *    soaked in), darker by `amp` toward the earth;
+ *  - coat: patchy replastering, coats of ~3 m with ragged edges, lighter/yellower or darker/greyer by 1σ `coat`;
+ *  - loss: the plaster fallen in `loss.cover` of the face (more at the damp foot and the crest), the mud bricks behind (33 × 13 cm
+ *    courses in half bond, mud joints) `loss.depth` m sunk, with a broken lip */
+export interface EarthWeatherDef { base: { h: number; dark: number; dirt: number }; top: { h: number; bleach: number; round: number }; wash: { amp: number; len: number }; coat: number; loss: { cover: number; depth: number } }
 /** D-285 (C): the soiling of dressed stone in ~50 years of rain and dust on an open plain (the Terrace's oldest walls went up
  *  from ~518 BCE). Water running down an ashlar face gathers in the joints and leaves each block at its lower arris, so the
  *  stains hang from the bed joints: `drip` = their darkening at the joint (fading to nothing `len` m below it, widening as they
@@ -298,6 +317,10 @@ const SOIL_TERRACE: SoilDef = { drip: 0.12, share: 0.5, w: [0.03, 0.1], len: [0.
  *  read 0.020 on the CPU mirror, 0.036-0.041 now: tests/materials_d285.test.ts) */
 /** D-300 (session 11 renders at the player's lens: the Gate's walls one flat tan field at 24 m, no bay or wash seen): the
  *  batches 1σ 7 % and the wash 13 % lighter, so the campaign reads at 20-60 m; the 0.5 m spread stays the photo's (tests) */
+/** D-477 (C): the palaces' mud plaster kept in repair in 467 (the court's own plasterers), so weathered lighter than the town's:
+ *  the damp base to ~0.8 m, longer wash streaks from the high tops, a few recoated bays, the crest rounded, plaster lost from
+ *  ~1.5 % of the outer faces */
+const PALACE_WEATHER: EarthWeatherDef = { base: { h: 0.8, dark: 0.12, dirt: 0.25 }, top: { h: 0.8, bleach: 0.05, round: 0.4 }, wash: { amp: 0.15, len: 4.5 }, coat: 0.04, loss: { cover: 0.015, depth: 0.012 } };
 const PLASTER_WEATHER: PlasterWeatherDef = { lift: [1.1, 1.7], bay: 3.0, sd: 0.09, chroma: 0.016, seam: 0, wash: 0.17, washH: 5, hand: { amp: 0.0025, len: 0.6, wid: 0.25, mottle: 0.045 } };
 /** stair blocks along the step (D-218, C): 1.9 m ± 30 %; the row's joint crosses the first tread of each row 6 cm in front of
  *  the next riser (the blocks' 4–5 steps per row: grand_stair.block_construction, B) */
@@ -334,10 +357,10 @@ export const SURFACES: Record<string, SurfaceDef> = {
   // with straw, finished fine: a light buff (sRGB 0.64/0.55/0.43, L* 60, the town render's hue lightened as a fine clay
   // finish dries, C). The greyish yellow-green clay paint is attested only for the Treasury (Schmidt) and at
   // Pasargadae: `mudbrick_painted` below, used by the Treasury alone
-  mudbrick: { paint: PALACE_PAINT, albedo: [0.64, 0.55, 0.43], roughness: 0.93, porosity: 0.8, noiseScale: 0.6, noiseAmp: 0.09, tone: { sd: 0.1, chroma: 0.018, patch: -0.07 }, foot: 1, skirt: { h: 0.5, dark: 0.1, salt: 0.08 }, runoff: 0.1, plasterWork: { float: 1, cracks: 0.3 }, plasterWeather: PLASTER_WEATHER, bump: { amp: 0.012, freq: 1.1 }, micro: { amp: 0.0006, freq: 55, alb: 0.05 }, tier: 'B/C', note: 'mud plaster on mud brick: earthen plaster B (Stein et al. 2016, search extract); its tone C (D-188). The green clay paint is not extended beyond the Treasury (Q-028); D-218: a renewed skirting coat ~0.5 m, rising damp and a salt tide line at the foot, hand-laid undulation ±6 mm (all C, Q-483); D-300: the shrinkage cracks at 0.3 and the salt line at 0.08 of their D-188/D-218 strength (the session-11 blind review: Voronoi craze patches and a decal-like base line); the hand-laid undulation ±12 mm at ~0.9 m (the second review: "single flat planes" at 24 m)' },
+  mudbrick: { paint: PALACE_PAINT, albedo: [0.64, 0.55, 0.43], roughness: 0.93, porosity: 0.8, noiseScale: 0.6, noiseAmp: 0.09, tone: { sd: 0.1, chroma: 0.018, patch: -0.07 }, foot: 1, skirt: { h: 0.5, dark: 0.1, salt: 0.08 }, runoff: 0.1, plasterWork: { float: 1, cracks: 0.3 }, plasterWeather: PLASTER_WEATHER, earthWeather: PALACE_WEATHER, bump: { amp: 0.012, freq: 1.1 }, micro: { amp: 0.0006, freq: 55, alb: 0.05 }, tier: 'B/C', note: 'mud plaster on mud brick: earthen plaster B (Stein et al. 2016, search extract); its tone C (D-188). The green clay paint is not extended beyond the Treasury (Q-028); D-218: a renewed skirting coat ~0.5 m, rising damp and a salt tide line at the foot, hand-laid undulation ±6 mm (all C, Q-483); D-300: the shrinkage cracks at 0.3 and the salt line at 0.08 of their D-188/D-218 strength (the session-11 blind review: Voronoi craze patches and a decal-like base line); the hand-laid undulation ±12 mm at ~0.9 m (the second review: "single flat planes" at 24 m)' },
   // the Treasury's walls: mud plaster coated with a greyish yellow-green clay paint, attested at Pasargadae and, per
   // Schmidt, on the Treasury walls (Stein et al. 2016, npj Herit. Sci., search extract: B for the coating); tone C
-  mudbrick_painted: { paint: PALACE_PAINT, albedo: [0.58, 0.57, 0.45], roughness: 0.9, porosity: 0.8, noiseScale: 0.6, noiseAmp: 0.09, tone: { sd: 0.1, chroma: 0.018, patch: -0.07 }, foot: 1, skirt: { h: 0.5, dark: 0.1, salt: 0.08 }, runoff: 0.1, plasterWork: { float: 1, cracks: 0.3 }, plasterWeather: PLASTER_WEATHER, bump: { amp: 0.012, freq: 1.1 }, micro: { amp: 0.0006, freq: 55, alb: 0.05 }, tier: 'B/C', note: 'Treasury walls: mud plaster with a greyish yellow-green clay paint (Treasury walls per Schmidt; Pasargadae: via Stein et al. 2016, B); tone C; extent to other buildings open (Q-028)' },
+  mudbrick_painted: { paint: PALACE_PAINT, albedo: [0.58, 0.57, 0.45], roughness: 0.9, porosity: 0.8, noiseScale: 0.6, noiseAmp: 0.09, tone: { sd: 0.1, chroma: 0.018, patch: -0.07 }, foot: 1, skirt: { h: 0.5, dark: 0.1, salt: 0.08 }, runoff: 0.1, plasterWork: { float: 1, cracks: 0.3 }, plasterWeather: PLASTER_WEATHER, earthWeather: PALACE_WEATHER, bump: { amp: 0.012, freq: 1.1 }, micro: { amp: 0.0006, freq: 55, alb: 0.05 }, tier: 'B/C', note: 'Treasury walls: mud plaster with a greyish yellow-green clay paint (Treasury walls per Schmidt; Pasargadae: via Stein et al. 2016, B); tone C; extent to other buildings open (Q-028)' },
   plaster: { albedo: [0.78, 0.74, 0.66], roughness: 0.85, porosity: 0.7, noiseScale: 0.8, noiseAmp: 0.08, roughVar: 0.1, tone: { sd: 0.09, chroma: 0.015, patch: 0.05 }, foot: 1, bump: { amp: 0.0022, freq: 2.4 }, micro: { amp: 0.00025, freq: 70, alb: 0.03 }, tier: 'C', note: 'lime/gypsum plaster' },
   // albedo (C, session 4): a hematite-like reflectance (~4–7 % below 580 nm rising to 30–50 % above 620 nm) integrated
   // with CIE 1931 / D65 gives linear ≈ (0.25–0.53, 0.034–0.085, 0.036–0.059), R/G 6–7.5; the old (0.48, 0.14, 0.10) sRGB
@@ -1127,6 +1150,64 @@ function layer(d: SurfaceDef, base: any, arch = false, band = false): Layer {
     const rl = d.runoffLen ? mix(float(3), float(d.runoffLen), SURF_D285) : float(3); // D-285: per surface (a tall wall's streaks run further)
     const fade = float(1).sub(smoothstep(float(0.2), rl, below)).mul(step(0, below)).mul(float(1).sub(roofedNode())); // no rain under the roofs (D-188)
     alb = alb.mul(float(1).sub(st.mul(fade).mul(vert).mul(d.runoff).mul(SURF_AB)));
+  }
+  if (arch && d.earthWeather) { // D-477 (EarthWeatherDef, C): the weathered earthen wall at 5-30 m
+    const E = d.earthWeather, y0 = attribute('y0', 'float'), yT = attribute('ytop', 'float');
+    const hb = p.y.sub(y0), ht = yT.sub(p.y);
+    // on vertical faces of parts with a foot and a top (the fittings carry y0 = -1000, ytop = 1e4), outside the painted rooms
+    const has = step(-500, y0).mul(step(ht, 500)).mul(step(-0.05, hb)).mul(step(-0.05, ht));
+    const vert = float(1).sub(smoothstep(0.3, 0.7, abs(n.y))).mul(has).mul(SURF_V9).mul(d.paint ? float(1).sub(attribute('inner', 'float')) : float(1));
+    const hl = vec2(n.x, n.z).length().max(1e-3), t = p.x.mul(n.z.div(hl)).sub(p.z.mul(n.x.div(hl))); // along the face (m)
+    const fpE = fwidth(p).length().max(1e-6);
+    // two shared fields: a ~3 m one (the coats; the loss patches' shape) and a ~0.6 m one (ragged edges, the damp line)
+    const nA = mx_noise_float(pr.div(3.1).add(vec3(12.7, 3.9, 44.1)));
+    const nB = mx_noise_float(pr.div(0.62).add(vec3(5.1, 27.3, 9.9)));
+    // the coats: patchy replastering, a fresh coat lighter and yellower, an old one darker and greyer
+    const coat01 = smoothstep(-0.02, 0.02, nA.add(nB.mul(0.22))), coat = coat01.mul(2).sub(1).mul(vert);
+    height = (height ?? float(0)).add(coat01.mul(vert).mul(0.002)); // the newer coat stands ~2 mm proud: its edge catches the light
+    alb = alb.mul(vec3(float(1).add(coat.mul(E.coat * 1.15)), float(1).add(coat.mul(E.coat)), float(1).add(coat.mul(E.coat * 0.7))));
+    rough = rough.sub(coat.max(0).mul(0.03));
+    // the base: splash and rising damp, its top ragged
+    const hD = float(E.base.h).mul(float(1).add(nB.mul(0.55)).add(nA.mul(0.4))).max(0.15);
+    const zone = float(1).sub(smoothstep(hD.mul(0.35), hD, hb)).mul(vert);
+    const zb = zone.mul(float(0.55).add(float(1).sub(smoothstep(float(0), hD, hb)).mul(0.45)));
+    const spk = smoothstep(0.18, 0.42, mx_noise_float(pr.mul(17).add(vec3(3.3, 8.8, 1.2)))).mul(float(1).sub(smoothstep(0.05, 0.45, hb))).mul(bandLimit(fpE, 0.06)).mul(vert);
+    alb = mix(alb, DIRT.mul(0.8), zb.mul(E.base.dirt).add(spk.mul(0.35))).mul(float(1).sub(zb.mul(E.base.dark)));
+    rough = mix(rough, float(0.97), zb.mul(0.4));
+    // the wash: mud streaks from the earth top, each to its own length
+    const sq = vec3(p.x.mul(2.0), p.y.mul(0.05), p.z.mul(2.0));
+    const sN = mx_noise_float(sq.add(vec3(21.1, 0.7, 3.3)));
+    const sLen = float(E.wash.len).mul(mx_noise_float(vec3(p.x.mul(0.6), float(4.2), p.z.mul(0.6))).mul(0.9).add(0.65).clamp(0.3, 1));
+    const streak = smoothstep(0.1, 0.36, sN).mul(float(1).sub(smoothstep(float(0), sLen, ht))).mul(float(1).sub(roofedNode())).mul(vert);
+    alb = mix(alb, DIRT.mul(0.85), streak.mul(E.wash.amp * 0.5)).mul(float(1).sub(streak.mul(E.wash.amp * 0.5)));
+    // the crest: bleached, and its last ~12 cm rounded
+    const zt = float(1).sub(smoothstep(float(0), float(E.top.h), ht)).mul(vert);
+    alb = alb.mul(float(1).add(zt.mul(E.top.bleach)));
+    rough = rough.add(zt.mul(0.03)).min(1);
+    const lip = float(1).sub(smoothstep(0, 0.12, ht)).mul(vert);
+    const tUp = vec3(0, 1, 0).mul(lip.mul(E.top.round));
+    tilt = tilt ? tilt.add(tUp) : tUp;
+    // the loss: plaster fallen (more at the damp foot and under the crest), the bricks behind
+    if (E.loss.cover > 0) {
+      const bias = float(1).sub(smoothstep(0.3, 1.6, hb)).mul(0.22).add(zt.mul(0.12));
+      const F = nA.mul(0.8).add(nB.mul(0.45)).add(mx_noise_float(pr.div(0.19).add(vec3(7.7, 1.1, 30.3))).mul(0.12)).add(bias);
+      const th = 0.47 - 0.9 * E.loss.cover; // (the field's 1σ ~0.25: ~cover of the face above th, with the foot's bias)
+      const fF = fwidth(F).max(1e-5);
+      // (the first probe: a pixel-sharp edge drew a black cut-out outline in the bump; the coat breaks over ~3 cm)
+      const loss = smoothstep(float(th), fF.add(th + 0.035), F).mul(vert);
+      const rim = smoothstep(float(th - 0.05), float(th), F).mul(float(1).sub(loss)).mul(vert); // the broken coat's lip: crumbling, lighter
+      // the bricks: 33 × 13 cm courses in half bond, ~2 cm mud joints; each brick its own tone; band-limited (only the patch's
+      // tone stays where a course spans under ~3 px)
+      const cy = hb.div(0.13), ci = floor(cy), tb = t.add(fract(ci.mul(0.5)).mul(0.33)).add(hash12(ci, float(5.7)).mul(0.08));
+      const bi = floor(tb.div(0.33));
+      const vis = bandLimit(fpE, 0.13);
+      const joint = max(hairline(hb, 0.13, 0.024), hairline(tb, 0.33, 0.024)).mul(vis);
+      const bt = hash12(ci.add(0.5), bi.add(3.1)).sub(0.5).mul(0.3).mul(vis), br = hash12(bi.add(9.3), ci.add(1.7)).sub(0.5).mul(0.08).mul(vis);
+      const brick = vec3(float(0.88).add(br), 0.8, float(0.72).sub(br)).mul(float(1).add(bt)).mul(float(1).sub(joint.mul(0.45)));
+      alb = mix(alb, alb.mul(brick), loss).mul(float(1).add(rim.mul(0.1)));
+      rough = mix(rough, float(0.98), loss);
+      height = (height ?? float(0)).sub(loss.mul(E.loss.depth)).sub(joint.mul(loss).mul(0.006));
+    }
   }
   if (arch && d.wear) { // traffic wear along the axes of hall and portico floors (D-157, C). pbox = (cx, cz, ±hx, hz): hx > 0
     // marks a floor (hall floor finish, portico floor, pavement, landing), hx < 0 any other part

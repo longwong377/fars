@@ -427,6 +427,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   wmark('sim');
   settlement?.roofWear.setSource(RoofWear.source(sim.pop.households, (hh, d) => sim.deeds.joint.roofOf(hh, d), () => Math.floor(sim.t / 24))); // s17 C1 (D-550): leaking and fresh roofs
   sim.routeSearchesPerStep = 1; // at most one new route search per render frame (D-024)
+  sim.aheadMs = 4; // D-650: tomorrow made ready ~4 ms a frame
   // D-199: the court's camps (court setting only): the tents of the court's camp and of the retinue's camps (camps.ts)
   const campTents = sim.pop.court ? new CourtCampTents(sim.pop.court.tents, (e, n) => terrain.heightAt(e, -n), phys) : null; if (campTents) root.add(campTents.group);
   if (sim.pop.court) addCampHearths(fire, campItems(sim.pop.court.tents), (e, n) => terrain.heightAt(e, -n), ti => tentStands(sim.pop.court!.tents[ti], sim.t)); // D-530: the court camps' hearths (C3's ask)
@@ -449,7 +450,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   let navOwn = false;
   if (navCore) for (const k of prefetchedKeys('navcore')) { if (!k.startsWith(navKey + '|')) continue; const m = cacheGetSync<Map<string, unknown>>('navcore', k);
     if (m instanceof Map) { for (const [a, v] of m) navCore.set(a, v); if (k === `${navKey}|${seed}`) navOwn = true; } }
-  const view = new PopView(sim, geo, seed, { warm: !navOwn }); crowd.view = view;
+  const view = new PopView(sim, geo, seed, { warm: !navOwn }); crowd.view = view; view.setDoorways(doorways); // D-690: the view keeps people out of the Terrace doorways (C5)
   if (navCore && !navOwn) cachePutSync('navcore', `${navKey}|${seed}`, navCore);
   wmark('view');
   // D-210: the animals that live about the town, the villages, the paradise and the river (world/fauna.ts), and the animals
@@ -659,7 +660,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const simulate = (dt: number, clock: any) => {
     const target = clock.t * 24;
     if (!simStarted) { sim.jumpTo(target); simStarted = true; }
-    else { const ds = (target - sim.t) * 3600; if (ds < -1 || ds > 900) sim.jumpTo(target); else if (ds > 0) sim.step(ds); }
+    else { const ds = (target - sim.t) * 3600; if (ds < -1 || ds > 900) sim.jumpTo(target, dt > 0 ? 8 : 0); /* D-650: a day change is sliced over frames (8 ms each); a dt-0 tick jumps whole */ else if (ds > 0) sim.step(ds); }
     if (playerAt) sim.player = [playerAt.x, -playerAt.z];
     // doors (D-051): swing, schedules, people opening closed doors as they pass; before the next physics step
     doors.player = playerAt; doors.people = sim.agents.filter(a => !a.offmap).map(a => a.pos as [number, number]);
