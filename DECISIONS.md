@@ -10548,3 +10548,15 @@ touched; the budget baseline is not re-accepted from such a head.
   Egyptian blue (relief_ground); faces with no floor in front (the towers over the podium's edge) painted too. All C (pigments B).
 - Probe frames (WebGL2 SwiftShader, no aerial perspective) at 700 m-1 km before/after: handoff/s18/c10/distance-*.jpg.
 - Addendum 3: q_w3 moved 20 m W (c −955, −95): on its E side it abutted q_b3 (gap ≤ 5 m) and its lanes' way out E led into a pocket (C5: 261 of 537 q_w3 lane cells could not reach the market at −773, −145; now 5 of 581; TownWalk.route). tools/dev/open_sky_census.ts: the cloud eyes' open-to-sky measure (render.mjs 31f0e69f) in node with the near ring: intro-town 0.052 (135 samples), town-20m 0 (6), town-200m-noon 0 (16).
+- (D-697) The court's people anchored at their groups' places on a court day (COURT_ANCHOR: the forecourt for the delegations
+  and the royal guard, the Apadana's N portico for the nobles, officials, heralds and table), not at their camps or the Terrace's
+  centre: tied with every Terrace worker they ranked 10,000-15,000th and a jump to the gift day placed 4 of the 747 a settle
+  puts within 60 m of the N court for 8 s; now 689 two seconds on (tests/people_drawn.test.ts). A walker over the route budget
+  asks again after half a game minute (ROUTE_RETRY_H), not every update.
+## D-694 (rebuild) The nav grid with C2's lower town (s18 cloud C5)
+- tools/build_nav.ts adds every collider box of the sites reaching into the grid (5 sites, 8,486 boxes: q_b8, q_b9, q_b10 at the
+  Terrace's W foot and their neighbours), and on the approach (west of e -45) blocks the pockets no body reaches from the seeds
+  (the quarters' houses and lanes: their walk is the town's TownWalk, not this grid). The Terrace's cells are unchanged. 162,852
+  approach cells fewer walkable (the quarters). Bots: approach 40/40 (0.53 % stuck), Terrace 39/40 (the miss: people at the
+  Tachara's door; stuck time at the Hall of 100's masons, sim.ts). terrace_walk's "every road block ... decides to an on-Terrace
+  task" fails identically on the old grid (not this rebuild).
