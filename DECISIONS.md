@@ -10025,6 +10025,16 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   after (tests/cloud_slits_d680.test.ts; fails unwarped). The cover calibration tests pass unchanged. C.
 - Kuh-e Rahmat's bright streak: road_pasargadae's first segment (settlement.json [250,250] -> [2600,1900]) runs ruler-straight
   from 2 m up to ~290 m over the mountain behind the Terrace; a data fix (reroute round the north end) asked of the lead.
+- The live page's black frames (s18, the lead's urgent ask; the T4 and the cloud alike): (1) progressive.ts deferred, once the
+  frame's 40 ms build budget was spent, every draw never built before, and the full-screen quads are drawn last: the post
+  pipeline's (composite, TRAA, bloom, the meter's render-to-texture) at high, the renderer's own output quad (tone mapping
+  and sRGB to the canvas) at low; while the world streamed in they were deferred every frame, so the canvas stayed black and
+  the meter read an unwritten target (meterLn 0, EV -1 on the T4). A QuadMesh is never deferred now. Cloud live probe
+  (?webgl=1, low, Enter and the film skipped, no ?test): black at 54-93 draws before, the sky, clouds and ground from the
+  first sampled frame after. (2) pipeline.ts pins the renderer's tone mapping and colour space before three's RenderPipeline
+  pass and restores them in a finally (a throw inside it left NoToneMapping, and the next frame rebuilt the output without
+  AgX: toneMapping 0 on the live T4 page); a throwing pass is logged (window.__frameFaults) and the frame goes on. (3) main.ts:
+  a meter readback pending over 2 s is abandoned and an all-zero or non-finite one rejected; both fall back to the lux law.
 - Unseen: the cloud cannot draw Q=high (WebGL2: program validation failures and a lost device with the cascade on AND off;
   WebGPU: SwiftShader's 16-texture cap), so the far cascade is verified node-side only; it needs a T4 frame.
 
