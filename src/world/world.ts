@@ -574,7 +574,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const voices = new PopulationVoices(audio, { seed }); const overheard = new Overheard(sim); voices.script = (k, g, l) => overheard.next(k, g, l); voices.neural = neural; farCrowd.neural = neural; const nearBuf: NearPerson[] = []; const scriptedUntil = new Map<string, number>();
   // what a person near says reaches the translation layer (out of world; T-K3c), unless a scripted line was shown lately
   let scriptedSubAt = -1e9; voices.onCaption = c0 => { if (c0.lang === 'wordless' || time - scriptedSubAt < 4) return; const c1 = thinCaption(sim, c0), tp = overheard.topicFor(c0.key), c = { ...c1, lang: c0.lang, gloss: tp ? `${c1.gloss}${c1.gloss ? ' ' : ''}(talking of ${tp})` : c1.gloss }; // (D-377: what they talk of; D-370: the gloss thins as the stranger learns the tongue)
-    lastSubtitle = { lineId: c.unit, lang: c.lang, translit: c.translit, gloss: c.gloss, tier: c.tier, speakerId: c.key, backend: neural?.stats.ready ? 'kokoro' : 'formant' }; };
+    lastSubtitle = { lineId: c.unit, lang: c.lang as any, translit: c.translit, gloss: c.gloss, tier: c.tier, speakerId: c.key, backend: neural?.stats.ready ? 'kokoro' : 'formant' }; };
   // D-245: the rivers and canals sound near their banks (audio/water.ts; T-G3e)
   const water = new WaterSound(audio, [...plain.data.rivers.rivers.map(r => ({ pts: Array.from(r.x, (x, i) => [x, r.y[i]] as [number, number]), half: r.topWidth / 2, kind: 'river' as const })),
     ...plain.data.canals.map(c => ({ pts: c.pts, half: c.width / 2, kind: 'canal' as const }))], groundAt, seed);

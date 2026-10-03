@@ -38,7 +38,7 @@ export function printCensus(c: Record<string, DressRow>): string {
 async function courtLooks(seed: number, n: number, day: number): Promise<PersonLook[]> {
   const { readFileSync } = await import('node:fs'), { PeopleSim } = await import('../../src/people/sim'), { NavGrid } = await import('../../src/people/navgrid'), { PopView } = await import('../../src/people/popview'), { lookFor } = await import('../../src/people/looks');
   const nav = new NavGrid(new Int16Array(readFileSync('public/generated/nav.i16').buffer.slice(0)), new Uint8Array(readFileSync('public/generated/nav_edges.u8')));
-  const sim = new PeopleSim(seed, nav, () => ({ rain: 0, lightning: 0, windMs: 2, tempC: 18, dust: 0 }), { court: true } as any), pop = (sim as any).pop, K = pop.court, A = loadA();
+  const sim = new PeopleSim(seed, nav, () => ({ rain: 0, lightning: false as any, windMs: 2, tempC: 18, dust: 0 }), { court: true } as any), pop = (sim as any).pop, K = pop.court, A = loadA();
   const view = Object.create(PopView.prototype) as any; Object.assign(view, { pop, sim: { t: day * 24 + 10, agents: [] }, seed });
   const ids: number[] = []; for (let pid = K.first; pid < K.end; pid++) if (pop.present(pid, day) && K.member(pid)?.g !== 'retinue') ids.push(pid);
   const step = Math.max(1, Math.floor(ids.length / n)); return ids.filter((_, i) => i % step === 0).map(pid => lookFor(A, view.lookInput(pid), seed));
