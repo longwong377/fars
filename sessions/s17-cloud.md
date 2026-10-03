@@ -26,6 +26,11 @@ the head of `cloud-s17-int` named in the last cloud-lead line of handoff/s17/ask
 - **Walk:** 2 houses still cannot be entered (B580); people standing in doorways block 37 door passages (V3's step-aside and
   C10's spacing asked); the town bots miss 2 of 40 targets near q_s2 party walls for an unexplained reason (the player body is
   0.5 m, the routes are built for 0.56 m).
+- **Town ground fill near the walls possibly not drawing:** in cloud eyes' lane frame only the firewood of ~10 things the plan
+  puts within 10 m shows (C1's report; cause unknown: not drawn in that page, or sunk at terrain height under the wall foot). Check
+  on the T4 first in any town lane view.
+- **Life (C10, late):** coverage points with a reason for people but nobody there at every daytime moment 91 -> 39, nobody
+  within 250 m 65 -> 16 (node census).
 - **Road folk:** made population people (C10, D-640) and handed over in world.ts by the cloud lead at the end of the day
   (`sim.pop.shareFolk()`), so they are talkable; this hand-over is unseen in a render.
 - **Old failing tests, all also failing on s14-int 63d26b45 (not today's):** day_slice, exchanges, fire_occ, humans_faces,
