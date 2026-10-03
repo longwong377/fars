@@ -32,7 +32,7 @@ function sections(r: RiverProfile): Section[] {
     let dth = Math.atan2(r.y[b] - r.y[c], r.x[b] - r.x[c]) - Math.atan2(r.y[d0] - r.y[a], r.x[d0] - r.x[a]); if (dth > Math.PI) dth -= 2 * Math.PI; if (dth < -Math.PI) dth += 2 * Math.PI;
     return Math.abs(dth) > 1e-4 ? Math.hypot(r.x[b] - r.x[a], r.y[b] - r.y[a]) * 0.75 / Math.abs(dth) : 1e9; };
   for (let i = 0; i < n - 1; i++) {
-    const near = Math.hypot(r.x[i], r.y[i]) < 12000, Rb = Math.min(radiusAt(i), radiusAt(i + 1)), step = near ? Math.min(20, Math.max(8, Rb / 4)) : Math.min(45, Math.max(12, Rb / 3));
+    const near = Math.hypot(r.x[i], r.y[i]) < 12000, Rb = Math.min(radiusAt(i), radiusAt(i + 1)), step = near ? Math.min(20, Math.max(8, Rb / 4)) : Math.min(45, Math.max(20, Rb / 2.2)) /* D-670: far 20 m min (the plain under 2 M with the merged reliefs) */;
     const seg = Math.hypot(r.x[i + 1] - r.x[i], r.y[i + 1] - r.y[i]);
     for (; acc < seg; acc += step) {
       const t = acc / seg, x = r.x[i] + (r.x[i + 1] - r.x[i]) * t, y = r.y[i] + (r.y[i + 1] - r.y[i]) * t;
