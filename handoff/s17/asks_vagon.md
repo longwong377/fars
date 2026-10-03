@@ -5,7 +5,7 @@ C2 | view: -1050,3300,1.6,250,-6,56,10 | village P22's fields in mid-June: sheav
 C2 | view: -1060,3310,1.6,200,-4,180,16 | the same floor in October: straw stacks beside it, ards at the ploughed plots (D-560)
 C2 | ask: tools/dev/ground_probe.ts now takes ?tracks&fill (the tracks' verges and the farm year) | the cloud's headless WebGPU loses its device on this page; a T4 probe frame of the three views above at ?cover&tracks&fill would let C2 judge the verge density without a full train
 C5 | view: 935,3788,2.6,56,-2,0,5.27 | intro shot 1 'river' (midpoint): the Pulvar before sunrise, water and far bank; judge the first frame of the opening
-C5 | view: 710,3290,88,178,-6,0,5.52 | intro shot 2 'plain' (midpoint): the plain from 88 m, the Terrace and Rahmat ahead
+C5 | view: -340,2610,88,150,-5,0,5.52 | intro shot 2 'plain' (midpoint, moved W 02:30: the ridge E of here hid the Terrace): the plain from 88 m, the Terrace and Rahmat ahead
 C5 | view: -320,862,20,135,-11,0,5.97 | intro shot 3 'town' (midpoint, moved W 01:40 after the cloud frame showed empty plain): the N quarter's roofs and lanes below, the Terrace beyond
 C5 | view: -155,70,14,53,5,0,6.72 | intro shot 4 'terrace' (midpoint): the W face and Grand Stair, crane rising; is the Terrace sunlit at rise+1.1 h?
 C5 | view: 127,56,9.5,146,-16,0,6.92 | intro shot 5 'work' (midpoint): the Hall of 100 Columns' site from 9 m over its N forecourt: the gangs at work at rise+1.3 h
