@@ -4,20 +4,20 @@
   "people_cloth": {
    "files": {
     "people_cloth.json": {
-     "sha256": "d744d6aacf7d81b07f7eda0f1b17544c5a7fb88314d8188618494b0802572e16",
-     "bytes": 37054
+     "sha256": "5ae821080e064a0f6740f07853b6829cb457e8ce9984b0839b63621dd03d5217",
+     "bytes": 37062
     },
     "people_cloth.bin": {
-     "sha256": "1a24258833545de5eda336a4d2b2ca4d0d3fad18283f2a199236b9b124a0a5b9",
+     "sha256": "77fef161c5a201f6aa329a395bacb5a135612d248db52cb6c3dbfcb524ec0b78",
      "bytes": 583792
     },
     "people_cloth_folds.png": {
-     "sha256": "c9d15d21342df65abed16d771d12f427942156b060360dc4a817518ef1576b3b",
-     "bytes": 1101098
+     "sha256": "9166cfe0bca6e4ff4c8e19cfff9f3dfd5664410db901d6be3b59bd949a20fce4",
+     "bytes": 1092862
     }
    },
-   "inHash": "186747ed758ae4a1bd29d4ecca02b29fecea416e0ac214b4a977d8b8e0b1bbc2",
-   "bytes": 1721944,
+   "inHash": "6be9f019f715abf9cf7922fa091610e8a197a3b204bb27b64b92dcb2844004eb",
+   "bytes": 1713716,
    "gpuBytes": 0,
    "stats": {
     "robe_skirt_men": {
@@ -96,18 +96,18 @@
      "verts": 3825,
      "tris": 7096,
      "levels": 1,
-     "edge0_cm": 3.17,
-     "edge_cm": 1.59,
-     "pinned": 0.599,
+     "edge0_cm": 3.13,
+     "edge_cm": 1.57,
+     "pinned": 0.6,
      "over": []
     },
     "robe_upper_men_s1": {
      "verts": 3825,
      "tris": 7096,
      "levels": 1,
-     "edge0_cm": 3.17,
-     "edge_cm": 1.59,
-     "pinned": 0.599,
+     "edge0_cm": 3.13,
+     "edge_cm": 1.57,
+     "pinned": 0.6,
      "over": []
     },
     "robe_upper_women": {
@@ -132,8 +132,8 @@
      "verts": 4065,
      "tris": 7716,
      "levels": 1,
-     "edge0_cm": 3.78,
-     "edge_cm": 1.89,
+     "edge0_cm": 3.77,
+     "edge_cm": 1.88,
      "pinned": 0.562,
      "over": []
     },
@@ -141,8 +141,8 @@
      "verts": 4065,
      "tris": 7716,
      "levels": 1,
-     "edge0_cm": 3.78,
-     "edge_cm": 1.89,
+     "edge0_cm": 3.77,
+     "edge_cm": 1.88,
      "pinned": 0.562,
      "over": []
     },
@@ -168,8 +168,8 @@
      "verts": 3678,
      "tris": 6800,
      "levels": 1,
-     "edge0_cm": 3.06,
-     "edge_cm": 1.53,
+     "edge0_cm": 3.02,
+     "edge_cm": 1.51,
      "pinned": 0.594,
      "over": []
     },
@@ -177,8 +177,8 @@
      "verts": 3678,
      "tris": 6800,
      "levels": 1,
-     "edge0_cm": 3.06,
-     "edge_cm": 1.53,
+     "edge0_cm": 3.02,
+     "edge_cm": 1.51,
      "pinned": 0.594,
      "over": []
     },
@@ -258,8 +258,8 @@
      "verts": 987,
      "tris": 1700,
      "levels": 0,
-     "edge0_cm": 2.1,
-     "edge_cm": 2.1,
+     "edge0_cm": 2.08,
+     "edge_cm": 2.08,
      "pinned": 0.622,
      "over": []
     },
@@ -267,8 +267,8 @@
      "verts": 987,
      "tris": 1700,
      "levels": 0,
-     "edge0_cm": 2.1,
-     "edge_cm": 2.1,
+     "edge0_cm": 2.08,
+     "edge_cm": 2.08,
      "pinned": 0.622,
      "over": []
     },
@@ -481,26 +481,26 @@
      "pushed": 0
     },
     "child_upper@0|children": {
-     "rms_mm": 13.3,
-     "max_mm": 67.2,
+     "rms_mm": 13.8,
+     "max_mm": 57.1,
      "sampled": 987,
      "pushed": 0
     },
     "child_upper@1|children": {
-     "rms_mm": 11.7,
-     "max_mm": 63.1,
+     "rms_mm": 13,
+     "max_mm": 66.7,
      "sampled": 321,
      "pushed": 0
     },
     "child_upper@0|children#1": {
-     "rms_mm": 13.3,
-     "max_mm": 63.1,
+     "rms_mm": 13.4,
+     "max_mm": 63.8,
      "sampled": 987,
      "pushed": 0
     },
     "child_upper@1|children#1": {
-     "rms_mm": 12.3,
-     "max_mm": 58.2,
+     "rms_mm": 12.1,
+     "max_mm": 57.8,
      "sampled": 321,
      "pushed": 0
     },
@@ -673,26 +673,26 @@
      "pushed": 0
     },
     "robe_upper@0|men": {
-     "rms_mm": 10.7,
+     "rms_mm": 10.1,
      "max_mm": 37,
      "sampled": 1024,
      "pushed": 0
     },
     "robe_upper@1|men": {
-     "rms_mm": 10.6,
-     "max_mm": 45.6,
+     "rms_mm": 10.4,
+     "max_mm": 43.1,
      "sampled": 317,
      "pushed": 0
     },
     "robe_upper@0|men#1": {
-     "rms_mm": 12.9,
-     "max_mm": 48.6,
+     "rms_mm": 12.6,
+     "max_mm": 44.6,
      "sampled": 1024,
      "pushed": 0
     },
     "robe_upper@1|men#1": {
-     "rms_mm": 12.7,
-     "max_mm": 54.9,
+     "rms_mm": 12.8,
+     "max_mm": 46.4,
      "sampled": 317,
      "pushed": 0
     },
@@ -781,26 +781,26 @@
      "pushed": 0
     },
     "tunic_upper@0|men": {
-     "rms_mm": 10.8,
-     "max_mm": 56.2,
+     "rms_mm": 11.5,
+     "max_mm": 62.8,
      "sampled": 1066,
      "pushed": 0
     },
     "tunic_upper@1|men": {
-     "rms_mm": 9.6,
-     "max_mm": 26.6,
+     "rms_mm": 10.3,
+     "max_mm": 32.4,
      "sampled": 299,
      "pushed": 0
     },
     "tunic_upper@0|men#1": {
-     "rms_mm": 12.8,
-     "max_mm": 61.1,
+     "rms_mm": 12.5,
+     "max_mm": 57.4,
      "sampled": 1066,
      "pushed": 0
     },
     "tunic_upper@1|men#1": {
      "rms_mm": 11.4,
-     "max_mm": 33,
+     "max_mm": 31.7,
      "sampled": 299,
      "pushed": 0
     },
@@ -865,43 +865,43 @@
      "pushed": 0
     },
     "work_upper@0|men": {
-     "rms_mm": 11.4,
-     "max_mm": 41.1,
+     "rms_mm": 10.4,
+     "max_mm": 29.9,
      "sampled": 987,
      "pushed": 0
     },
     "work_upper@1|men": {
-     "rms_mm": 11.9,
+     "rms_mm": 11.4,
      "max_mm": 47.5,
      "sampled": 321,
      "pushed": 0
     },
     "work_upper@0|men#1": {
-     "rms_mm": 13,
-     "max_mm": 53.3,
+     "rms_mm": 12.4,
+     "max_mm": 50.4,
      "sampled": 987,
      "pushed": 0
     },
     "work_upper@1|men#1": {
-     "rms_mm": 13.7,
-     "max_mm": 58.9,
+     "rms_mm": 13.1,
+     "max_mm": 68.2,
      "sampled": 321,
      "pushed": 0
     },
     "robe_sleeves@0|men": {
-     "rms_mm": 43,
+     "rms_mm": 42.9,
      "max_mm": 135.2,
      "sampled": 936,
-     "pushed": 517
+     "pushed": 479
     },
     "robe_sleeves@1|men": {
-     "rms_mm": 41.6,
+     "rms_mm": 41.5,
      "max_mm": 113.3,
      "sampled": 120,
-     "pushed": 58
+     "pushed": 55
     },
     "robe_sleeves@2|men": {
-     "rms_mm": 38.6,
+     "rms_mm": 38.4,
      "max_mm": 93.9,
      "sampled": 80,
      "pushed": 37
@@ -910,19 +910,19 @@
      "rms_mm": 43.6,
      "max_mm": 131.1,
      "sampled": 936,
-     "pushed": 470
+     "pushed": 434
     },
     "robe_sleeves@1|men#1": {
      "rms_mm": 41.8,
      "max_mm": 105.7,
      "sampled": 120,
-     "pushed": 59
+     "pushed": 53
     },
     "robe_sleeves@2|men#1": {
-     "rms_mm": 38.6,
+     "rms_mm": 38.5,
      "max_mm": 88.1,
      "sampled": 80,
-     "pushed": 39
+     "pushed": 34
     },
     "robe_sleeves@0|women": {
      "rms_mm": 52,
@@ -1057,40 +1057,40 @@
      "pushed": 2
     },
     "kandys@0|men": {
-     "rms_mm": 12.8,
-     "max_mm": 60.8,
+     "rms_mm": 15.7,
+     "max_mm": 75.9,
      "sampled": 1300,
-     "pushed": 129
+     "pushed": 128
     },
     "kandys@1|men": {
-     "rms_mm": 15.2,
-     "max_mm": 44.6,
+     "rms_mm": 19.5,
+     "max_mm": 62.9,
      "sampled": 270,
-     "pushed": 21
+     "pushed": 24
     },
     "kandys@2|men": {
-     "rms_mm": 17.5,
-     "max_mm": 44.6,
+     "rms_mm": 22.2,
+     "max_mm": 62.9,
      "sampled": 193,
-     "pushed": 19
+     "pushed": 23
     },
     "kandys@0|men#1": {
-     "rms_mm": 15.5,
-     "max_mm": 88.5,
+     "rms_mm": 18.9,
+     "max_mm": 117.9,
      "sampled": 1300,
-     "pushed": 130
+     "pushed": 146
     },
     "kandys@1|men#1": {
-     "rms_mm": 18.3,
-     "max_mm": 64.8,
+     "rms_mm": 22.3,
+     "max_mm": 106.6,
      "sampled": 270,
-     "pushed": 18
+     "pushed": 23
     },
     "kandys@2|men#1": {
-     "rms_mm": 21.3,
-     "max_mm": 64.8,
+     "rms_mm": 23.6,
+     "max_mm": 104,
      "sampled": 193,
-     "pushed": 16
+     "pushed": 20
     },
     "veil@0|women": {
      "rms_mm": 51.4,
@@ -1132,19 +1132,19 @@
      "scale_mm": 12,
      "texelsPerMetre": 163.2,
      "charts": 25,
-     "samples": 368102
+     "samples": 368122
     }
    },
    "tier": "C",
    "src": "IR-CAND;IR-WOMEN;RELIEF-R",
    "blender": "5.0.1",
    "ktx": "ktx version: v4.4.2",
-   "build_s": 1354,
+   "build_s": 389,
    "reproduced": {
     "files": {
-     "people_cloth.json": "d744d6aacf7d81b07f7eda0f1b17544c5a7fb88314d8188618494b0802572e16",
-     "people_cloth.bin": "1a24258833545de5eda336a4d2b2ca4d0d3fad18283f2a199236b9b124a0a5b9",
-     "people_cloth_folds.png": "c9d15d21342df65abed16d771d12f427942156b060360dc4a817518ef1576b3b"
+     "people_cloth.json": "5ae821080e064a0f6740f07853b6829cb457e8ce9984b0839b63621dd03d5217",
+     "people_cloth.bin": "77fef161c5a201f6aa329a395bacb5a135612d248db52cb6c3dbfcb524ec0b78",
+     "people_cloth_folds.png": "9166cfe0bca6e4ff4c8e19cfff9f3dfd5664410db901d6be3b59bd949a20fce4"
     },
     "blender": "5.0.1"
    }
@@ -1168,7 +1168,7 @@
      "bytes": 1815142
     }
    },
-   "inHash": "bd1fa086fe61d40da9dfd7387b6d03529a5b201b1ae22f85e291077429815c68",
+   "inHash": "a28e812e6bbf2bb2e133979c9e254b61038f66653f79e642e40157b66e03dfa3",
    "bytes": 9242532,
    "gpuBytes": 13981014,
    "stats": {
@@ -1238,7 +1238,7 @@
    "src": "RELIEF-R;IR-WOMEN;MH-CC0",
    "blender": "5.0.1",
    "ktx": "ktx version: v4.4.2",
-   "build_s": 295,
+   "build_s": 171,
    "reproduced": {
     "files": {
      "people_hair.json": "452908a9c04dd4fcfd9561c07420da024379dfdba837b37c8103cf59e64034fd",

@@ -63,6 +63,9 @@ function put(unit: string, key: string, s: string | undefined, v: unknown) {
   if (!s) return;
   let body: Uint8Array; try { body = pack(v); } catch (err) { console.warn(`[world-cache] ${unit}: not packable (${(err as Error).message})`); return; }
   if (nodeB) { nodeB.write(unit, key, s, body); cacheStats.puts.push(`${unit}|${key}`); return; }
+  // s17 (D-471): under automation (Playwright), a POST body rides whole in DevTools' Network.requestWillBeSent; a unit of
+  // hundreds of MB (an unbaked pool seed's town) made that one message pass node's 512 MB string limit and killed the harness
+  if (dev() && (globalThis as any).navigator?.webdriver && body.byteLength > 32 * 2 ** 20) { console.info(`[world-cache] ${unit}: ${(body.byteLength / 2 ** 20).toFixed(0)} MB not posted under automation (bake it: tools/bake_world/bake.ts)`); return; }
   if (dev()) void fetch(`/__world-cache/put?unit=${encodeURIComponent(unit)}&key=${encodeURIComponent(key)}&src=${s}`, { method: 'POST', body: body as any })
     .then(r => { if (r.ok) cacheStats.puts.push(`${unit}|${key}`); }).catch(() => {}); // (the dev server checks the hash again before writing)
   else localPut(unit, key, s, body);

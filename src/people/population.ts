@@ -22,6 +22,7 @@ import { colPlace } from './construction';
 import { COLD_C } from './outfits';
 import { CourtResidents } from './court'; // D-182 hook (court.ts): the court in residence, only with the court setting
 import type { ActivityId } from './activities';
+import { RoadFolk, hinterlandRegister, type Member as FolkMember } from '../world/roadFolk'; // D-640 (C3's D-570 register)
 
 const POPD = popData as any, T = townData as any, L = livesData as any;
 /** a house plot of the built settlement (town_plots.json, Phase 6: D-041); grid metres */
@@ -95,6 +96,8 @@ export interface Person {
   spouse?: number;
   /** D-221: a Treasury scribe's son who learns at the desk beside him (the scribe's pid) */
   pupilOf?: number;
+  /** D-640: one of the road folk of the hinterland (world/roadFolk.ts's register, C3's D-570): road, household, member */
+  folk?: { road: number; hh: number; m: FolkMember };
 }
 export interface Household { id: number; home: string; q: string; zone: 'town' | 'plain' | 'terrace' | 'transient'; xy: [number, number]; persian: boolean; members: number[]; kin: number[]; deaths: number[]; births: number[];
   /** the house plot (town_plots.json id) of a town household, and all its plots when it needs more than one (estates) */
@@ -410,9 +413,52 @@ export class Population {
     this.housePlots();
     this.crafts();
     if (opts.court) this.court = new CourtResidents(this); // D-182 hook
+    this.addRoadFolk(); // D-640: after the year's life events (they hold none: the register is fixed) and after the court's people
     assignNames(seed, this.persons, this.households); // D-452: the names dealt round, not drawn
   }
   attach(cal: EventCalendar) { this.cal = cal; }
+  // ------------------------------------------------------------------ D-640: the road folk as people of the population
+  /** (road, household, member) → pid */
+  private folkPid = new Map<string, number>();
+  private folkInst: RoadFolk | null = null;
+  /** the hinterland's people on the four roads (world/roadFolk.ts, C3's D-570 register: ~2,400 households, ~8,000 people)
+   *  made persons of the population: homes off the map up their roads (`hinterland:<road>:<hh>`), names (the head's the
+   *  register's own attested name; the others drawn, none sharing a root with the head), ages and sexes as the register
+   *  gives them. No year's events (they come, go and stay the same people); their days are the register's (rawPlan) */
+  private addRoadFolk() {
+    const JOB: Record<string, Job> = { farmer: 'farmer', herder: 'shepherd', gardener: 'gardener', fuel: 'farmer', potter: 'craftsman', oil: 'craftsman', weaver: 'craftsman', carter: 'farmer' };
+    for (const R of hinterlandRegister(this.seed)) {
+      const hh = this.hh(`road:${R.roadId}`, 'transient', true, `hinterland:${R.road}:${R.hh}`); const roots: string[] = [];
+      for (const M of R.members) {
+        const job: Job = M.m === 'head' ? JOB[R.live] ?? 'farmer' : M.m === 'wife' ? 'homemaker' : M.m === 'elder' ? 'elder' : M.age < 14 ? 'child' : M.sex === 'f' ? 'homemaker' : JOB[R.live] ?? 'farmer';
+        const pid = this.person({ sex: M.sex, age: M.age, job, hh, origin: 'Persian', work: `road:${R.roadId}`, ...(M.m === 'son' || M.m === 'daughter' ? { kin: M.m } : {}) });
+        const P = this.persons[pid]; P.folk = { road: R.road, hh: R.hh, m: M.m }; this.folkPid.set(`${R.road}:${R.hh}:${M.m}`, pid);
+        let nm = M.name; if (!nm) for (let t = 0; t < 8; t++) { nm = nameFor(this.seed, { ...P, id: P.id + t * 9_000_011 }); if (!nm || !roots.some(x => sameRoot(x, nameRoot(nm!)))) break; }
+        P.nm = nm ?? null; if (nm) roots.push(nameRoot(nm));
+      }
+    }
+  }
+  /** the register's days and places for the population's road folk: one instance, shared with the traffic (world.ts passes it
+   *  as Traffic's `folk`), so their plans here and their places there agree; it knows their pids (bindPids) */
+  get roadFolk(): RoadFolk { if (!this.folkInst) { this.folkInst = new RoadFolk(this.seed, { ctx: (d: number) => this.cal.ctx(d) }, null); this.folkInst.bindPids((r, h, m) => this.folkPid.get(`${r}:${h}:${m}`) ?? -1); } return this.folkInst; }
+  /** D-640: set by world.ts when it hands the traffic this population's roadFolk: from then on the population view draws the
+   *  road folk (popview folkView) and the traffic leaves them (bindPids); until then they are planned but drawn as extras */
+  folkShared = false;
+  /** the hand-over: world.ts calls it before it builds the traffic, which reads `folk` from the population it is given
+   *  (traffic.ts TrafficSource.folk: one instance, so the plans here and the places there agree) */
+  shareFolk(): RoadFolk { this.folkShared = true; return this.folk = this.roadFolk; }
+  /** set by shareFolk (read by the traffic) */
+  folk: RoadFolk | undefined = undefined;
+  /** a road-folk person at time t (h) on the road, at the stair foot or by the flock: grid point, heading (deg), act, words */
+  folkAt(pid: number, t: number): { e: number; n: number; heading: number; act: ActivityId; why: string; moving: boolean } | null {
+    const f = this.persons[pid]?.folk; if (!f) return null; const m = this.roadFolk.spotOf(f.road, f.hh, f.m, t); if (!m) return null;
+    return { e: m.e, n: m.n, heading: (m.heading * 180) / Math.PI, act: m.act, why: m.why, moving: m.moving };
+  }
+  /** a road-folk person's day as plan blocks: on the road (`road:<road id>`), out with the flock (`graze:<kind>`, in the
+   *  plain), off the map at home up the road, in Pārsa on the household's business or at kin's overnight ('away') */
+  private folkPlan(pid: number, day: number): Seg[] {
+    return (this.folkDay(day).get(pid) ?? [{ t0: 0, t1: 24, place: '-', act: 'offmap' as ActivityId, why: 'at home up the road', where: 'away' as Where }]).map(x => ({ ...x }) as Seg);
+  }
   /** D-348: after the households are drawn, every wife is made 18 or more and every mother 18 or more years older than each
    *  child of hers (her age raised; nothing else drawn changes, so no person's id moves). The period's younger wives and
    *  mothers (ROTH1987) stay a documented fact of the period, not simulated (C) */
@@ -1364,7 +1410,38 @@ export class Population {
   groupSize(g: number, d: number) { let n = 0; for (const pid of this.groups[g].members) if (this.present(pid, d)) n++; return n; }
 
   // ================================================================== per-person state on a day (pure)
-  present(pid: number, d: number) { const p = this.persons[pid]; return d >= p.arrive && d >= p.born && d <= p.dies && d <= p.leave; }
+  present(pid: number, d: number) { const p = this.persons[pid]; if (p.folk) return this.folkOut(pid, d); return d >= p.arrive && d >= p.born && d <= p.dies && d <= p.leave; }
+  /** D-640: a road-folk person is in the world on the days the register brings them onto the roads (a trip, the flock, the
+   *  verge), or keeps them overnight at kin's in Pārsa; the other days they are at home up their road, off the map */
+  private folkOut(pid: number, d: number): boolean { if (d < 0 || d >= REGNAL_DAYS || !this.cal || (this.cal.computing >= 0 && d >= this.cal.computing)) return false; // (asked while the calendar computes that day: the sickness draws; the road folk hold none)
+    return this.folkDay(d).has(pid); }
+  /** D-640: the day's road folk who are out (their blocks), all of them at once: the register indexes its trips by day (four days
+   *  kept), so a day is read whole, once. Kept for every day asked (only the days the walker lives through, in the game) */
+  private folkDays = new Map<number, Map<number, Seg[]>>();
+  /** D-640: a herder's day out with the flock (the register's `graze:` blocks: by the flock all day, the fold at night) given its
+   *  sleep and meals (planCheck: a night's sleep, meals through the day; C): the man watches the fold through the evening and
+   *  sleeps from the small hours while the dogs and his son keep it, up before light; bread and curd at first light, at midday
+   *  and at dusk by the fold */
+  private folkFold(segs: Seg[], m: FolkMember, sun: { rise: number; set: number }, y?: string) {
+    const g = segs.find(x => x.place.startsWith('graze:')); if (!g) return; const W: Where = 'plain', a = sun.rise - 0.3, b = sun.set + 0.3;
+    // (the flock moved to new grazing overnight in the register, hill to stubble: the night at the old fold, the drive at first light)
+    const from = y && y !== g.place ? y : null; let pl = from ?? g.place;
+    const out: Seg[] = [], head = m === 'head', add = (t0: number, t1: number, act: ActivityId, why: string) => { if (t1 > t0 + 1e-6) out.push({ t0, t1, place: pl, act, why, where: W }); };
+    const nightWhy = head ? 'asleep by the fold in his cloak, the dogs and his son watching' : 'asleep by the fold in his cloak';
+    add(0, head ? a - 1.5 : a, 'sleep', nightWhy); if (head) add(a - 1.5, a, 'herd', 'up before light, watching the flock in its thorn fold');
+    add(a, a + 0.4, 'eat', 'bread and curd by the fold at first light');
+    if (from) { out.push({ t0: a + 0.4, t1: a + 1.4, place: 'road:plain', act: 'herd', why: `driving the flock from the ${from.slice(6) === 'hill' ? 'hill pasture' : from.slice(6)} to the ${g.place.slice(6) === 'stubble' ? 'stubble of the reaped fields' : g.place.slice(6) === 'hill' ? 'hill pasture' : 'steppe'}`, where: 'road' }); pl = g.place; }
+    add(from ? a + 1.4 : a + 0.4, 12, 'herd', g.why.startsWith('watching') ? 'grazing the household’s sheep and goats' : segs.find(x => x.t0 <= 12 && x.t1 > 12)?.why ?? 'grazing the household’s sheep and goats');
+    add(12, 12.5, 'eat', 'the midday bread with the flock'); add(12.5, b, 'herd', segs.find(x => x.t0 <= 15 && x.t1 > 15)?.why ?? 'grazing the household’s sheep and goats');
+    add(b, b + 0.5, 'eat', 'the evening meal by the fold: bread, curd and whey'); if (head) { add(b + 0.5, 22.5, 'herd', 'watching the flock in its thorn fold'); add(22.5, 24, 'sleep', nightWhy); } else add(b + 0.5, 24, 'sleep', nightWhy);
+    segs.splice(0, segs.length, ...out);
+  }
+  private folkDay(d: number): Map<number, Seg[]> {
+    let M = this.folkDays.get(d); if (M) return M; M = new Map(); const F = this.roadFolk;
+    for (const pid of this.folkPid.values()) { const f = this.persons[pid].folk!; const B = F.planOf(f.road, f.hh, f.m, d); if (!B.some(b => b.act !== 'offmap')) continue;
+      const segs: Seg[] = B.map(b => ({ t0: b.t0, t1: b.t1, place: b.act === 'offmap' ? '-' : b.place /* (off the map: no place of the world) */, act: b.act, why: b.why, where: (b.place.startsWith('road:') ? 'road' : b.place.startsWith('graze:') ? 'plain' : 'away') as Where }));
+      const C = this.cal.ctx(d), wx = C.wx; const Gy = d > 0 ? F.grazingOn(f.road, f.hh, d - 1) : null; this.folkFold(segs, f.m, C.sun, Gy ? `graze:${Gy.kind}` : undefined); dustWear(segs, wx); coldWear(segs, wx); M.set(pid, segs); } // (dressed for the road's weather, as everyone: planCheck (dress))
+    this.folkDays.set(d, M); return M; }
   private sickP: number[] = Array.from({ length: REGNAL_DAYS }, (_, d) => { const { month } = dateOf(d); const w = (L.sick_episodes_per_year.seasonal_weight as any)[month >= 3 && month <= 5 ? 'summer' : month >= 9 && month <= 11 ? 'winter' : month >= 6 && month <= 8 ? 'autumn' : 'spring']; return L.sick_episodes_per_year.v * w / 365; });
   private sickStart(pid: number, d: number) {
     if (d < 0) return 0;
@@ -1881,7 +1958,7 @@ export class Population {
    *  own plans (relabel). The planners read each other's days from here, so that no plan waits on its own household */
   rawPlan(pid: number, day: number): Seg[] { const c = this.rawCache.get(day)?.get(pid); if (c) return c;
     if (this.rawCount >= 20000) { this.rawCache.clear(); this.rawCount = 0; }
-    const v = this.court?.owns(pid) ? this.court.plan(pid, day) /* D-182 hook */ : new Planner(this, pid, day).build(); let m = this.rawCache.get(day); if (!m) { m = new Map(); this.rawCache.set(day, m); } m.set(pid, v); this.rawCount++; return v; }
+    const v = this.court?.owns(pid) ? this.court.plan(pid, day) /* D-182 hook */ : this.persons[pid].folk ? this.folkPlan(pid, day) /* D-640 */ : new Planner(this, pid, day).build(); let m = this.rawCache.get(day); if (!m) { m = new Map(); this.rawCache.set(day, m); } m.set(pid, v); this.rawCount++; return v; }
   /** the words that name the household hold (D-191, planCheck (d); the pick-131 sample of shadow review r7 and its year sweep:
    *  a woman "with the household" alone in the house for 1 h 42 min, her husband on watch and her children in the lane):
    *  "with the household" where someone of it is there (at the middle of the spell, or at its start and its end), else the

@@ -16,14 +16,16 @@ export type DustKind = 'walk' | 'animal' | 'flock' | 'cart' | 'mason' | 'haul';
 /** per kind (all C): puffs per emitter, life (s), optical depth through a fresh puff, its size (m) and growth (m/s), rise (m/s),
  *  the height it starts at (m), its offset ahead of the emitter (m: the block in front of a mason, the drum's sledge ahead of
  *  the gang) and whether it trails behind a moving emitter (walkers, animals, carts) or stays at a working one */
+// (V5 D-521: optical depths about 6-10x the first pass's (which read as nothing in the probe) and longer lives: a flock or a cart on a dry June track raises a cloud
+// that reads at 30 m and hangs behind it, as in any film of herds on dry steppe; the walker's own feet stay faint; C)
 export const DUST: Record<DustKind, { k: number; life: number; tau: number; size0: number; grow: number; rise: number; y0: number; ahead: number; trail: boolean; stone: boolean }> = {
-  walk: { k: 2, life: 3, tau: 0.05, size0: 0.3, grow: 0.3, rise: 0.08, y0: 0.12, ahead: 0, trail: true, stone: false },
-  animal: { k: 2, life: 3.5, tau: 0.07, size0: 0.4, grow: 0.35, rise: 0.1, y0: 0.15, ahead: 0, trail: true, stone: false },
-  flock: { k: 1, life: 4, tau: 0.08, size0: 0.5, grow: 0.4, rise: 0.12, y0: 0.15, ahead: 0, trail: true, stone: false },
-  cart: { k: 3, life: 4, tau: 0.1, size0: 0.6, grow: 0.45, rise: 0.12, y0: 0.2, ahead: 0, trail: true, stone: false },
+  walk: { k: 2, life: 3.5, tau: 0.3, size0: 0.3, grow: 0.3, rise: 0.08, y0: 0.12, ahead: 0, trail: true, stone: false },
+  animal: { k: 3, life: 5, tau: 0.7, size0: 0.45, grow: 0.4, rise: 0.12, y0: 0.18, ahead: 0, trail: true, stone: false },
+  flock: { k: 2, life: 6, tau: 0.8, size0: 0.6, grow: 0.5, rise: 0.14, y0: 0.2, ahead: 0, trail: true, stone: false },
+  cart: { k: 4, life: 6, tau: 1, size0: 0.7, grow: 0.55, rise: 0.14, y0: 0.25, ahead: 0, trail: true, stone: false },
   // limestone dust off the point and the claw chisel, a puff at each blow drifting off the block (C)
-  mason: { k: 3, life: 2.5, tau: 0.09, size0: 0.25, grow: 0.3, rise: 0.15, y0: 0.9, ahead: 0.8, trail: false, stone: true },
-  haul: { k: 4, life: 3.5, tau: 0.12, size0: 0.6, grow: 0.45, rise: 0.1, y0: 0.2, ahead: 6.2, trail: false, stone: false },
+  mason: { k: 3, life: 2.5, tau: 0.5, size0: 0.25, grow: 0.3, rise: 0.15, y0: 0.9, ahead: 0.8, trail: false, stone: true },
+  haul: { k: 5, life: 5, tau: 1.1, size0: 0.7, grow: 0.5, rise: 0.12, y0: 0.25, ahead: 6.2, trail: false, stone: false },
 };
 /** emitters farther than this from the eye raise no drawn dust (a walker's puff is under a pixel beyond) */
 export const DUST_R = 220, DUST_MAX = 640;
@@ -65,7 +67,7 @@ export class DustSystem {
     const g = new THREE.PlaneGeometry(1, 1);
     this.alpha = new THREE.InstancedBufferAttribute(new Float32Array(DUST_MAX), 1); g.setAttribute('aAlpha', this.alpha);
     const m = colourOnly(new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide }));
-    const u = uv(), r = length(u.sub(0.5)).mul(2), soft = smoothstep(0.1, 1.0, r).oneMinus().mul(mx_noise_float(vec3(u.mul(3.2), attribute('aAlpha', 'float').mul(40))).mul(0.3).add(0.7));
+    const u = uv(), sd = attribute('aAlpha', 'float').mul(40), nz = mx_noise_float(vec3(u.mul(2.6), sd)).mul(0.6).add(mx_noise_float(vec3(u.mul(6.1), sd.add(7))).mul(0.3)), r = length(u.sub(0.5)).mul(2).add(nz.mul(0.35)), soft = smoothstep(0.15, 0.95, r).oneMinus().mul(nz.mul(0.35).add(0.75)); // (V5: a billow, not a disc)
     // mineral dust scatters more and more forward than smoke, tinted by the loess it is made of (C)
     const OMEGA = 0.95, G = 0.5, TINT = [0.95, 0.85, 0.7];
     const cosT = dot(normalize(positionWorld.sub(cameraPosition)), this.uSunDir), hg = float((1 - G * G) / (4 * Math.PI)).div(pow(float(1 + G * G).sub(cosT.mul(2 * G)), 1.5));

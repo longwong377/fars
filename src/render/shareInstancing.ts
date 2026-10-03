@@ -8,14 +8,19 @@
 // Skinned meshes keep their bone matrices as three chooses.
 import { NodeBuilder } from 'three/webgpu';
 const proto = NodeBuilder.prototype as any;
-let ON = typeof location !== 'undefined' && new URLSearchParams(location.search).get('shareinst') === '1'; // opt-in (?shareinst=1) until verified in a render (D-250)
+// s17 D-473: on by default (?shareinst=0 for three's own choice). D-290's A/B at test quality drew the same picture; the full
+// world's pipelines are each a multi-second compile on the T4, and every distinct instance count was one more
+let ON = !(typeof location !== 'undefined' && new URLSearchParams(location.search).get('shareinst') === '0');
 /** tests and tools: share (true) or not for shaders built from now on */
 export function setShareInstancing(on: boolean) { ON = on; }
 /** the attribute path costs vertex attributes: 4 for the matrix, 4 for the previous frame's (the velocity output under TRAA)
  *  and 1 for an instance colour, within WebGPU's 16 (the first opt-in render at quality high failed validation at locations
  *  16-18: session 9) */
 export const MAX_VERTEX_ATTRIBUTES = 16;
-export function fitsAttributes(o: any): boolean { return Object.keys(o.geometry?.attributes ?? {}).length + 9 <= MAX_VERTEX_ATTRIBUTES; }
+/** and vertex buffers (D-473): the matrix, the previous frame's and the instance colour are 3 more, within WebGPU's default 8 */
+export const MAX_VERTEX_BUFFERS = 8;
+export function fitsAttributes(o: any): boolean { const A = Object.values(o.geometry?.attributes ?? {}) as any[];
+  return A.length + 9 <= MAX_VERTEX_ATTRIBUTES && new Set(A.map(a => a.isInterleavedBufferAttribute ? a.data : a)).size + 3 <= MAX_VERTEX_BUFFERS; }
 if (!proto.__parsaShareInstancing) {
   const base = proto.getUniformBufferLimit;
   proto.getUniformBufferLimit = function (this: any) { const o = this.object; return ON && o?.isInstancedMesh && !o.isSkinnedMesh && fitsAttributes(o) ? 0 : base.call(this); };

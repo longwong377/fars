@@ -59,7 +59,7 @@ import { buildGlazedFrieze } from '../arch/glazed';
 import { updateReliefs, settleReliefs, buildReliefShadow, ReliefSet } from '../arch/reliefs';
 import { setReliefShadow, refreshReliefShadow } from '../render/reliefShadow';
 import { FireSystem, fireLight, type FireKind } from './fire';
-import { placeFires } from './firePlaces';
+import { placeFires, townPorts, addCampHearths } from './firePlaces';
 import { loadFireOcc } from './fireOcc';
 export { apadanaTorches, inDoorway } from './firePlaces';
 import { buildTreasuryGoods, buildScribesRoom, buildRoomFittings } from './furnish';
@@ -137,10 +137,10 @@ import { Conversations, addressIntents, speak, type SpeakerLike } from '../peopl
 import { sunTimes } from '../people/calendar';
 import { Rng } from '../core/rng';
 import type { WeatherSystem } from '../weather/weatherState';
-import { CourtCampTents } from './courtCamps';
+import { CourtCampTents, campItems } from './courtCamps';
 import { NearSolids, SOLID_R } from './solids';
 import type { AnimalInst } from '../people/animals';
-import { CAMPS } from '../people/camps';
+import { CAMPS, tentStands } from '../people/camps';
 import { Fauna, FAC as FAUNA_FAC, grazingSites, type VillageIn } from './fauna';
 import { Traffic, type Mover } from './traffic';
 import { quarrySites } from './plain/quarries';
@@ -319,7 +319,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // the tests' day 0, else the new game's day; a continued game's other day bakes at its first frame as before)
   const prebakeTrees = () => { const P = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams(); const d = P.has('day') || P.has('test') || P.has('bench') ? +(P.get('day') ?? 0) : newGameStart(seed, settings?.courtCalendar === 'seasonal').day; TreeKit.peek()?.prebake(doyOf(d)); };
   prebakeTrees();
-  const wvfx = new WeatherVfx({ test: 1500, low: 2500, medium: 5000, high: 8000, ultra: 12000 }[q]); root.add(wvfx.group);
+  const wvfx = new WeatherVfx({ test: 1500, low: 2500, medium: 5000, high: 8000, ultra: 12000 }[q]); root.add(wvfx.group); wvfx.ground = (x, z) => terrain.surfaceAt(x, z); // (V5 D-521: the rain's splashes land on the walked surface)
   const shafts = new RainShafts(terrain); root.add(shafts.group); // distant rain cells approaching on the wind
   void QUALITY;
   // Phase 7: the Marvdasht plain (src/world/plain; plain.json): rivers, canals, fields, orchards, villages, Naqsh-e Rustam
@@ -329,6 +329,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   prebakeTrees(); // (?notown: the plain made the kit)
   // (D-254: the fire system builds after the plain: the villages' hearths, ovens and lamps join it)
   fire.build(); root.add(fire.group);
+  if (settlement) fire.setPorts(townPorts(settlement.plan.sites, (e, n) => terrain.heightAt(e, -n))); // D-530: daylight through the town's doorways (firePlaces.ts)
   buildGrime({ fires: fire.fires, doors: settlement?.doors?.doors ?? [], town: settlement?.plan ?? null, ground: (e, n) => terrain.heightAt(e, -n) }, bakeKey); // D-366: soot, ash, damp and lane wear (render/grime.ts)
   wmark('fire.build');
   // people (Phase 3): walkable grid from the colliders (tools/build_nav.ts), fires kept clear, simulation + crowd
@@ -428,6 +429,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   sim.routeSearchesPerStep = 1; // at most one new route search per render frame (D-024)
   // D-199: the court's camps (court setting only): the tents of the court's camp and of the retinue's camps (camps.ts)
   const campTents = sim.pop.court ? new CourtCampTents(sim.pop.court.tents, (e, n) => terrain.heightAt(e, -n), phys) : null; if (campTents) root.add(campTents.group);
+  if (sim.pop.court) addCampHearths(fire, campItems(sim.pop.court.tents), (e, n) => terrain.heightAt(e, -n), ti => tentStands(sim.pop.court!.tents[ti], sim.t)); // D-530: the court camps' hearths (C3's ask)
   // people's bodies (D-090): MakeHuman-derived variants in period dress, instanced per costume and LOD, pooled (D-093)
   const humans = await humansP;
   const crowd = new Crowd(sim, seed, humans); root.add(crowd.group);
@@ -471,6 +473,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   if (sim.pop.court) { const cc = CAMPS.find(c => c.id === 'court'); if (cc) fauna.addCourtVehicles(cc.c as [number, number], cc.r); fauna.addCampLines(sim.pop.court.tents, settlement?.plan ?? null); } // (D-570: the camps' picket lines)
   fauna.addTerraceFoot(new TerraceFoot(seed, groundAt)); // D-227: the tether lines, heaps and loads at the foot of the Grand Stair (C)
   root.add(fauna.group); const faunaMs = performance.now() - faunaT0;
+  (sim.pop as any).shareFolk?.(); // D-640: the road folk are the population's people (pids, homes, days; talkable): the traffic leaves them to popview
   const traffic = new Traffic(seed, sim.pop as any, settlement?.plan ?? null); const movers: Mover[] = [], moverKeys = new Set<string>();
   traffic.setQuarries(quarrySites(terrain)); // D-256: the quarrymen at work and the drums hauled to the Terrace
   // D-570: the herders' flocks out on the stubble, the slopes and the steppe (roadFolk.ts), and drawn far by the fauna

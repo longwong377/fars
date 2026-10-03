@@ -11,6 +11,7 @@
 // side of the hairline joint; on the architecture's own meshes (surfaceMaterial(…, { arch: true }), whose vertices carry
 // the part's base height and, for hall floors, the floor's box) a splash and dust band at the foot of walls and traffic
 // wear along the floors' axes; indirect specular from the sky environment (envmap.ts) on the smoother surfaces.
+import { SEASON_PALETTE } from '../world/season';
 import { receiveReliefShadow, RELIEF_SHADOW_FLAG } from './reliefShadow';
 import * as THREE from 'three/webgpu';
 import { uniform, positionWorld, normalWorld, normalView, positionView, mx_noise_float, mx_worley_noise_float, mx_worley_noise_vec2, vec2, vec3, float, mix, smoothstep, max, min, clamp, color, abs, fract, step, attribute, sign, fwidth, exp, floor, dot, cameraViewMatrix, vec4, texture, positionGeometry, atan, sin, cos, instanceIndex, normalGeometry, mx_worley_noise_float_2d, textureLoad, ivec2, int, sqrt } from 'three/tsl';
@@ -297,7 +298,7 @@ const SOIL_TERRACE: SoilDef = { drip: 0.12, share: 0.5, w: [0.03, 0.1], len: [0.
  *  read 0.020 on the CPU mirror, 0.036-0.041 now: tests/materials_d285.test.ts) */
 /** D-300 (session 11 renders at the player's lens: the Gate's walls one flat tan field at 24 m, no bay or wash seen): the
  *  batches 1σ 7 % and the wash 13 % lighter, so the campaign reads at 20-60 m; the 0.5 m spread stays the photo's (tests) */
-const PLASTER_WEATHER: PlasterWeatherDef = { lift: [1.1, 1.7], bay: 3.0, sd: 0.07, chroma: 0.012, seam: 0, wash: 0.13, washH: 5, hand: { amp: 0.0025, len: 0.6, wid: 0.25, mottle: 0.045 } };
+const PLASTER_WEATHER: PlasterWeatherDef = { lift: [1.1, 1.7], bay: 3.0, sd: 0.09, chroma: 0.016, seam: 0, wash: 0.17, washH: 5, hand: { amp: 0.0025, len: 0.6, wid: 0.25, mottle: 0.045 } };
 /** stair blocks along the step (D-218, C): 1.9 m ± 30 %; the row's joint crosses the first tread of each row 6 cm in front of
  *  the next riser (the blocks' 4–5 steps per row: grand_stair.block_construction, B) */
 export const STAIR_BLOCK = { length: 1.9, jitter: 0.6, rowJoint: 0.06 };
@@ -1053,7 +1054,7 @@ function layer(d: SurfaceDef, base: any, arch = false, band = false): Layer {
     const patch = mix(fine, dens, far);
     const up = smoothstep(0.8, 0.97, n.y);
     const cover = patch.mul(up).mul(d.herbs);
-    const green = color(new THREE.Color().setRGB(0.31, 0.36, 0.18, THREE.SRGBColorSpace)), straw = color(new THREE.Color().setRGB(0.62, 0.55, 0.36, THREE.SRGBColorSpace));
+    const green = color(new THREE.Color().setRGB(...SEASON_PALETTE.green, THREE.SRGBColorSpace)), straw = color(new THREE.Color().setRGB(...SEASON_PALETTE.straw, THREE.SRGBColorSpace)); // (V5 D-522: season.ts)
     const veg = mix(straw, green, SEASON.green.div(SEASON.green.add(SEASON.dry).max(0.001)));
     const tint = float(1).add(mx_noise_float(q.mul(1.3).add(9.1)).mul(0.12)).add(mott.mul(1.5)); // tuft-to-tuft tone
     const amount = cover.mul(SEASON.green.add(SEASON.dry).min(1)).mul(0.85);
@@ -1245,7 +1246,9 @@ function finish(m: THREE.MeshStandardNodeMaterial, L: Layer, d: SurfaceDef) {
   const cellD = vec2(p.x.sub(RAIN_CELL.x), p.z.sub(RAIN_CELL.y)).length();
   const cellWet = RAIN_CELL.w.mul(float(1).sub(smoothstep(RAIN_CELL.z.mul(0.6), RAIN_CELL.z.mul(1.2), cellD)));
   const wetness = max(WEATHER.wetness, cellWet);
-  const wet = wetness.mul(float(0.55).add(up.mul(0.45))).mul(open);
+  // (V5 D-524: on walls the rain runs down in streaks, not as an even film: wet in vertical runs, half-dry between them)
+  const runs = smoothstep(0.35, 0.75, mx_noise_float(vec3(p.x.mul(2.2), p.y.mul(0.25), p.z.mul(2.2))).mul(0.5).add(0.5)).mul(0.6).add(0.4);
+  const wet = wetness.mul(float(0.55).mul(mix(runs, float(1), up)).add(up.mul(0.45))).mul(open);
   alb = alb.mul(float(1).sub(wet.mul(d.porosity * 0.5)));
   // puddles: only in the low spots of a broad noise field (≈15% of flat area at full puddle state), never a uniform sheen;
   // session 9: and only on near-level ground (water stands on slopes under ~3 %, none by 9 %; the beasts renders showed puddles
@@ -1258,7 +1261,10 @@ function finish(m: THREE.MeshStandardNodeMaterial, L: Layer, d: SurfaceDef) {
   // ~0.8 m (a second octave, band-limited); a band of saturated dark mud rims each pool
   const fpW = fwidth(p).length().max(1e-6);
   const pv = mx_noise_float(p.mul(0.12)).mul(0.5).add(0.5).add(level.sub(1).mul(0.35)).add(mx_noise_float(p.mul(1.3).add(vec3(4.1, 0, 2.3))).mul(0.025).mul(bandLimit(fpW, 0.77)));
-  const puddle = puddles.mul(open).mul(smoothstep(0.68, 0.72, pv));
+  // (V5 D-525: far off and at grazing angles a thin pool showed only as a white sliver of mirrored sky along the horizon: the
+  // pools fade into wet ground over 60-150 m and below ~10 degrees of view elevation)
+  const pFade = float(1).sub(smoothstep(60, 150, positionView.length())).mul(smoothstep(0.04, 0.18, normalView.dot(positionView.negate().normalize()).abs()));
+  const puddle = puddles.mul(open).mul(smoothstep(0.68, 0.72, pv)).mul(pFade);
   const shore = puddles.mul(open).mul(smoothstep(0.645, 0.69, pv)).mul(float(1).sub(puddle));
   alb = alb.mul(float(1).sub(shore.mul(d.porosity * 0.45)));
   // snow: zero when snow = 0 (noise only modulates coverage, never adds snow on its own)

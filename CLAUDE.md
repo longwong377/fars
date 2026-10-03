@@ -121,6 +121,13 @@ Large binaries (DEM tifs) stay out of git; `npm run terrain` regenerates derived
   falls under 2 GB. No full-world page loads on this 16 GB box while a page exceeds ~6 GB (three freezes in session 15).
   `node tools/dev/watchdog.mjs` checks on demand (the recurring 30-min check was cancelled by the user).
 - No full-world render while agents build: the render train refuses while any agent is active (FORCE=1); it runs between waves.
+- **The 16-core T4 box (session 17, D-472; the 23:20 crash):** at most TWO full-world pages at once in total (one scoreboard
+  train + one budget, never parallel train shards): four train pages (7-10 GB each while building) with six agents' probes
+  hung WMI, reset the T4 ("device removed") and killed the Claude app and every agent. scoreboard.mjs takes T:/fars-train/train.lock
+  and refuses under 16 GB free. Agents start every browser and bake through gpu_slot (GPU_SLOTS=2), never outside a slot.
+  When WMI hangs (tasklist/taskkill time out), kill by PID with PowerShell Stop-Process (no /T tree walk).
+  What runs out is COMMIT (RAM + 8 GB page file = 71.5 GB), not RAM: Chrome GPU processes commit 5-10 GB each; boxguard.freeGB
+  is min(RAM, commit). Never run the full vitest suite here while agents build (the cloud CI runs it); targeted files only.
 
 ## Every inch (the user's direction, session 8; D-233)
 The camera-rig moments are NOT the standard. **Nowhere the player can walk may break the illusion**: every walkable place

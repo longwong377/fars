@@ -9,10 +9,14 @@
 
 **What a player now hears differently**: measured reverb in every hall, court, lane, slope, orchard and on the plain (OpenAIR); recorded dogs, cocks, hens, cattle, sheep, pigs and the boar, frogs, crows, crickets, bees, a door's creak, thunder, a fire's pops, water poured; footsteps recorded on every surface (4 by the nearest surface's set); recorded rain, drips, gusts, hearths, warm-night crickets and orchard birds.
 
+**Size**: public/audio 5.1 MB now, ~33 MB after the fetch; budget 40 MB agreed with C4 (the site is 634 MB of its 900 MB target; audio is not in the service worker's prefetch and is cached only when played).
+
 **Views asked**: none. Asks: run the fetch; listen in a lane and the Apadana.
 
 **Files**: src/audio/{soundplan,library,sampler}.ts (new), soundscape.ts, engine.ts; src/world/world.ts (hook: `air: ctx.cond`; overlay); tools/audio/{fetch.mjs, fetch_list.json, fetch_lock.json, irs.mjs, common.mjs}; tools/dev/{sound_census,sound_mix}.ts; public/audio/**; tests/sound_recorded.test.ts; DECISIONS D-620; ASSET_LEDGER (rooms + the D-620 block).
 
 **Census also covers activity foley**: all 25 work sounds the performances ask for are listed (5 fetched; footsteps, fire and murmur are layers). **Rooms**: the 8 measured impulse responses play per room kind (hall_large for the great halls, hall_medium, room_small, court for courts and lanes, gorge for the slopes, open, wood, chamber), tested end to end.
 
-**Tests**: sound_recorded 14/14; audio, audio_population, door_sounds, occlusion, waterworks, farcrowd, voices_unique pass; lint:lang 26/26; guards pass; 183/183 files decode in headless Chromium at their listed lengths.
+**Fallback**: tested that with no manifest, or with every listed file missing, beds, strikes, thunder and steps all play the synthesis and nothing throws (the world sounds as it did before D-620 if the recordings never arrive).
+
+**Tests** (after the last merge of cloud-s17-int, 00:15 UTC): sound_recorded 16/16; audio, audio_population, door_sounds, occlusion, waterworks, farcrowd, voices_unique pass; lint:lang 25/26 (the failure is not C8's: public/textures/dirt_floor/arm.jpg, merged from cloud-s17-int, is not registered as checked for text); guards pass; 183/183 files decode in headless Chromium at their listed lengths.

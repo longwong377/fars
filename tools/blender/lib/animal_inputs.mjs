@@ -10,3 +10,7 @@ export function animalInputs(sp, root = '.') {
     ...['src/people/animalForm.ts', 'src/arch/sdf.ts', 'tools/blender/sources/animal.ts', 'tools/blender/animals.py'].map(p => [p, readFileSync(`${root}/${p}`, 'utf8').replace(/\r\n/g, '\n')])];
 }
 export const animalHash = (sp, root = '.') => { const h = createHash('sha256'); for (const [k, v] of animalInputs(sp, root)) { h.update(k); h.update('\0'); h.update(String(v.length)); h.update('\0'); h.update(v); } return h.digest('hex'); };
+/** V5 D-520: the inputs of a library-model species (tools/blender/animals_real.mjs): its registry entry and class, the Blender stage, the gear's source */
+export const realHash = (sp, root = '.') => { const R = JSON.parse(readFileSync(`${root}/tools/blender/animals_real.json`, 'utf8')), e = R.species[sp], h = createHash('sha256'), rd = p => readFileSync(`${root}/${p}`, 'utf8').replace(/\r\n/g, '\n');
+  h.update(JSON.stringify({ e, cls: R.classes[e.class] })); h.update(rd('tools/blender/animals_real.py')); if (e.gear) h.update(rd('tools/blender/sources/animal_gear.ts'));
+  return h.digest('hex'); };

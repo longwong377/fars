@@ -4,8 +4,14 @@
 - Not yet seen in a browser. Every number below comes from node runs with the offline world; no frames have been rendered.
 - Packed standing crowds block the walk. On the Terrace the bots reach 34/40 targets: the Treasury N court and the Harem W entrance hold 15-20 passers-by within 2.5 m, 0.4-0.6 m apart. With people present, 12/130 Terrace doors and 45/594 town street doors are blocked by someone standing in a 1.0-1.4 m opening. Asked V3/C10 (asks_vagon.md) for people to keep apart and make way.
 - Town: 38/40 (the 2 misses are a pen plot in q_s2 the town walk graph cannot route into: C1). Ajori: 16/30, with straight-line bots stopped by a 39 m building and "through a wall" raster flags in the paradise. The baseline was 17/30 with 38 such flags, so this is pre-existing and not the walk's. Fields: 34/40, also straight-line bots meeting compound walls.
+- Banks (river edges) not measured: the bot run hit its 83-min time limit before reporting.
 - Crouched, the visible body is hidden (the kit has no crouch pose): PLACEHOLDER in that state only.
 - tests/plain.test.ts fails (106 meshes > 40); it fails the same way on cloud-s17-int.
+
+- **Final run on cloud-s17-int (00:20 UTC, with V3's people and everyone's merges), day 25 at 10:00:** Terrace 36/40
+  (was 34; the 4 misses are still people), town 35/40 (2 are the unroutable q_s2 pen; 2 are unexplained: the player's 0.5 m capsule stopped against party walls (q_s2-0013/0022, 0042/0054) near street doors; C1 checked that their route legs are valid for a 0.56 m body, so the next look is the walker at those two doors; 1 is a passer-by in a lane). Doors with people: Terrace 118/130,
+  street 555/598, inner 502/503; 37 failures touch a person standing in the opening. The V3/C10 ask for standing people
+  to make way still holds.
 
 **What a player now notices**
 - Weight: the body starts and stops over about a step. Paces: careful 0.8 m/s (Alt), walking 1.35, brisk 1.95 (Shift; was a 3.2 jog). Crouch is C. Slopes slow the body.

@@ -9372,6 +9372,61 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
 ## D-464 The depth goes live: cloud-s15-depth merged into s14-int on the user's word (session 15/16, cloud lead)
 - The user, after the state-of-the-game report: "i think you should merge". The merge budget rule held it back (the consolidated built site reached ready at the same speed, 99.8 s cold / 69.0 s warm, but page memory rose 5.60 -> 5.83 GB, bench-reports/load_s16_boot.md on cloud-s16-boot); the user's decision takes it in. The memory is owed back: page memory under 5 GB stays the target (gates/budgets.json not loosened).
 - In: D-455..D-462 (the stranger's living loop, the market's stallholders, open deeds and a mind in every person, law and feuds, minds' goals, deeds made physical), D-456 talk-eval fixes, D-457 women's names, B230 adult brides, D-395 talk16 hooks. tsc clean; guards 25/25; the consolidated key tests 113/114 and 40/40 after the last merge (sessions/s15-cloud-report.md). The market and goals merges were not in the built-site measurement: the next Vagon session verifies the live site first.
+## D-365 (s14, monuments): the Gate's E colossi from a licensed sculpt; the protome and W bulls blocked (B360, B361)
+- **Decision (UD-19, UD-20, UD-01; T-R12; B118):** the two E human-headed winged bulls of the Gate of All Nations are no longer
+  the project's signed-distance model: their form and carving come from a licensed digital sculpt, "Persian Lamassu High Poly"
+  by Shahriar Shahrabi (Sketchfab da8a0372d55e41c8a77b8993e0a8fe1f, CC-BY-4.0, 2.54 M triangles; an Assyrian lamassu adjusted
+  by its author after the damaged Persepolis original: the Persian crown, bent wings, four legs, the front), fetched without a
+  login from the Objaverse 1.0 mirror on Hugging Face (tools/blender/scans/scans.json: url, sha256, licence). It is a gate
+  colossus already (fore-part in the round, the flank in relief off a flat back), so it is fitted, not re-cut:
+  tools/blender/scans/colossus_scan.ts welds it, scales it uniformly so hoof to crown top = the reference box's H (D-312's
+  measure; the length then pressed 1.8 % to L), sets the legs' mid-plane on colossus.body.zc and the relief's flat back 2 cm
+  into the jamb's cut-back ground (relief_depth), adds the jamb block of colossusSDF (slab, back and top frames, 36 triangles),
+  simplifies with meshoptimizer to the game's budgets (LOD0 ~49.8 k, LOD1 ~4.95 k with the block) and to a 400 k-triangle high
+  source; tools/blender/bake.py bakes the normal + occlusion maps as for every asset (assets.json colossus_lamassu now points at
+  the scan source). Tier C (a modern sculpt), src SKFB-LAMASSU-SHAHRABI; ASSET_LEDGER.md records the licence and credit.
+  The game's F3 note for a colossus drawn from a licensed sculpt says so (meshes.ts, one conditional: the smallest hook).
+- **Why not a re-sculpt:** the scan route was the brief's approach 1 and the only one that puts carved forms (beard and hair
+  curls, feather rows, bead fringes, hooves, the crown) in the silhouette at 1-3 m; the SDF reviewers scored 1/5 (B118).
+- **Searched and not usable without an account (B360, B361):** every downloadable Achaemenid bull, lion or griffin capital and
+  wingless bull colossus (Sketchfab API, Objaverse 1.0, museum pages); the matching scans are not downloadable or need a
+  Sketchfab login (listed in B360 for the user). The protome head re-cut from a side photograph as a flat-sided block (approach 2,
+  measured and reverted: it read as a box) is in REVIEWS/s14/monuments/.
+- **Tools (node, no browser, light on memory: the box had ~1.5 GB free):** scanlib.ts (GLB reader, typed-array weld, cut,
+  simplify, normals, an orthographic z-buffer preview to PNG), look.ts / look_ply.ts / look_sdf.ts / look_piece.ts (previews of a
+  scan, a pipeline PLY, an SDF piece, a game piece), grid.mjs (a photograph with a pixel grid, to read outlines), inspect.py and
+  probe_render.py (Blender, Cycles renders of a baked GLB at given views).
+- **Not done (honest):** the double-bull protome capitals (210) and the W bulls (2) are D-312's SDF forms with the D-306 maps
+  (B360, B361); B166/B167 (columns2) not started; no full-world render of the change (train views requested).
+
+## D-470 (s17, Vagon lead): the BIG box's limits for the day
+- Measured at minute 0: 16 cores, 63 GB (56.9 GB free), Tesla T4 idle, C: 8.5 GB free -> 23 GB after removing 25 clean, fully
+  pushed s13/s14 worktrees (the user: "open up space if you need it"); T: wiped, 210 GB free (train trees and frames go there).
+- MAX_AGENTS=5, GPU_SLOTS=2, MIN_FREE_GB=6 (setx; the user confirmed 5 agents on this box). Trains may run while agents build
+  (the session-15 rule was for the 4-core box). The watchdog's CPU > 90 % still stops new work.
+- mkwt.mjs: base defaults to s17-int; branch is s<N>-<name> from base s<N>-int (was always s14-<name>).
+- Uncommitted leftovers on the box: branch vagon-leftovers-s17 (two empty stray files). Dirty old trees kept as they are:
+  fars-wt/load (KTX2 textures), simhealth-brides, simtalk, visible, visiblebase, light, int.
+
+## D-500 (s17 V3 people): people that read as people at 2-30 m, first pass
+- Posture: the CMU captures' anterior pelvic tilt (3-34° mean; the women's walk 34°, idle_e 14°) is taken off the pelvis and
+  given back to the thighs and spine per clip (mocap.ts tiltFix; the motion about the mean kept): the sway-back that pushed
+  every belly out and the shoulders back is gone. Relaxed hands curl more (humanRig REST). C.
+- Cloth: a man's tunic or robe tapers from the chest to the belt (drape.ts BLOUSE_M 0.15 m, HANG 0.55 of the overhang): the
+  D-206 straight hang read as a ball of cloth over the belt, a pot belly on every man; women's dresses keep the hang.
+  people_cloth rebuilt on the new hull. C.
+- Shadows: the coarse shadow casters (LOD 2 for the near people) are drawn 1.4 cm inside their surface (humanMaterial
+  SHADOW_SHRINK): their stair-stepped self-shadow blotched every sunlit face and tunic at 1-10 m.
+- Hair cards: the alpha test per card class (CARD.byClass): beards 0.36 with a steady test (the 0.9 dither left the hanging
+  beard a see-through net at 1-2 m); scalp hair 0.44; brows as D-323.
+- Skin ramp warmer (B/R 0.55-0.64 from 0.6-0.7: grey and waxen under the high sun) and an outdoor tan read further along the
+  ramp (the three old draws kept: nobody's look changes otherwise); undyed wool and linen warmer, less chalk-white. C.
+- Probe: tools/dev/people_probe.mjs (humanlab, the player's lens, 2/10/30 m, one load ~1 min); shots in shots/v3/.
+- (D-500, second step) The head's shadow caster drawn 3.2 cm in (SHADOW_SHRINK_HEAD): the coarse nose and brow no longer blot
+  the cheeks and eyes. Talkers' arms taken 45 % back to a standing capture's (the CMU lecturers flung a hand to head height).
+  people_cloth rebuilt and reproduced on the new hull. C3's asks: walk variants /driving a flock/ (animal kind 'drive': a
+  loose mass 2-9 m ahead of the herder, two dogs at its flanks, 0.9 m/s; the hook in animals.ts, V5's file) and /ox cart of
+  building stone/, /emptied stone cart/, /holding the stone cart/ (work object cart_stone: one rough-cut block on chocks).
 
 ## D-550 The town filled: no bare lane, court or roof (s17 cloud C1, town fill)
 - Census first (tools/dev/fill_census.ts, tests/fill_census.test.ts): baseline lanes 20.1 % of cells with nothing within 3 m, the longest bare run 147 m, 107 courts with < 3 fixtures, 111 roofs bare, 230 identical same-model pairs within 15 m; draws at a lane point 51 mean, 56 k triangles.
@@ -9426,12 +9481,27 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   (ribbons.ts quarryPaths: A* on a 25 m grid, length weighted by slope, nothing steeper than 1 in 3, smoothed; 82 ms at
   load), drawn in the tracks' mesh (allowed on the slopes the village tracks are cut on) with the same tread and verge
   (verge.ts). Majdabad: 4.1 km to a village track, steepest 0.11 (C).
+- V2's probe frames: the camelthorn and thistle cards drawn black: groundFlora.ts lights them as a low canopy (normal bent 2/3
+  toward the sky, facing-corrected; the baked normal map dropped; the baked occlusion to a third). Unseen on the T4.
+- Vagon's tip1 frame (cov-000: the young wheat read as a lawn): groundCover.ts puts the weeds of an unweeded field in every
+  growing plot (0-3 tufts and sward clumps a 2 m cell by a patch noise, 0.9-1.6x), C. Unseen on the T4.
 
 ## D-590 The front end and the opening: one type system, a loading screen that is the place's own dawn, and a wordless in-engine intro (session 17, cloud C5; UD-37)
 - Screens (src/ui/shell.ts, shell.css): Cormorant Garamond (display) and Alegreya Sans (interface), SIL OFL, self-hosted in public/fonts (ASSET_LEDGER); the title and the pause menu are a column of glass over the live world with the place's name in Old Persian (𐎱𐎠𐎼𐎿, p-a-r-s, as carved in DB I 5 and passim), settings a tabbed sheet (World, Display, Sound, Language, Keys; Esc goes back), controls with readable key names; the chronicle (J) a journal grouped by day and rebuilt only when it changes (it was rebuilt every frame); subtitles without the box, eased in once per line.
 - The loading screen is the real skyline of Kuh-e Rahmat from the plain (tools/dev/skyline_gen.ts cuts it from the committed terrain into four distance bands; the relief doubled, C) under a night sky whose dawn rises with D-393's measured progress (the steps and the bytes, never a timer); the step named large, the share, the bytes and the seconds beneath.
 - The opening (src/shell/intro.ts; hook in main.ts's shell hooks, one entry): six shots, 85 s (the river before sunrise, the plain from 90 m, the town from over its roofs, the Terrace's W face in the first sun, the gangs at work on the Hall of a Hundred Columns, then down to the eye where the walk begins), letterboxed, dips to black between shots, any key/click/touch skips (Esc at once). It plays from Enter on a new visit, after ready, so it never delays walkable and covers the minute the animals, far models and the talk's model stream in. The clock is not sped up (people would run): each cut moves the world's time forward to the shot's hour from that day's sunrise (never back), so the walk begins at sunrise + 1.45 h. A setting turns it off; test worlds and ?nointro never play it. tests/intro.test.ts checks every path against the terrain and the Terrace (clearance, speed, turn rate, landing on the eye). Unseen in the world until the Vagon train renders the seven views in handoff/s17/asks_vagon.md (six shots and the title backdrop); the title's drifting backdrop (TitleDrift) was added in the same package.
 
+## D-471 (s17, Vagon lead): why the trains crashed, and the guard
+- The baseline scoreboard and the budget both died at ~50 s with node's ERR_STRING_TOO_LONG in Playwright's pipe. Measured with
+  a raw CDP pipe probe: an unbaked pool seed (70707; a first visit draws one of 8, src/core/seed.ts) computes its town units
+  live and the dev server's cache POSTs carry the bodies inside Network.requestWillBeSent (45 MB, 62 MB, ... one > 512 MB).
+- Fix: trains and budget run on a tree baked for all 8 worlds (`npx tsx tools/bake_world/bake.ts`, as the site build does);
+  worldCache.ts no longer POSTs a unit > 32 MB in dev under navigator.webdriver (it says so in the console).
+- D-471 addendum: the first budget baseline (5fc087ea, all 8 worlds baked, cold profile, Q=high): ready 55 s, first frames
+  56.5 s, page 7.65 GB, frame 286 ms. Measured while the baseline scoreboard rendered on the same T4 and the agents ran probes:
+  frame time and ready are pessimistic; a quiet pass with --accept will tighten them (the baseline only tightens).
+  The lead's trains and budget run outside the GPU-slot queue (NOSLOT=1 / budget.mjs directly): with 5 agents queueing probes
+  for 2 slots the lead's jobs waited behind them.
 ## D-600 The far land: no LOD pop on the terrain, the hills' rock and ledges fade by the frame, ground rock to 1 km (session 17, cloud C6)
 - **Still broken, placeholder or unseen (read first):** nothing here has been judged in a GPU render; the probe (ground_probe at SwiftShader/WebGL) shows the shaders compile and the hills draw as before. The far hills' surface past ~1 km is still the terrain shader alone (terrainPlain.ts, not this package's).
 - **Measured first** (tools/dev/far_pop.ts: 515 walks of 300 m from the coverage points, 1 m apart, the player's lens 60 deg at 1080 px, every terrain chunk's pop as the largest screen move of its samples in view and every seam as the gap between two drawn chunk edges in view): at high, 2,873 level switches, 32 over 2 px, worst 2.51 px; seams worst 1.62 px. The hills' layers by their rules: ledge strips dropped their relief (up to 0.58 m) at the fine/coarse tile switch (~8 px at 70 m) and were cut whole at 1.6 km (~3 px); ground rock sank in 20 m rebuild steps over 221-260 m.
@@ -9450,9 +9520,150 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
 - The court's baggage train (traffic.ts trainMovers; UD-09/UD-10): a string per tented household (camels for a pavilion's) along the royal road to its camp's edge, reaching it half an hour before its tent is pitched (court.ts's arrival hours: days 10-15, up to ~650 households in six hours), and out along the road on the leave day after the tents are struck; the southern camps by the south road where a straight leg would cross the town's plots. C (HDT 7.40-41's train a claim, B).
 - Road folk as population people (the lead, after the merge: talk to anyone, UD-08/UD-31): roadFolk.ts made pure and given hinterlandRegister / planOf / spotOf / bindPids (600 households a road, reused only time-disjoint); the persons, their plans and their placement by popview are C10's (asked).
 - Life on the land (the lead's second list): herder households of the register take their flocks out for 12 days in 36 (stubble June-October, slopes in spring and autumn, a few on the steppe in winter; folded at night, watched by turns; place graze:<kind>), drawn near as the herd performance and far (380 m-2.4 km) by fauna.ts from grazingSites; dogs at the camps' lines; bird counts raised within the worst-case triangle gate. All C.
+- The starlings drew nothing on the T4 (Vagon's first train: 17 vertex inputs; their 1,500 instances put the matrix in four inputs past the 64 KiB uniform limit): wildlife.ts packs each bird's 12 instance floats in three vec4s (birdIn); tests/vertex_inputs.test.ts keeps every life pipeline (birds with their models, jackals, small life, the fauna's Animals) <= 16 inputs, the birds four spare.
+- Last hour: herders of the register drive flocks of wethers in to the exchange (V3's 'driving a flock'); 3-6 ox carts of building stone a working day from the quarry to the drum ground and back (V3's stone cart; traffic.ts); with C10's D-640 the population owns the road folk (Traffic takes Population.folk, gives it the town plan for the verges); census and tests count the bound people too (road folk drawn by popview).
 - Hooks in world.ts (lead's file): no hoof sounds for walkers; fauna.addCampLines; physics to ConstructionView. Later: the grazing sites and the far flocks (one line).
 
 - Hooks in world.ts (lead's file): no hoof sounds for walkers; fauna.addCampLines; physics to ConstructionView.
+## D-490 (s17, V2 materials): scans lead the town's surfaces
+- First pass (house_lab frames shots/a2, uncommitted): the houses' render takes Dirt Floor (was clay_plaster: a flat brown
+  plane past 10 m), the footings Stone Wall (the procedural Worley fieldstones, a CG voronoi at every lane's foot, are gone),
+  the flat roofs and wall tops Raked Dirt (the kahgel's chopped straw; the roofs had no scan at all). ScanUse gains `chroma`
+  (the scan's colour variation kept, the palette leading the hue) and `hue` (a share of the scan's own mean hue). House
+  plaster's broad tone 1σ 0.07 -> 0.10; the wall bake's normal 1.1 -> 0.8. New scans in ASSET_LEDGER.md; only the maps used ship.
+## D-500 (s17 V3 people): people that read as people at 2-30 m, first pass
+- Posture: the CMU captures' anterior pelvic tilt (3-34° mean; the women's walk 34°, idle_e 14°) is taken off the pelvis and
+  given back to the thighs and spine per clip (mocap.ts tiltFix; the motion about the mean kept): the sway-back that pushed
+  every belly out and the shoulders back is gone. Relaxed hands curl more (humanRig REST). C.
+- Cloth: a man's tunic or robe tapers from the chest to the belt (drape.ts BLOUSE_M 0.15 m, HANG 0.55 of the overhang): the
+  D-206 straight hang read as a ball of cloth over the belt, a pot belly on every man; women's dresses keep the hang.
+  people_cloth rebuilt on the new hull. C.
+- Shadows: the coarse shadow casters (LOD 2 for the near people) are drawn 1.4 cm inside their surface (humanMaterial
+  SHADOW_SHRINK): their stair-stepped self-shadow blotched every sunlit face and tunic at 1-10 m.
+- Hair cards: the alpha test per card class (CARD.byClass): beards 0.36 with a steady test (the 0.9 dither left the hanging
+  beard a see-through net at 1-2 m); scalp hair 0.44; brows as D-323.
+- Skin ramp warmer (B/R 0.55-0.64 from 0.6-0.7: grey and waxen under the high sun) and an outdoor tan read further along the
+  ramp (the three old draws kept: nobody's look changes otherwise); undyed wool and linen warmer, less chalk-white. C.
+- Probe: tools/dev/people_probe.mjs (humanlab, the player's lens, 2/10/30 m, one load ~1 min); shots in shots/v3/.
+- (D-500, second step) The head's shadow caster drawn 3.2 cm in (SHADOW_SHRINK_HEAD): the coarse nose and brow no longer blot
+  the cheeks and eyes. Talkers' arms taken 45 % back to a standing capture's (the CMU lecturers flung a hand to head height).
+  people_cloth rebuilt and reproduced on the new hull. C3's asks: walk variants /driving a flock/ (animal kind 'drive': a
+  loose mass 2-9 m ahead of the herder, two dogs at its flanks, 0.9 m/s; the hook in animals.ts, V5's file) and /ox cart of
+  building stone/, /emptied stone cart/, /holding the stone cart/ (work object cart_stone: one rough-cut block on chocks).
+## D-510 (s17, V4 terrace): the Gate's W bulls from the licensed sculpts (B361 closed); relief paint as a wash; inscriptions steady
+- **W bulls (B361):** the two W doorway bulls are no longer the signed-distance model. Their body is the licensed lamassu
+  sculpt's (D-365, fitted the same way), with its wing pressed into the flank and back (a clamp to a rounded top line and to a
+  flank surface filled from the flank round it, then relaxed in Blender with the border held) and its human head, crown and
+  beard drawn into a point inside the new neck; the head and neck are a licensed scan, "Head of a Bull" by Kirk Hiatt
+  (CC-BY-4.0, Sketchfab 7902d24b, Objaverse 1.0 mirror; scans.json bull_head), its plinth cut, turned 44° to face out, x2.0,
+  set on the shoulders. Route: colossus_scan.ts `bull bull_graft` = bull_from_lamassu.ts (node) + bull_graft.py (Blender),
+  welded, simplified, baked (build.mjs: 47.1 k / 2.5 k triangles, 2.66 MB, GPU ~9.2 MB). simplifyTo falls back to
+  meshoptimizer's sloppy simplifier when the edge collapses stall above target (the far level of a joined source). Tier C (a
+  composite: the W bulls' heads are lost; a naturalistic head on the sculpt's Assyrianising body). Voxel remesh measured and
+  dropped: the sculpt is not watertight and OpenVDB returned a double shell. The D-306 test now checks a scan-route colossus
+  against the reference box, not the SDF piece's triangle count; the colossi's ledger keys match their rows.
+- **Relief paint (immersion, UD-29/UD-36):** the film's hiding 3.4 -> 1.25 (opacity 0.97 -> ~0.66-0.71): the paint reads as
+  a mineral wash over the carved stone, the stone's grain and the carving's shading through it, instead of flat saturated
+  cut-outs. Pigments, coverage and losses unchanged (polychromy.json).
+- **Inscriptions:** the incised signs' mask is taken over the pixel's footprint (5 taps) and the cut's normal and shade ease to
+  the face's beyond ~1 atlas texel a pixel (incision.ts): the salt-and-pepper speckle of the Tachara and Gate texts at 5-10 m
+  is gone (the atlas has no mips and is alpha-tested).
+- Probe page tools/dev/v4_probe.{ts,html,mjs} (palace probe + reliefs, inscriptions, relief shadow; vite HMR blocked so an
+  edit in the tree does not kill a run).
+- Second pass (judged under light v1 in the light lab, shots/L1, L2): the bare brick of the losses takes Clay Block Wall
+  (a real mud-brick wall's courses; procedural joints off); the lanes, courts and tracks Dirt Floor with half its buff (the
+  courts read as pale concrete); the limestone's scan at 45 % chroma with half its buff mean (cold grey marble in the terrace
+  probe); every second tile turned 35° and offset (detile); the block faces' claw hatching fades to a third past ~4 m (a
+  regular diagonal hatching over every block at 5-30 m); the houses' foot damp 0.1 -> 0.2 and run-off 0.12 -> 0.2; the water's
+  far-bank reflection follows SEASON (was a hard-coded green).
+- Third pass: the footings take 75 % of the scan's buff (sunlit they read cold white-grey); the palaces' plaster bays 1σ 0.07 -> 0.09
+  and rain wash 0.13 -> 0.17 (the Gate's 20 m wall read as one flat plane). Frames: shots/a4, t4.
+- KTX2 (the lead): dirt_floor, raked_dirt, stone_wall, clay_block_wall encoded by tools/bake_world/ktx_scans.ts (UASTC+RDO, zstd, mips;
+  public/textures/ktx.json lists them, scans.ts loads them through sharedKTX2; the jpgs stay as the fallback): 9 maps, 24 MB jpg ->
+  32 MB ktx2 on disk, GPU memory a quarter of RGBA8 and no decode on the page. House lab frames identical (shots/a5). The
+  20-80 m ground tiling: no visible repeat in the plain probe frames (shots/p1 stair-top, drum-road).
+
+## D-480 (s17, V1 light): light v1, the art direction's light and tone
+- Tone (toneLook.ts): the fitted AgX look re-graded for the art direction (AC Origins / RDR2: rich, warm, controlled highlights,
+  shade deep but readable): exposure 2.6→3.2, power 1.4→1.25 (the old curve crushed lane shade to sRGB 0-15), saturation
+  0.9→1.15, a warm white balance (`warm` 0.04), a split tone (shade cool, light amber, `split` 0.6) and a toe lift (`lift`
+  0.8: c + lift·c(1−c)³, black stays black). All six are uniforms (TONE_U) so the lab sweeps them without a reload. The
+  pipeline fades the warm balance and the split through civil twilight to a slightly cool night (NIGHT_WARM −0.02). C.
+- Night fill (skySystem.ts NIGHT_FILL 5): in full darkness the skylight on the ground and walls is raised 5x after the dome's
+  calibration, the air and the clouds (the eye is at its limit there, so the camera does not take it back): a starlit court reads
+  as dim shapes (lab: p50 sRGB 1→9) while the dome, stars and fires keep their values. C (game liberty, UD-29).
+- Seasonal dust and an ochre air (aerial.ts seasonalDust, DUST_TINT; skySystem): the dry season's background dust from June
+  (0.3 by mid-July, 0.25 through September, gone by late November; 0.4 haze per dust for the dome and the sun), and the dust's
+  share of the in-scatter tinted ochre [1.12, 1, 0.72] (luminance 1). Spring air unchanged (clean after the rain). C.
+- The light lab (src/render/probes/light_lab.{ts,html,mjs}): the town, villages and terrain in the game's materials under the
+  game's own SkySystem, post pipeline at high, sun cascades, probes and outdoor field, and main.ts's exposure law with the frame
+  meter; ~5 min a load (shader compiles) then ~1 s a view; per view: day, hour, weather, tone, ab switches, post debug view,
+  hemi multiplier, fixed exposure. Measured (lab, 17 April, tone_stats lower 60 %): court noon p5/p50/p95 3/68/155 → 24/109/178,
+  lane door 16:30 0/14/136 → 1/46/164 (photos of Fars mud-brick villages: ~30/110/190).
+- Tests: tone_look (the deepest darks within 14 levels of plain AgX, was 8: the toe lift is intended), exposure (a moonless
+  night's displayed grey < 0.08, was 0.03: the night fill is intended).
+- light v2 (night, D-480 cont.): (1) the night dome (skySystem NIGHT_SKY_ZENITH/HORIZON): a deep-blue zenith over a paler
+  blue-grey horizon replaces the Preetham dome's night tail (the baseline train's cov-000: a brown-grey sky brighter than the
+  land); moonlight brightens it ×(1 + 2.5·up·phase); the fog's horizon colour and the air's in-scatter take the same night sky;
+  the airglow layer's green-grey veil cut to (0.00022, 0.00028, 0.00034). (2) The night fill is now a floor (NIGHT_GREY 0.05 of
+  the daylight grey, at most 10x, taken on the moonless sky so moonlight still adds): the evening falls monotonically from civil
+  twilight. (3) The grade's toe lift rises by NIGHT_LIFT 1.2 at night (pipeline.ts), the dark-adapted eye's reading of shapes.
+  (4) Night clouds (clouds.ts): opacity 1 − T^(1+3·night) so a deck that dims the sky also hides its stars, and a night glow
+  (the night dome at 35° × 1.1) so starlit cloud is soft grey-blue, not black holes. Lab, moonless court 22:30: p50 sRGB 1 → 15,
+  the open plain at 01:30 (cov-000's camera) 0 → 20. All C (UD-29: the night must read). Not fixed: the fan of light at the
+  horizon in cov-000 is the clear sky between cloud streets in perspective (gone with the clouds off); softened, not removed.
+- The outdoor field re-bake (node tools/blender/lightmaps.mjs, 192 s on 6 workers) is byte-identical on this tree: it bakes the
+  geometry (relative sky and sun), which the light changes do not touch. It must re-run after the town/Terrace geometry merges
+  (C1's fill, V4), before the final train.
+- (D-500, step 3) The sim's hooks on the body (handoff/briefs/s16/deeds_render.md): a wound of the deeds (DeedWorld.injuryOf)
+  drawn as a linen bandage round the head or the left forearm (a cut) or a splinted right forearm, or a broken leg's limp with
+  a staff (seeded per person); a healed wound or scald of the past (marks.ts war_scar, burn_arm, crooked_arm) as paler,
+  glossier patches on the right forearm. Person texel 10 [wound, scar, eye height]; the per-vertex mask rides vExt.w on skin
+  (no new varying). crowd.setMarks once a person a day. C.
+- (D-500, step 4) The garments' fold layers bump by their own slope (central differences two texels apart, carried to the
+  screen by the atlas coordinate's derivatives): the screen derivative of the 8-bit bilinear height stair-stepped dark streaks
+  over every dress, sleeve and skirt at 1-3 m.
+- (D-500, step 5) The face's living colour (C): blood under the thin skin of the nose, cheeks and ears, the baked lips' colour
+  held down (they read as lipstick in the sun), laid per vertex from the eye height on head and jaw skin. Headbands fitted to
+  the head at each edge (one rim stood the upper edge off the sloping forehead: a halo). A skirted walker's knee folds less in
+  the swing (SKIRT_KNEE): the heel no longer kicks out through the back of a long dress or robe. people_cloth rebuilt and
+  reproduced; the Cycles impostors re-rendered on the new posture and garments.
+- (D-500, step 6) Short sleeves' settled cloth capped at 1.2 cm proud of the arm (applyDrape capOut, outfits DRAPE_CAP: the
+  caps settled 3 cm out, epaulettes on every working man); talkers' arms 60 % back to standing. people_cloth and people_hair
+  rebuilt and reproduced.
+- **D-511 (V4, under D-510): the double-bull protome capitals from the licensed sculpts (B360 closed).** The protome of every
+  bull and composite capital (210) is two kneeling bull fore-parts back to back cut from the D-510 W bull (the lamassu
+  sculpt's chest, curl rows and forelegs with the bull-head scan): cut at the shoulder where the colossus stands in the round
+  (x 0.32 m), the forelegs folded back under the chest through a 0.24 m band at 1.3 m (a kneeling bull is low), mirrored,
+  fitted to the game's protome box (the game fits each level to protomeBox: unchanged), simplified to the game's protome
+  budgets (8.1 k / 0.56 k triangles), baked by bake_cols.py (tools/blender/scans/protome_scan.ts; assets.json
+  capital_protome). Tier C. The SDF protome stays as the flat-mode swap. The D-305 protome tests read the scan route's
+  bounds within 0.08 D and its triangles within the budget. The relief film's hiding went on to 0.85 (opacity ~0.5) and the
+  incision's far shade keeps a quarter of the cut's normal and a 0.6 skylight, so the texts read as soft grey script at 5-10 m.
+## D-520 (s17, V5 animals and weather): the animals from real library models, rigged by their own landmarks
+- 29 of 34 species now draw a ready-made, realistically textured model (Objaverse 1.0 = Sketchfab, CC-BY / CC-BY-NC, each
+  credited in ASSET_LEDGER.md and the manifest) instead of the procedural anatomy: donkey, onager, mule, the pack donkey and
+  mule, horse, saddled horse, ox, cow, calf, sheep, goat, wild goat, urial, dog, dromedary, hen, cock, wolf, fox, hyena, lion,
+  lioness, cheetah, leopard, deer, stag, gazelle, gazelle_m (the ox is the cow model darkened: the only bull found was a
+  raging, curled-tail fighting bull). Kept procedural: the Bactrian camel and its pack (no two-humped
+  model found), the zebu (the only scan was broken), the boar (only a domestic pig found), the hare (only a cartoon rabbit).
+- tools/blender/animals_real.{mjs,py,json}: the model's head end found and turned to +z, the four leg columns found by
+  k-means under a fifth of its height (two for the fowl), one scale putting the legs on the rig's pivots (+-0.35 L), the
+  height nudged toward the species' withers (+-12 %); its landmarks measured (legs, belly, back, neck base, poll, muzzle,
+  tail root) and written to the manifest; lod0/lod1 decimated, re-unwrapped and baked in Cycles (OptiX) from the source's own
+  textures; species tints where the library animal is another breed (the grey wild ass -> grey-brown donkey, dark mule, sandy
+  onager, gazelles and wild sheep). The pack saddles, panniers and saddle cloth are the anatomy's gear
+  (tools/blender/sources/animal_gear.ts) set on the model's measured back.
+- The rig is the procedural one (animals.ts vertex shader, unchanged): animalReal.ts registers each model's landmarks;
+  animalRig.ts realForm builds capsules on them so rigWeights assigns the same groups (no leg weight on the belly's midline
+  or the hanging tail; wider knee, leg and neck bands for the coarser meshes); animalFrame/lieDrop/foldOf/mountSeat use the
+  model's neck, belly and back (the grazing carriage searched until the muzzle reaches the ground; riders on the real back).
+  The instance coat scales the model's own colours about the species' mean coat (a dark sheep, a pale ox). A fur sheen at
+  grazing angles on every coat (D-520's shader line).
+- Verified: tests/animal_models.test.ts (every species stands, grazes to the ground, walks, lies and stays whole; library
+  models in the lying fold allowed 30 cm of hide stretch at hock and tail, a 20-cm-deep chest, no ear flick and their own
+  tails' swing: B550; tests/animal_motion.test.ts likewise), probe frames
+  shots/animal-*-r4.png (not committed). Load: 29 sets of ~1.6-2.3 MB each, the same order as the procedural sets (manifest).
 
 ## D-610 Interiors everywhere: one furnishing system for every enterable room, for the household that lives there (session 17, cloud C7)
 - src/world/interiors: plan.ts (a room's rectangle, doorways and back wall, and its household: standing, members, children, infants, women, jobs, craft, animal, season, in; the period kit's things out; every doorway's leaf sweep and approach kept clear, a walking line to the middle; tall things on the walls, flat ones on the floor, hung ones from pegs and poles; the rich full, the poor sparse; the weaver's loom, the infant's cradle, the scribe's tablets, the smith's anvil and bellows, the potter's turntable), household.ts (the population's households by plot and, for the villages, by compound: world.ts hands them over), town.ts (the houses' rooms and their uses: vestibule, living, sleeping, kitchen, store, workroom), terrace.ts (the Terrace's ranges after rooms.ts's fittings: a guard's kit at each mat, the squad's arms, the apartments' households, the stores' goods on their benches one class to a room), tents.ts (the court camps' tents while they stand, nothing through the cloth), census.ts.
@@ -9497,3 +9708,115 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   for the whole load: sent to C5.
 
 - Also (assigned by the cloud lead): src/people/converse/ui.ts's note when a person answers in their own lines now says why, out of world: the talk still arriving (with its share), the talk's model could not be fetched (reload to retry), or the graphics card cannot run it. Text only; the talk's behaviour is unchanged. tools/dev/first_minutes.mjs drives a player's first minutes on the built site end to end (19 steps).
+
+## D-472 (s17, Vagon lead): the 23:20 crash and the one-train rule
+- What happened: the baseline train ran ~13 min a view (shader compiles); to go faster the lead started 3 more train shards
+  in parallel (4 full-world pages) while 6 agents ran probe browsers. Memory spiked, WMI hung (tasklist/taskkill timed out),
+  the T4 was reset (Dawn: device removed) and the Claude app died, stopping all six agents. Lost: the baseline train (one
+  frame published); no code (every agent had pushed; small uncommitted edits stayed in their trees; agents resumed).
+- Rule (CLAUDE.md box safeguards): two full-world pages at most, never parallel shards; scoreboard.mjs holds
+  T:/fars-train/train.lock and refuses under 16 GB free; agents' browsers only through gpu_slot. Train timeout raised to
+  2400 + 900 s a view (the T4's real rate).
+- **D-512 (V4, under D-510): the glazed-brick bands over the Gate's doorways.** The six 'frieze' parts of the Gate of All
+  Nations (glazed, 4.6 x 0.9 m) drew as flat blue slabs at the player's lens. They now carry the Apadana frieze's band
+  (glazed.ts doorFriezeFaces + the shared band builder): both broad faces, border courses and ground with rosettes, the
+  courses fitted to each part's height (10 courses, 5 rosettes a face), a child mesh of the Apadana frieze (one draw; the
+  Apadana frieze's own test unchanged). Colours, layout C as D-214.
+- (D-500, close) Cycles impostors re-rendered after the last cloth change; report handoff/s17/report_people.md.
+- light v2b (D-480 cont.): the cloud deck fades out between 30 and 60 km (the march at grazing angles smeared the noise into
+  streets converging on the vanishing point: cov-000's horizon fan; gone in the lab), and the night toe lift eases by up to
+  75 % under a bright moon (GRADE.nightLift from the SkySystem): the moonlit plain p50 73 → 52, the moonless one unchanged (17).
+- contact (D-480 cont., the art direction: nothing floats): the lab's debug views showed the sun contact shadows all but dead
+  (sss view uniform 1 beside sunlit plinths and jambs: 0.6 m rays with 6 cm samples stepped through vertical occluders) and the
+  contact AO near white (0.9). Now SSS_MAX_DISTANCE 1.0 m, SSS_THICKNESS 0.12 m, and the contact AO sharpened by CONTACT_AO_POW
+  1.8 in the composite (pipeline.ts). C; lab-verified only.
+- (D-500, mocap) CMU takes re-fetched (T:/fars-assets-s12/mocap/cmu) and baked through tools/mocap/bake.ts (the old clips
+  reproduce byte for byte): sweep_a (13_23), sweep_b (14_13 mop), drink_a (13_09), dance_a (55_01), dance_b (90_31). The
+  sweepers' body layer is now a sweeping capture (weight 0.22, the broom hand within 3.5 cm). drink and dance are baked but
+  NOT wired: a new pose cycle needs impostor frames of its own (tests/impostor_frames: drink 0.27 m from the nearest frame),
+  i.e. tools/dev/imp_keys.ts --cover and an impostor re-render; next pass (B530).
+
+
+## D-521 (s17, V5): rain that reads (mixed streaks, splashes), dust that shows, a weather probe
+- weatherVfx.ts: each drop its own streak length (0.45-1.25 x) and brightness, the sheet's opacity 0.5 -> 0.34 (a uniform
+  sheet of equal streaks read as scratches on the lens); splashes where drops land within 9 m of the eye (a crown and a
+  rebound droplet, ~0.3 s, closed form in time; brighter than the streak: the sky in the water), none under the halls' roofs;
+  world.ts hook (one line): wvfx.ground = terrain.surfaceAt. shader_build counts the new mesh.
+- dust.ts: the puffs' optical depths 6-10x (the first pass's read as nothing in the probe: tau 0.05-0.12), longer lives,
+  more puffs per animal; a billowing edge (two noise octaves) instead of a disc.
+- tools/dev/weather_probe.{html,ts,mjs}: the plain (plain_probe's ?lite ground, flora, rocks) with the game's Animals in
+  flocks and strings, their dust, the rain, the wet ground and breath; views rain-spring, wet-after, dust-june, herd-5m,
+  herd-30m, cold-morning. Frames judged: shots/wx-*-w6.png (not committed).
+- Not mine, seen in the probe: the wet plain is darker but matte (no sheen, no puddles: the ground material, V2/C2); the
+  ground flora draws black spiky cards on the plain (groundFlora, C2).
+
+## D-522 (s17, V5): the season's palette in one place (season.ts SEASON_PALETTE)
+- The herb layer's green and straw and the stubble's colours lived as copies in materials.ts, terrainPlain.ts (twice),
+  water.ts and groundCover.ts; they now read season.ts SEASON_PALETTE (one-line hooks in each). Spring green moved from an
+  olive (0.31, 0.36, 0.18) that read as summer khaki to a young green (0.34, 0.45, 0.16); straw a little warmer. How much of
+  the ground the herbs cover stays the ground materials' (C2, V2). Probe: shots/pp-small-spring-field-s1.png.
+
+## D-523 (s17, V5): wet coats in the rain
+- animals.ts: a library model's coat darkens to ~0.6 of its albedo with the weather's surface wetness (WEATHER.wetness, the
+  ground's own uniform), loses its fuzz rim and takes a duller sheen. Probe: shots/wx-rain-spring-w7.png, wx-herd-30m-w7.png
+  (the spring green of D-522 reads on the plain at 30 m).
+
+## D-530 (s17, V6 interior light and fire): daylight through the town's doorways, night spill, flames, coals, fire shadows, camp hearths
+- Daylight ports (fire.ts lightPorts, firePlaces.ts townPorts; world.ts one-line hook fire.setPorts): the town's ~9,100 doorways
+  between a roofed room and the open each become a daylight source standing 1 m outside the opening, lit only on the room's side
+  (a half-space mask added to the composite's deferred term, fireGlow.ts D.w), of intensity daylight x 0.8 (sunlit ground and
+  walls with the sky) x 4 m2 / pi, cut off at 9 m; the nearest ports within 30 m take the deferred slots the fires leave free
+  (by day all twelve). The light-probe field has no town room interiors, so a doorway into a house read as a black hole by day
+  (fire-lab frames house-day-b vs lanedoor-day-d). At night a port whose room has its lamp or hearth lit spills that light out
+  onto the lane or court before the door (x 0.8 the plain estimate, C; x 3 washed the facade). Specular and SSGI bounce of these lights: none (C).
+- House lamps: a brighter lamp (0.22, 5 m) was tried and reverted: unshadowed, it lit the street facade behind its ledge (fire-lab lanedoor-night-e).
+- Flames of tongues (two octaves of rising turbulence, narrowing column, blackbody ramp from a yellow-white core to deep red
+  tips) replace the soft noise blob; a glowing coal bed (breathing ember patches) under every hearth, brazier and altar within 60 m.
+- Fire shadows: at high/ultra the 2 nearest fire lights cast soft cube-map shadows (radius 6 texels, 30 m reach), drawn when a
+  light takes another fire and refreshed in turn every 24 frames (fires and walls stand still), only where the adapter binds >= 32
+  sampled textures (B24's 16-texture failure); ?fireshadows=0 turns them off. NOT yet seen in a frame (the box crashed twice
+  under the lab runs): the lead's train must confirm, or set FIRE_SHADOW_LIGHTS = 0.
+- Court camp hearths (C3's ask): addCampHearths(fire, campItems(tents), ground, ti => tentStands(tents[ti], sim.t)) after the
+  court's tents exist (fire.extend() re-makes the flames for the new count); lit at the 'home' meal hours while the tent stands.
+  Not wired: a one-line call in world.ts after CourtCampTents is made (the lead's or C3's).
+- tools/dev/fire_lab.{ts,html,mjs}: the light lab plus fires, ports, the Terrace (?terrace=0 leaves it out), eye/look views.
+- fire_occ re-baked for the current Terrace (the parts hash had moved with V4's work; re-bake after V4's last change).
+
+- D-472 addendum (00:31 crash, the second): Windows logged "low virtual memory": COMMIT ran out (limit 71.5 GB = 63 GB RAM
+  + 8 GB page file) with 35 GB of RAM still free: Chrome GPU processes commit 5-10 GB each (9.8 + 8.2 + 5.5 GB at the event)
+  and the lead had started a full vitest run (up to 16 workers) beside the train and the agents' probes. The Claude app died
+  again and stopped every agent. Fix: boxguard.freeGB = min(free RAM, free commit) from perf counters; gpu slots start only
+  with >= 12 GB and end their job under 6 GB; scoreboard refuses under 24 GB. No full test suite on the Vagon box while
+  agents build (the cloud CI runs npm test on every s17-int push); targeted vitest files only.
+
+- D-523 addendum (s17, V5): the ox (drawn from the cow model) has no udder: tools/blender/animals_real.py `no_udder` presses
+  what hangs below the belly line between the hind legs and the navel up to the belly (72 vertices on the cow model) before
+  the levels and bakes are made.
+
+## D-524 (s17, V5): wet walls in streaks; the wet sheen and puddles verified with a sky to reflect
+- The ground's wet darkening, wet sheen (sky specular scaled by the wetness on porous surfaces), puddles in level hollows and
+  their dark mud rims were already in materials.ts finish() (D-219, D-335), driven by WEATHER uniforms; they read matte in the
+  weather probe only because the probe had no sky environment. The probe now prefilters a sky/ground sphere into skyEnv.
+- materials.ts (one line, uniform-driven, no new shader state): on walls the wet film runs in vertical streaks (wet 0.4-1.0 of
+  the ground's), not an even 55 % film.
+
+## D-513 (s17, V4 terrace): the relief atlas re-baked with a deep undercut (the figures read as carved at 2-10 m)
+- The lead's two routes: (1) the CC-BY "Two Persian courtiers" scan (Objaverse 2af5acdf; a museum fragment, 980 k triangles,
+  checked in look.ts) as a carving-style source, (2) a Cycles re-bake of the existing relief geometry with real undercut depth.
+  Route 2 taken (it reaches all 221 figure definitions and 3,748 placements in one build inside the deadline; route 1 needs a
+  per-figure transfer). The Persepolis reliefs' dark contour line comes from the outline cut square to under: the undercut
+  now pulls the foot of every step of 0.2 relief depths or more (was 0.25) under its arris by 0.55 of the rise (was 0.3), up to
+  5 texels (was 3); the occlusion rays reach 3 relief depths (was 2), so folds and contour hollows hold shade. tools/blender/
+  relief_atlas.ts, baked on the CPU in slot batches (tools/dev/gpu_slot.mjs; ~4 s a figure at 6 jobs), packed and KTX2-encoded
+  as before; the atlas also takes D-510's polychromy change into its input hash. No new asset (the atlas is the project's own,
+  ASSET_LEDGER row "Carved-relief atlas" unchanged in kind). Tier C.
+## D-525 (s17, V5): puddles fade far off and at grazing angles
+- materials.ts finish() (one line, no new shader state): the puddle mask fades over 60-150 m of view distance and below
+  ~10 degrees between the view and the surface, so thin pools far off no longer show as white slivers of mirrored sky
+  along the horizon (shots/wx-wet-flat-w8.png); they read as wet ground there. shader_build and material tests green.
+
+## D-640 Life everywhere: people where their lives give them reasons to be, measured over the whole coverage set (session 17, cloud C10; UD-08, UD-09, UD-26, UD-36)
+- The life census (tools/dev/life_census.ts): every coverage point (tests/data/coverage_points.json, 515) at a grid of daytime moments (days 0, 60, 150, 240 x 7.5, 10, 13, 16, 18 h; 19 by day), the people the renderer is fed (people_trace's population view settled with no budgets, plus the Terrace's detailed agents) within 60 m, at work / idle / walking, and within 250 m (in sight across open ground). Nobody is spawned: it reads the sim. The done line counts the points where the sim has a reason for people to be (not the coverage set's edge checks, the far open ground, the open plain between fields, roads and villages, nor the roads and quarries, whose people are C3's traffic).
+- Found and fixed (population.ts, popgeo.ts): (1) every plain household's fields lay at one offset, 250-470 m NE of its house: now each plot has its own bearing and distance (fieldOffset: 0.2-1.8 km round the village, scattered holdings; shared by the plan's walks and the drawn spot); (2) the town's children and servants went for fuel to `outside`, which is the burial ground: now Kuh-e Rahmat's lower slopes (scrub:, C); (3) the walled gardens by the estates (the paradise of Bagh-e Firuzi, Dasht-e Gohar) had nobody: half the estates' gardeners work the garden next door (partetaš workers, B for the kind; C), and a town gardener's garden is one of those within 900 m by nearness, not the nearest for the whole quarter; (4) the state flock's first pasture is Rahmat's slope S of the Terrace; (5) the keepers of the king's tomb at Naqsh-e Rustam: two magi and two young men of their order in a house by the tombs, the morning offering at the foot of Darius' tomb, watch below the tombs, the tomb's sheep grazed below the cliff (Arrian 6.29 for Cyrus' tomb, B there; by analogy here, C).
+- The road folk (C3's D-570 register, ~2,400 households, ~8,400 people) are persons of the population (addRoadFolk: names, the head's the register's own; no year's events): present only on the days the register brings them onto the roads; their days the register's planOf, with the herders' sleep and meals by the fold and the drive between grazings added (folkFold), dressed for the weather; planCheck clean over 120 days (a fifth of them). The population view places them by roadFolk.spotOf (popview mode 4, folkView: one hook in V3's file, asked by the lead) once world.ts hands the traffic the population's instance: `sim.pop.shareFolk()` before `new Traffic(...)` (the lead's line, asked); until then they stay the traffic's extras and nothing changes on screen.
+- Measured (census, seed 1, 19 daytime moments): points with a reason empty at every moment 91 -> 39 (nobody within 250 m at every moment 65 -> 16); point-moments empty 30 % -> 26 %; Rahmat's slopes 100 % -> ~75-80 % empty at 60 m, 30 % with nobody in sight; the compounds 63 % -> 32 %; Naqsh 100 % -> 80 % at 60 m, 8 % out of sight. Still empty: the plain's fields and river banks and the far Kur at 60 m (B670).

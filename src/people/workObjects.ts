@@ -18,8 +18,8 @@ export type WorkKind = 'drum_sledge' | 'brick_stack' | 'mud_heap' | 'brick_field
   | 'pigment_slab' | 'bier' | 'wash_stone' | 'drying_rack' | 'target' | 'hearth_pot' | 'ard' | 'throne'
   // D-210: the vehicles (gap audit items 16, 17) and the state poultry yard (item 11)
   | 'cart' | 'chariot' | 'wagon' | 'hurdles'
-  // session 9 (G77): an ox cart with roof beams
-  | 'cart_timber'
+  // session 9 (G77): an ox cart with roof beams; s17 V3 (C3's ask): an ox cart with a rough-cut block from the quarry
+  | 'cart_timber' | 'cart_stone'
   // D-215: children's play (gap audit item 26)
   | 'knucklebones' | 'toy_wheeled'
   // D-209: the lan set out before the fire, and the boiled meat of a sacrifice laid on soft grass
@@ -45,6 +45,15 @@ const merge = (gs: THREE.BufferGeometry[]) => mergeGeometries(gs)!;
 const SJ = (seed: number, r: number, h: number, alt: () => THREE.BufferGeometry) => modelShape('jar', seed, [2 * r, h, 2 * r], 1) ?? scanShape('jar', seed, [2 * r, h, 2 * r], 1) ?? alt();
 const SB = (seed: number, r: number, h: number, alt: () => THREE.BufferGeometry) => scanShape('basket', seed, [2 * r, h, 2 * r], 1) ?? alt();
 /** a small deterministic jitter */
+/** s17 V3: a rough-cut limestone block on a cart bed at bedY (quarry-faced: its faces bulged and pitched, the point marks C),
+ *  on two chock timbers */
+function stoneLoad(bedY: number): THREE.BufferGeometry[] {
+  const b = new THREE.BoxGeometry(1.2, 0.62, 0.9, 6, 4, 5), p = b.getAttribute('position') as THREE.BufferAttribute;
+  for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i), z = p.getZ(i), k = 0.045 * Math.sin(x * 9.1 + z * 5.3) * Math.cos(y * 11.7 + x * 3.1) + 0.02 * Math.sin(z * 23 + y * 17) + 0.01 * Math.sin(x * 41 + y * 29 + z * 37);
+    const l = Math.hypot(x / 0.6, y / 0.31, z / 0.45) || 1; p.setXYZ(i, x * (1 + k / l), y * (1 + k / l), z * (1 + k / l)); }
+  b.computeVertexNormals(); const g = b; // (the box's faces keep their own vertices: a sharp arris, as a quarried block has)
+  return [P(g.rotateY(Math.PI / 2 + 0.05).translate(0.02, bedY + 0.1 + 0.31, -0.1), [0.6, 0.56, 0.49], 1), P(box(1.3, 0.1, 0.12, 0, bedY, 0.35), WOOD_D), P(box(1.3, 0.1, 0.12, 0, bedY, -0.6), WOOD_D)];
+}
 const jit = (i: number, s = 1) => (Math.sin(i * 12.9898 + s * 78.233) * 43758.5453) % 1;
 /** a sheaf of cut barley along +Y from its butt: the stalks narrowing to the band, the ears flaring beyond it (C) */
 const EARS: RGB = [0.8, 0.68, 0.42];
@@ -87,6 +96,7 @@ export const WORK_NOTES: Record<WorkKind, { tier: 'A' | 'B' | 'C'; note: string 
   hearth_pot: { tier: 'C', note: 'three hearth stones, ash and embers, a cooking pot on them (C; the fire is the settlement’s own)' },
   ard: { tier: 'C', note: 'a wooden ard with a stilt, a sole with a share and a beam to the yoke (the scratch plough of the ancient Near East: type B; form C)' },
   cart: { tier: 'C', note: 'an ox cart: a plank bed on two solid wheels of three boards, a pole to the yoke on the oxen’s necks, loaded with sacks of grain (carts are silent at Persepolis; the Assyrian reliefs show such carts: B analogy; form, size and load C)' },
+  cart_stone: { tier: 'C', note: 'an ox cart carrying one rough-cut limestone block from the quarry (about 1.2 × 0.6 × 0.9 m, ~1.7 t: a heavy load for one yoke at a slow walk), chocked with timbers, for the door and window frames (s17 V3, C3’s ask; the stone from Majdabad: construction.ts E-61, B; carts and loads C)' },
   cart_timber: { tier: 'C', note: 'an ox cart carrying five roof beams of ~6 m, lashed on and overhanging behind (session 9: roof timber for the building works, the Susa charter\'s timbers from far: A for Susa, B analogy; load C)' },
   chariot: { tier: 'B', note: 'a two-wheeled chariot with spoked wheels, a box for the driver and a pole to the yoke of two horses (chariots on the Apadana reliefs and the royal chariot of HDT 7.40-41: B; form, size and the eight spokes C); court setting only' },
   wagon: { tier: 'C', note: 'a covered four-wheeled wagon (harmamaxa) for the royal women on the road (HDT 7.83, a claim; RECOLLECTION, NOT SEEN): a box on solid wheels under an arched cloth cover, a pole to the yoke (form and size C); court setting only' },
@@ -183,6 +193,7 @@ function composite(kind: WorkKind): THREE.BufferGeometry | null {
     case 'oil_jars': { const lamp = vesselAt('lamp', [0.17, 0.032, 0.14], [-0.3, 0, 0.1], POT, 0.8); if (!lamp) return null; const g: THREE.BufferGeometry[] = [];
       for (let i = 0; i < 4; i++) g.push(P(SJ(i, 0.14, 0.43, () => lathe([[0.001, 0], [0.09, 0.02], [0.14, 0.18], [0.1, 0.34], [0.05, 0.4], [0.055, 0.43]], 10)).translate(i * 0.32, 0, 0.03 * jit(i)), POT, 0.8), P(new THREE.CylinderGeometry(0.05, 0.05, 0.03, 8).translate(i * 0.32, 0.43, 0.03 * jit(i)), [0.52, 0.42, 0.3], 0.9));
       return merge([...g, lamp]); }
+    case 'cart_stone': { const c = woParts('wo_cart', kind); if (!c) return null; c.push(...stoneLoad(0.62)); return merge(c); }
     case 'cart': { const c = woParts('wo_cart', kind); if (!c || !has('sack_lying')) return null; const bedY = 0.62;
       for (let i = 0; i < 5; i++) { const x = (i % 2 ? 0.3 : -0.3) + 0.03 * jit(i), z = -0.75 + i * 0.36;
         c.push(P(mergedModel(modelFit('sack_lying', [0.62, 0.3, 0.4], 1)!).rotateY(Math.PI / 2 + 0.2 * jit(i, 3)).translate(x, bedY, z), [0.64, 0.58, 0.46], 1)); }
@@ -299,6 +310,12 @@ export function workGeometry(kind: WorkKind): THREE.BufferGeometry {
       for (let i = 0; i < 5; i++) { const x = (i % 2 ? 0.3 : -0.3) + 0.03 * jit(i), z = -0.75 + i * 0.36;
         g.push(P(new THREE.CapsuleGeometry(0.2, 0.42, 2, 7).rotateZ(Math.PI / 2).scale(1, 0.75, 1).translate(x, bedY + 0.16, z), [0.64, 0.58, 0.46], 1)); }
       return merge(g); }
+    case 'cart_stone': { const g: THREE.BufferGeometry[] = [], R = 0.46, bedY = 0.62; // the cart as above, its load one rough block
+      for (const x of [-0.82, 0.82]) { g.push(P(new THREE.CylinderGeometry(R, R, 0.09, 14).rotateZ(Math.PI / 2).translate(x, R, 0), WOOD_D));
+        g.push(P(new THREE.CylinderGeometry(0.1, 0.1, 0.16, 8).rotateZ(Math.PI / 2).translate(x, R, 0), WOOD)); }
+      g.push(P(rod([-0.9, R, 0], [0.9, R, 0], 0.045, 0.045, 6), WOOD)); g.push(P(box(1.44, 0.07, 2.1, 0, bedY - 0.07, -0.05), WOOD));
+      g.push(P(rod([0, bedY - 0.04, 0.95], [0, 1.1, 3.45], 0.05, 0.04, 6), WOOD)); g.push(P(rod([-0.78, 1.14, 3.48], [0.78, 1.14, 3.48], 0.045, 0.045, 6), WOOD));
+      g.push(...stoneLoad(bedY)); return merge(g); }
     case 'cart_timber': { const g: THREE.BufferGeometry[] = [], R = 0.46, bedY = 0.62; // the cart as above, its load five beams
       for (const x of [-0.82, 0.82]) { g.push(P(new THREE.CylinderGeometry(R, R, 0.09, 14).rotateZ(Math.PI / 2).translate(x, R, 0), WOOD_D));
         g.push(P(new THREE.CylinderGeometry(0.1, 0.1, 0.16, 8).rotateZ(Math.PI / 2).translate(x, R, 0), WOOD)); }

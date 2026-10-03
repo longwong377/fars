@@ -43,13 +43,18 @@ import type { Quality } from '../core/settings';
 import { installProbeLight, updateProbeLights, probeAmbient, probeSun } from './probes/runtime';
 import { SkyEnvCapture, skyEnv, specularOcclusion } from './envmap';
 import { addAirLight } from './airlight';
-import { agxLook } from './toneLook';
+import { agxLook, TONE_U, TONE_LOOK, GRADE } from './toneLook';
 import { SkyVisField, SKYVIS } from './skyVis';
 import { fireGlowIrradiance } from './fireGlow';
 /** D-309: the fitted AgX look (toneLook.ts) at medium and above; ?tone=agx draws three's plain AgX (the A/B) */
 export const TONE_LOOK_ON = !(typeof location !== 'undefined' && new URLSearchParams(location.search).get('tone') === 'agx');
 
 export const GI_SCALE = Math.PI / 2;
+/** D-480: the night's white balance (toneLook warm; slightly cool, C) */
+export const NIGHT_WARM = -0.02;
+/** D-480 (light v2): the toe lift added at night (toneLook lift: the dark-adapted eye reads shapes in starlight that a camera's
+ *  curve crushes; C) */
+export const NIGHT_LIFT = 1.2;
 /** bloom threshold (scene radiance, before exposure) at the outdoor exposures; scaled for interior exposures (D-141) */
 export const BLOOM_THRESHOLD = 0.9, BLOOM_STRENGTH = 0.12;
 /** the glare's input saturates at this many times display white (after exposure), as a sensor does: an interior exposed
@@ -72,7 +77,12 @@ export const SSR_MISS_D = 8;
 /** sun contact shadows (D-157): screen-space rays toward the sun, 0.6 m long, against depth samples 6 cm thick; they darken
  *  only the pixel's share of direct sun (estimated as below), where the shadow map's texels and bias (6 cm, D-146) leave a
  *  plinth or a step nosing without its contact shadow */
-export const SSS_MAX_DISTANCE = 0.6, SSS_THICKNESS = 0.06;
+export const SSS_MAX_DISTANCE = 1.0, SSS_THICKNESS = 0.12;
+/** D-480 (contact, the art direction: nothing floats): the contact AO (the SSGI's short-range term) is sharpened by this power in
+ *  the composite (a jar, a door jamb or a wall foot meeting the ground darkens its last decimetres); the lab measured the 0.6 m /
+ *  6 cm contact rays stepping through walls (sss debug view all-white beside a sunlit plinth), so they reach 1 m with 12 cm
+ *  samples. C */
+export const CONTACT_AO_POW = 1.8;
 /** D-355: the screen-space passes' resolution (× the drawing buffer) per quality; TRAA resolves the upsampled result */
 export const POST_SCALE: Partial<Record<Quality, { ssgi: number; ssr: number; sss: number }>> = {
   high: { ssgi: 1, ssr: 1, sss: 1 },
@@ -213,7 +223,7 @@ export class Pipeline {
         node.thickness.value = SSGI_THICKNESS; node.useLinearThickness.value = true;
         node.aoNearRadius.value = SSGI_CONTACT_RADIUS; node.nearSteps.value = SSGI_CONTACT_STEPS;
       }
-      const aoTex = node.getAONode(), aoFull = aoTex.r, aoNear = V.includes('orig') ? aoTex.r : aoTex.g, bounce = node.getGINode().rgb;
+      const aoTex = node.getAONode(), aoFull = aoTex.r, aoNear = V.includes('orig') ? aoTex.r : aoTex.g.pow(CONTACT_AO_POW), bounce = node.getGINode().rgb;
       // sky pixels come out of the SSGI pass with AO 1 and GI 0 (patched node), so the composite leaves them unchanged
       const ao0 = mix(mix(aoFull, min(aoFull, aoNear), this.ab.contact), aoNear, w);
       // D-309b: outside the probe volumes, the sky the built world leaves visible (skyVis.ts), with the SSGI's AO (min)
@@ -354,6 +364,10 @@ export class Pipeline {
     if (this.sun) { // the contact shadows' sun (D-157)
       this.sunDirW.value.subVectors(this.sun.position, this.sun.target.position).normalize();
       this.sunE.value.copy(this.sun.color).multiplyScalar(this.sun.visible ? this.sun.intensity : 0);
+      // D-480: the grade follows the light: the warm white balance and the full split tone by day, fading through civil
+      // twilight to a slightly cool, gently split night (moonlight and starlight are not graded amber)
+      if (!(globalThis as any).__toneHold) { const y = this.sunDirW.value.y, t = Math.min(1, Math.max(0, (y + 0.1) / 0.15)), d = t * t * (3 - 2 * t);
+        TONE_U.warm.value = TONE_LOOK.warm * d + NIGHT_WARM * (1 - d); TONE_U.split.value = TONE_LOOK.split * (0.4 + 0.6 * d); TONE_U.lift.value = TONE_LOOK.lift + NIGHT_LIFT * GRADE.nightLift * (1 - d); }
     }
     { const H = this.renderer.getDrawingBufferSize(new THREE.Vector2()).y || 540; this.pxAngle.value = 2 * Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2) / H; }
     this.env?.update(this.hemi); // the sky environment, re-captured when the sun or the light has changed (D-157)
