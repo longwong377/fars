@@ -15,7 +15,7 @@
 // radius is the sun's own penumbra at a typical occluder distance (0.53°, ~1 cm per metre) but never under 1.25 texels.
 // Ultra adds the cascade fade (no visible seam where one cascade hands over to the next).
 import * as THREE from 'three/webgpu';
-import { Fn, If, texture, textureLoad, vec2, ivec2, float, add, floor, fract, clamp, step, mix, smoothstep, positionView, screenCoordinate, interleavedGradientNoise, vogelDiskSample, reference, renderGroup } from 'three/tsl';
+import { Fn, If, texture, textureLoad, vec2, ivec2, float, add, floor, fract, clamp, step, mix, smoothstep, positionView, screenCoordinate, interleavedGradientNoise, vogelDiskSample, reference, renderGroup, uniform } from 'three/tsl';
 import { CSMShadowNode } from 'three/addons/csm/CSMShadowNode.js';
 import type { Quality } from '../core/settings';
 
@@ -33,6 +33,9 @@ export const CASCADE_AMORTISE = { on: !(typeof location !== 'undefined' && new U
 if (typeof globalThis !== 'undefined') (globalThis as any).__parsaCascades = CASCADE_AMORTISE; // A/B at run time (tests/e2e/dbg_perf.spec.ts)
 /** D-680: the far cascade on (?farcsm=0 for the A/B) */
 export const FAR_ON = { on: !(typeof location !== 'undefined' && new URLSearchParams(location.search).get('farcsm') === '0') };
+/** its weight at run time (1 on, 0 off: the A/B in one page load; globalThis.__parsaFarCascade.value) */
+export const FAR_WEIGHT = uniform(1);
+if (typeof globalThis !== 'undefined') (globalThis as any).__parsaFarCascade = FAR_WEIGHT;
 const _cp = new THREE.Vector3(), _cd = new THREE.Vector3(), _sd = new THREE.Vector3();
 /** the old profile (session 11), kept for the A/B measurement (?csm=old) */
 export const SUN_CASCADES_OLD: SunCascadeProfile = { size: 2048, breaks: [], fade: false, taps: 5 };
@@ -137,7 +140,7 @@ class SunCSM extends (CSMShadowNode as any) {
     // past FAR_START − FAR_FADE the cascades are fading out (their last ends at 600 m: lit beyond); the far map takes over
     return Fn(() => {
       const r = (base as any).toVar('sunShadowWithFar');
-      (r as any).assign(r.mul(mix(float(1), this.far!.node, smoothstep(near, FAR_CASCADE.start, viewD))));
+      (r as any).assign(r.mul(mix(float(1), this.far!.node, smoothstep(near, FAR_CASCADE.start, viewD).mul(FAR_WEIGHT))));
       return r;
     })();
   }
