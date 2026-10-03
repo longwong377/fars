@@ -18,6 +18,7 @@ import type { Terrain } from '../../terrain/heightfield';
 import { Rng } from '../../core/rng';
 import { feature, tag, RiverProfile, pointInPolygon, settlementZones } from './data';
 import type { Canal } from './canals';
+import { BEND } from './rivers';
 import { hash2, unit, cellU, SALT, ZoneMap, zoneAt, landUseAt, plotAt } from './fields';
 import type { Village } from './villages';
 import { TreeKit, treeInst, speciesSize, type TreeInst } from '../trees/render';
@@ -49,9 +50,14 @@ export function riparianTrees(rivers: RiverProfile[], seed = 1): Tree[] {
       for (let a = 0; a < l; a += step) for (const side of [-1, 1]) {
         const s = i * 20 + a, clump = unit(hash2(cellU(s / 220), side + 5, 71)) * 0.6 + unit(hash2(cellU(s / 70), side + 9, 72)) * 0.4;
         if (clump < rip.gap_share || !rng.chance(0.75)) continue; // gaps: fords, grazing, cut-over banks (C)
-        const u = r.topWidth / 2 + 2 + rng.next() ** 1.4 * band;
+        // D-670: on a bend's inner side the point bar runs wider (rivers.ts BEND): the line stands back by its extra width
+        const a0 = Math.max(0, i - 3), b0 = Math.min(r.x.length - 1, i + 3), t0 = Math.atan2(r.y[i] - r.y[a0], r.x[i] - r.x[a0]), t1 = Math.atan2(r.y[b0] - r.y[i], r.x[b0] - r.x[i]);
+        let dth = t1 - t0; if (dth > Math.PI) dth -= 2 * Math.PI; if (dth < -Math.PI) dth += 2 * Math.PI;
+        const R = Math.abs(dth) > 1e-4 ? ((b0 - a0) * 20) / Math.abs(dth) : 1e9, bendK = Math.min(1, Math.max(0, (r.topWidth * 3.2) / R - 0.35));
+        const barW = Math.sign(dth) === side ? r.channel.side_slope_h_per_v * r.channel.bank_height_m * BEND.inner * bendK : 0;
+        const u = r.topWidth / 2 + 2 + barW * (rng.next() < 0.5 ? 0.6 : 1) + rng.next() ** 1.4 * band;
         const x = r.x[i] + (tx / l) * a + nx * side * u + rng.range(-3, 3), y = r.y[i] + (ty / l) * a + ny * side * u + rng.range(-3, 3);
-        const pick = rng.next(), nearWater = u < r.topWidth / 2 + 10;
+        const pick = rng.next(), nearWater = u < r.topWidth / 2 + 10 + barW;
         // species mix (C): tamarisk thickets at the water's edge; planes, willows and poplars behind
         const sp = nearWater && pick < 0.45 ? 'tamarisk' : pick < 0.35 ? 'plane' : pick < 0.65 ? 'willow' : pick < 0.85 ? 'poplar' : 'tamarisk';
         const { h, w } = speciesSize(sp, rng.next(), rng.next());
@@ -149,12 +155,21 @@ export function woodlandTrees(zm: ZoneMap, cx: number, cz: number, R: number): T
  *  plane, by the rain-fed almond, wild pistachio and tamarisk (C: the trees a farmer leaves or plants on a field's edge for
  *  fodder leaves, fruit, shade and timber); none on the roads and tracks (verge.ts). About 35 a square kilometre of fields,
  *  evaluated round the camera like the woodland (index.ts: the near set and the mid ring); copies turned (variety.ts) */
-export const FIELD_TREE = { cell: 40, edge: 2.5, keep: 0.26 } as const;
+export const FIELD_TREE = { cell: 40, edge: 3.5, keep: 0.45, scrub: 0.16 } as const;
 function fieldTreeCell(zm: ZoneMap, i: number, j: number): (Tree & { e: number; n: number })[] {
   const C = FIELD_TREE.cell, a = cellU(i), b = cellU(j), x = (i + 0.1 + 0.8 * unit(hash2(a, b, 61))) * C, z = (j + 0.1 + 0.8 * unit(hash2(a, b, 62))) * C;
-  if (unit(hash2(a, b, 63)) > FIELD_TREE.keep) return [];
-  const u = landUseAt(zm, x, z); if ((u.use !== 'irrigated' && u.use !== 'rainfed') || u.plot.edge > FIELD_TREE.edge) return [];
+  const keepU = unit(hash2(a, b, 63)); if (keepU > Math.max(FIELD_TREE.keep, FIELD_TREE.scrub)) return [];
+  const u = landUseAt(zm, x, z); if (u.use !== 'irrigated' && u.use !== 'rainfed') return [];
   if (vergeZone(x, -z)) return [];
+  // D-670: the rain-fed fallow and grazing plots carry scattered shrubs anywhere in them, not only on the bunds (C: wild
+  // almond, Atlantic pistachio and tamarisk of the Marv Dasht steppe, browsed low; thinned within 2 km of the Terrace for fuel)
+  if (u.use === 'rainfed' && u.row === 'fallow' && u.plot.edge > FIELD_TREE.edge) {
+    if (keepU > FIELD_TREE.scrub * Math.min(1, Math.max(0.35, (Math.hypot(x - 110, z) - 1200) / 1500))) return [];
+    const su = unit(hash2(a, b, 68)), sp = su < 0.45 ? 'almond' : su < 0.75 ? 'tamarisk' : 'pistachio';
+    const { h, w } = speciesSize(sp, unit(hash2(a, b, 65)) * 0.6, unit(hash2(a, b, 66)));
+    return [{ x, y: -z, sp, h, w, seed: hash2(a, b, 67) & 0x3fffffff, e: x, n: -z }];
+  }
+  if (keepU > FIELD_TREE.keep || u.plot.edge > FIELD_TREE.edge) return [];
   const su = unit(hash2(a, b, 64)), sp = u.use === 'irrigated' ? (su < 0.4 ? 'mulberry' : su < 0.65 ? 'poplar' : su < 0.82 ? 'willow' : 'plane') : (su < 0.45 ? 'almond' : su < 0.8 ? 'pistachio' : 'tamarisk');
   const { h, w } = speciesSize(sp, unit(hash2(a, b, 65)) * (sp === 'plane' ? 0.6 : 1), unit(hash2(a, b, 66)));
   return [{ x, y: -z, sp, h, w, seed: hash2(a, b, 67) & 0x3fffffff, e: x, n: -z }];

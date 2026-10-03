@@ -8,6 +8,8 @@ import * as THREE from 'three/webgpu';
 import { v, present } from './spec';
 import type { Part, Box } from './parts';
 import { surfaceMaterial } from '../render/materials';
+import { roofEdges } from './roofedge';
+import { buildDressings } from './dressings';
 
 export interface FriezeFace { tower: string; c: [number, number]; n: [number, number]; length: number; y0: number; y1: number; /** D-512: a band whose height is its own (the glazed frieze parts over the doorways), courses fitted to it */ own?: boolean }
 /** the outer faces of the Apadana's corner towers that carry the frieze, and the band's heights */
@@ -36,6 +38,13 @@ export function doorFriezeFaces(parts: Part[]): FriezeFace[] {
   }
   return out;
 }
+/** D-750 (C, UD-29): the palaces' band height (m): the Apadana frieze's 11 courses (0.99 m) is lost past 200 m; 18 courses
+ *  (the rosettes 0.62 m, as the Apadana's, set in a wider ground) read as a colour line from the plain */
+export const PALACE_BAND_H = 1.62;
+/** D-750: the palaces' wall runs under their string courses (roofedge.ts bands), the Apadana frieze's courses down from there */
+export function palaceBandFaces(parts: Part[]): FriezeFace[] {
+  return roofEdges(parts).bands.map(b => ({ tower: b.building, c: b.c, n: b.n, length: b.length, y0: b.y1 - PALACE_BAND_H, y1: b.y1, own: true }));
+}
 /** linear-light RGB of an sRGB triple */
 const linRGB = (s: number[]) => { const c = new THREE.Color().setRGB(s[0], s[1], s[2], THREE.SRGBColorSpace); return [c.r, c.g, c.b]; };
 
@@ -43,6 +52,9 @@ export function buildGlazedFrieze(parts: Part[]): THREE.Mesh | null {
   const m = glazedBand(friezeFaces(parts), 'apadana-glazed-frieze'); if (!m) return null;
   const d = glazedBand(doorFriezeFaces(parts), 'door-glazed-friezes'); // D-512
   if (d) { d.userData.note = `glazed-brick bands over the doorways (${d.userData.faces} faces; D-512): the Apadana frieze's band, courses fitted to each part, C`; m.add(d); }
+  const r = glazedBand(palaceBandFaces(parts), 'palace-glazed-bands'); // D-750
+  const dr = buildDressings(parts); if (dr) m.add(dr); // D-750: the porticoes' hangings and the royal standards (dressings.ts; carried here, as world.ts adds this mesh)
+  if (r) { r.userData.note = `glazed-brick bands under the string courses of the palaces' outer walls (${r.userData.faces} wall runs, ${r.userData.rosettes} rosettes; D-750): the Apadana frieze's band by the same hand (roofedge.ts BAND_BUILDINGS), its place C`; m.add(r); }
   return m;
 }
 function glazedBand(faces: FriezeFace[], name: string): THREE.Mesh | null {

@@ -1,0 +1,3347 @@
+{
+ "tool": "tools/dev/follow30.ts",
+ "day": 60,
+ "season": 91,
+ "mode": "own",
+ "generated": "2026-10-03T03:36:34.161Z",
+ "repliesGrounded": 0.987,
+ "thinShare": {
+  "deeds": 0.267,
+  "reasons": 0.067,
+  "replies": 0.067,
+  "work": 0.033
+ },
+ "missing": [],
+ "people": [
+  {
+   "seed": 1,
+   "kind": "town",
+   "pid": 5415,
+   "name": "Muška",
+   "byname": "son of Parmekka",
+   "age": 24,
+   "sex": "m",
+   "job": "gardener",
+   "origin": "a Persian of Parsa",
+   "home": "a mud-brick house in the town west of the Terrace, a short walk from its stair",
+   "household": 2,
+   "kinHouses": 4,
+   "friends": 4,
+   "year": [
+    "the house of Baduzarma son of Bakumarda gave them grain when the house ran short"
+   ],
+   "past": 4,
+   "worries": [
+    "hail or blight before the harvest is in"
+   ],
+   "hopes": [
+    "a good harvest",
+    "the child growing strong"
+   ],
+   "needs": [],
+   "news": [
+    "heard of sickness in the house of Atys son of Djedhor",
+    "heard of a death in the house of Battikamaša son of Bakiš"
+   ],
+   "lately": [],
+   "said": [],
+   "plan": {
+    "parts": 24,
+    "whys": 19,
+    "work": 5,
+    "places": 6,
+    "sameNext": false,
+    "sameSeason": false,
+    "day": [
+     "0.0 sleep @h:1698: asleep",
+     "4.3 tend_body @h:1698: washing his face and hands at the water jar in the courtyard at rising",
+     "4.3 rest @h:1698: at home",
+     "5.0 eat @h:1698: bread and water before leaving",
+     "5.2 walk @road:town: to the garden",
+     "5.2 garden_work @garden:q_pw_s: gathering produce for the store",
+     "6.2 carry_sack @road:town: carrying produce to the storehouse",
+     "6.4 queue @royal_store: the produce counted in at the store",
+     "6.9 walk @road:town: back to the garden",
+     "7.2 garden_work @garden:q_pw_s: working the garden beds",
+     "12.0 eat @garden:q_pw_s: the midday meal in the shade of the trees, then home out of the heat",
+     "12.5 walk @road:town: walking",
+     "12.5 sleep @h:1698: sleeping through the heat of the day",
+     "14.4 rest @h:1698: resting at home after work",
+     "17.1 walk @road:town: walking",
+     "17.2 talk @lane:q_pw_s: talking with the men of the lane",
+     "18.2 walk @road:town: walking",
+     "18.2 eat @h:1698: the evening meal with the household",
+     "18.7 talk @h:1698: with the household",
+     "20.8 sleep @h:1698: asleep",
+     "22.0 walk @road:town: to the channel in the night",
+     "22.1 irrigate @canal:q_pw_s: a night turn of water",
+     "23.3 walk @road:town: walking",
+     "23.3 sleep @h:1698: asleep"
+    ]
+   },
+   "talk": [
+    {
+     "q": "Who are you?",
+     "key": "who",
+     "fact": "you are Muška, son of Parmekka, twenty-four, a Persian of Parsa; your wife Raučastrī and your son Nariyapikna live with you",
+     "factOk": true,
+     "tokens": 437,
+     "reply": "Listen, friend. I am Muška, son of Parmekka. I am a gardener on an estate of the plain.",
+     "grounded": true
+    },
+    {
+     "q": "Who lives in your house?",
+     "key": "family",
+     "fact": "in your house: your wife Raučastrī and your son Nariyapikna",
+     "factOk": true,
+     "tokens": 437,
+     "reply": "In my house: my wife Raučastrī and my son Nariyapikna. My kin keep Aryatausā’s house and others nearby.",
+     "grounded": true
+    },
+    {
+     "q": "What work do you do?",
+     "key": "work",
+     "fact": "your work: a gardener on an estate of the plain; right now: the midday meal in the shade of the trees, then home out",
+     "factOk": true,
+     "tokens": 437,
+     "reply": "I am a gardener on an estate of the plain. Just now it is the midday meal in the shade of the trees.",
+     "grounded": true
+    },
+    {
+     "q": "What has happened to you this year?",
+     "key": "year",
+     "fact": "the house of Baduzarma son of Bakumarda gave them grain when the house ran; yesterday: opening and closing the runnels between the beds; barley harvest",
+     "factOk": true,
+     "tokens": 437,
+     "reply": "The house of Baduzarma son of Bakumarda gave us grain when the house ran short. Have you news from the road?",
+     "grounded": true
+    },
+    {
+     "q": "What troubles you?",
+     "key": "cares",
+     "fact": "you are worried about hail or blight before the harvest is in; you hope for a good harvest",
+     "factOk": true,
+     "tokens": 437,
+     "reply": "I worry about hail or blight before the harvest is in.",
+     "grounded": true
+    }
+   ],
+   "thin": {}
+  },
+  {
+   "seed": 1,
+   "kind": "village",
+   "pid": 29658,
+   "name": "Miθratausā",
+   "byname": "wife of Mannunda",
+   "age": 29,
+   "sex": "f",
+   "job": "homemaker",
+   "origin": "a Persian of Parsa",
+   "home": "a village of the plain, most of a day’s walk south-east of the Terrace",
+   "household": 4,
+   "kinHouses": 4,
+   "friends": 4,
+   "year": [],
+   "past": 4,
+   "worries": [
+    "Appumanya growing weak"
+   ],
+   "hopes": [
+    "a good harvest",
+    "the children growing strong"
+   ],
+   "needs": [],
+   "news": [
+    "heard of a death in the house of Umišduma son of Iršena",
+    "heard of sickness in the house of Yamakšedda son of Upadarma"
+   ],
+   "lately": [],
+   "said": [],
+   "plan": {
+    "parts": 51,
+    "whys": 25,
+    "work": 14,
+    "places": 4,
+    "sameNext": false,
+    "sameSeason": false,
+    "day": [
+     "0.0 sleep @h:6823: asleep",
+     "2.0 rest @h:6823: nursing the baby in the night",
+     "2.3 sleep @h:6823: asleep",
+     "3.3 tend_body @h:6823: washing her face and hands at the water jar in the courtyard at rising",
+     "3.4 grind @h:6823: grinding the household’s flour at the quern",
+     "3.7 rest @h:6823: stopping to nurse the baby",
+     "4.0 grind @h:6823: grinding the household’s flour at the quern",
+     "4.0 rest @h:6823: at home",
+     "4.3 eat @h:6823: breakfast with the household",
+     "4.6 rest @h:6823: at home",
+     "4.7 walk @road:plain: out to the field",
+     "4.9 reap @field:6837:1: helping kin with their harvest",
+     "5.4 rest @field:6837:1: stopping to nurse the baby",
+     "5.6 reap @field:6837:1: helping kin with their harvest",
+     "7.3 rest @field:6837:1: stopping to nurse the baby",
+     "7.5 reap @field:6837:1: helping kin with their harvest",
+     "9.4 rest @field:6837:1: stopping to nurse the baby",
+     "9.6 reap @field:6837:1: helping kin with their harvest",
+     "10.4 walk @road:plain: walking",
+     "10.6 eat @h:6823: the midday meal with the household, back from the field",
+     "11.1 sleep @h:6823: sleeping through the heat of the day",
+     "12.0 rest @h:6823: nursing the baby",
+     "12.4 walk @road:plain: to the well with the jar",
+     "12.4 draw_water @well:v_23: drawing the house’s water",
+     "12.6 carry_jar_head @road:plain: carrying water home",
+     "12.7 spin @h:6823: spinning",
+     "13.3 talk @h:6823: with the household",
+     "14.2 sleep @h:6823: a short sleep in the heat of the day",
+     "14.4 rest @h:6823: nursing the baby",
+     "14.7 sleep @h:6823: a short sleep in the heat of the day",
+     "14.9 walk @road:plain: out to the field",
+     "15.1 eat @field:6837:1: bread and water",
+     "15.5 reap @field:6837:1: binding sheaves in the afternoon",
+     "16.5 rest @field:6837:1: stopping to nurse the baby",
+     "16.7 reap @field:6837:1: binding sheaves in the afternoon",
+     "16.8 walk @road:plain: home from the field",
+     "17.1 rest @h:6823: taking up the water jar at home",
+     "17.1 walk @road:plain: to the well with the jar",
+     "17.2 draw_water @well:v_23: drawing the house’s water",
+     "17.3 carry_jar_head @road:plain: carrying water home",
+     "17.4 talk @h:6823: with the household",
+     "18.1 rest @h:6823: at home",
+     "18.2 cook @h:6823: lighting the fire and warming the evening meal",
+     "18.5 rest @h:6823: at home",
+     "18.5 eat @h:6823: the evening meal with the household",
+     "19.0 rest @h:6823: nursing the baby",
+     "19.3 rest @h:6823: with the household",
+     "20.7 sleep @h:6823: asleep",
+     "21.5 rest @h:6823: nursing the baby in the night",
+     "21.8 sleep @h:6823: asleep",
+     "23.7 rest @h:6823: nursing the baby in the night"
+    ]
+   },
+   "talk": [
+    {
+     "q": "Who are you?",
+     "key": "who",
+     "fact": "you are Miθratausā, wife of Mannunda, twenty-nine, a Persian of Parsa; your husband Mannunda and your daughter Dātatausā live with you",
+     "factOk": true,
+     "tokens": 447,
+     "reply": "I am Miθratausā, wife of Mannunda. I keep the house: grinding, baking, water, spinning and the children. Have you news from the road?",
+     "grounded": true
+    },
+    {
+     "q": "Who lives in your house?",
+     "key": "family",
+     "fact": "in your house: your husband Mannunda and your daughter Dātatausā and your daughter Miθragaunā",
+     "factOk": true,
+     "tokens": 447,
+     "reply": "In my house: my husband Mannunda, my daughters Dātatausā and Miθragaunā and Appumanya, the old man of the house. My kin keep Appumanya’s house and others nearby. By Auramazda, it is so.",
+     "grounded": true
+    },
+    {
+     "q": "What work do you do?",
+     "key": "work",
+     "fact": "your work: keeper of the household: grinding, baking, water, spinning and the; right now: sleeping through the heat of the day",
+     "factOk": true,
+     "tokens": 447,
+     "reply": "I keep the house: grinding, baking, water, spinning and the children. Just now I am sleeping through the heat of the day.",
+     "grounded": true
+    },
+    {
+     "q": "What has happened to you this year?",
+     "key": "year",
+     "fact": "yesterday: kneading the dough; barley harvest",
+     "factOk": true,
+     "tokens": 447,
+     "reply": "Nothing much this year. Yesterday I was kneading the dough.",
+     "grounded": true
+    },
+    {
+     "q": "What troubles you?",
+     "key": "cares",
+     "fact": "you are worried about Appumanya growing weak; you hope for a good harvest",
+     "factOk": true,
+     "tokens": 447,
+     "reply": "I worry about Appumanya growing weak. I hope for a good harvest.",
+     "grounded": true
+    }
+   ],
+   "thin": {
+    "deeds": "nothing done by or to them this year that they know of"
+   }
+  },
+  {
+   "seed": 1,
+   "kind": "terrace",
+   "pid": 2605,
+   "name": "Vahuzātā",
+   "byname": "wife of Pythios",
+   "age": 32,
+   "sex": "f",
+   "job": "treasury",
+   "origin": "a Lydian from Sardis",
+   "home": "a mud-brick house in the town north-west of the Terrace, a short walk from its stair",
+   "household": 2,
+   "kinHouses": 3,
+   "friends": 4,
+   "year": [
+    "the house of Balāṭu son of Bēl-ēṭir gave them grain when the house ran short"
+   ],
+   "past": 4,
+   "worries": [
+    "a weight that does not tally"
+   ],
+   "hopes": [
+    "to go home one day to their own country",
+    "the child growing strong"
+   ],
+   "needs": [],
+   "news": [
+    "heard of sickness in the house of Čiθragaunā daughter of Horwedja",
+    "heard of a wrong done by the house of Apzizi son of Bakadušda"
+   ],
+   "lately": [],
+   "said": [],
+   "plan": {
+    "parts": 30,
+    "whys": 24,
+    "work": 14,
+    "places": 6,
+    "sameNext": false,
+    "sameSeason": false,
+    "day": [
+     "0.0 sleep @h:1020: asleep",
+     "4.0 tend_body @h:1020: washing her face and hands at the water jar in the courtyard at rising",
+     "4.1 grind @h:1020: grinding the household’s flour at the quern",
+     "4.7 walk @road:town: walking",
+     "4.7 draw_water @well:q_pw_n: fetching water",
+     "4.9 carry_jar_head @road:town: carrying water home",
+     "5.0 rest @h:1020: at home",
+     "6.0 eat @h:1020: breakfast with the household",
+     "6.3 rest @h:1020: at home",
+     "6.6 walk @road:town: out to the doorstep",
+     "6.7 craft @lane:q_pw_n: mending clothes on the doorstep",
+     "7.8 walk @road:town: walking",
+     "7.8 rest @h:1020: at home",
+     "7.9 walk @road:town: going to the issue",
+     "8.1 queue @store_town: in the queue for the monthly ration",
+     "8.4 walk @road:town: going to the workshop",
+     "8.5 work_wood @ws:1: treasury workshop: working wood",
+     "12.0 eat @ws:1: the midday meal",
+     "12.6 work_wood @ws:1: treasury workshop: working wood",
+     "15.0 carry_sack @road:town: carrying the ration home",
+     "15.3 grind @h:1020: grinding for tomorrow’s bread",
+     "15.7 spin @h:1020: spinning",
+     "15.7 tend_body @h:1020: picking the lice from Myrsos’s hair on the doorstep, parting it with h",
+     "16.2 spin @h:1020: spinning",
+     "17.1 knead @h:1020: kneading the dough",
+     "17.5 bake @h:1020: baking the flat bread for tomorrow",
+     "18.0 cook @h:1020: lighting the fire and warming the evening meal",
+     "18.3 eat @h:1020: the evening meal with the household",
+     "18.7 rest @h:1020: with the household",
+     "20.3 sleep @h:1020: asleep"
+    ]
+   },
+   "talk": [
+    {
+     "q": "Who are you?",
+     "key": "who",
+     "fact": "you are Vahuzātā, wife of Pythios, thirty-two, a Lydian from Sardis; your husband Pythios and your son Myrsos live with you",
+     "factOk": true,
+     "tokens": 440,
+     "reply": "I am Vahuzātā, wife of Pythios. I am a woodworker of the Treasury. I am a Lydian from Sardis, born in Sardis. Have you news from the road?",
+     "grounded": true
+    },
+    {
+     "q": "Who lives in your house?",
+     "key": "family",
+     "fact": "in your house: your husband Pythios and your son Myrsos",
+     "factOk": true,
+     "tokens": 440,
+     "reply": "In my house: my husband Pythios and my son Myrsos. My kin keep Bēl-ēṭir’s house and others nearby.",
+     "grounded": true
+    },
+    {
+     "q": "What work do you do?",
+     "key": "work",
+     "fact": "your work: a woodworker of the Treasury (the fourteenth treasury workers' group); right now: the midday meal",
+     "factOk": true,
+     "tokens": 440,
+     "reply": "I am a woodworker of the Treasury, with the fourteenth treasury workers' group. Just now it is the midday meal.",
+     "grounded": true
+    },
+    {
+     "q": "What has happened to you this year?",
+     "key": "year",
+     "fact": "the house of Balāṭu son of Bēl-ēṭir gave them grain when the house ran; yesterday: treasury workshop: working wood at home; barley harvest",
+     "factOk": true,
+     "tokens": 440,
+     "reply": "The house of Balāṭu son of Bēl-ēṭir gave us grain when the house ran short. Yesterday I was working wood at home.",
+     "grounded": true
+    },
+    {
+     "q": "What troubles you?",
+     "key": "cares",
+     "fact": "you are worried about a weight that does not tally; you hope for to go home one day to their own country",
+     "factOk": true,
+     "tokens": 440,
+     "reply": "I worry about a weight that does not tally. I hope to go home one day to my own country.",
+     "grounded": true
+    }
+   ],
+   "thin": {}
+  },
+  {
+   "seed": 1,
+   "kind": "road",
+   "pid": 73244,
+   "name": "Aryaduxçā",
+   "byname": "wife of Hadda",
+   "age": 21,
+   "sex": "f",
+   "job": "homemaker",
+   "origin": "a Persian of Parsa",
+   "home": "on the road: camped for a few days near the Terrace",
+   "household": 3,
+   "kinHouses": 0,
+   "friends": 0,
+   "year": [],
+   "past": 4,
+   "worries": [],
+   "hopes": [
+    "a good marriage for the children one day"
+   ],
+   "needs": [],
+   "news": [],
+   "lately": [],
+   "said": [],
+   "plan": {
+    "parts": 3,
+    "whys": 2,
+    "work": 2,
+    "places": 2,
+    "sameNext": false,
+    "sameSeason": false,
+    "day": [
+     "0.0 offmap @-: at home in a hamlet by the Bagh-e Firuzi",
+     "12.3 walk @road:road_royal_west: walking home to a hamlet by the Bagh-e Firuzi after a night with her k",
+     "13.2 offmap @-: at home in a hamlet by the Bagh-e Firuzi"
+    ]
+   },
+   "talk": [
+    {
+     "q": "Who are you?",
+     "key": "who",
+     "fact": "you are Aryaduxçā, wife of Hadda, twenty-one, a Persian of Parsa; your husband Hadda and Iššante (kinsman of the house) live with you",
+     "factOk": true,
+     "tokens": 447,
+     "reply": "I am Aryaduxçā, wife of Hadda. I keep the house: grinding, baking, water, spinning and the children. And you, where are you from?",
+     "grounded": true
+    },
+    {
+     "q": "Who lives in your house?",
+     "key": "family",
+     "fact": "in your house: your husband Hadda and Iššante (kinsman of the house) and Basakka (the old man of the house)",
+     "factOk": true,
+     "tokens": 447,
+     "reply": "In my house: my husband Hadda, Basakka, the old man of the house and Iššante, of my kin.",
+     "grounded": true
+    },
+    {
+     "q": "What work do you do?",
+     "key": "work",
+     "fact": "your work: keeper of the household: grinding, baking, water, spinning and the; right now: at home in a hamlet by the Bagh-e Firuzi",
+     "factOk": true,
+     "tokens": 447,
+     "reply": "I keep the house: grinding, baking, water, spinning and the children. Just now I am at home in a hamlet by the Bagh-e Firuzi.",
+     "grounded": true
+    },
+    {
+     "q": "What has happened to you this year?",
+     "key": "year",
+     "fact": "barley harvest",
+     "factOk": true,
+     "tokens": 447,
+     "reply": "Ah, stranger. This year has been quiet. My mother died, two years ago.",
+     "grounded": true
+    },
+    {
+     "q": "What troubles you?",
+     "key": "cares",
+     "fact": "you hope for a good marriage for the children one day",
+     "factOk": true,
+     "tokens": 447,
+     "reply": "I hope for a good marriage for the children one day.",
+     "grounded": true
+    }
+   ],
+   "thin": {
+    "reasons": "2 reasons for 3 parts",
+    "deeds": "nothing done by or to them this year that they know of"
+   }
+  },
+  {
+   "seed": 1,
+   "kind": "court",
+   "pid": 59405,
+   "name": "Ina-Esagil-banât",
+   "byname": "daughter of Iddin-Nabû",
+   "age": 46,
+   "sex": "f",
+   "job": "servant",
+   "origin": "a Babylonian",
+   "home": "a tent in a camp of the king’s retinue, about half an hour’s walk west of the Terrace",
+   "household": 9,
+   "kinHouses": 0,
+   "friends": 2,
+   "year": [
+    "came to Parsa with the king’s household from Šušan in the month Ādukanaiša"
+   ],
+   "past": 4,
+   "worries": [
+    "the master's temper"
+   ],
+   "hopes": [
+    "a day at home with kin"
+   ],
+   "needs": [],
+   "news": [
+    "heard of sickness in the house of Vahyasparuva son of Zabbara",
+    "heard of sickness in the house of Umišduma son of Jedaniah"
+   ],
+   "lately": [],
+   "said": [],
+   "plan": {
+    "parts": 20,
+    "whys": 10,
+    "work": 3,
+    "places": 1,
+    "sameNext": false,
+    "sameSeason": false,
+    "day": [
+     "0.0 sleep @rcamp:t_southwest: asleep",
+     "5.1 eat @rcamp:t_southwest: breakfast at the camp",
+     "5.5 talk @rcamp:t_southwest: talking at the camp",
+     "7.6 rest @rcamp:t_southwest: resting at the camp",
+     "8.2 gamble @rcamp:t_southwest: knucklebones at the camp",
+     "9.1 talk @rcamp:t_southwest: talking at the camp",
+     "9.8 rest @rcamp:t_southwest: resting at the camp",
+     "10.3 talk @rcamp:t_southwest: talking at the camp",
+     "11.7 rest @rcamp:t_southwest: resting at the camp",
+     "12.3 eat @rcamp:t_southwest: the midday meal at the camp",
+     "12.8 wash @rcamp:t_southwest: washing clothes at the camp",
+     "13.7 rest @rcamp:t_southwest: resting at the camp",
+     "14.3 talk @rcamp:t_southwest: talking at the camp",
+     "15.2 rest @rcamp:t_southwest: resting at the camp",
+     "16.6 gamble @rcamp:t_southwest: knucklebones at the camp",
+     "17.3 cook @rcamp:t_southwest: cooking the evening meal at the camp’s hearth",
+     "18.2 eat @rcamp:t_southwest: the evening meal at the camp",
+     "18.8 rest @rcamp:t_southwest: resting at the camp",
+     "19.9 talk @rcamp:t_southwest: talking at the camp",
+     "21.2 sleep @rcamp:t_southwest: asleep in the tent"
+    ]
+   },
+   "talk": [
+    {
+     "q": "Who are you?",
+     "key": "who",
+     "fact": "you are Ina-Esagil-banât, daughter of Iddin-Nabû, forty-six, a Babylonian; your fellow servant Raučazātā and your fellow servant Bagabāmā live with you",
+     "factOk": true,
+     "tokens": 429,
+     "reply": "I am Ina-Esagil-banât, daughter of Iddin-Nabû. I am a servant.",
+     "grounded": true
+    },
+    {
+     "q": "Who lives in your house?",
+     "key": "family",
+     "fact": "in your house: your fellow servant Raučazātā and your fellow servant Bagabāmā and your fellow servant Dātagaunā",
+     "factOk": true,
+     "tokens": 429,
+     "reply": "In my house: my fellow servants Raučazātā, Bagabāmā, Dātagaunā, Nabû-zēr-ukīn, Apzizi, Irtam, Artavardiya, Paruzauštrī and Manakka.",
+     "grounded": true
+    },
+    {
+     "q": "What work do you do?",
+     "key": "work",
+     "fact": "your work: a servant; right now: resting at the camp",
+     "factOk": true,
+     "tokens": 429,
+     "reply": "I am a servant. Just now I am resting at the camp.",
+     "grounded": true
+    },
+    {
+     "q": "What has happened to you this year?",
+     "key": "year",
+     "fact": "came to Parsa with the king’s household from Šušan in the month Ādukanaiša; yesterday: kneading dough for the household’s bread; barley harvest",
+     "factOk": true,
+     "tokens": 429,
+     "reply": "I came to Parsa with the king’s household from Šušan in the month Ādukanaiša.",
+     "grounded": true
+    },
+    {
+     "q": "What troubles you?",
+     "key": "cares",
+     "fact": "you are worried about the master's temper; you hope for a day at home with kin",
+     "factOk": true,
+     "tokens": 429,
+     "reply": "I worry about the master's temper.",
+     "grounded": true
+    }
+   ],
+   "thin": {
+    "work": "a job that is a label: no work in the day (servant: sleep,eat,talk,rest,gamble,wash,cook)"
+   }
+  },
+  {
+   "seed": 1,
+   "kind": "camp",
+   "pid": 45926,
+   "name": "Rēmūt",
+   "byname": "son of Bagābigna",
+   "age": 43,
+   "sex": "m",
+   "job": "builder",
+   "origin": "a Lycian",
+   "home": "a mud-brick house in the town south-west of the Terrace, a short walk from its stair",
+   "household": 3,
+   "kinHouses": 2,
+   "friends": 4,
+   "year": [
+    "came to Parsa with a newly sent work group in the month Ādukanaiša",
+    "the house of Sunkana son of Baduzarma gave them grain when the house ran short"
+   ],
+   "past": 4,
+   "worries": [
+    "an accident at the stone"
+   ],
+   "hopes": [
+    "to go home one day to their own country"
+   ],
+   "needs": [],
+   "news": [
+    "heard of a death in the house of Aspacanā son of Šutena",
+    "heard of sickness in the house of Psamtek son of Ankhhor"
+   ],
+   "lately": [],
+   "said": [],
+   "plan": {
+    "parts": 19,
+    "whys": 14,
+    "work": 4,
+    "places": 5,
+    "sameNext": false,
+    "sameSeason": false,
+    "day": [
+     "0.0 sleep @h:10057: asleep",
+     "4.5 tend_body @h:10057: washing his face and hands at the water jar in the courtyard at rising",
+     "4.6 rest @h:10057: at home",
+     "4.6 eat @h:10057: bread and water before leaving",
+     "4.8 walk @road:terrace: going to the building site",
+     "5.3 haul @hall100_site: building up the earth ramp",
+     "11.5 eat @hall100_site: bread and water",
+     "11.8 haul @hall100_site: building up the earth ramp",
+     "12.0 walk @road:terrace: going home",
+     "12.5 talk @h:10057: with the household",
+     "14.5 sleep @h:10057: sleeping through the heat of the day",
+     "15.9 craft @h:10057: mending tools and baskets",
+     "16.5 walk @road:town: walking",
+     "16.6 gamble @lane:q_lt_e: knucklebones in the lane",
+     "17.9 walk @road:town: walking",
+     "17.9 rest @h:10057: at home",
+     "18.1 eat @h:10057: the evening meal with the household",
+     "18.6 talk @h:10057: with the household",
+     "21.3 sleep @h:10057: asleep"
+    ]
+   },
+   "talk": [
+    {
+     "q": "Who are you?",
+     "key": "who",
+     "fact": "you are Rēmūt, son of Bagābigna, forty-three, a Lycian; Manmakka (kinsman of the house) and Parzizi (kinsman of the house) live with you",
+     "factOk": true,
+     "tokens": 450,
+     "reply": "Listen, stranger. I am Rēmūt, son of Bagābigna. I am a labourer in the labour gang: earth, rubble and stone chips on the Hall. I am a Lycian, born in a town of Lycia.",
+     "grounded": true
+    },
+    {
+     "q": "Who lives in your house?",
+     "key": "family",
+     "fact": "in your house: Manmakka (kinsman of the house) and Parzizi (kinsman of the house) and Bakabana (kinsman of the house)",
+     "factOk": true,
+     "tokens": 450,
+     "reply": "In my house: Manmakka, Parzizi and Bakabana, of my kin. My kin keep Nabbaba’s house and others nearby.",
+     "grounded": true
+    },
+    {
+     "q": "What work do you do?",
+     "key": "work",
+     "fact": "your work: a labourer in the labour gang: earth, rubble and stone (a newly arrived work group); right now: going home",
+     "factOk": true,
+     "tokens": 450,
+     "reply": "I am a labourer in the labour gang: earth, rubble and stone chips on the Hall, with a newly arrived work group. Just now I am going home.",
+     "grounded": true
+    },
+    {
+     "q": "What has happened to you this year?",
+     "key": "year",
+     "fact": "came to Parsa with a newly sent work group in the month Ādukanaiša; barley harvest",
+     "factOk": true,
+     "tokens": 450,
+     "reply": "I came to Parsa with a newly sent work group in the month Ādukanaiša. The house of Sunkana son of Baduzarma gave us grain when the house ran short.",
+     "grounded": true
+    },
+    {
+     "q": "What troubles you?",
+     "key": "cares",
+     "fact": "you are worried about an accident at the stone; you hope for to go home one day to their own country",
+     "factOk": true,
+     "tokens": 450,
+     "reply": "I worry about an accident at the stone. I hope to go home one day to my own country.",
+     "grounded": true
+    }
+   ],
+   "thin": {}
+  },
+  {
+   "seed": 1,
+   "kind": "town",
+   "pid": 1164,
+   "name": "Ampirdawiš",
+   "byname": "son of Marriyadda",
+   "age": 11,
+   "sex": "m",
+   "job": "child",
+   "origin": "an Elamite",
+   "home": "a mud-brick house in the town west of the Terrace, a short walk from its stair",
+   "household": 4,
+   "kinHouses": 3,
+   "friends": 4,
+   "year": [
+    "the house of Barušiyatiš son of Parruš gave them grain when the house ran short"
+   ],
+   "past": 4,
+   "worries": [],
+   "hopes": [
+    "to see the king's horses"
+   ],
+   "needs": [],
+   "news": [],
+   "lately": [],
+   "said": [],
+   "plan": {
+    "parts": 34,
+    "whys": 25,
+    "work": 4,
+    "places": 6,
+    "sameNext": false,
+    "sameSeason": false,
+    "day": [
+     "0.0 sleep @h:296: asleep",
+     "5.2 tend_body @h:296: washing his face and hands at the water jar in the courtyard at rising",
+     "5.3 carry_sack @h:296: carrying in brushwood for the morning fire",
+     "5.4 rest @h:296: at home",
+     "5.5 rest @h:296: waiting for the morning bread",
+     "6.0 eat @h:296: breakfast with the household: the new bread",
+     "6.4 walk @road:town: out for fuel",
+     "6.8 gather @scrub:q_pw_s: gathering dung and brushwood for the fire",
+     "7.8 carry_sack @road:town: carrying the fuel home",
+     "8.2 rest @h:296: setting the load down at home",
+     "8.2 carry_bread @road:town: taking bread to a kinswoman",
+     "8.3 talk @h:1868: handing over the bread, a word with the kinswoman",
+     "8.4 walk @road:town: going home",
+     "8.5 play @h:296: playing at home",
+     "9.6 walk @road:town: out to the lane",
+     "9.6 play @lane:q_pw_s: playing knucklebones on the beaten earth of the lane with the other ch",
+     "10.3 walk @road:town: walking home",
+     "10.4 rest @h:296: at home",
+     "10.5 rest @h:296: minding his little sister, now on his hip, now playing beside her",
+     "12.0 rest @h:296: at home",
+     "12.1 eat @h:296: the midday meal with the household",
+     "12.6 rest @h:296: minding his little sister, now on his hip, now playing beside her",
+     "12.7 rest @h:296: minding his little sister while she sleeps",
+     "14.1 rest @h:296: resting in the shade through the heat",
+     "15.3 walk @road:town: out to the garden channels",
+     "15.4 play @garden:q_pw_s: playing by the garden channels",
+     "16.8 walk @road:town: walking home",
+     "16.9 rest @h:296: at home",
+     "17.0 rest @h:296: minding his little sister, now on his hip, now playing beside her",
+     "17.6 play @h:296: playing at home",
+     "18.3 rest @h:296: at home",
+     "18.4 eat @h:296: the evening meal with the household",
+     "18.9 rest @h:296: with the household",
+     "20.5 sleep @h:296: asleep"
+    ]
+   },
+   "talk": [
+    {
+     "q": "Who are you?",
+     "key": "who",
+     "fact": "you are Ampirdawiš, son of Marriyadda, eleven, an Elamite; your father Marriyadda and your mother Parustūnā live with you",
+     "factOk": true,
+     "tokens": 446,
+     "reply": "I am Ampirdawiš, son of Marriyadda, and I am eleven. I live with my father Marriyadda, my mother Parustūnā and my brother Karkiš. I am an Elamite, born in Hidali in the hills between Šušan and Pārsa.",
+     "grounded": true
+    },
+    {
+     "q": "Who lives in your house?",
+     "key": "family",
+     "fact": "in your house: your father Marriyadda and your mother Parustūnā and your brother Karkiš",
+     "factOk": true,
+     "tokens": 446,
+     "reply": "In my house: my father Marriyadda, my mother Parustūnā and my brother Karkiš. My kin keep Ankhhor’s house and others nearby.",
+     "grounded": true
+    },
+    {
+     "q": "What work do you do?",
+     "key": "work",
+     "fact": "your work: a child of the household (the women's work group of the); right now: at home",
+     "factOk": true,
+     "tokens": 446,
+     "reply": "I help my mother. Just now I am at home.",
+     "grounded": true
+    },
+    {
+     "q": "What has happened to you this year?",
+     "key": "year",
+     "fact": "the house of Barušiyatiš son of Parruš gave them grain when the house ran; yesterday: playing indoors; barley harvest",
+     "factOk": true,
+     "tokens": 446,
+     "reply": "The house of Barušiyatiš son of Parruš gave us grain when the house ran short. Yesterday I was playing indoors.",
+     "grounded": true
+    },
+    {
+     "q": "What troubles you?",
+     "key": "cares",
+     "fact": "you hope for to see the king's horses",
+     "factOk": true,
+     "tokens": 446,
+     "reply": "I hope to see the king's horses.",
+     "grounded": true
+    }
+   ],
+   "thin": {}
+  },
+  {
+   "seed": 1,
+   "kind": "village",
+   "pid": 22641,
+   "name": "Dātastūnā",
+   "byname": "daughter of Irdapukka",
+   "age": 15,
+   "sex": "f",
+   "job": "homemaker",
+   "origin": "an Elamite",
+   "home": "a village of the plain, most of a day’s walk south-east of the Terrace",
+   "household": 5,
+   "kinHouses": 3,
+   "friends": 4,
+   "year": [
+    "the harvest was good",
+    "the house of Karkiš son of Vaumisa gave them grain when the house ran short"
+   ],
+   "past": 4,
+   "worries": [],
+   "hopes": [
+    "to put by grain for a lean year"
+   ],
+   "needs": [],
+   "news": [
+    "heard of a death in the house of Zabbara son of Šutena",
+    "heard of a death in the house of Dādarši son of Pirrena"
+   ],
+   "lately": [],
+   "said": [],
+   "plan": {
+    "parts": 32,
+    "whys": 22,
+    "work": 10,
+    "places": 4,
+    "sameNext": false,
+    "sameSeason": false,
+    "day": [
+     "0.0 sleep @h:5322: asleep",
+     "3.6 tend_body @h:5322: washing her face and hands at the water jar in the courtyard at rising",
+     "3.7 grind @h:5322: grinding the household’s flour at the quern",
+     "4.1 rest @h:5322: at home",
+     "4.5 eat @h:5322: breakfast with the household: the new bread",
+     "4.9 rest @h:5322: at home",
+     "5.0 walk @road:plain: to the well with the jar",
+     "5.0 draw_water @well:v_14: drawing the house’s water",
+     "5.2 carry_jar_head @road:plain: carrying water home",
+     "5.3 carry_jar @h:5322: pouring the water into the house jar",
+     "5.3 walk @road:plain: out to the threshing floor",
+     "5.4 thresh @threshing:v_14: turning the sheaves under the animals’ hooves on the threshing floor",
+     "7.9 eat @threshing:v_14: bread and water by the threshing floor, carried out at dawn",
+     "8.2 thresh @threshing:v_14: turning the sheaves under the animals’ hooves on the threshing floor",
+     "10.6 walk @road:plain: walking",
+     "10.6 rest @h:5322: at home",
+     "10.7 eat @h:5322: the midday meal with the household, back from the threshing floor",
+     "11.3 sleep @h:5322: sleeping through the heat of the day",
+     "12.7 spin @h:5322: spinning",
+     "14.5 sleep @h:5322: a short sleep in the heat of the day",
+     "15.2 walk @road:plain: out to the threshing floor",
+     "15.3 thresh @threshing:v_14: turning the threshed straw; the air is too still to winnow",
+     "16.8 walk @road:plain: home from the field",
+     "16.9 rest @h:5322: taking up the water jar at home",
+     "16.9 walk @road:plain: to the well with the jar",
+     "17.0 draw_water @well:v_14: drawing the house’s water",
+     "17.2 carry_jar_head @road:plain: carrying water home",
+     "17.3 talk @h:5322: with the household",
+     "17.9 rest @h:5322: at home",
+     "18.1 eat @h:5322: the evening meal with the household",
+     "18.6 talk @h:5322: with the household",
+     "21.8 sleep @h:5322: asleep"
+    ]
+   },
+   "talk": [
+    {
+     "q": "Who are you?",
+     "key": "who",
+     "fact": "you are Dātastūnā, daughter of Irdapukka, fifteen, an Elamite; your father Irdapukka and your mother Farnatausā live with you",
+     "factOk": true,
+     "tokens": 447,
+     "reply": "I am Dātastūnā, daughter of Irdapukka. I keep the house: grinding, baking, water, spinning and the children.",
+     "grounded": true
+    },
+    {
+     "q": "Who lives in your house?",
+     "key": "family",
+     "fact": "in your house: your father Irdapukka and your mother Farnatausā and your sister Čiθračiθrā",
+     "factOk": true,
+     "tokens": 447,
+     "reply": "In my house: my father Irdapukka, my mother Farnatausā and my sister Čiθračiθrā. My kin keep Mišpana’s house and others nearby.",
+     "grounded": true
+    },
+    {
+     "q": "What work do you do?",
+     "key": "work",
+     "fact": "your work: keeper of the household: grinding, baking, water, spinning and the; right now: sleeping through the heat of the day",
+     "factOk": true,
+     "tokens": 447,
+     "reply": "I keep the house: grinding, baking, water, spinning and the children. Just now I am sleeping through the heat of the day.",
+     "grounded": true
+    },
+    {
+     "q": "What has happened to you this year?",
+     "key": "year",
+     "fact": "the harvest was good; yesterday: exchanging goods in kind; barley harvest",
+     "factOk": true,
+     "tokens": 447,
+     "reply": "Our harvest was good.",
+     "grounded": true
+    },
+    {
+     "q": "What troubles you?",
+     "key": "cares",
+     "fact": "you hope for to put by grain for a lean year",
+     "factOk": true,
+     "tokens": 447,
+     "reply": "I hope to put by grain for a lean year.",
+     "grounded": true
+    }
+   ],
+   "thin": {}
+  },
+  {
+   "seed": 1,
+   "kind": "terrace",
+   "pid": 1577,
+   "name": "Dātazauštrī",
+   "byname": "daughter of Djedhor",
+   "age": 13,
+   "sex": "f",
+   "job": "treasury",
+   "origin": "an Egyptian",
+   "home": "a mud-brick house in the town west of the Terrace, a short walk from its stair",
+   "household": 2,
+   "kinHouses": 4,
+   "friends": 4,
+   "year": [],
+   "past": 4,
+   "worries": [],
+   "hopes": [
+    "to be big enough to go to the fields"
+   ],
+   "needs": [],
+   "news": [
+    "heard of a death in the house of Bakerabba son of Manezza",
+    "heard of a death in the house of Huduxçā daughter of Battikamaša"
+   ],
+   "lately": [],
+   "said": [],
+   "plan": {
+    "parts": 26,
+    "whys": 16,
+    "work": 7,
+    "places": 7,
+    "sameNext": false,
+    "sameSeason": false,
+    "day": [
+     "0.0 sleep @h:436: asleep",
+     "4.1 tend_body @h:436: washing her face and hands at the water jar in the courtyard at rising",
+     "4.2 grind @h:436: grinding the household’s flour at the quern",
+     "4.5 rest @h:436: at home",
+     "6.0 eat @h:436: breakfast with the household",
+     "6.3 rest @h:436: at home",
+     "6.7 walk @road:town: going to the workshop",
+     "7.0 work_wood @ws:1: treasury workshop: working wood",
+     "9.0 walk @road:terrace: walking",
+     "9.4 carry_sack @treasury_store: carrying finished work up to the Treasury store",
+     "10.9 walk @road:terrace: walking",
+     "11.4 work_wood @ws:1: treasury workshop: working wood",
+     "12.0 eat @ws:1: the midday meal",
+     "12.6 work_wood @ws:1: treasury workshop: working wood",
+     "12.7 walk @road:town: walking",
+     "12.8 carry_sack @royal_store: fetching materials from the royal stores",
+     "14.1 walk @road:town: walking",
+     "14.2 work_wood @ws:1: treasury workshop: working wood",
+     "15.0 walk @road:town: going home",
+     "15.2 rest @h:436: at home",
+     "18.2 eat @h:436: the evening meal with the household",
+     "18.6 walk @road:town: walking",
+     "18.7 play @lane:q_pw_s: playing in the lane until dusk",
+     "19.1 walk @road:town: called in at dusk",
+     "19.2 rest @h:436: with the household",
+     "20.3 sleep @h:436: asleep"
+    ]
+   },
+   "talk": [
+    {
+     "q": "Who are you?",
+     "key": "who",
+     "fact": "you are Dātazauštrī, daughter of Djedhor, thirteen, an Egyptian; your mother Tanetamun and your sister Vindazauštrī live with you",
+     "factOk": true,
+     "tokens": 437,
+     "reply": "I am Dātazauštrī, daughter of Djedhor. I am a woodworker of the Treasury.",
+     "grounded": true
+    },
+    {
+     "q": "Who lives in your house?",
+     "key": "family",
+     "fact": "in your house: your mother Tanetamun and your sister Vindazauštrī",
+     "factOk": true,
+     "tokens": 437,
+     "reply": "In my house: my mother Tanetamun and my sister Vindazauštrī. My kin keep Irtam’s house and others nearby.",
+     "grounded": true
+    },
+    {
+     "q": "What work do you do?",
+     "key": "work",
+     "fact": "your work: a woodworker of the Treasury (the second treasury workers' group); right now: the midday meal",
+     "factOk": true,
+     "tokens": 437,
+     "reply": "I am a woodworker of the Treasury, with the second treasury workers' group. Just now it is the midday meal.",
+     "grounded": true
+    },
+    {
+     "q": "What has happened to you this year?",
+     "key": "year",
+     "fact": "yesterday: waiting for the ration issue; barley harvest",
+     "factOk": true,
+     "tokens": 437,
+     "reply": "Nothing much this year. Yesterday I was waiting for the ration issue.",
+     "grounded": true
+    },
+    {
+     "q": "What troubles you?",
+     "key": "cares",
+     "fact": "you hope for to be big enough to go to the fields",
+     "factOk": true,
+     "tokens": 437,
+     "reply": "I hope to be big enough to go to the fields. By Amun, it is so.",
+     "grounded": true
+    }
+   ],
+   "thin": {
+    "deeds": "nothing done by or to them this year that they know of"
+   }
+  },
+  {
+   "seed": 1,
+   "kind": "road",
+   "pid": 80336,
+   "name": "Utira",
+   "byname": "son of Parzizi",
+   "age": 53,
+   "sex": "m",
+   "job": "craftsman",
+   "origin": "a Persian of Parsa",
+   "home": "on the road: camped for a few days near the Terrace",
+   "household": 4,
+   "kinHouses": 0,
+   "friends": 0,
+   "year": [],
+   "past": 4,
+   "worries": [],
+   "hopes": [
+    "a good name for their work in the market",
+    "a boy to learn the craft"
+   ],
+   "needs": [],
+   "news": [],
+   "lately": [],
+   "said": [],
+   "plan": {
+    "parts": 3,
+    "whys": 3,
+    "work": 2,
+    "places": 2,
+    "sameNext": false,
+    "sameSeason": false,
+    "day": [
+     "0.0 offmap @-: at home in a hamlet by the rock tombs",
+     "4.6 walk @road:road_naqsh_e_rustam: leading a string of pack donkeys with jars and bowls packed in straw t",
+     "5.5 offmap @-: at kin’s in Pārsa for the night"
+    ]
+   },
+   "talk": [
+    {
+     "q": "Who are you?",
+     "key": "who",
+     "fact": "you are Utira, son of Parzizi, fifty-three, a Persian of Parsa; your wife Čiθrazātā and your son Mardunuya live with you",
+     "factOk": true,
+     "tokens": 449,
+     "reply": "I am Utira, son of Parzizi. I am a craftsman of the town. The gods willing, it is so.",
+     "grounded": true
+    },
+    {
+     "q": "Who lives in your house?",
+     "key": "family",
+     "fact": "in your house: your wife Čiθrazātā and your son Mardunuya and your daughter Vahubāmā",
+     "factOk": true,
+     "tokens": 449,
+     "reply": "In my house: my wife Čiθrazātā, my son Mardunuya and my daughter Vahubāmā.",
+     "grounded": true
+    },
+    {
+     "q": "What work do you do?",
+     "key": "work",
+     "fact": "your work: a craftsman of the town; right now: at kin’s in Pārsa for the night",
+     "factOk": true,
+     "tokens": 449,
+     "reply": "I am a craftsman of the town. Just now I am at kin’s in Pārsa for the night.",
+     "grounded": true
+    },
+    {
+     "q": "What has happened to you this year?",
+     "key": "year",
+     "fact": "barley harvest",
+     "factOk": true,
+     "tokens": 449,
+     "reply": "This year has been quiet. I lost a daughter in the first year, eight years ago.",
+     "grounded": true
+    },
+    {
+     "q": "What troubles you?",
+     "key": "cares",
+     "fact": "you hope for a good name for their work in the market; you hope for a boy to learn the craft",
+     "factOk": true,
+     "tokens": 449,
+     "reply": "I hope for a good name for our work in the market.",
+     "grounded": true
+    }
+   ],
+   "thin": {
+    "deeds": "nothing done by or to them this year that they know of"
+   }
+  },
+  {
+   "seed": 7,
+   "kind": "court",
+   "pid": 62228,
+   "name": "Bakumarda",
+   "byname": "son of Vivāna",
+   "age": 34,
+   "sex": "m",
+   "job": "groom",
+   "origin": "a Persian of Parsa",
+   "home": "a tent in a camp of the king’s retinue, about half an hour’s walk west of the Terrace",
+   "household": 9,
+   "kinHouses": 0,
+   "friends": 2,
+   "year": [
+    "came to Parsa with the king’s household from Šušan in the month Ādukanaiša"
+   ],
+   "past": 4,
+   "worries": [
+    "a horse gone lame"
+   ],
+   "hopes": [
+    "a good year for the house"
+   ],
+   "needs": [],
+   "news": [
+    "heard of sickness in the house of Babena son of Vahuka",
+    "heard of sickness in the house of Bakabana son of Ardumaniš"
+   ],
+   "lately": [],
+   "said": [],
+   "plan": {
+    "parts": 15,
+    "whys": 11,
+    "work": 7,
+    "places": 1,
+    "sameNext": false,
+    "sameSeason": false,
+    "day": [
+     "0.0 sleep @rcamp:t_southwest: asleep",
+     "5.9 eat @rcamp:t_southwest: breakfast at the camp",
+     "6.3 tend_animals @rcamp:t_southwest: seeing to the horses at the horse lines",
+     "8.1 carry_sack @rcamp:t_southwest: carrying fodder to the horse lines",
+     "9.0 tend_animals @rcamp:t_southwest: seeing to the horses at the horse lines",
+     "12.2 eat @rcamp:t_southwest: the midday meal at the camp",
+     "12.7 tend_animals @rcamp:t_southwest: seeing to the horses at the horse lines",
+     "14.2 craft @rcamp:t_southwest: mending bridles and saddle cloths",
+     "14.8 tend_animals @rcamp:t_southwest: seeing to the horses at the horse lines",
+     "17.4 cook @rcamp:t_southwest: cooking the evening meal at the camp’s hearth",
+     "18.0 eat @rcamp:t_southwest: the evening meal at the camp",
+     "18.6 talk @rcamp:t_southwest: talking at the camp",
+     "19.5 rest @rcamp:t_southwest: resting at the camp",
+     "20.6 talk @rcamp:t_southwest: talking at the camp",
+     "21.6 sleep @rcamp:t_southwest: asleep in the tent"
+    ]
+   },
+   "talk": [
+    {
+     "q": "Who are you?",
+     "key": "who",
+     "fact": "you are Bakumarda, son of Vivāna, thirty-four, a Persian of Parsa; your companion Umišduma and your companion Šakada live with you",
+     "factOk": true,
+     "tokens": 435,
+     "reply": "I am Bakumarda, son of Vivāna. I am a groom of the stables and the road station. And you, where are you from?",
+     "grounded": true
+    },
+    {
+     "q": "Who lives in your house?",
+     "key": "family",
+     "fact": "in your house: your companion Umišduma and your companion Šakada and your companion Manyakka",
+     "factOk": true,
+     "tokens": 435,
+     "reply": "In my house: my companions Umišduma, Šakada, Manyakka, Upirradda, Appirmarša, Mitranka, Irtam, Parzizi and Mantukka.",
+     "grounded": true
+    },
+    {
+     "q": "What work do you do?",
+     "key": "work",
+     "fact": "your work: a groom of the stables and the road station; right now: seeing to the horses at the horse lines",
+     "factOk": true,
+     "tokens": 435,
+     "reply": "I am a groom of the stables and the road station. Just now I am seeing to the horses at the horse lines.",
+     "grounded": true
+    },
+    {
+     "q": "What has happened to you this year?",
+     "key": "year",
+     "fact": "came to Parsa with the king’s household from Šušan in the month Ādukanaiša; an express courier left the road station with a sealed letter for the Treasury",
+     "factOk": true,
+     "tokens": 435,
+     "reply": "I came to Parsa with the king’s household from Šušan in the month Ādukanaiša.",
+     "grounded": true
+    },
+    {
+     "q": "What troubles you?",
+     "key": "cares",
+     "fact": "you are worried about a horse gone lame; you hope for a good year for the house",
+     "factOk": true,
+     "tokens": 435,
+     "reply": "I worry about a horse gone lame. I hope for a good year for the house.",
+     "grounded": true
+    }
+   ],
+   "thin": {}
+  },
+  {
+   "seed": 7,
+   "kind": "camp",
+   "pid": 402,
+   "name": "Rauzazza",
+   "byname": "son of Marriyadda",
+   "age": 48,
+   "sex": "m",
+   "job": "builder",
+   "origin": "a Cappadocian",
+   "home": "a mud-brick house in the town south-west of the Terrace, about half an hour’s walk from its stair",
+   "household": 9,
+   "kinHouses": 4,
+   "friends": 4,
+   "year": [
+    "the house of Rēmūt son of Nabû-zēr-ukīn gave them grain when the house ran short",
+    "the house of Anani son of Haggai lent them silver"
+   ],
+   "past": 4,
+   "worries": [
+    "the debt that falls due",
+    "an accident at the stone"
+   ],
+   "hopes": [
+    "to go home one day to their own country"
+   ],
+   "needs": [],
+   "news": [
+    "heard of a cursing by the house of Djedhor son of Ankhhor",
+    "heard of sickness in the house of Hazzakra son of Ašbatašda"
+   ],
+   "lately": [],
+   "said": [],
+   "plan": {
+    "parts": 32,
+    "whys": 20,
+    "work": 11,
+    "places": 6,
+    "sameNext": false,
+    "sameSeason": false,
+    "day": [
+     "0.0 sleep @h:128: asleep",
+     "4.1 tend_body @h:128: washing his face and hands at the water jar in the courtyard at rising",
+     "4.2 rest @h:128: at home",
+     "4.6 eat @h:128: bread and water before leaving",
+     "4.8 walk @road:terrace: going to the building site",
+     "5.3 dress_stone @h100_door_N1: carving the doorway reliefs",
+     "10.8 dress_stone @h100_door_N1: carving the doorway reliefs",
+     "11.6 eat @h100_door_N1: bread and water",
+     "11.9 dress_stone @h100_door_N1: carving the doorway reliefs",
+     "12.0 walk @road:terrace: going home",
+     "12.8 sleep @h:128: sleeping through the heat of the day",
+     "14.1 talk @h:128: with the household",
+     "15.0 walk @road:town: to the well with the jar",
+     "15.1 draw_water @well:q_lt_w: drawing the house’s water",
+     "15.2 carry_jar_head @road:town: carrying water home",
+     "15.3 carry_jar @h:128: pouring the water into the house jar",
+     "15.3 walk @road:town: to the well with the jar",
+     "15.4 draw_water @well:q_lt_w: drawing the house’s water",
+     "15.6 carry_jar_head @road:town: carrying water home",
+     "15.7 rest @h:128: resting at home after work",
+     "16.2 walk @road:town: to the well with the jar",
+     "16.2 draw_water @well:q_lt_w: drawing the house’s water",
+     "16.5 carry_jar_head @road:town: carrying water home",
+     "16.5 talk @h:128: with the household",
+     "18.1 cook @h:128: lighting the fire and warming the evening meal",
+     "18.4 eat @h:128: the evening meal with the household",
+     "19.0 walk @road:town: walking",
+     "19.1 talk @lane:q_lt_w: talking with neighbours in the lane at dusk",
+     "19.4 talk @lane:q_lt_w: talking with neighbours in the lane after dark",
+     "20.2 walk @road:town: walking",
+     "20.2 rest @h:128: with the household",
+     "21.5 sleep @h:128: asleep"
+    ]
+   },
+   "talk": [
+    {
+     "q": "Who are you?",
+     "key": "who",
+     "fact": "you are Rauzazza, son of Marriyadda, forty-eight, a Cappadocian; Bēl-ēṭir (kinsman of the house) and Irdaša (kinsman of the house) live with you",
+     "factOk": true,
+     "tokens": 446,
+     "reply": "I am Rauzazza, son of Marriyadda. I am a stonecutter in the stone gang cutting and dressing column drums and blocks.",
+     "grounded": true
+    },
+    {
+     "q": "Who lives in your house?",
+     "key": "family",
+     "fact": "in your house: Bēl-ēṭir (kinsman of the house) and Irdaša (kinsman of the house) and Mahseiah (kinsman of the house)",
+     "factOk": true,
+     "tokens": 446,
+     "reply": "In my house: Bēl-ēṭir, Irdaša and others of the house. My kin keep Bakubeša’s house and others nearby.",
+     "grounded": true
+    },
+    {
+     "q": "What work do you do?",
+     "key": "work",
+     "fact": "your work: a stonecutter in the stone gang cutting and dressing column (the stone gang of Anani); right now: going home",
+     "factOk": true,
+     "tokens": 446,
+     "reply": "I am a stonecutter in the stone gang cutting and dressing column drums and blocks, with the stone gang of Anani. Just now I am going home.",
+     "grounded": true
+    },
+    {
+     "q": "What has happened to you this year?",
+     "key": "year",
+     "fact": "the house of Rēmūt son of Nabû-zēr-ukīn gave them grain when the house ran; yesterday: mending tools and baskets; an express courier left the road station with a sealed letter for the Treasury",
+     "factOk": true,
+     "tokens": 446,
+     "reply": "The house of Rēmūt son of Nabû-zēr-ukīn gave us grain when the house ran short.",
+     "grounded": true
+    },
+    {
+     "q": "What troubles you?",
+     "key": "cares",
+     "fact": "you are worried about the debt that falls due; you are worried about an accident at the stone",
+     "factOk": true,
+     "tokens": 446,
+     "reply": "I worry about the debt that falls due.",
+     "grounded": true
+    }
+   ],
+   "thin": {}
+  },
+  {
+   "seed": 7,
+   "kind": "town",
+   "pid": 1828,
+   "name": "Telephanes",
+   "byname": "son of Mandrokles",
+   "age": 6,
+   "sex": "m",
+   "job": "child",
+   "origin": "an Ionian (a Yauna from the coast of Sparda)",
+   "home": "a mud-brick house in the town south-west of the Terrace, a short walk from its stair",
+   "household": 1,
+   "kinHouses": 4,
+   "friends": 3,
+   "year": [
+    "was sick for two days in the last month"
+   ],
+   "past": 4,
+   "worries": [],
+   "hopes": [
+    "a toy of your own"
+   ],
+   "needs": [],
+   "news": [],
+   "lately": [],
+   "said": [],
+   "plan": {
+    "parts": 18,
+    "whys": 8,
+    "work": 0,
+    "places": 4,
+    "sameNext": false,
+    "sameSeason": false,
+    "day": [
+     "0.0 sleep @h:607: asleep",
+     "5.4 tend_body @h:607: washing his face and hands at the water jar in the courtyard at rising",
+     "5.5 eat @h:607: eating with the mother",
+     "5.7 play @h:607: playing nearby while the mother talks",
+     "6.6 play @h:607: playing near the mother",
+     "6.8 walk @road:town: walking with the mother",
+     "7.0 play @ws:0: playing near the mother",
+     "12.0 eat @ws:0: eating with the mother",
+     "12.7 play @ws:0: playing near the mother",
+     "15.0 walk @road:town: walking with the mother",
+     "15.2 play @h:607: playing near the mother while she grinds",
+     "15.4 walk @road:town: walking with the mother",
+     "15.5 play @well:q_lt_w: playing by the well",
+     "15.7 walk @road:town: walking with the mother",
+     "15.8 play @h:607: playing near the mother",
+     "18.1 eat @h:607: eating with the mother",
+     "18.6 play @h:607: playing near the mother",
+     "21.5 sleep @h:607: asleep"
+    ]
+   },
+   "talk": [
+    {
+     "q": "Who are you?",
+     "key": "who",
+     "fact": "you are Telephanes, son of Mandrokles, six, an Ionian (a Yauna from the coast of Sparda); your mother Rtaduxçā lives with you",
+     "factOk": true,
+     "tokens": 450,
+     "reply": "I am Telephanes, son of Mandrokles, and I am six. I live with my mother Rtaduxçā.",
+     "grounded": true
+    },
+    {
+     "q": "Who lives in your house?",
+     "key": "family",
+     "fact": "in your house: your mother Rtaduxçā; was sick for two days in the last month",
+     "factOk": true,
+     "tokens": 450,
+     "reply": "In my house: my mother Rtaduxçā. I was sick for two days in the last month.",
+     "grounded": true
+    },
+    {
+     "q": "What work do you do?",
+     "key": "work",
+     "fact": "your work: a child of the household (the fifth treasury workers' group); right now: eating with the mother",
+     "factOk": true,
+     "tokens": 450,
+     "reply": "I am too little for work. Just now I am eating with my mother.",
+     "grounded": true
+    },
+    {
+     "q": "What has happened to you this year?",
+     "key": "year",
+     "fact": "was sick for two days in the last month; yesterday: at a neighbour’s house while the mother works, playing with her children; an express courier left the road station with a sealed letter for the Treasury",
+     "factOk": true,
+     "tokens": 450,
+     "reply": "I was sick for two days in the last month.",
+     "grounded": true
+    },
+    {
+     "q": "What troubles you?",
+     "key": "cares",
+     "fact": "you hope for a toy of your own",
+     "factOk": true,
+     "tokens": 450,
+     "reply": "I hope for a toy of my own.",
+     "grounded": false
+    }
+   ],
+   "thin": {
+    "replies": "1/5 replies ignore their life (cares)"
+   }
+  },
+  {
+   "seed": 7,
+   "kind": "village",
+   "pid": 11248,
+   "name": "Cincaxri",
+   "byname": "son of Apzizi",
+   "age": 67,
+   "sex": "m",
+   "job": "elder",
+   "origin": "an Elamite",
+   "home": "a village of the plain, half a day’s walk west of the Terrace",
+   "household": 2,
+   "kinHouses": 4,
+   "friends": 4,
+   "year": [
+    "the harvest was poor"
+   ],
+   "past": 4,
+   "worries": [],
+   "hopes": [
+    "a good harvest",
+    "a good year for the house"
+   ],
+   "needs": [],
+   "news": [
+    "heard of a wrong done by the house of Irdabada son of Vindafarnā",
+    "heard of an insult given by the house of Manakka son of Vahuka"
+   ],
+   "lately": [],
+   "said": [],
+   "plan": {
+    "parts": 22,
+    "whys": 16,
+    "work": 6,
+    "places": 3,
+    "sameNext": false,
+    "sameSeason": false,
+    "day": [
+     "0.0 sleep @h:2871: asleep",
+     "4.2 tend_body @h:2871: washing his face and hands at the water jar in the courtyard at rising",
+     "4.2 rest @h:2871: at home",
+     "4.3 eat @h:2871: breakfast with the household",
+     "4.6 craft @h:2871: mending tools and baskets",
+     "5.3 craft @h:2871: mending baskets and tools",
+     "7.7 rest @h:2871: resting at home",
+     "8.9 craft @h:2871: mending baskets and tools",
+     "10.0 rest @h:2871: at home",
+     "10.2 eat @h:2871: the midday meal with the household",
+     "10.7 sleep @h:2871: an afternoon sleep",
+     "11.8 rest @h:2871: resting at home",
+     "14.8 eat @h:2871: bread and water",
+     "15.2 tend_animals @h:2871: seeing to the household’s animals",
+     "16.9 craft @h:2871: mending baskets and tools",
+     "18.0 craft @h:2871: mending tools and baskets",
+     "19.0 eat @h:2871: the evening meal with the household",
+     "19.5 walk @road:plain: visiting",
+     "19.6 talk @h:2847: visiting Ištimanka",
+     "20.5 walk @road:plain: going home",
+     "20.6 rest @h:2871: with the household",
+     "20.8 sleep @h:2871: asleep"
+    ]
+   },
+   "talk": [
+    {
+     "q": "Who are you?",
+     "key": "who",
+     "fact": "you are Cincaxri, son of Apzizi, sixty-seven, an Elamite; Saktiti (kinsman of the house) and Hučiθrā (kinswoman of the house) live with you",
+     "factOk": true,
+     "tokens": 436,
+     "reply": "Listen, stranger. I am Cincaxri, son of Apzizi. I am an elder of the household, past heavy work. I am an Elamite, born in Šušan. It was different under the king’s father.",
+     "grounded": true
+    },
+    {
+     "q": "Who lives in your house?",
+     "key": "family",
+     "fact": "in your house: Saktiti (kinsman of the house) and Hučiθrā (kinswoman of the house)",
+     "factOk": true,
+     "tokens": 436,
+     "reply": "In my house: Saktiti and Hučiθrā, of my kin. My kin keep Iršena’s house and others nearby. And you, where are you from?",
+     "grounded": true
+    },
+    {
+     "q": "What work do you do?",
+     "key": "work",
+     "fact": "your work: an elder of the household, past heavy work; right now: resting at home",
+     "factOk": true,
+     "tokens": 436,
+     "reply": "I am an elder of the household, past heavy work. Just now I am resting at home.",
+     "grounded": true
+    },
+    {
+     "q": "What has happened to you this year?",
+     "key": "year",
+     "fact": "the harvest was poor; yesterday: visiting Pirrena; an express courier left the road station with a sealed letter for the Treasury",
+     "factOk": true,
+     "tokens": 436,
+     "reply": "Our harvest was poor. Yesterday I was visiting Pirrena.",
+     "grounded": true
+    },
+    {
+     "q": "What troubles you?",
+     "key": "cares",
+     "fact": "you hope for a good harvest; you hope for a good year for the house",
+     "factOk": true,
+     "tokens": 436,
+     "reply": "I hope for a good harvest.",
+     "grounded": true
+    }
+   ],
+   "thin": {}
+  },
+  {
+   "seed": 7,
+   "kind": "terrace",
+   "pid": 256,
+   "name": "the son of Bagābigna",
+   "byname": "son of Bagābigna",
+   "age": 44,
+   "sex": "m",
+   "job": "guard",
+   "origin": "a Persian of Parsa",
+   "home": "a mud-brick house in the town north-west of the Terrace, a short walk from its stair",
+   "household": 6,
+   "kinHouses": 4,
+   "friends": 3,
+   "year": [
+    "a house of the quarter gave them grain when the house ran short"
+   ],
+   "past": 4,
+   "worries": [
+    "the inspection of the watch"
+   ],
+   "hopes": [
+    "a trade for Umišduma",
+    "the children growing strong"
+   ],
+   "needs": [],
+   "news": [
+    "heard of a death in the house of Hiduš son of Bakiš",
+    "heard of a death in the house of Mardunuya son of Uštana"
+   ],
+   "lately": [],
+   "said": [],
+   "plan": {
+    "parts": 21,
+    "whys": 15,
+    "work": 5,
+    "places": 5,
+    "sameNext": false,
+    "sameSeason": false,
+    "day": [
+     "0.0 sleep @garrison_sleep: asleep in the garrison quarters",
+     "5.4 eat @garrison_hearth_s: breakfast",
+     "5.9 gamble @garrison_hearth_s: knucklebones at the hearth",
+     "6.7 walk @road:town: down to the practice ground in the lower town",
+     "7.2 train @training:q_lt_e: practising with the bow and the spear with men of his file",
+     "8.3 walk @road:terrace: back up to the garrison",
+     "8.8 rest @garrison_hearth_s: resting",
+     "10.4 craft @garrison_sleep: seeing to his arms and kit in the quarters: the spear shaft oiled, the",
+     "11.3 talk @garrison_hearth_s: off watch at the hearth",
+     "12.0 rest @garrison_hearth_s: resting",
+     "12.0 eat @garrison_hearth_s: midday meal",
+     "12.7 sleep @garrison_sleep: sleeping through the heat of the day in the quarters",
+     "15.2 rest @garrison_sleep: resting through the heat of the day in the quarters",
+     "15.4 rest @garrison_hearth_s: resting",
+     "16.1 talk @garrison_hearth_s: off watch at the hearth",
+     "17.1 craft @garrison_sleep: mending his sandals and his belt in the quarters",
+     "17.8 gamble @garrison_hearth_s: knucklebones at the hearth",
+     "18.7 rest @garrison_hearth_s: resting",
+     "19.0 eat @garrison_hearth_s: evening meal",
+     "19.5 talk @garrison_hearth_s: off watch at the hearth",
+     "20.5 sleep @garrison_sleep: asleep"
+    ]
+   },
+   "talk": [
+    {
+     "q": "Who are you?",
+     "key": "who",
+     "fact": "you are the son of Bagābigna, forty-four, a Persian of Parsa; your wife Vahugaunā and your son Šakada live with you",
+     "factOk": true,
+     "tokens": 418,
+     "reply": "I am the son of Bagābigna. I am a spearman of the Terrace garrison.",
+     "grounded": true
+    },
+    {
+     "q": "Who lives in your house?",
+     "key": "family",
+     "fact": "in your house: your wife Vahugaunā and your son Šakada and your son Umišduma",
+     "factOk": true,
+     "tokens": 418,
+     "reply": "In my house: my wife Vahugaunā, my sons Šakada, Umišduma, Appirmarša and Appišukka and my daughter Xšaθragaunā. My kin keep Psamtek’s house and others nearby. The gods willing, it is so.",
+     "grounded": true
+    },
+    {
+     "q": "What work do you do?",
+     "key": "work",
+     "fact": "your work: a spearman of the Terrace garrison (a company of a (the Terrace garrison); right now: resting",
+     "factOk": true,
+     "tokens": 418,
+     "reply": "I am a spearman of the Terrace garrison. Just now I am resting.",
+     "grounded": true
+    },
+    {
+     "q": "What has happened to you this year?",
+     "key": "year",
+     "fact": "a house of the quarter gave them grain when the house ran short; yesterday: on watch; an express courier left the road station with a sealed letter for the Treasury",
+     "factOk": true,
+     "tokens": 418,
+     "reply": "A house of the quarter gave us grain when the house ran short.",
+     "grounded": true
+    },
+    {
+     "q": "What troubles you?",
+     "key": "cares",
+     "fact": "you are worried about the inspection of the watch; you hope for a trade for Umišduma",
+     "factOk": true,
+     "tokens": 418,
+     "reply": "I worry about the inspection of the watch.",
+     "grounded": true
+    }
+   ],
+   "thin": {}
+  },
+  {
+   "seed": 7,
+   "kind": "road",
+   "pid": 81078,
+   "name": "Hupannana",
+   "byname": "son of Pirriyašba",
+   "age": 34,
+   "sex": "m",
+   "job": "craftsman",
+   "origin": "a Persian of Parsa",
+   "home": "on the road: camped for a few days near the Terrace",
+   "household": 2,
+   "kinHouses": 0,
+   "friends": 0,
+   "year": [],
+   "past": 4,
+   "worries": [],
+   "hopes": [
+    "a good name for their work in the market",
+    "a good name for their work"
+   ],
+   "needs": [],
+   "news": [],
+   "lately": [],
+   "said": [],
+   "plan": {
+    "parts": 3,
+    "whys": 3,
+    "work": 3,
+    "places": 2,
+    "sameNext": false,
+    "sameSeason": false,
+    "day": [
+     "0.0 offmap @-: at home in a village under Naqsh-e Rustam",
+     "8.8 carry_jar @road:road_naqsh_e_rustam: carrying a jar of sesame oil to sell in Pārsa",
+     "9.5 offmap @-: at kin’s in Pārsa for the night"
+    ]
+   },
+   "talk": [
+    {
+     "q": "Who are you?",
+     "key": "who",
+     "fact": "you are Hupannana, son of Pirriyašba, thirty-four, a Persian of Parsa; your wife Bagazātā and your son Yamakšedda live with you",
+     "factOk": true,
+     "tokens": 436,
+     "reply": "I am Hupannana, son of Pirriyašba. I am a craftsman of the town. And what brings you here?",
+     "grounded": true
+    },
+    {
+     "q": "Who lives in your house?",
+     "key": "family",
+     "fact": "in your house: your wife Bagazātā and your son Yamakšedda",
+     "factOk": true,
+     "tokens": 436,
+     "reply": "In my house: my wife Bagazātā and my son Yamakšedda.",
+     "grounded": true
+    },
+    {
+     "q": "What work do you do?",
+     "key": "work",
+     "fact": "your work: a craftsman of the town; right now: at kin’s in Pārsa for the night",
+     "factOk": true,
+     "tokens": 436,
+     "reply": "I am a craftsman of the town. Just now I am at kin’s in Pārsa for the night.",
+     "grounded": true
+    },
+    {
+     "q": "What has happened to you this year?",
+     "key": "year",
+     "fact": "an express courier left the road station with a sealed letter for the Treasury",
+     "factOk": true,
+     "tokens": 436,
+     "reply": "A quiet year for us so far. I lost a son in the first year, three years ago.",
+     "grounded": true
+    },
+    {
+     "q": "What troubles you?",
+     "key": "cares",
+     "fact": "you hope for a good name for their work in the market; you hope for a good name for their work",
+     "factOk": true,
+     "tokens": 436,
+     "reply": "I hope for a good name for our work in the market.",
+     "grounded": true
+    }
+   ],
+   "thin": {
+    "deeds": "nothing done by or to them this year that they know of"
+   }
+  },
+  {
+   "seed": 7,
+   "kind": "court",
+   "pid": 48398,
+   "name": "Čiθrazauštrī",
+   "byname": "daughter of Napzilla",
+   "age": 18,
+   "sex": "f",
+   "job": "homemaker",
+   "origin": "a Mede",
+   "home": "the women’s palace on the Terrace, in the king’s household",
+   "household": 9,
+   "kinHouses": 0,
+   "friends": 2,
+   "year": [
+    "came to Parsa with the king’s household from Šušan in the month Ādukanaiša"
+   ],
+   "past": 4,
+   "worries": [],
+   "hopes": [
+    "to be married into a good house",
+    "enough wool for the winter cloaks"
+   ],
+   "needs": [],
+   "news": [
+    "heard of sickness in the house of Bagabuxša son of Hašina",
+    "heard of sickness in the house of Itti-Marduk-balāṭu son of Nabû-bullissu"
+   ],
+   "lately": [],
+   "said": [],
+   "plan": {
+    "parts": 19,
+    "whys": 10,
+    "work": 2,
+    "places": 3,
+    "sameNext": false,
+    "sameSeason": false,
+    "day": [
+     "0.0 sleep @court_harem: asleep",
+     "6.2 eat @court_harem: breakfast brought from the king’s kitchens",
+     "6.7 rest @court_harem: resting in the shade of the court",
+     "7.6 spin @court_harem: spinning",
+     "9.0 rest @court_harem: resting in the shade of the court",
+     "9.7 talk @court_harem: talking with the other women in the court",
+     "11.1 rest @court_harem: resting in the shade of the court",
+     "12.3 talk @court_harem: talking with the other women in the court",
+     "13.0 eat @court_harem: the midday meal brought from the king’s kitchens",
+     "13.6 spin @court_harem: spinning",
+     "14.6 talk @court_harem: talking with the other women in the court",
+     "15.6 rest @court_harem: resting in the shade of the court",
+     "16.5 rest @court_harem: resting while an attendant dresses her hair",
+     "17.7 talk @court_harem: talking with the other women in the court",
+     "19.1 eat @court_harem: the evening meal in the women’s court",
+     "19.8 walk @road:terrace: walking",
+     "19.8 talk @court_harem_s: talking with the women in the south wing",
+     "21.9 walk @road:terrace: walking",
+     "22.0 sleep @court_harem: asleep"
+    ]
+   },
+   "talk": [
+    {
+     "q": "Who are you?",
+     "key": "who",
+     "fact": "you are Čiθrazauštrī, daughter of Napzilla, eighteen, a Mede; your companion Miθračiθrā and your companion Vindastrī live with you",
+     "factOk": true,
+     "tokens": 442,
+     "reply": "I am Čiθrazauštrī, daughter of Napzilla. I keep the house: grinding, baking, water, spinning and the children.",
+     "grounded": true
+    },
+    {
+     "q": "Who lives in your house?",
+     "key": "family",
+     "fact": "in your house: your companion Miθračiθrā and your companion Vindastrī and your companion Aspazauštrī",
+     "factOk": true,
+     "tokens": 442,
+     "reply": "In my house: my companions Miθračiθrā, Vindastrī, Aspazauštrī, Amačiθrā, Miθrastūnā, Farnatausā, Aryazātā, Bagastūnā and Bagačiθrā.",
+     "grounded": true
+    },
+    {
+     "q": "What work do you do?",
+     "key": "work",
+     "fact": "your work: keeper of the household: grinding, baking, water, spinning and the; right now: resting in the shade of the court",
+     "factOk": true,
+     "tokens": 442,
+     "reply": "I keep the house: grinding, baking, water, spinning and the children. Just now I am resting in the shade of the court.",
+     "grounded": true
+    },
+    {
+     "q": "What has happened to you this year?",
+     "key": "year",
+     "fact": "came to Parsa with the king’s household from Šušan in the month Ādukanaiša; an express courier left the road station with a sealed letter for the Treasury",
+     "factOk": true,
+     "tokens": 442,
+     "reply": "I came to Parsa with the king’s household from Šušan in the month Ādukanaiša.",
+     "grounded": true
+    },
+    {
+     "q": "What troubles you?",
+     "key": "cares",
+     "fact": "you hope for to be married into a good house; you hope for enough wool for the winter cloaks",
+     "factOk": true,
+     "tokens": 442,
+     "reply": "I hope to be married into a good house.",
+     "grounded": true
+    }
+   ],
+   "thin": {}
+  },
+  {
+   "seed": 7,
+   "kind": "camp",
+   "pid": 808,
+   "name": "Theodoros",
+   "byname": "son of Daphnis",
+   "age": 49,
+   "sex": "m",
+   "job": "builder",
+   "origin": "an Ionian (a Yauna from the coast of Sparda)",
+   "home": "a mud-brick house in the town south-west of the Terrace, a short walk from its stair",
+   "household": 5,
+   "kinHouses": 4,
+   "friends": 4,
+   "year": [
+    "the house of Vahyasparuva son of Bagābigna lent them silver",
+    "the house of Nabbaba son of Ankhhor gave them grain when the house ran short"
+   ],
+   "past": 4,
+   "worries": [
+    "an accident at the stone"
+   ],
+   "hopes": [
+    "to go home one day to their own country",
+    "the children growing strong"
+   ],
+   "needs": [
+    "hands for the work; would not ask a stranger"
+   ],
+   "news": [
+    "heard of sickness in the house of Bagagaunā daughter of Bēl-iddin",
+    "heard of sickness in the house of Archidike daughter of Herophantos"
+   ],
+   "lately": [],
+   "said": [],
+   "plan": {
+    "parts": 21,
+    "whys": 16,
+    "work": 3,
+    "places": 5,
+    "sameNext": false,
+    "sameSeason": false,
+    "day": [
+     "0.0 sleep @h:225: asleep",
+     "4.2 tend_body @h:225: washing his face and hands at the water jar in the courtyard at rising",
+     "4.3 rest @h:225: at home",
+     "4.8 eat @h:225: bread and water before leaving",
+     "4.9 walk @road:plain: to the harvest on the state fields",
+     "5.4 reap @crown_fields: drafted to reap on the state fields",
+     "10.8 reap @crown_fields: drafted to reap on the state fields",
+     "11.5 eat @crown_fields: the midday meal at the field: bread and water",
+     "12.1 walk @road:town: walking",
+     "12.8 rest @h:225: resting after the harvest work",
+     "13.8 rest @h:225: at home",
+     "15.2 sleep @h:225: sleeping through the heat of the day",
+     "16.1 rest @h:225: at home",
+     "17.4 craft @h:225: mending tools and baskets",
+     "18.0 rest @h:225: at home",
+     "18.1 eat @h:225: the evening meal with the household",
+     "18.7 walk @road:town: visiting",
+     "18.7 talk @h:183: visiting Anani over a jar of beer",
+     "20.1 walk @road:town: going home",
+     "20.1 talk @h:225: with the household",
+     "20.8 sleep @h:225: asleep"
+    ]
+   },
+   "talk": [
+    {
+     "q": "Who are you?",
+     "key": "who",
+     "fact": "you are Theodoros, son of Daphnis, forty-nine, an Ionian (a Yauna from the coast of Sparda); your wife Archidike and your son Daphnis live with you",
+     "factOk": true,
+     "tokens": 446,
+     "reply": "I am Theodoros, son of Daphnis. I am a labourer in the labour gang: earth, rubble and stone chips on the Hall. I am an Ionian (a Yauna from the coast of Sparda), born in Samos. And what brings you here?",
+     "grounded": true
+    },
+    {
+     "q": "Who lives in your house?",
+     "key": "family",
+     "fact": "in your house: your wife Archidike and your son Daphnis and your son Hippoklos",
+     "factOk": true,
+     "tokens": 446,
+     "reply": "In my house: my wife Archidike and my sons Daphnis, Hippoklos, Metrodoros and Strattis. My kin keep Anani’s house and others nearby.",
+     "grounded": true
+    },
+    {
+     "q": "What work do you do?",
+     "key": "work",
+     "fact": "your work: a labourer in the labour gang: earth, rubble and stone (the labour gang of Manyabaduš); right now: the midday meal at the field: bread and water",
+     "factOk": true,
+     "tokens": 446,
+     "reply": "Well now, stranger. I am a labourer in the labour gang: earth, rubble and stone chips on the Hall, with the labour gang of Manyabaduš. Just now it is the midday meal at the field: bread and water.",
+     "grounded": true
+    },
+    {
+     "q": "What has happened to you this year?",
+     "key": "year",
+     "fact": "the house of Vahyasparuva son of Bagābigna lent them silver; yesterday: building up the earth ramp; an express courier left the road station with a sealed letter for the Treasury",
+     "factOk": true,
+     "tokens": 446,
+     "reply": "The house of Vahyasparuva son of Bagābigna lent us silver. The house of Nabbaba son of Ankhhor gave us grain when the house ran short.",
+     "grounded": true
+    },
+    {
+     "q": "What troubles you?",
+     "key": "cares",
+     "fact": "you are worried about an accident at the stone; you hope for to go home one day to their own country",
+     "factOk": true,
+     "tokens": 446,
+     "reply": "I worry about an accident at the stone. My house needs hands for the work.",
+     "grounded": true
+    }
+   ],
+   "thin": {}
+  },
+  {
+   "seed": 7,
+   "kind": "town",
+   "pid": 6767,
+   "name": "Zababa-iddin",
+   "byname": "son of Nabû-bullissu",
+   "age": 13,
+   "sex": "m",
+   "job": "child",
+   "origin": "a Babylonian",
+   "home": "a mud-brick house in the town south-west of the Terrace, a short walk from its stair",
+   "household": 7,
+   "kinHouses": 3,
+   "friends": 4,
+   "year": [
+    "the house of Bakiš son of Cincaxri gave them grain when the house ran short"
+   ],
+   "past": 4,
+   "worries": [],
+   "hopes": [
+    "a toy of your own"
+   ],
+   "needs": [],
+   "news": [
+    "heard of sickness in the house of Tabluṭu daughter of Nabû-zēr-ukīn",
+    "heard of a death in the house of Vidarna son of Manyabaduš"
+   ],
+   "lately": [],
+   "said": [],
+   "plan": {
+    "parts": 17,
+    "whys": 12,
+    "work": 3,
+    "places": 4,
+    "sameNext": false,
+    "sameSeason": false,
+    "day": [
+     "0.0 sleep @h:1933: asleep",
+     "4.7 tend_body @h:1933: washing his face and hands at the water jar in the courtyard at rising",
+     "4.8 rest @h:1933: at home",
+     "5.0 rest @h:1933: waiting for the morning bread",
+     "5.5 eat @h:1933: breakfast with the household",
+     "5.8 rest @h:1933: at home",
+     "6.6 walk @road:town: walking to his father’s work with him",
+     "7.0 craft @craft_zone: helping his father at his craft, learning it",
+     "12.0 eat @craft_zone: the midday meal with his father",
+     "12.7 craft @craft_zone: helping his father at his craft, learning it",
+     "12.7 craft @craft_zone:pigments: helping his father at his craft, learning it",
+     "16.0 walk @road:town: walking with his father",
+     "16.5 play @h:1933: playing indoors",
+     "18.0 rest @h:1933: at home",
+     "18.1 eat @h:1933: the evening meal with the household",
+     "18.7 rest @h:1933: with the household",
+     "20.9 sleep @h:1933: asleep"
+    ]
+   },
+   "talk": [
+    {
+     "q": "Who are you?",
+     "key": "who",
+     "fact": "you are Zababa-iddin, son of Nabû-bullissu, thirteen, a Babylonian; your father Nabû-bullissu and your mother Gagâ live with you",
+     "factOk": true,
+     "tokens": 434,
+     "reply": "I am Zababa-iddin, son of Nabû-bullissu. I am a child of the household. I am a Babylonian, born in the town below the Terrace.",
+     "grounded": true
+    },
+    {
+     "q": "Who lives in your house?",
+     "key": "family",
+     "fact": "in your house: your father Nabû-bullissu and your mother Gagâ and your brother Rēmūt",
+     "factOk": true,
+     "tokens": 434,
+     "reply": "In my house: my father Nabû-bullissu, my mother Gagâ and my brothers Rēmūt, Balāṭu and Bēl-iddin. My kin keep Mannizza’s house and others nearby.",
+     "grounded": true
+    },
+    {
+     "q": "What work do you do?",
+     "key": "work",
+     "fact": "your work: a child of the household; right now: the midday meal with his father",
+     "factOk": true,
+     "tokens": 434,
+     "reply": "I am a child of the household. Just now it is the midday meal with my father.",
+     "grounded": true
+    },
+    {
+     "q": "What has happened to you this year?",
+     "key": "year",
+     "fact": "the house of Bakiš son of Cincaxri gave them grain when the house ran; yesterday: carrying in brushwood for the morning fire; an express courier left the road station with a sealed letter for the Treasury",
+     "factOk": true,
+     "tokens": 434,
+     "reply": "The house of Bakiš son of Cincaxri gave us grain when the house ran short. Yesterday I was carrying in brushwood for the morning fire.",
+     "grounded": true
+    },
+    {
+     "q": "What troubles you?",
+     "key": "cares",
+     "fact": "you hope for a toy of your own",
+     "factOk": true,
+     "tokens": 434,
+     "reply": "I hope for a toy of my own.",
+     "grounded": false
+    }
+   ],
+   "thin": {
+    "replies": "1/5 replies ignore their life (cares)"
+   }
+  },
+  {
+   "seed": 7,
+   "kind": "village",
+   "pid": 27238,
+   "name": "Bakiš",
+   "byname": "son of Tiššantamma",
+   "age": 37,
+   "sex": "m",
+   "job": "farmer",
+   "origin": "a Persian of Parsa",
+   "home": "a village of the plain, about two hours’ walk north-west of the Terrace",
+   "household": 3,
+   "kinHouses": 4,
+   "friends": 4,
+   "year": [
+    "was sick for six days in the last month",
+    "the harvest was poor"
+   ],
+   "past": 4,
+   "worries": [
+    "hail or blight before the harvest is in"
+   ],
+   "hopes": [
+    "a good harvest",
+    "that Utāna learns the fields well"
+   ],
+   "needs": [],
+   "news": [
+    "heard of a death in the house of Ammarna son of Rauzazza",
+    "heard of sickness in the house of Basakka son of Irdapukka"
+   ],
+   "lately": [],
+   "said": [],
+   "plan": {
+    "parts": 22,
+    "whys": 17,
+    "work": 3,
+    "places": 4,
+    "sameNext": false,
+    "sameSeason": false,
+    "day": [
+     "0.0 sleep @h:6288: asleep",
+     "4.2 tend_body @h:6288: washing his face and hands at the water jar in the courtyard at rising",
+     "4.3 rest @h:6288: at home",
+     "4.7 eat @h:6288: breakfast with the household: the new bread",
+     "5.1 rest @h:6288: at home",
+     "5.4 walk @road:plain: out to the threshing floor",
+     "5.4 thresh @threshing:v_18: threshing: driving the animals round over the sheaves on the village f",
+     "10.5 eat @threshing:v_18: the midday meal in the shade by the threshing floor: bread and water c",
+     "11.0 sleep @threshing:v_18: sleeping in the shade by the threshing floor through the heat",
+     "13.5 rest @threshing:v_18: resting in the shade by the threshing floor through the heat",
+     "15.7 thresh @threshing:v_18: winnowing in the afternoon and evening wind",
+     "17.0 eat @threshing:v_18: bread and water by the threshing floor",
+     "17.2 thresh @threshing:v_18: winnowing in the afternoon and evening wind",
+     "18.5 walk @road:plain: home from the field",
+     "18.6 rest @h:6288: at home",
+     "18.8 eat @h:6288: the evening meal with the household",
+     "19.3 walk @road:plain: walking",
+     "19.3 talk @lane:v_18: talking with neighbours in the lane at dusk",
+     "19.4 talk @lane:v_18: talking with neighbours in the lane after dark",
+     "20.4 walk @road:plain: walking",
+     "20.4 rest @h:6288: with the household",
+     "20.7 sleep @h:6288: asleep"
+    ]
+   },
+   "talk": [
+    {
+     "q": "Who are you?",
+     "key": "who",
+     "fact": "you are Bakiš, son of Tiššantamma, thirty-seven, a Persian of Parsa; your wife Hugaunā and your son Utāna live with you",
+     "factOk": true,
+     "tokens": 450,
+     "reply": "I am Bakiš, son of Tiššantamma. I am a farmer of the plain. The gods willing, it is so.",
+     "grounded": true
+    },
+    {
+     "q": "Who lives in your house?",
+     "key": "family",
+     "fact": "in your house: your wife Hugaunā and your son Utāna and your daughter Amabāmā; was sick for six days in the last month",
+     "factOk": true,
+     "tokens": 450,
+     "reply": "In my house: my wife Hugaunā, my son Utāna and my daughter Amabāmā. I was sick for six days in the last month.",
+     "grounded": true
+    },
+    {
+     "q": "What work do you do?",
+     "key": "work",
+     "fact": "your work: a farmer of the plain (barley, wheat, sesame, vines); right now: sleeping in the shade by the threshing floor through the heat",
+     "factOk": true,
+     "tokens": 450,
+     "reply": "I am a farmer of the plain. Just now I am sleeping in the shade by the threshing floor through the heat.",
+     "grounded": true
+    },
+    {
+     "q": "What has happened to you this year?",
+     "key": "year",
+     "fact": "was sick for six days in the last month; yesterday: reaping the barley; an express courier left the road station with a sealed letter for the Treasury",
+     "factOk": true,
+     "tokens": 450,
+     "reply": "I was sick for six days in the last month. Our harvest was poor.",
+     "grounded": true
+    },
+    {
+     "q": "What troubles you?",
+     "key": "cares",
+     "fact": "you are worried about hail or blight before the harvest is in; you hope for a good harvest",
+     "factOk": true,
+     "tokens": 450,
+     "reply": "I worry about hail or blight before the harvest is in. I hope for a good harvest.",
+     "grounded": true
+    }
+   ],
+   "thin": {}
+  },
+  {
+   "seed": 42,
+   "kind": "terrace",
+   "pid": 1559,
+   "name": "Busasa",
+   "byname": "daughter of Marduk-šum-iddin",
+   "age": 24,
+   "sex": "f",
+   "job": "treasury",
+   "origin": "a Babylonian",
+   "home": "a mud-brick house in the town north-west of the Terrace, a short walk from its stair",
+   "household": 0,
+   "kinHouses": 4,
+   "friends": 4,
+   "year": [
+    "was sick for ten days in the last month",
+    "the house of Natan son of Hosea gave them grain when the house ran short"
+   ],
+   "past": 4,
+   "worries": [
+    "a weight that does not tally"
+   ],
+   "hopes": [
+    "to go home one day to their own country"
+   ],
+   "needs": [],
+   "news": [
+    "heard of a death in the house of Manuš son of Pirriyašba",
+    "heard of sickness in the house of Farnaduxçā daughter of Mikrašba"
+   ],
+   "lately": [],
+   "said": [
+    "I hired Parruš for a day’s work, yesterday"
+   ],
+   "plan": {
+    "parts": 25,
+    "whys": 19,
+    "work": 11,
+    "places": 6,
+    "sameNext": false,
+    "sameSeason": false,
+    "day": [
+     "0.0 sleep @h:452: asleep",
+     "4.1 tend_body @h:452: washing her face and hands at the water jar in the courtyard at rising",
+     "4.2 grind @h:452: grinding the household’s flour at the quern",
+     "4.4 rest @h:452: at home",
+     "6.0 eat @h:452: breakfast",
+     "6.3 rest @h:452: at home",
+     "6.6 walk @road:town: going to the workshop",
+     "7.0 work_wood @ws:1: treasury workshop: working wood",
+     "9.0 walk @road:terrace: walking",
+     "9.4 carry_sack @treasury_store: carrying finished work up to the Treasury store",
+     "10.9 walk @road:terrace: walking",
+     "11.4 work_wood @ws:1: treasury workshop: working wood",
+     "12.0 eat @ws:1: the midday meal",
+     "12.6 work_wood @ws:1: treasury workshop: working wood",
+     "15.0 walk @road:town: going home",
+     "15.4 spin @h:452: spinning",
+     "17.1 knead @h:452: kneading the dough",
+     "17.4 bake @h:452: baking the flat bread for tomorrow",
+     "17.9 cook @h:452: lighting the fire and warming the evening meal",
+     "18.3 eat @h:452: the evening meal",
+     "18.6 walk @road:town: walking",
+     "18.7 draw_water @well:q_pw_n: evening water",
+     "18.9 carry_jar_head @road:town: carrying water home",
+     "19.0 rest @h:452: resting at home",
+     "20.5 sleep @h:452: asleep"
+    ]
+   },
+   "talk": [
+    {
+     "q": "Who are you?",
+     "key": "who",
+     "fact": "you are Busasa, daughter of Marduk-šum-iddin, twenty-four, a Babylonian",
+     "factOk": true,
+     "tokens": 447,
+     "reply": "I am Busasa, daughter of Marduk-šum-iddin. I am a woodworker of the Treasury.",
+     "grounded": true
+    },
+    {
+     "q": "Who lives in your house?",
+     "key": "family",
+     "fact": "you live with your work group; your work: a woodworker of the Treasury",
+     "factOk": true,
+     "tokens": 447,
+     "reply": "I live with the others of the second treasury workers' group. My kin keep Mibṭaḥiah’s house. And you, where are you from?",
+     "grounded": true
+    },
+    {
+     "q": "What work do you do?",
+     "key": "work",
+     "fact": "your work: a woodworker of the Treasury (the second treasury workers' group); right now: the midday meal",
+     "factOk": true,
+     "tokens": 447,
+     "reply": "I am a woodworker of the Treasury, with the second treasury workers' group. Just now it is the midday meal.",
+     "grounded": true
+    },
+    {
+     "q": "What has happened to you this year?",
+     "key": "year",
+     "fact": "you hired Parruš for a day’s work, yesterday; was sick for ten days in the last month; yesterday: fetching water",
+     "factOk": true,
+     "tokens": 447,
+     "reply": "I was sick for ten days in the last month.",
+     "grounded": true
+    },
+    {
+     "q": "What troubles you?",
+     "key": "cares",
+     "fact": "you are worried about a weight that does not tally; you hope for to go home one day to their own country",
+     "factOk": true,
+     "tokens": 447,
+     "reply": "I worry about a weight that does not tally.",
+     "grounded": true
+    }
+   ],
+   "thin": {}
+  },
+  {
+   "seed": 42,
+   "kind": "road",
+   "pid": 78491,
+   "name": "Aspazauštrī",
+   "byname": "wife of Maratamkaš",
+   "age": 48,
+   "sex": "f",
+   "job": "homemaker",
+   "origin": "a Persian of Parsa",
+   "home": "on the road: camped for a few days near the Terrace",
+   "household": 3,
+   "kinHouses": 0,
+   "friends": 0,
+   "year": [],
+   "past": 4,
+   "worries": [],
+   "hopes": [
+    "to see a sister again"
+   ],
+   "needs": [],
+   "news": [],
+   "lately": [],
+   "said": [],
+   "plan": {
+    "parts": 3,
+    "whys": 2,
+    "work": 2,
+    "places": 2,
+    "sameNext": false,
+    "sameSeason": false,
+    "day": [
+     "0.0 offmap @-: at home in a village under the Tang-e Bulaghi",
+     "17.5 walk @road:road_pasargadae: walking home to a village under the Tang-e Bulaghi after a night with ",
+     "18.3 offmap @-: at home in a village under the Tang-e Bulaghi"
+    ]
+   },
+   "talk": [
+    {
+     "q": "Who are you?",
+     "key": "who",
+     "fact": "you are Aspazauštrī, wife of Maratamkaš, forty-eight, a Persian of Parsa; your husband Maratamkaš and your son Dātuvahya live with you",
+     "factOk": true,
+     "tokens": 445,
+     "reply": "I am Aspazauštrī, wife of Maratamkaš. I keep the house: grinding, baking, water, spinning and the children. Have you news from the road?",
+     "grounded": true
+    },
+    {
+     "q": "Who lives in your house?",
+     "key": "family",
+     "fact": "in your house: your husband Maratamkaš and your son Dātuvahya and your daughter Bagazauštrī",
+     "factOk": true,
+     "tokens": 445,
+     "reply": "In my house: my husband Maratamkaš, my son Dātuvahya and my daughter Bagazauštrī.",
+     "grounded": true
+    },
+    {
+     "q": "What work do you do?",
+     "key": "work",
+     "fact": "your work: keeper of the household: grinding, baking, water, spinning and the; right now: at home in a village under the Tang-e Bulaghi",
+     "factOk": true,
+     "tokens": 445,
+     "reply": "I keep the house: grinding, baking, water, spinning and the children. Just now I am at home in a village under the Tang-e Bulaghi.",
+     "grounded": true
+    },
+    {
+     "q": "What has happened to you this year?",
+     "key": "year",
+     "fact": "an express courier arrived at the road station",
+     "factOk": true,
+     "tokens": 445,
+     "reply": "This year has been quiet. My mother died, twenty-five years ago.",
+     "grounded": true
+    },
+    {
+     "q": "What troubles you?",
+     "key": "cares",
+     "fact": "you hope for to see a sister again",
+     "factOk": true,
+     "tokens": 445,
+     "reply": "I hope to see a sister again.",
+     "grounded": true
+    }
+   ],
+   "thin": {
+    "reasons": "2 reasons for 3 parts",
+    "deeds": "nothing done by or to them this year that they know of"
+   }
+  },
+  {
+   "seed": 42,
+   "kind": "court",
+   "pid": 63571,
+   "name": "Irdabada",
+   "byname": "son of Kurizza",
+   "age": 38,
+   "sex": "m",
+   "job": "porter",
+   "origin": "an Elamite",
+   "home": "a tent in a camp of the king’s retinue, a short walk south-west of the Terrace",
+   "household": 9,
+   "kinHouses": 0,
+   "friends": 2,
+   "year": [
+    "came to Parsa with the king’s household from Šušan in the month Ādukanaiša"
+   ],
+   "past": 4,
+   "worries": [
+    "a strained back"
+   ],
+   "hopes": [
+    "a lighter load"
+   ],
+   "needs": [],
+   "news": [
+    "heard of sickness in the house of Zabbara son of Taxmaspāda",
+    "heard of sickness in the house of Dātačiθrā daughter of Haggai"
+   ],
+   "lately": [],
+   "said": [],
+   "plan": {
+    "parts": 22,
+    "whys": 15,
+    "work": 9,
+    "places": 3,
+    "sameNext": false,
+    "sameSeason": false,
+    "day": [
+     "0.0 sleep @rcamp:t_west: asleep",
+     "5.9 eat @rcamp:t_west: breakfast at the camp",
+     "6.2 tend_animals @rcamp:t_west: seeing to the mules and camels of the baggage",
+     "7.5 walk @road:town: going to the royal stores",
+     "7.6 rest @royal_store: waiting while the storekeeper weighs out the load",
+     "7.9 carry_sack @road:town: carrying barley from the royal stores to the camp",
+     "8.0 craft @rcamp:t_west: mending pack saddles and ropes",
+     "9.3 tend_animals @rcamp:t_west: seeing to the mules and camels of the baggage",
+     "10.6 rest @rcamp:t_west: resting by the baggage",
+     "11.6 eat @rcamp:t_west: the midday meal at the camp",
+     "12.1 talk @rcamp:t_west: talking with the drivers",
+     "13.3 craft @rcamp:t_west: mending pack saddles and ropes",
+     "14.1 rest @rcamp:t_west: resting by the baggage",
+     "14.7 tend_animals @rcamp:t_west: seeing to the mules and camels of the baggage",
+     "15.4 craft @rcamp:t_west: mending pack saddles and ropes",
+     "16.3 tend_animals @rcamp:t_west: seeing to the mules and camels of the baggage",
+     "17.1 rest @rcamp:t_west: resting by the baggage",
+     "17.7 cook @rcamp:t_west: cooking the evening meal at the camp’s hearth",
+     "18.6 eat @rcamp:t_west: the evening meal at the camp",
+     "19.2 talk @rcamp:t_west: talking at the camp",
+     "19.9 rest @rcamp:t_west: resting at the camp",
+     "21.2 sleep @rcamp:t_west: asleep in the tent"
+    ]
+   },
+   "talk": [
+    {
+     "q": "Who are you?",
+     "key": "who",
+     "fact": "you are Irdabada, son of Kurizza, thirty-eight, an Elamite; your companion Marduk-šum-iddin and your companion Rauzazza live with you",
+     "factOk": true,
+     "tokens": 421,
+     "reply": "Well now, friend. I am Irdabada, son of Kurizza. I am a porter. I am an Elamite, born in Hidali in the hills between Šušan and Pārsa. Have you news from the road?",
+     "grounded": true
+    },
+    {
+     "q": "Who lives in your house?",
+     "key": "family",
+     "fact": "in your house: your companion Marduk-šum-iddin and your companion Rauzazza and your companion Utāna",
+     "factOk": true,
+     "tokens": 421,
+     "reply": "In my house: my companions Marduk-šum-iddin, Rauzazza, Utāna, Bakiš, Babena, Vindafarnā, Bēl-iddin, Balāṭu and Bagabuxša.",
+     "grounded": true
+    },
+    {
+     "q": "What work do you do?",
+     "key": "work",
+     "fact": "your work: a porter; right now: the midday meal at the camp",
+     "factOk": true,
+     "tokens": 421,
+     "reply": "I am a porter. Just now it is the midday meal at the camp.",
+     "grounded": true
+    },
+    {
+     "q": "What has happened to you this year?",
+     "key": "year",
+     "fact": "came to Parsa with the king’s household from Šušan in the month Ādukanaiša; yesterday: knucklebones at the camp; an express courier arrived at the road station",
+     "factOk": true,
+     "tokens": 421,
+     "reply": "I came to Parsa with the king’s household from Šušan in the month Ādukanaiša. Yesterday, knucklebones at the camp.",
+     "grounded": true
+    },
+    {
+     "q": "What troubles you?",
+     "key": "cares",
+     "fact": "you are worried about a strained back; you hope for a lighter load",
+     "factOk": true,
+     "tokens": 421,
+     "reply": "I worry about a strained back. I hope for a lighter load.",
+     "grounded": true
+    }
+   ],
+   "thin": {}
+  },
+  {
+   "seed": 42,
+   "kind": "camp",
+   "pid": 1270,
+   "name": "Rtašyāti",
+   "byname": "daughter of Vahuka",
+   "age": 29,
+   "sex": "f",
+   "job": "camp",
+   "origin": "an Elamite",
+   "home": "a mud-brick house in the town south-west of the Terrace, a short walk from its stair",
+   "household": 3,
+   "kinHouses": 4,
+   "friends": 4,
+   "year": [
+    "the house of Appišana son of Umanna gave them grain when the house ran short"
+   ],
+   "past": 4,
+   "worries": [],
+   "hopes": [
+    "a trade for Manuš",
+    "to go home one day to their own country"
+   ],
+   "needs": [],
+   "news": [
+    "heard of a death in the house of Manuš son of Karkiš",
+    "heard of a wrong done by the house of Baddumaka son of Manyakka"
+   ],
+   "lately": [],
+   "said": [],
+   "plan": {
+    "parts": 33,
+    "whys": 23,
+    "work": 20,
+    "places": 8,
+    "sameNext": false,
+    "sameSeason": false,
+    "day": [
+     "0.0 sleep @h:326: asleep",
+     "3.3 tend_body @h:326: washing her face and hands at the water jar in the courtyard at rising",
+     "3.4 grind @h:326: grinding the household’s flour at the quern",
+     "4.1 rest @h:326: at home",
+     "4.7 eat @h:326: bread and water before leaving",
+     "4.9 walk @road:terrace: going up to the work camp",
+     "5.3 grind @querns: grinding grain",
+     "6.7 draw_water @water: fetching water for the camp",
+     "7.0 carry_jar_head @work_hearth: carrying water to the work camp",
+     "7.2 grind @querns: grinding grain",
+     "8.5 draw_water @water: fetching water for the camp",
+     "8.7 carry_jar_head @work_hearth: carrying water to the work camp",
+     "8.9 queue @stair_foot: in the ration queue at the depot",
+     "9.2 grind @querns: grinding grain",
+     "10.3 draw_water @water: fetching water for the camp",
+     "10.5 carry_jar_head @work_hearth: carrying water to the work camp",
+     "10.7 grind @querns: grinding grain",
+     "11.6 eat @querns: bread and water",
+     "11.9 grind @querns: grinding grain",
+     "12.0 carry_sack @road:terrace: carrying the ration home",
+     "12.4 grind @h:326: grinding for tomorrow’s bread",
+     "12.9 sleep @h:326: sleeping through the heat of the day",
+     "13.9 spin @h:326: spinning",
+     "15.5 walk @road:town: out to the doorstep",
+     "15.6 craft @lane:q_lt_e: mending clothes on the doorstep",
+     "16.5 walk @road:town: walking",
+     "16.6 rest @h:326: at home",
+     "17.1 knead @h:326: kneading the dough",
+     "17.4 bake @h:326: baking the flat bread for tomorrow",
+     "17.9 cook @h:326: lighting the fire and warming the evening meal",
+     "18.3 eat @h:326: the evening meal with the household",
+     "18.8 rest @h:326: with the household",
+     "20.4 sleep @h:326: asleep"
+    ]
+   },
+   "talk": [
+    {
+     "q": "Who are you?",
+     "key": "who",
+     "fact": "you are Rtašyāti, daughter of Vahuka, twenty-nine, an Elamite; your son Manuš and your daughter Amaduxçā live with you",
+     "factOk": true,
+     "tokens": 413,
+     "reply": "I am Rtašyāti, daughter of Vahuka. I am a grinder of the work camp, grinding the gangs’ barley at the querns.",
+     "grounded": true
+    },
+    {
+     "q": "Who lives in your house?",
+     "key": "family",
+     "fact": "in your house: your son Manuš and your daughter Amaduxçā and your daughter Amatausā",
+     "factOk": true,
+     "tokens": 413,
+     "reply": "In my house: my son Manuš and my daughters Amaduxçā and Amatausā. My kin keep Bakadušda’s house and others nearby.",
+     "grounded": true
+    },
+    {
+     "q": "What work do you do?",
+     "key": "work",
+     "fact": "your work: a grinder of the work camp, grinding the gangs’ barley (the work-camp women of the Terrace); right now: carrying the ration home",
+     "factOk": true,
+     "tokens": 413,
+     "reply": "I am a grinder of the work camp, grinding the gangs’ barley at the querns, with the work-camp women of the Terrace gangs. Just now I am carrying the ration home.",
+     "grounded": true
+    },
+    {
+     "q": "What has happened to you this year?",
+     "key": "year",
+     "fact": "the house of Appišana son of Umanna gave them grain when the house ran; yesterday: the barley measured out to her at the depot; an express courier arrived at the road station",
+     "factOk": true,
+     "tokens": 413,
+     "reply": "The house of Appišana son of Umanna gave us grain when the house ran short.",
+     "grounded": true
+    },
+    {
+     "q": "What troubles you?",
+     "key": "cares",
+     "fact": "you hope for a trade for Manuš; you hope for to go home one day to their own country",
+     "factOk": true,
+     "tokens": 413,
+     "reply": "I hope for a trade for Manuš.",
+     "grounded": true
+    }
+   ],
+   "thin": {}
+  },
+  {
+   "seed": 42,
+   "kind": "town",
+   "pid": 7012,
+   "name": "Yamakšedda",
+   "byname": "son of Artavardiya",
+   "age": 7,
+   "sex": "m",
+   "job": "child",
+   "origin": "an Elamite",
+   "home": "a mud-brick house in the town south-west of the Terrace, a short walk from its stair",
+   "household": 4,
+   "kinHouses": 4,
+   "friends": 2,
+   "year": [
+    "the house of Zababa-iddin son of Šamaš-iddin gave them grain when the house ran short"
+   ],
+   "past": 4,
+   "worries": [],
+   "hopes": [
+    "to see the king's horses"
+   ],
+   "needs": [],
+   "news": [],
+   "lately": [],
+   "said": [],
+   "plan": {
+    "parts": 35,
+    "whys": 23,
+    "work": 4,
+    "places": 4,
+    "sameNext": false,
+    "sameSeason": false,
+    "day": [
+     "0.0 sleep @h:2013: asleep",
+     "4.4 tend_body @h:2013: washing his face and hands at the water jar in the courtyard at rising",
+     "4.4 carry_sack @h:2013: carrying in brushwood for the morning fire",
+     "4.7 play @h:2013: playing in the courtyard before the morning bread",
+     "5.5 eat @h:2013: breakfast with the household",
+     "5.8 carry_sack @road:town: to the lane with a measure of barley",
+     "5.8 exchange @lane:q_lt_e: exchanging a measure of barley for oil with a neighbour",
+     "6.0 carry_jar @road:town: carrying the oil home",
+     "6.1 rest @h:2013: setting the load down at home",
+     "6.1 walk @road:town: out to the garden channels",
+     "6.2 play @garden:q_lt_e: playing by the garden channels",
+     "7.5 walk @road:town: out to the lane",
+     "7.6 play @lane:q_lt_e: pulling a clay animal on wheels along the lane",
+     "8.8 walk @road:town: walking home",
+     "8.9 play @h:2013: playing at home",
+     "9.9 walk @road:town: out to the lane",
+     "9.9 play @lane:q_lt_e: playing chase along the lane with the other children",
+     "11.5 walk @road:town: out to the garden channels",
+     "11.5 play @garden:q_lt_e: playing by the garden channels",
+     "12.0 walk @road:town: walking home",
+     "12.0 play @h:2013: playing in the courtyard",
+     "12.1 eat @h:2013: the midday meal with the household",
+     "12.7 sleep @h:2013: sleeping through the heat of the day",
+     "15.3 walk @road:town: out to the lane",
+     "15.4 play @lane:q_lt_e: playing with a top, whipping it along the lane",
+     "16.0 walk @road:town: out to the garden channels",
+     "16.1 play @garden:q_lt_e: playing by the garden channels",
+     "16.8 walk @road:town: out to the lane",
+     "16.9 play @lane:q_lt_e: playing at houses in the lane with the other children",
+     "17.9 walk @road:town: walking home",
+     "17.9 play @h:2013: playing at home",
+     "18.4 play @h:2013: playing in the courtyard",
+     "18.5 eat @h:2013: the evening meal with the household",
+     "19.0 rest @h:2013: with the household",
+     "19.7 sleep @h:2013: asleep"
+    ]
+   },
+   "talk": [
+    {
+     "q": "Who are you?",
+     "key": "who",
+     "fact": "you are Yamakšedda, son of Artavardiya, seven, an Elamite; your father Artavardiya and your mother Aryazātā live with you",
+     "factOk": true,
+     "tokens": 446,
+     "reply": "I am Yamakšedda, son of Artavardiya, and I am seven. I live with my father Artavardiya, my mother Aryazātā and my brother Θuxra. I am an Elamite, born in a village of the Elamite lowlands.",
+     "grounded": true
+    },
+    {
+     "q": "Who lives in your house?",
+     "key": "family",
+     "fact": "in your house: your father Artavardiya and your mother Aryazātā and your brother Θuxra",
+     "factOk": true,
+     "tokens": 446,
+     "reply": "In my house: my father Artavardiya, my mother Aryazātā and my brother Θuxra. My kin keep Bēl-ēṭir’s house and others nearby.",
+     "grounded": true
+    },
+    {
+     "q": "What work do you do?",
+     "key": "work",
+     "fact": "your work: a child of the household; right now: walking home",
+     "factOk": true,
+     "tokens": 446,
+     "reply": "I help my mother. Just now I am walking home.",
+     "grounded": true
+    },
+    {
+     "q": "What has happened to you this year?",
+     "key": "year",
+     "fact": "the house of Zababa-iddin son of Šamaš-iddin gave them grain when the house ran; yesterday: playing indoors; an express courier arrived at the road station",
+     "factOk": true,
+     "tokens": 446,
+     "reply": "The house of Zababa-iddin son of Šamaš-iddin gave us grain when the house ran short. Yesterday I was playing indoors.",
+     "grounded": true
+    },
+    {
+     "q": "What troubles you?",
+     "key": "cares",
+     "fact": "you hope for to see the king's horses",
+     "factOk": true,
+     "tokens": 446,
+     "reply": "I hope to see the king's horses.",
+     "grounded": true
+    }
+   ],
+   "thin": {}
+  },
+  {
+   "seed": 42,
+   "kind": "village",
+   "pid": 12789,
+   "name": "Ištimanka",
+   "byname": "son of Karma",
+   "age": 20,
+   "sex": "m",
+   "job": "farmer",
+   "origin": "a Persian of Parsa",
+   "home": "a village of the plain, about two hours’ walk north-east of the Terrace",
+   "household": 2,
+   "kinHouses": 3,
+   "friends": 4,
+   "year": [
+    "the house of Ištimanka son of Ardumaniš gave them grain when the house ran short"
+   ],
+   "past": 4,
+   "worries": [
+    "Vahutausā growing weak",
+    "hail or blight before the harvest is in"
+   ],
+   "hopes": [
+    "a good harvest"
+   ],
+   "needs": [],
+   "news": [
+    "heard of a death in the house of Karkiš son of Naprap",
+    "heard of sickness in the house of Iršena son of Θuxra"
+   ],
+   "lately": [],
+   "said": [],
+   "plan": {
+    "parts": 18,
+    "whys": 14,
+    "work": 2,
+    "places": 3,
+    "sameNext": false,
+    "sameSeason": false,
+    "day": [
+     "0.0 sleep @h:3265: asleep",
+     "4.1 tend_body @h:3265: washing his face and hands at the water jar in the courtyard at rising",
+     "4.2 rest @h:3265: at home",
+     "4.3 eat @h:3265: bread and water before leaving",
+     "4.4 walk @road:plain: out to the field",
+     "4.9 reap @field:3276:2: helping kin with their harvest",
+     "10.4 eat @field:3276:2: the midday meal in the shade at the field edge: bread and water carrie",
+     "10.9 sleep @field:3276:2: sleeping in the shade at the field edge through the heat",
+     "13.4 rest @field:3276:2: resting in the shade at the field edge through the heat",
+     "14.6 eat @field:3276:2: bread and water",
+     "14.9 rest @field:3276:2: resting in the shade at the field edge through the heat",
+     "15.1 reap @field:3276:2: helping kin with their harvest, on through the afternoon",
+     "16.8 walk @road:plain: home from the field",
+     "17.3 rest @h:3265: at home",
+     "17.8 talk @h:3265: with the household",
+     "18.2 eat @h:3265: the evening meal with the household",
+     "18.7 talk @h:3265: with the household",
+     "21.6 sleep @h:3265: asleep"
+    ]
+   },
+   "talk": [
+    {
+     "q": "Who are you?",
+     "key": "who",
+     "fact": "you are Ištimanka, son of Karma, twenty, a Persian of Parsa; your wife Bagabāmā and Vahutausā (the old woman of the house) live with you",
+     "factOk": true,
+     "tokens": 435,
+     "reply": "I am Ištimanka, son of Karma. I am a farmer of the plain. And what brings you here?",
+     "grounded": true
+    },
+    {
+     "q": "Who lives in your house?",
+     "key": "family",
+     "fact": "in your house: your wife Bagabāmā and Vahutausā (the old woman of the house)",
+     "factOk": true,
+     "tokens": 435,
+     "reply": "In my house: my wife Bagabāmā and Vahutausā, the old woman of the house. My kin keep Barušiyatiš’s house and others nearby.",
+     "grounded": true
+    },
+    {
+     "q": "What work do you do?",
+     "key": "work",
+     "fact": "your work: a farmer of the plain (barley, wheat, sesame, vines); right now: sleeping in the shade at the field edge through the heat",
+     "factOk": true,
+     "tokens": 435,
+     "reply": "I am a farmer of the plain. Just now I am sleeping in the shade at the field edge through the heat.",
+     "grounded": true
+    },
+    {
+     "q": "What has happened to you this year?",
+     "key": "year",
+     "fact": "the house of Ištimanka son of Ardumaniš gave them grain when the house ran; yesterday: threshing: driving the animals round over the sheaves on the village floor; an express courier arrived at the road station",
+     "factOk": true,
+     "tokens": 435,
+     "reply": "The house of Ištimanka son of Ardumaniš gave us grain when the house ran short.",
+     "grounded": true
+    },
+    {
+     "q": "What troubles you?",
+     "key": "cares",
+     "fact": "you are worried about Vahutausā growing weak; you are worried about hail or blight before the harvest is in",
+     "factOk": true,
+     "tokens": 435,
+     "reply": "I worry about Vahutausā growing weak.",
+     "grounded": true
+    }
+   ],
+   "thin": {}
+  },
+  {
+   "seed": 42,
+   "kind": "terrace",
+   "pid": 1971,
+   "name": "Muška",
+   "byname": "son of Appumanya",
+   "age": 12,
+   "sex": "m",
+   "job": "treasury",
+   "origin": "an Elamite",
+   "home": "a mud-brick house in the town north-west of the Terrace, a short walk from its stair",
+   "household": 2,
+   "kinHouses": 4,
+   "friends": 4,
+   "year": [],
+   "past": 4,
+   "worries": [
+    "Amačiθrā lying sick"
+   ],
+   "hopes": [
+    "a toy of your own"
+   ],
+   "needs": [],
+   "news": [
+    "heard of sickness in the house of Tiššantamma son of Upadarma",
+    "heard of a death in the house of Šakada son of Zabbara"
+   ],
+   "lately": [],
+   "said": [],
+   "plan": {
+    "parts": 28,
+    "whys": 19,
+    "work": 8,
+    "places": 7,
+    "sameNext": false,
+    "sameSeason": false,
+    "day": [
+     "0.0 sleep @h:635: asleep",
+     "4.7 tend_body @h:635: washing his face and hands at the water jar in the courtyard at rising",
+     "4.8 rest @h:635: at home",
+     "5.5 eat @h:635: breakfast with the household",
+     "5.7 rest @h:635: at home",
+     "7.0 walk @road:town: going to the issue",
+     "7.4 queue @store_town: waiting for the ration issue",
+     "7.5 queue @store_town: in the queue for the monthly ration",
+     "7.7 walk @road:town: going to the workshop",
+     "7.8 rest @ws:1: stopping there a moment",
+     "7.8 walk @road:town: walking",
+     "7.9 grind @mill: the group’s turn at the mill",
+     "10.4 walk @road:town: walking",
+     "10.5 work_wood @ws:1: treasury workshop: working wood",
+     "12.0 eat @ws:1: the midday meal",
+     "12.7 work_wood @ws:1: treasury workshop: working wood",
+     "12.7 walk @road:town: walking",
+     "12.8 carry_sack @royal_store: fetching materials from the royal stores",
+     "14.1 walk @road:town: walking",
+     "14.2 work_wood @ws:1: treasury workshop: working wood",
+     "15.0 carry_sack @road:town: carrying the ration home",
+     "15.4 play @h:635: playing indoors out of the heat",
+     "16.5 walk @road:town: walking",
+     "16.6 play @lane:q_pw_n: playing in the lane",
+     "18.4 walk @road:town: walking",
+     "18.5 eat @h:635: the evening meal with the household",
+     "18.9 rest @h:635: with the household",
+     "21.3 sleep @h:635: asleep"
+    ]
+   },
+   "talk": [
+    {
+     "q": "Who are you?",
+     "key": "who",
+     "fact": "you are Muška, son of Appumanya, twelve, an Elamite; your mother Paruduxçā and your sister Amačiθrā live with you",
+     "factOk": true,
+     "tokens": 435,
+     "reply": "I am Muška, son of Appumanya, and I am twelve. I live with my mother Paruduxçā and my sister Amačiθrā.",
+     "grounded": true
+    },
+    {
+     "q": "Who lives in your house?",
+     "key": "family",
+     "fact": "in your house: your mother Paruduxçā and your sister Amačiθrā",
+     "factOk": true,
+     "tokens": 435,
+     "reply": "In my house: my mother Paruduxçā and my sister Amačiθrā. My kin keep Mibṭaḥiah’s house and others nearby.",
+     "grounded": true
+    },
+    {
+     "q": "What work do you do?",
+     "key": "work",
+     "fact": "your work: a woodworker of the Treasury (the sixth treasury workers' group); right now: the midday meal",
+     "factOk": true,
+     "tokens": 435,
+     "reply": "I am a woodworker of the Treasury, with the sixth treasury workers' group. Just now it is the midday meal.",
+     "grounded": true
+    },
+    {
+     "q": "What has happened to you this year?",
+     "key": "year",
+     "fact": "yesterday: treasury workshop: working wood at home; an express courier arrived at the road station",
+     "factOk": true,
+     "tokens": 435,
+     "reply": "Nothing much this year. Yesterday I was working wood at home.",
+     "grounded": true
+    },
+    {
+     "q": "What troubles you?",
+     "key": "cares",
+     "fact": "you are worried about Amačiθrā lying sick; you hope for a toy of your own",
+     "factOk": true,
+     "tokens": 435,
+     "reply": "I worry about Amačiθrā lying sick.",
+     "grounded": true
+    }
+   ],
+   "thin": {
+    "deeds": "nothing done by or to them this year that they know of"
+   }
+  },
+  {
+   "seed": 42,
+   "kind": "road",
+   "pid": 80411,
+   "name": "Amazātā",
+   "byname": "wife of Ušaya",
+   "age": 20,
+   "sex": "f",
+   "job": "homemaker",
+   "origin": "a Persian of Parsa",
+   "home": "on the road: camped for a few days near the Terrace",
+   "household": 3,
+   "kinHouses": 0,
+   "friends": 0,
+   "year": [],
+   "past": 4,
+   "worries": [],
+   "hopes": [
+    "to see a sister again"
+   ],
+   "needs": [],
+   "news": [],
+   "lately": [],
+   "said": [],
+   "plan": {
+    "parts": 3,
+    "whys": 3,
+    "work": 3,
+    "places": 2,
+    "sameNext": false,
+    "sameSeason": false,
+    "day": [
+     "0.0 offmap @-: at home in a village under Naqsh-e Rustam",
+     "7.1 carry_bread @road:road_naqsh_e_rustam: carrying a basket of onions, cucumbers and melons to sell in Pārsa",
+     "7.8 offmap @-: at kin’s in Pārsa for the night"
+    ]
+   },
+   "talk": [
+    {
+     "q": "Who are you?",
+     "key": "who",
+     "fact": "you are Amazātā, wife of Ušaya, twenty, a Persian of Parsa; your husband Ušaya and Tiriya (kinsman of the house) live with you",
+     "factOk": true,
+     "tokens": 430,
+     "reply": "I am Amazātā, wife of Ušaya. I keep the house: grinding, baking, water, spinning and the children. And what brings you here?",
+     "grounded": true
+    },
+    {
+     "q": "Who lives in your house?",
+     "key": "family",
+     "fact": "in your house: your husband Ušaya and Tiriya (kinsman of the house) and Xšaθratausā (kinswoman of the house)",
+     "factOk": true,
+     "tokens": 430,
+     "reply": "In my house: my husband Ušaya and Tiriya and Xšaθratausā, of my kin.",
+     "grounded": true
+    },
+    {
+     "q": "What work do you do?",
+     "key": "work",
+     "fact": "your work: keeper of the household: grinding, baking, water, spinning and the; right now: at kin’s in Pārsa for the night",
+     "factOk": true,
+     "tokens": 430,
+     "reply": "Listen, stranger. I keep the house: grinding, baking, water, spinning and the children. Just now I am at kin’s in Pārsa for the night.",
+     "grounded": true
+    },
+    {
+     "q": "What has happened to you this year?",
+     "key": "year",
+     "fact": "an express courier arrived at the road station",
+     "factOk": true,
+     "tokens": 430,
+     "reply": "This year has been quiet. My father died, six years ago.",
+     "grounded": true
+    },
+    {
+     "q": "What troubles you?",
+     "key": "cares",
+     "fact": "you hope for to see a sister again",
+     "factOk": true,
+     "tokens": 430,
+     "reply": "I hope to see a sister again.",
+     "grounded": true
+    }
+   ],
+   "thin": {
+    "deeds": "nothing done by or to them this year that they know of"
+   }
+  },
+  {
+   "seed": 42,
+   "kind": "court",
+   "pid": 51182,
+   "name": "Uštana",
+   "byname": "son of Ištimanka",
+   "age": 23,
+   "sex": "m",
+   "job": "steward",
+   "origin": "a Persian of Parsa",
+   "home": "a tent in the court’s camp below the Terrace",
+   "household": 9,
+   "kinHouses": 0,
+   "friends": 2,
+   "year": [
+    "came to Parsa with the king’s household from Šušan in the month Ādukanaiša",
+    "the harvest was good"
+   ],
+   "past": 4,
+   "worries": [
+    "Bakabada lying sick",
+    "Bagābigna growing weak"
+   ],
+   "hopes": [
+    "to put by grain for a lean year",
+    "to put by enough for a bride-gift"
+   ],
+   "needs": [],
+   "news": [
+    "heard of sickness in the house of Hašina son of Baduzarma",
+    "heard of sickness in the house of Iddin-Nabû son of Balāṭu"
+   ],
+   "lately": [],
+   "said": [],
+   "plan": {
+    "parts": 27,
+    "whys": 15,
+    "work": 4,
+    "places": 8,
+    "sameNext": false,
+    "sameSeason": false,
+    "day": [
+     "0.0 sleep @court_camp: asleep",
+     "6.4 eat @court_camp: breakfast in his tent at the camp",
+     "6.8 walk @road:terrace: going up to the Terrace",
+     "7.1 walk @road:terrace: walking",
+     "7.1 talk @court_portico: talking with other Persians of rank in the Apadana portico",
+     "9.3 walk @road:terrace: walking",
+     "9.4 inspect @court_apadana_e: waiting below the Apadana’s E stair to be called",
+     "10.7 walk @road:terrace: walking",
+     "10.7 inspect @apadana_hall: in attendance in the Apadana",
+     "11.4 walk @road:terrace: walking",
+     "11.4 talk @gate_hall: talking in the Gate of All Nations",
+     "12.2 walk @road:terrace: walking",
+     "12.3 eat @court_hadish: a meal at the king’s table, in the hall apart from the king",
+     "13.3 walk @road:terrace: walking",
+     "13.4 talk @court_portico: talking with other Persians of rank in the Apadana portico",
+     "14.4 walk @road:terrace: walking",
+     "14.4 inspect @apadana_hall: in attendance in the Apadana",
+     "15.5 walk @road:terrace: walking",
+     "15.5 talk @forecourt: talking with other Persians of rank in the forecourt",
+     "16.2 walk @road:terrace: going down to the camp",
+     "16.5 rest @court_camp: resting at the camp",
+     "17.3 talk @court_camp: talking with other Persians of rank at the camp",
+     "18.4 tend_animals @court_camp: seeing to his horses",
+     "19.0 eat @court_camp: the evening meal at the camp",
+     "19.7 talk @court_camp: talking with other Persians of rank at the camp",
+     "20.2 rest @court_camp: resting at the camp",
+     "21.6 sleep @court_camp: asleep"
+    ]
+   },
+   "talk": [
+    {
+     "q": "Who are you?",
+     "key": "who",
+     "fact": "you are Uštana, son of Ištimanka, twenty-three, a Persian of Parsa; your companion Hašina and your companion Irdaša live with you",
+     "factOk": true,
+     "tokens": 433,
+     "reply": "Ah, stranger. I am Uštana, son of Ištimanka. I am a steward of an estate.",
+     "grounded": true
+    },
+    {
+     "q": "Who lives in your house?",
+     "key": "family",
+     "fact": "in your house: your companion Hašina and your companion Irdaša and your companion Bakabada",
+     "factOk": true,
+     "tokens": 433,
+     "reply": "In my house: my companions Hašina, Irdaša, Bakabada, Miššabadda, Irdabada, Bagābigna, Kadukku, Ardumaniš and Gaubaruva.",
+     "grounded": true
+    },
+    {
+     "q": "What work do you do?",
+     "key": "work",
+     "fact": "your work: a steward of an estate; right now: talking in the Gate of All Nations",
+     "factOk": true,
+     "tokens": 433,
+     "reply": "I am a steward of an estate. Just now I am talking in the Gate of All Nations.",
+     "grounded": true
+    },
+    {
+     "q": "What has happened to you this year?",
+     "key": "year",
+     "fact": "came to Parsa with the king’s household from Šušan in the month Ādukanaiša; yesterday: shooting at the mark below the Terrace; an express courier arrived at the road station",
+     "factOk": true,
+     "tokens": 433,
+     "reply": "I came to Parsa with the king’s household from Šušan in the month Ādukanaiša. Our harvest was good.",
+     "grounded": true
+    },
+    {
+     "q": "What troubles you?",
+     "key": "cares",
+     "fact": "you are worried about Bakabada lying sick; you are worried about Bagābigna growing weak",
+     "factOk": true,
+     "tokens": 433,
+     "reply": "I worry about Bakabada lying sick. I hope to put by grain for a lean year.",
+     "grounded": true
+    }
+   ],
+   "thin": {}
+  },
+  {
+   "seed": 42,
+   "kind": "camp",
+   "pid": 664,
+   "name": "Jedaniah",
+   "byname": "son of Mardunuya",
+   "age": 40,
+   "sex": "m",
+   "job": "builder",
+   "origin": "a man of Syria (Across-the-River)",
+   "home": "a mud-brick house in the town south-west of the Terrace, a short walk from its stair",
+   "household": 9,
+   "kinHouses": 3,
+   "friends": 4,
+   "year": [
+    "is to be married this year to Čiθrazātā (the families have agreed)"
+   ],
+   "past": 4,
+   "worries": [
+    "the debt that falls due",
+    "an accident at the stone"
+   ],
+   "hopes": [
+    "the wedding with Čiθrazātā"
+   ],
+   "needs": [],
+   "news": [
+    "heard of sickness in the house of Nabû-bullissu son of Itti-Marduk-balāṭu",
+    "heard of a death in the house of Uštana son of Mitranka"
+   ],
+   "lately": [],
+   "said": [],
+   "plan": {
+    "parts": 21,
+    "whys": 16,
+    "work": 3,
+    "places": 6,
+    "sameNext": false,
+    "sameSeason": false,
+    "day": [
+     "0.0 sleep @h:181: asleep",
+     "4.2 tend_body @h:181: washing his face and hands at the water jar in the courtyard at rising",
+     "4.3 rest @h:181: at home",
+     "4.7 eat @h:181: bread and water before leaving",
+     "4.9 walk @road:terrace: going to the building site",
+     "5.3 haul @hall100_site: building up the earth ramp",
+     "11.6 eat @hall100_site: bread and water",
+     "11.9 haul @hall100_site: building up the earth ramp",
+     "12.0 walk @road:terrace: going home",
+     "12.5 sleep @h:181: sleeping through the heat of the day",
+     "14.3 rest @h:181: resting at home after work",
+     "16.5 walk @road:town: walking",
+     "16.6 gamble @lane:q_lt_e: knucklebones in the lane",
+     "18.1 walk @road:town: walking",
+     "18.1 rest @h:181: at home",
+     "18.3 eat @h:181: the evening meal with the household",
+     "18.9 walk @road:town: visiting",
+     "19.0 eat @h:86: at a kinsman’s birthday meal, for its many sweets",
+     "20.4 walk @road:town: going home",
+     "20.5 rest @h:181: with the household",
+     "20.7 sleep @h:181: asleep"
+    ]
+   },
+   "talk": [
+    {
+     "q": "Who are you?",
+     "key": "who",
+     "fact": "you are Jedaniah, son of Mardunuya, forty, a man of Syria (Across-the-River); Hiduš (kinsman of the house) and Paktyes (kinsman of the house) live with you",
+     "factOk": true,
+     "tokens": 428,
+     "reply": "I am Jedaniah, son of Mardunuya. I am a labourer in the labour gang: earth, rubble and stone chips on the Hall. I am a man of Syria (Across-the-River), born in Damascus. And what brings you here?",
+     "grounded": true
+    },
+    {
+     "q": "Who lives in your house?",
+     "key": "family",
+     "fact": "in your house: Hiduš (kinsman of the house) and Paktyes (kinsman of the house) and Psamtek (kinsman of the house); is to be married this year to Čiθrazātā (the families have agreed)",
+     "factOk": true,
+     "tokens": 428,
+     "reply": "In my house: Hiduš, Paktyes and others of the house. I am to be married this year to Čiθrazātā.",
+     "grounded": true
+    },
+    {
+     "q": "What work do you do?",
+     "key": "work",
+     "fact": "your work: a labourer in the labour gang: earth, rubble and stone (the labour gang of Ibanollis); right now: going home",
+     "factOk": true,
+     "tokens": 428,
+     "reply": "I am a labourer in the labour gang: earth, rubble and stone chips on the Hall, with the labour gang of Ibanollis. Just now I am going home. By the gods, it is so.",
+     "grounded": true
+    },
+    {
+     "q": "What has happened to you this year?",
+     "key": "year",
+     "fact": "is to be married this year to Čiθrazātā (the families have agreed); yesterday: mending tools and baskets; an express courier arrived at the road station",
+     "factOk": true,
+     "tokens": 428,
+     "reply": "I am to be married this year to Čiθrazātā. Yesterday I was mending tools and baskets.",
+     "grounded": true
+    },
+    {
+     "q": "What troubles you?",
+     "key": "cares",
+     "fact": "you are worried about the debt that falls due; you are worried about an accident at the stone",
+     "factOk": true,
+     "tokens": 428,
+     "reply": "I worry about the debt that falls due. I hope for the wedding with Čiθrazātā.",
+     "grounded": true
+    }
+   ],
+   "thin": {}
+  }
+ ]
+}

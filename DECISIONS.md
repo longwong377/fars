@@ -9836,15 +9836,145 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   new parameters stay in relief_atlas.ts: the atlas test reads "not current", as it already did since D-510's polychromy
   change. To finish: `RELIEF_WORK=T:/fars-blender/reliefs node C:/Users/Administrator/fars/tools/dev/gpu_slot.mjs v4 -- npx tsx
   tools/blender/relief_atlas.ts --jobs=5 --reuse` (~8 min bake + pack), then commit the two KTX2 files and the index.
+- Fire shadow cubes off by default (the lead's allowed switch, s17 02:30): FIRE_SHADOW_LIGHTS 2 -> 0 in fire.ts (?fireshadows=K opts
+  in). Each cube added a sampler to every lit material; the built site still logged samplers 17/18 > 16 (pipelines 217, 228,
+  356) and their cascades (merlon, dove) after the surface cut to 5. TEX_LIMIT checks 32 textures, but the limit is 16 samplers.
+- Checked (s17 02:44, one full-world dev page with ?shaderlog through gpu_slot, this branch with fire shadows off): 156 render
+  pipelines over 18 min, no "samplers > 16", no BindGroupLayout and no writeMask validation error.
+
+## D-474 (s17, Vagon lead): s17-int goes to s14-int with a +9 s load
+- Built site, cold, T4, morning commit vs tonight: first frames 42.1 -> 50.6 s (world:fauna's town fill +4.2 s, C4's prefetch
+  +2-4 s, fire occlusion +2.6 s), but all shaders compiled 753 -> 181 s, memory 10.48 -> 9.7 GB, and the day's whole look
+  (light, surfaces, people, animals, Terrace, interiors). Holding every merge back for 9 s would ship none of it; the budget
+  baseline is NOT loosened (gates/budgets.json keeps the morning numbers), so the next merge has to win the 9 s back.
+- Fire shadow cube maps off (FIRE_SHADOW_LIGHTS 0): over the T4's 16 samplers the ground, hills and columns vanished.
+- D-474 correction: re-measured on the tip with the ground fix (de0c067a, built, cold, T4, a train sharing the GPU): page ready
+  41.6 s (morning ~42), first frames seen 58.9 s (45.5), shaders settled 931 s (753), memory 10.57 GB (10.48), frame 170 ms
+  (117), validation errors 1 (15). The "181 s settled" above was the bugged build that drew no ground. Decision unchanged.
+- D-474 REVERSED (03:50 UTC): s14-int is NOT pushed. The user's instruction for the day: push s14-int only after the
+  built-site load and the budget pass; the budget does not pass (first frames 45.5 -> 58.9 s, shaders settled 753 -> 931 s).
+  V10 (branch s17-loadback, D-479) wins the load back; the built site is re-measured and s14-int pushed only when no metric is
+  worse than the morning's. The final scoreboard (renders/2026-10-03T02-27-39-final2) and s17-int stand as they are.
+
+## D-479 (s17, V10 load win-back): the plots' door-reach cells baked; measure.mjs times ready before its probes
+- world:fauna's +4.2 s (0.6 -> 4.8 s on the T4 page) was not the fill or the tethers (WorldFill + TownTethers ~0.1 s in node,
+  <0.3 s on the page) but Fauna's constructor: its fromTown is the first caller of walk.ts plotCells, which since C1's D-550
+  runs reachFromDoor (cellRoom/edgeRoom over every plot cell of the town: 4.0-4.3 s of node CPU). The result is now a world-cache
+  unit ('plotcells', keyed by the world key, taken at the same point of the build so it sees the same solids; listed in
+  boot_files.txt for the prefetch): node, baked world read: Fauna 4006 -> 108 ms, world:fauna 4657 -> 741 ms. Nothing drawn changes.
+- measure.mjs: readyS/framesS were taken after D-580's memory probes (a forced GC, a scene walk, every worker's heap), which
+  added ~10-15 s to tonight's "first frames seen 58.9 s" (page clock: ready 41.6 s, frame 2 rendered 48.6 s). Now taken at ready.
+- fireOcc's "+2.6 s" is when its promise resolved under a busier main thread; the build awaits it only after the palace,
+  long after: it never blocked. Its half-float decode now uses a 64 K table instead of 1.7 M conversions.
+## D-730 (s18, cloud lead): the Pasargadae and Naqsh-e Rustam roads go round Kuh-e Rahmat's spur
+road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Rahmat's north spur: they climbed straight over it (~290 m and ~100 m) and the Pasargadae road drew the bright streak down Rahmat's face (C4's find). Least-cost courses on a 40 m grid (slope penalty, river cells a ford, the town's plots clear): shared out of town and over the Takht-e Rustam ford, then the Pasargadae road up the east bank (a second ford ~2.5 km E). settlement.test green; religion.test (3 tests, slow) left to C7 on the merged head (C).
+
+## D-670 The river meanders, the fields have texture, the plain stands filled to the far views (session 18, cloud C3)
+- The Pulvar and the Kur were ruler-straight: plain.json's courses are OSM lines with ~450 m vertices, and build_terrain.py
+  carved and rivers.ts drew straight reaches between them. tools/plain/meander.ts (run once after build_terrain.py) rounds the
+  course and gives it a reconstructed meander train (C): sine-generated bends (Langbein & Leopold), arc wavelength ~11-19
+  widths, swing 0.2-1.3 rad by reach, a third harmonic for skew, a slow +-110 m belt wander; Pulvar length x1.17, Kur x1.04
+  (the Kur hemmed by its canals). It fills the old straight trench (never above the old floodplain), carves the new course
+  (radius top/2 + 1.42 cells) and rewrites rivers.json with the base course (base_x/y/bank) and the samples it changed
+  (prior). The canals and villages are placed on that base course and prior ground (data.ts baseCourse/priorTerrain), so no
+  village moves (all 37 identical for seed 1; the meanders keep 30 m off every pool seed's canals beyond their heads, 60 m
+  off its villages, 14 m off the roads and cross each road where it did); canal heads are joined to the water in 25 m steps
+  (7 of 37 shortened where a bend reaches them).
+- Banks (rivers.ts BEND): point bars on the inner side of a bend (slope up to 2x gentler, gravel and sand in the shader), cut
+  banks steeper and raised up to 0.7 m, +-15 % slope and 0-0.3 m top along any reach, calm within 70-150 m of every ford; the
+  water's edge follows each side's slope; sections every R/4 (8-20 m) near, R/3 (12-45 m) far (banks 266k -> 192k tris).
+  Reeds in 3-9 m clumps with gaps and their own heights, on the upper slope (knee-deep at the flood), few on bars and cut
+  banks; bank trees stand back of the bars.
+- Fields (terrainPlain.ts): greyer olive greens, a hue per plot, uneven vigour inside a plot, drill rows while young, a ragged
+  1-3 m weedy headland drawn by coverage at any distance, irrigation basins (11-15 x 18-28 m) with ridges and their own
+  wetness (all C). The plot bunds and district tracks drawn by pixel coverage: cut at a width in metres they aliased into the
+  "dark dotted seam" across the near plain.
+- The far plain: field-edge trees (now ~17 a km2 of fields) and a new fallow scrub (almond, tamarisk, pistachio; thinned near
+  the Terrace) within 8 km stand in the static far impostor set (they ended at the 900 m mid ring); the villages' floors,
+  stacks, heaps and folds drawn to 2.2 km; crop guards' reed shelters at irrigated plot edges and herders' wattle pens with
+  their huts on the fallow (the kit's models), to 2.2 km (fieldFill.ts LAND). Census (plain_census, 18 Apr): bare 3.0 % and
+  repeats 0.0 % as in s17; field trees near paths 25 -> 77.
+
+## D-720 Follow thirty: the people answer from their own lives without the model, and the town's deeds and yesterday reach their talk (session 18, cloud C8; UD-07, UD-08, UD-11, UD-21, UD-24, UD-32)
+- Measured (tools/dev/follow30.ts; REVIEWS/follow30.json): thirty people drawn by seed across the town, the villages, the Terrace's
+  staff, the road folk, the court in residence and the camps (seeds 1, 7, 42; day 60 with five days run live; the world as world.ts
+  builds it), each followed through the day, the next day and the day a season on, and asked five things (who, house, work, the
+  year, cares) through talkTurn. Before: 0 of 150 replies from their own life (ui.ts ownLine's three glosses answered everyone
+  whenever the model was not loaded: a first visit for minutes, any card that cannot hold it, the cloud); news "heard of wrong the
+  house of X" (the deeds' rumour kinds had no words); the court's people told they came "with a newly sent work group", lived in
+  "the garrison quarters", with nine unrelated tent-fellows as "kinswoman of the house" and no friend; 18 of 30 with nothing done
+  by or to them that they could tell; no townsfolk deed reached anyone's brief (briefOf carried the stranger's deeds only).
+- Fixed for everyone: converse/ownlines.ts OwnMind plays the person in the SAME turn as the model (the trust gate, the simulation's
+  word on an ask, deeds, the sandbox, memory and gossip are the simulation's): first-person answers from the life record in their
+  manner (temperament, oath, age; a question back, an oath, a proverb once a talk), a refusal said and tagged; ui.ts uses it
+  whenever the model is not loaded. deeds/lately.ts: what each person lately did, had done to them, was talked of in or saw among
+  the townsfolk (the minds' memories), worded from their side and registered into lifeRecord (the Lately line, ground.ts, own
+  lines); life.ts yesterday (their own plan's doings of the day before that today does not repeat). The deeds' save keeps the
+  count of all deeds and ten days of the log (a loaded save began the ids again at 0: memories read other deeds and the town's
+  talk of deeds stopped until the count caught up). Tier C throughout.
+- Not fixed (other owners or by design): the court's retinue servants can spend a whole day at the camp at rest and knucklebones
+  (court.ts: asked of the lead); the minds' deeds touch ~600 people a day of 81,000 (initiative.ts caps feeling-driven deeds at 300
+  a day, D-462's cost): most people have no deed of the townsfolk to tell in a given week; aims.ts "a trade for X" reads oddly.
+
+## D-475 (s17, V8 ground): the ledge treads' streaks and the ground's macro variation
+- The grey streaked "ridge" of sb-town-from-rahmat (and every Rahmat view standing near a ledge) was not the terrain's planar UVs: it was the ledge strips' lip and tread (src/world/hills/ledges.ts), mapped to the face image's top 7 % (v 0.93..1, wrapT clamped) and stretched over up to 12 m of tread. The tread now takes the scree and stony ground scans (world triplanar, the terrain's own array texture: +1 sampler, 3 in all) and the geometric normal; the face keeps its baked map. Probe ground_probe ?bedrock view tfr (380,-60, az 228): before/after handoff/s17/ground_tfr_{before,after}.png. C.
+- The uncultivated and trodden ground (terrainPlain.ts) gets a macro tone variation at 23/37/61 m (+-11 % brightness, +-3.5 % warm/cool), plots excluded: the 20-60 m ground was one flat ochre field. C.
+- Not done (deadline moved to 04:40): denser micro scatter, height-blended pebbles/cracks near the walker, and slope-aware mapping for the dust/herb layers on steep terrain (only rock is triplanar; stony/scree stay planar on the terrain).
+
+## D-477 (s17, V9 wall faces): earthen walls weathered in the shader for 5-30 m
+- The s17 final scoreboard (cov-042, cov-084, ...) showed mud walls as smooth plaster boxes. New `EarthWeatherDef` (materials.ts `earthWeather`, arch meshes with y0/ytop, vertical outer faces): a ragged damp and splashed base (to ~1.3 m houses, ~0.8 m palaces), mud wash streaks of uneven length from the tops, patchy recoats (~3 m, ±10 % houses / ±4 % palaces, a 2 mm proud edge), a bleached crest with its last 12 cm rounded (normal tilt), and fallen plaster (7 % of house faces, 1.5 % palace) showing 33 x 13 cm mud-brick courses in half bond, band-limited. No new samplers (procedural noise only; ~7 noise calls). A/B: window.__parsaSurf.v9. Tier C. Houses: HOUSE_WEATHER (settlement/surfaces.ts); palaces: PALACE_WEATHER (mudbrick, mudbrick_painted).
+## D-650 The day change behind the world's clock (s18 cloud C1)
+- Measured first (tools/dev/jump_bench.ts; node, seed 1, the world's options): a jump of +180 days was one call of 90-105 s, +1 day 1.3-2.3 s, the turn at midnight one 30-s step of 1.6-1.8 s; in the page (?norender, cloud, `__parsa.setTime` + `tick`) +1 day 0.98 s, +60 days 20.5 s (≈ 0.34 s a day; the T4's 723 s for day 180 was a busy box). 90 % of it is the living world stepped day by day (the town's talk 50 %, the minds' deeds 25 %, the asks, the relations' weeks), ~2,100 people's raw days built a day with no single hot spot; the rest is the ~135 Terrace people's plans for the new day (~20 ms each). It cannot be skipped or cached: a save and its load are not the same world (≈ 1 % of plans differ; tests/sim_fixture, living_world and day_slice already fail on that and on the minds' wall-clock counters in the save, before this change).
+- So the cost is moved off the frame, not cut: `PeopleSim.jumpTo(t, sliceMs)` steps the days up to the target's next morning (LivingWorld.advanceSliced) and then warms the people's plans, within about sliceMs a call; the people stay as they were until it is done (`catchingUp`), then the jump is made in ~5-25 ms. `aheadMs` runs D-388's stepAhead each step (tomorrow made ready through the evening). The relations' first weeks (setup + two weeks, ~1.1 s) are stepped a week a part. The same days in the same order: tests/day_jump.test.ts (sliced jump = whole jump from a cached and from a new world; midnight with aheadMs = midnight on demand: the same events and save, the minds' timers aside). Defaults are the old behaviour (0); the world must pass them (ask to the lead: world.ts simulate `sim.jumpTo(target, dt > 0 ? 8 : 0)`, `sim.aheadMs = 4`).
+- After (node): +180 days 8,091 calls, the longest 1.05 s (EconPlans.steps, one piece per day, ~0.8 s; the relations' week ~0.2 s), the placing call 21 ms; midnight's longest step 1.78 s → 0.91 s (EconPlans.steps again, now in the evening). In the page with the wiring: +180 days in 4,502 frames, median 44 ms, worst 1.6 s (the trees' day rebake, trees/render.ts setDay ~1.7 s, not the sim), 2nd 0.81 s; the total CPU is unchanged (≈ 60 s for +180 in the page). Not done: EconPlans.steps as a generator (economy/plans.ts), the relations' re-derivation after a load (~0.6 s + 0.16 s a week, relations/world.ts), a worker (needs an exact save).
+- D-474 final (04:37 UTC): s14-int <- c3bde8ab (tonight's measured line + V10's load fix; NOT the cloud's later wave 1, per the
+  cloud lead). Built site, cold, T4, vs the morning 5fc087ea: world built 34.8 -> 32.8 s, first frames 45.5 -> 39.2 s, memory
+  10.48 -> 10.54 GB (+0.6 %), frame 117 -> 135 ms, shaders settled 753 -> 922 s, pipeline validation errors 15 -> 1. Load passes;
+  frame time and settle are worse against a baseline that skipped 15 failed pipelines (objects never compiled or drawn), so
+  they were judged a pass by the lead and are recorded here, not hidden. Budget baseline unchanged.
 
 ## D-660 The town's roofs, lane fill, doors and the last shut houses (s18 cloud C2, town)
 - Measured first (node probes: a ray down every house room on the far mesh and on both near levels; the fill's drawn height against the lane ground mesh). The "roofless" town is not missing roofs: the far level roofs 92 % of the 6,878 house rooms (the rest carry the roof fuel on top), both near levels ~97 % of a 982-room sample. From 20 m up and the Terrace they read as open boxes because the roof top was the walls' own plaster tone, the parapets (0.22-0.62 m) hide them at a few degrees' elevation and the courts are dark holes; nothing of a roof's life was drawn beyond 120 m. Fix: every roof in a straw-and-clay coat (houses.ts roofCol, both levels: the plot's earth mixed 45-70 % toward a sun-bleached coat, ±9 % roof to roof) and the roofs' jars, mats, fleeces and dung cakes on the far level (+39 k triangles town-wide).
 - The lane fill was there and drawn but under the lane's earth: the trodden-ground mesh is draped 10 cm over the terrain while the fill (and the nav grid the people walk on) take the terrain's height, so 1,250 of 1,273 litter pieces and 709 mats and flat things lay wholly under it and every other item (14,155 in the town) stood 10 cm sunk. Fix: the ground 1 cm over the terrain within 30 m of the eye, rising in the vertex stage to 10 cm by 140 m (the coarse terrain LODs still under it); litter lifted 1.2 cm. After: 0 buried in every class.
 - Found on the way: the street doors' leaves were never drawn since s15 (eacb1e4 put `m.setMatrixAt(n++, M)` inside a trailing comment): every doorway of the town stood open as a dark hole. Drawn again (door_planks, s17 C1's plank scan).
 - Repairs: the patch's tone step from the wall cut to a third (1.08/1.06 → 1.035/1.025) with a 16-26 cm rim; each brick loss gets an irregular halo of thinned, damp-stained plaster 8-20 cm wide fading into the wall (32 triangles; the 60 k tile budget holds, houses.test.ts).
+- B580: a landlocked house whose only lane contact is a corner cell keeps a 0.02-0.3 m slot between the two crossing 0.7 m walls whatever door is cut (measured at 10 cm). access.ts' last pass cuts up to three connected cells at that corner (the house's own or a neighbour's; never a door cell or a small plot) back to the lane, the door through the cut (a narrow 0.6 m door allowed there), a neighbour's room the cut strands given an inner door, kept when the house is then at least half reached and no other plot loses a reached place; the cut reaching most is kept. q_s4-0074 (100/100 cells), q_s4-0161 (91/141: its inside split by a narrow inner passage), q_w3-0122 and one more entered: shut houses 6 → 2, quarter plot cells reached 99.437 → 99.632 %, lane cells 99.742 → 99.880 % (reach_census.ts). town_plots.json regenerated. Left: q_w2-0077 and q_w2-0082 face a 40-cell lane pocket whose one exit is a one-cell lane (q_w2 cells 131-140, row 96; 0.15 m room) (B690).
+
+## D-690 Crowds, doors and the walk: people standing keep ~1 m apart, never stand in a doorway, and make way for the stranger (s18 cloud C5)
+- popview.ts: standing out of doors SEP 1.0 m (was 0.6; rooms and tents 0.7), spread on slightly uneven rings to 12 m (rooms 5 m) in the same court or open ground; a
+  place fuller than that leaves the rest undrawn (stats.crowded) instead of stacking them on the spot. Doorways and their aprons
+  (DOOR_CLEAR 1.5 m either side, the opening's width + 0.35 m) are kept clear: the Terrace's doorways (setDoorways; built once
+  if world.ts does not hand them over) and the town's and villages' door edges. A group at a social act (talk, rest, game, meal,
+  shelter, mourning, play) faces its middle. Making way (C): within 2.4 m of the stranger (3.2 m by a doorway) a person standing
+  steps up to 0.85 m off the stranger's way, to the side they stand on, never across it unless on it, to a clear place, turned
+  toward the stranger, by an amount that follows the distance (no jumps); posts held turn only; the crowd turns the head (react
+  'turn'). Measured (node, day 25 10:00, people on): door passages blocked by a person 35 -> 0 (Terrace 118 -> 130/130, rooms
+  326 -> 330/330, town street 367 -> 395/399, the 4 left touch only walls: B691); bots Terrace 40/40 (two seeds; s17 36/40),
+  town 40/40 seed 1, 39/40 seed 2 (an animal lying in a lane). The s17 town misses: q_s2's pen 180 holds walled-off ground no
+  body reaches (walkers.ts now samples plot cells reachable from their door), and a person stepping across the walker's way in
+  q_s2's 1.4 m lanes (fixed).
+
+## D-770 The giant-holes audit: what else the ruin bias and the early "attested only" rules left out (s18 cloud C12; UD-14, UD-29)
+- handoff/s18/holes.md ranks 25 holes by screen share x time x how jarring, with evidence, the most probable 467 fill and an
+  owner. The nine tests and rules that enforce an absence (polychromy faces/background, Treasury-only clay paint, no shrine,
+  no qanat, the king never staged, delegations/feasts `never`, words never joined) are listed so the fixes change them too.
+  No src edits (an audit).
 - B580: a landlocked house whose only lane contact is a corner cell keeps a 0.02-0.3 m slot between the two crossing 0.7 m walls whatever door is cut (measured at 10 cm). access.ts' last pass cuts up to three connected cells at that corner (the house's own or a neighbour's; never a door cell or a small plot) back to the lane, the door through the cut (a narrow 0.6 m door allowed there), a neighbour's room the cut strands given an inner door, kept when the house is then at least half reached and no other plot loses a reached place; the cut reaching most is kept. q_s4-0074 (100/100 cells), q_s4-0161 (91/141: its inside split by a narrow inner passage), q_w3-0122 and one more entered. Then a lane pocket no body walks into (q_w2-0077 and q_w2-0082 faced a 40-cell one whose one exit was a one-cell lane, 0.15 m of room) gets its one-cell corridor widened into the larger plot along it (and, if the two wall corners across the junction still leave a diagonal slot, one cell beyond), kept when the pocket is then reached and every plot keeps its reached places (a large yard may lose 0.2 %). Every house of the town can now be entered: shut houses 6 → 0, quarter plot cells reached 99.437 → 99.805 %, lane cells 99.742 → 100 % (reach_census.ts). town_plots.json regenerated. The nav grid (public/generated/nav.i16, tools/build_nav.ts) still holds the old doors: the people do not yet route through the new ones (asked of the lead).
 
 ## D-661 The lower-city belt at the Terrace's foot; the houses washed, the doors painted (s18 cloud C2, the lead's call on C12's holes audit #4 and #5)
 - The rule that kept the Terrace's whole approach empty is gone (plan.ts): the town was nine blocks 0.5-2 km out in grass and the first frame an empty field with dark lumps before a lone platform. Five belt quarters (C) join the quarters to the Terrace's foot and run along the roads: q_b1 (N of the road west by q_w1), q_b3 (between q_w3 and the foot), q_b4 (on the road south between the Terrace and q_s1, the road its main street), q_b5 (between q_w1 and the officials' houses), q_b6 (on the road west, the processional way a 14 m main street through it). Kept open: the processional way, the stair's forecourt, the court's camps (court.json), and the people's walkable grid round the Terrace (e −620…262, n −245…185: the nav grid holds no town walls, so a quarter there would let people walk through houses; widening it means rebuilding the nav grid with the town's colliders, not done). Plots 1,505 → 2,244, homes 1,456 → 2,173 (town_plots.json), every one reached (reach_census: 0 shut, lane cells 100 %). The population is unchanged: households take the nearest houses of their zone, so the belt draws people in toward the Terrace and leaves more houses empty further out. Cost: the town's build grows with its plots (~+50 %); measured in the report.
 - The houses all one buff mud: each household's wash over the mud plaster (houses.ts washOf; C: gypsum and lime whites, yellow and red ochre earth washes), 12-52 % of houses white by standing, 10-18 % yellow ochre, 4-10 % red ochre, the rest bare mud; full in the court, thinner on the lane face, fading in the months since the last renewal; the roofs keep their earth coat. Street doors: 60 % bare weathered poplar, the rest painted red ochre, a blue-grey or a green-grey earth (towndoors.ts, an instance tint; C). Five more dyes in the cloths' palette (fillPlan.ts CLOTHS: weld-over-woad green, madder-over-woad purple, weld yellow, bright madder, deep woad) for the awnings, the washing and the market's cloth.
 - C5's q_w1 plot 141 (B691) is not a collider fault: plot index 141 is q_w1-0142, a pen whose street door opens onto a one-cell strip of the pen (its row 34) with the pen's own outer wall 0.8 m behind; the routes reach it (siteReach), the door walk walks into that wall.
+
+## D-680 (s18, cloud C4): the far sun cascade; the Rahmat streak traced
+- sunShadows.ts: past the last cascade (600 m) nothing had a sun shadow, so the Terrace and town from the plain read flat-lit.
+  A fifth, static map fitted to the box of the Terrace and the town (FAR_BOX: east -1480..330, north -1580..840, 4096²,
+  texel <= 0.9 m at every sun: farCascadeFit), drawn once at load and again only when the sun has moved 0.4 deg (never while
+  it is down), shades fragments 560-600 m+ from the lens. It is read with textureLoad and a hand-made 2x2 bilinear comparison
+  (its depth texture has no compare function and nearest filtering), so it adds NO sampler to any material (the T4's 16 per
+  fragment stage, D-300); tests/far_cascade_d680.test.ts builds a lit surface with the cascades on and off: same sampler
+  count, the far map read by textureLoad. ?farcsm=0 (load) or __parsaFarCascade.value = 0 (run time) for the A/B. C.
+- Kuh-e Rahmat's bright streak: road_pasargadae's first segment (settlement.json [250,250] -> [2600,1900]) runs ruler-straight
+  from 2 m up to ~290 m over the mountain behind the Terrace; a data fix (reroute round the north end) asked of the lead.
+- Unseen: the cloud cannot draw Q=high (WebGL2: program validation failures and a lost device with the cascade on AND off;
+  WebGPU: SwiftShader's 16-texture cap), so the far cascade is verified node-side only; it needs a T4 frame.

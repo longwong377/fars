@@ -1,0 +1,7 @@
+# V8 ground (s17) report
+**Broken / not done first:** the near ground (0-3 m) is still the same scans at 2-3 m tiles: no new micro relief, no height-blended pebbles or cracks, no denser scatter (deadline moved to 04:40). On the terrain itself the dust, herb, stony and scree layers are still planar (only rock is triplanar); on the probe's Rahmat views this reads acceptably (no streaks), but steep colluvium is untested at 1-3 m. The court/lane surfaces (surfaces.ts) are unchanged. The macro variation was judged on probes only, not in a full-world frame.
+**What a player now sees:** standing on Kuh-e Rahmat (sb-town-from-rahmat), the grey streaked "ridge" in the foreground is gone: it was the ledge strips' tread mapped to the cliff image's clamped top rows (ledges.ts, not the terrain); the treads now wear the terrain's own scree+stony scans, triplanar. The plain's open and trodden ground varies in tone over 20-60 m instead of one flat ochre.
+**Probe frames:** handoff/s17/ground_tfr_before.png, ground_tfr_after.png (ground_probe ?bedrock, view e 380 n -60 eye 1.6 az 228 pitch -4).
+**Views for the train:** sb-town-from-rahmat; sb-spawn-morning; cov-028, cov-322 (courts); e 380 n -60 az 228 pitch -30.
+**Files:** src/world/hills/ledges.ts (ledgeMaterial only: the smallest hook, outside my brief's files), src/world/plain/terrainPlain.ts (shading). D-475.
+**Tests:** samplers_d300, plain_look, plain_d223, hills: pass (23). guards before commit.

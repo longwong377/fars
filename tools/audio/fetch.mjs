@@ -75,7 +75,9 @@ async function freesound(q, minDur, maxDur) {
       const ids = [...new Set([...(html ?? '').matchAll(/href="\/people\/([^/"]+)\/sounds\/(\d+)\/"/g)].map(m => `${m[1]}/${m[2]}`))].slice(0, 12);
       for (const [rank, pi] of ids.entries()) {
         const [user, id] = pi.split('/'), page = `https://freesound.org/people/${user}/sounds/${id}/`, h = await get(page); if (!h) continue;
-        const audio = /<meta property="og:audio" content="([^"]+)"/.exec(h)?.[1] ?? /(https:\/\/cdn\.freesound\.org\/previews\/[^"']+-hq\.(?:ogg|mp3))/.exec(h)?.[1];
+        // (s17: freesound's og:audio reads "https://freesound.orghttps://cdn.freesound.org/...": keep the inner absolute URL; prefer the HQ preview)
+        const audio0 = /(https:\/\/cdn\.freesound\.org\/previews\/[^"']+-hq\.(?:ogg|mp3))/.exec(h)?.[1] ?? /<meta property="og:audio" content="([^"]+)"/.exec(h)?.[1];
+        const audio = audio0?.replace(/^https?:\/\/freesound\.org(?=https?:)/, '');
         const licUrl = /(https?:\/\/creativecommons\.org\/[^"' ]+)/.exec(h)?.[1] ?? lic, title = /<meta property="og:title" content="([^"]+)"/.exec(h)?.[1] ?? id;
         const tags = [...h.matchAll(/\/browse\/tags\/([^/"?]+)\//g)].map(m => decodeURIComponent(m[1])).join(' '), desc = /<meta (?:name|property)="(?:og:)?description" content="([^"]*)"/.exec(h)?.[1] ?? '';
         const dur = parseFloat(/data-duration="([\d.]+)"/.exec(h)?.[1] ?? /"duration":\s*([\d.]+)/.exec(h)?.[1] ?? 'NaN');
@@ -265,7 +267,9 @@ export function ledger(lock) {
 async function main() {
   const lock = existsSync(LOCK_P) ? JSON.parse(readFileSync(LOCK_P, 'utf8')) : { note: 'D-620: the recordings tools/audio/fetch.mjs resolved (re-runs download these; --refresh re-searches)', items: {} };
   const items = LIST.items.filter(it => !ONLY || ONLY.includes(it.key)), failed = [];
-  for (const item of items) {
+  // s17: items in parallel (CONC, default 8): one at a time was hundreds of sequential round trips an item (~3 min each, ~6 h)
+  const queue = [...items], CONC = Math.max(1, +(process.env.CONC ?? 8));
+  await Promise.all(Array.from({ length: CONC }, async () => { for (let item; (item = queue.shift()); ) {
     let have = lock.items[item.key] ?? [];
     const want = item.section === 'beds' ? item.variants : Math.min(item.variants, 3); // one-shot variants come from events within a recording
     // a provisional bed (ESC-50 patchwork) counts only with --keep-provisional: otherwise the search looks for a real one
@@ -289,7 +293,7 @@ async function main() {
         if (!existsSync(f)) { const raw = await get(e.audio, 'buf'); if (raw && sha(raw) === e.sha256) writeFileSync(f, raw); else console.warn(`   ${item.key}: ${e.id} changed or gone at the source (re-run with --only ${item.key} --refresh)`); } }
     }
     if (!DRY) writeFileSync(LOCK_P, JSON.stringify(lock, null, 1) + '\n');
-  }
+  } }));
   if (DRY) return;
   // encode everything in the lock that the list still names
   const sections = { beds: {}, oneshots: {}, foot: {} };

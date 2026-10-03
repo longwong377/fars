@@ -266,6 +266,8 @@ async function boot() {
     return ms; };
   const api = {
     ready: false, backend, norender: NORENDER, scene, releaseStats, // (scene, releaseStats: the memory probe, D-354)
+    /** dev (D-740): the page's pipelines, their limits and their textures, counted on three's own WGSL without a GPU compile (src/dev/pipelineCensus.ts) */
+    census: (o?: { limit?: number; budgetMs?: number }) => import('./dev/pipelineCensus').then(m => m.pipelineCensus(renderer, scene, camera, o)),
     setTime: (day: number, hour: number) => clock.set(day, hour),
     setWeather: (w: WeatherOverride) => { weather.override = w; },
     /** place the camera at grid (east, north) with eye height above ground (or absolute asl), true-north azimuth + pitch in degrees */

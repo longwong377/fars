@@ -95,7 +95,8 @@ export async function loadFireOcc(base: string): Promise<FireOcc | null> {
     const [j, b] = await Promise.all([fetch(base + 'generated/fire_occ.json'), fetch(base + 'generated/fire_occ.f16')]);
     if (!j.ok || !b.ok) return null;
     const meta = await j.json(), h = new Uint16Array(await b.arrayBuffer()), data = new Float32Array(h.length);
-    for (let i = 0; i < h.length; i++) data[i] = THREE.DataUtils.fromHalfFloat(h[i]);
+    const lut = new Float32Array(65536); for (let i = 0; i < 65536; i++) lut[i] = THREE.DataUtils.fromHalfFloat(i); // (s17 V10, D-479: a table, not 1.7 M conversions on the main thread)
+    for (let i = 0; i < h.length; i++) data[i] = lut[h[i]];
     OCC = { ...meta, data }; return OCC;
   } catch { return null; }
 }

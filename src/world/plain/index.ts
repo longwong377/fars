@@ -29,7 +29,7 @@ import { TreeKit, NearTreeSet, ImpostorSet, impostorPx, registerShadowLight, wid
 import { nearCrops } from './crops';
 import { buildNaqsh } from './naqsh';
 import { buildQuarries, quarrySites } from './quarries';
-import { buildCrossings, keepOffChannels, type FordDetailSites } from './crossings';
+import { buildCrossings, keepOffChannels, roadRiverCrossings, type FordDetailSites } from './crossings';
 import { doyOf, riverState, marginState } from './seasonal';
 import { riparianMargins } from './riparian';
 import { buildTownGround, desireLines } from './townGround';
@@ -52,6 +52,8 @@ export const PLAIN_QUALITY: Record<Quality, { r3: number; maxNear: number; cropR
 };
 /** trees that cast shadows: the nearest SHADOW_N within SHADOW_R m of the camera; at most MAX_LOD0 at full detail */
 const SHADOW_N = 400, SHADOW_R = 120, MAX_LOD0 = 300;
+/** D-670: the field-edge trees and the fallow scrub within this distance of the Apadana are placed once (the static far set) */
+export const FIELD_FAR_R = 8000;
 /** species the player pushes through (no trunk collider) */
 const SHRUBS = new Set(['tamarisk', 'almond', 'pomegranate', 'vine']);
 /** Phase 6 owns the four settlement.json roads (D-040): the plain draws them only if this is switched on at merge */
@@ -99,15 +101,17 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   terrainGroup?.traverse(o => { if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).material = ground.material; });
   if (terrainGroup) terrainGroup.userData.note = `${terrainGroup.userData.note}; fields, crops, orchard floors and woodland canopy from plain.json zones (C)`;
   // water, banks, canals, tracks
-  const rv = buildRivers(terrain, rivers.rivers, canals); group.add(rv.group);
+  const vLines = keepOffChannels(trackLines(villages), rivers.rivers);
+  // s17 (D-560, C6's quarries): the quarrymen's worn path from each quarry down to the nearest track or road (ribbons.ts quarryPaths)
+  const qLines = keepOffChannels(quarryPaths(quarrySites(terrain), [...settlementRoads().map(r => r.pts), ...vLines], terrain), rivers.rivers);
+  const tLines = [...vLines, ...qLines], trackObjs = tLines.map((pts, i) => ({ id: `track_${i}`, pts, width: feature('villages_unlocated').tracks.width_m as number }));
+  // D-670: the banks keep the fords' trapezoid at every road and track crossing (the bends' asymmetry calmed there)
+  const rv = buildRivers(terrain, rivers.rivers, canals, roadRiverCrossings(rivers.rivers, settlementRoads(), trackObjs).map(c => [c.x, c.y] as [number, number])); group.add(rv.group);
   // reeds, rushes and grass at the water (riparian.ts, D-149): on the corridor as drawn, around the camera
   const floodDepth = rivers.rivers.map(r => (feature(r.id).flow_by_month as { month: string; depth_m: number }[]).reduce((m, q) => Math.max(m, q.depth_m), 0)) as [number, number];
   const margins = riparianMargins(rv.profiles, canals, terrain, opts.quality, floodDepth); group.add(margins.mesh);
   const cb = canalBanks(canals, terrain); group.add(cb);
-  const vLines = keepOffChannels(trackLines(villages), rivers.rivers);
-  // s17 (D-560, C6's quarries): the quarrymen's worn path from each quarry down to the nearest track or road (ribbons.ts quarryPaths)
-  const qLines = keepOffChannels(quarryPaths(quarrySites(terrain), [...settlementRoads().map(r => r.pts), ...vLines], terrain), rivers.rivers);
-  const tLines = [...vLines, ...qLines]; const tr = tracksMesh(tLines, terrain, undefined, undefined, new Set(qLines.map((_, i) => vLines.length + i))); group.add(tr);
+  const tr = tracksMesh(tLines, terrain, undefined, undefined, new Set(qLines.map((_, i) => vLines.length + i))); group.add(tr);
   // s17 (D-560): the paths' treads and verges for the cover, flora, rocks and crops (verge.ts)
   setVergePaths([...settlementRoads().map(r => ({ pts: r.pts, hw: r.width / 2, kind: 'road' as const })), ...tLines.map(pts => ({ pts, hw: (feature('villages_unlocated').tracks.width_m as number) / 2, kind: 'track' as const })),
     ...(opts.town ? desireLines(opts.town).map(l => ({ pts: [l.a, l.b] as [number, number][], hw: l.w / 2, kind: 'path' as const })) : [])]);
@@ -124,7 +128,10 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   const kit = TreeKit.get({ deferBake: true, impostorPx: impostorPx(opts.quality) }); registerShadowLight(scene); kit.lod0R.value = Q.lod0R; kit.configure(opts.quality);
   const nearC = uniform(new THREE.Vector3(1e9, 0, 1e9)), nearR = uniform(0); // the 3-D set: centre and radius
   const midC = ground.paintC, midR = ground.treeR; // the mid ring: centre and radius (the terrain paints woodland beyond it)
-  const lineTrees = [...riparianTrees(rivers.rivers, opts.seed).map(t => ({ t, where: 'riparian woodland (river_*.riparian)' })), ...canalTrees(canals, opts.seed).map(t => ({ t, where: 'canal tree line' }))];
+  // D-670: the field-edge trees and the fallow's scrub within FIELD_FAR_R of the Apadana stand in the static far set too, so
+  // they reach the far views (0.3-2 km and beyond; they were drawn only inside the mid ring); beyond it the mid ring keeps them
+  const fieldFar = fieldTrees(zones, 0, 0, FIELD_FAR_R).map(t => ({ t, where: 'field-edge tree or fallow scrub (D-560, D-670, C)' }));
+  const lineTrees = [...riparianTrees(rivers.rivers, opts.seed).map(t => ({ t, where: 'riparian woodland (river_*.riparian)' })), ...canalTrees(canals, opts.seed).map(t => ({ t, where: 'canal tree line' })), ...fieldFar];
   const far = new ImpostorSet(kit, lineTrees.length, { c: nearC, r: nearR }, 20000, 'plain-trees-far'); group.add(far.mesh);
   far.set(lineTrees.map(q => instOf(q.t, terrain, q.where)));
   const plots = baked.plots ?? orchardPlots(zones, villages);
@@ -142,7 +149,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   const nr = buildNaqsh(terrain, rivers.nrAncientFootAsl); group.add(nr.group);
   const qb = buildQuarries(terrain, opts.seed); group.add(qb.group); scene.add(qb.extra); // (D-600: the quarries' drums and rock beside the plain's group)
   // the fords where the roads meet the Pulvar and the Kur (D-257, C)
-  const fords = buildCrossings(terrain, rivers.rivers, opts.seed, tLines.map((pts, i) => ({ id: `track_${i}`, pts, width: feature('villages_unlocated').tracks.width_m as number })), (qb.group.children.find(o => (o as THREE.Mesh).isMesh) as THREE.Mesh | undefined) ?? null); group.add(fords.group);
+  const fords = buildCrossings(terrain, rivers.rivers, opts.seed, trackObjs, (qb.group.children.find(o => (o as THREE.Mesh).isMesh) as THREE.Mesh | undefined) ?? null); group.add(fords.group);
   // Naqsh-e Rustam's meshes cast shadows near the cliff, except the relief sets', which manage their own (their shadow proxies are the only relief
   // draws in the shadow passes, D-048: switching every mesh under the group drew the carved figures into all 4 cascades, D-228)
   const nrCasters: THREE.Mesh[] = []; nr.group.traverse(o => { if ((o as THREE.Mesh).isMesh && !o.name.startsWith('relief:')) nrCasters.push(o as THREE.Mesh); });
@@ -170,7 +177,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     for (const q of lineTrees) { const t = q.t; if (Math.abs(t.x - cx) < R && Math.abs(t.y - cy) < R) { const d = Math.hypot(t.x - cx, t.y - cy); if (d < R) list.push({ t, d, where: q.where }); } }
     for (const p of plots) if (Math.hypot(p.sx - cam.x, p.sz - cam.z) < R + 150) for (const t of treesOfPlot(p)) { const d = Math.hypot(t.x - cx, t.y - cy); if (d < R) list.push({ t, d, where: 'orchard (orchards_gardens)' }); }
     for (const t of woodlandTrees(zones, cam.x, cam.z, R)) list.push({ t, d: Math.hypot(t.x - cx, t.y - cy), where: 'woodland (woodland rule)' });
-    for (const t of fieldTrees(zones, cam.x, cam.z, R)) list.push({ t, d: Math.hypot(t.x - cx, t.y - cy), where: 'field-edge tree (D-560, C)' });
+    for (const t of fieldTrees(zones, cam.x, cam.z, R)) if (Math.hypot(t.x, t.y) > FIELD_FAR_R) list.push({ t, d: Math.hypot(t.x - cx, t.y - cy), where: 'field-edge tree (D-560, C)' }); // (nearer: in lineTrees)
     list.sort((a, b) => a.d - b.d);
     const cap = MAX_LOD0 + SHADOW_N + Q.maxNear, kept = list.slice(0, cap);
     const a: TreeInst[] = [], b: TreeInst[] = [], c: TreeInst[] = [];
@@ -208,7 +215,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     const R = Q.rMid, recs: TreeInst[] = [];
     for (const p of plots) if (Math.hypot(p.sx - cam.x, p.sz - cam.z) < R) for (const t of treesOfPlot(p)) recs.push(instOf(t, terrain, 'orchard (orchards_gardens)'));
     for (const t of woodlandTrees(zones, cam.x, cam.z, R)) recs.push(instOf(t, terrain, 'woodland (woodland rule)'));
-    for (const t of fieldTrees(zones, cam.x, cam.z, R)) recs.push(instOf(t, terrain, 'field-edge tree (D-560, C)'));
+    for (const t of fieldTrees(zones, cam.x, cam.z, R)) if (Math.hypot(t.x, t.y) > FIELD_FAR_R) recs.push(instOf(t, terrain, 'field-edge tree (D-560, C)'));
     midCount = mid.set(recs); midC.value.set(cam.x, 0, cam.z);
   };
   const syncTrunks = (p: { x: number; y: number; z: number }) => {
@@ -260,7 +267,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     for (const q of lineTrees) add(q.t);
     for (const p of plots) if (Math.hypot(p.sx - e, p.sz + n) < R + 150) for (const t of treesOfPlot(p)) add(t);
     for (const t of woodlandTrees(zones, e, -n, R)) add(t);
-    for (const t of fieldTrees(zones, e, -n, R)) add(t);
+    for (const t of fieldTrees(zones, e, -n, R)) if (Math.hypot(t.x, t.y) > FIELD_FAR_R) add(t);
     return out;
   };
   return { group, data: { rivers, canals, villages, zones, fords: fords.detail }, update, villageHouses: vb, stats, treesAround, nearTrees: () => ({ placed: [placed.a, placed.b, placed.c], sets: [lod0, lod1s, lod1n], models: kit.models }),

@@ -17,6 +17,7 @@ import { aimsOf } from '../aims';
 import type { Economy } from '../economy/world';
 import { personaOf } from '../persona';
 import { numWords, ageWords, ordWords, countWords, spellDigits } from './words';
+import { toYou } from '../deeds/lately';
 
 export interface Kin { pid: number; name: string; rel: string; age: number; job: string; alive: boolean }
 export interface LifeRecord {
@@ -35,6 +36,10 @@ export interface LifeRecord {
   hopes: string[]; worries: string[];
   /** D-375: the house's open needs as it would put them to a stranger (the asks layer), and the quarter's talk the house holds (rumours) */
   needs: string[]; news: string[];
+  /** D-720: what yesterday held that today does not (their own day plan of the day before: the work, the errands, the visits) */
+  yesterday?: string[];
+  /** D-720: what was lately done by and to them among the townsfolk, in their words (the minds' deeds: deeds/lately.ts) */
+  lately?: string[];
   /** quarrels and small obligations (disputes: sim facts; debts: seeded, C) */
   quarrels: string[]; debts: string[];
   temperament: string; speech: string[];
@@ -47,6 +52,9 @@ export interface LifeRecord {
 }
 
 const PAREN = /\s*\([^)]*\)/g;
+const ROUTINE = new Set(['sleep', 'walk', 'eat', 'rest', 'tend_body', 'offmap']), ROUTINE_WHY = /^(walking|at home|asleep|with the household|resting|talking)\b/;
+/** D-720: the deeds' reading of a person's late doings, registered by the deeds world of a population (deeds/engine.ts) */
+export const LATELY = new WeakMap<Population, (pid: number, day: number) => string[]>();
 /** a plan reason without its evidence notes in brackets (sources, event ids: out of world) */
 const unparen = (s: string) => s.replace(PAREN, "");
 const TERRACE: [number, number] = [96, 0];
@@ -116,6 +124,11 @@ export function homeWords(pop: Population, h: number): string {
   const H = pop.households[h]; const q = pop.quarters[H.q];
   const dx = H.xy[0] - TERRACE[0], dy = H.xy[1] - TERRACE[1], km = Math.hypot(dx, dy) / 1000;
   const b = BEARING[Math.round(((Math.atan2(dx, dy) * 180 / Math.PI + 360) % 360) / 45) % 8];
+  // (D-720: the court's people live where the court lodges them, not in the garrison: a servant of a retinue camp was told
+  // "Home: the garrison quarters on the Terrace" and slept in a tent in the town)
+  if (H.q === 'court') { const h0 = H.home ?? '';
+    return h0 === 'court_camp' ? 'a tent in the court’s camp below the Terrace' : /^rcamp:/.test(h0) ? `a tent in a camp of the king’s retinue, ${km < 1.6 ? 'a short walk' : 'about half an hour’s walk'} ${b} of the Terrace`
+      : /harem/.test(h0) ? 'the women’s palace on the Terrace, in the king’s household' : /guard/.test(h0) ? 'the guard quarters of the king’s spearmen on the Terrace' : h0 === 'station' ? 'the road station below the Terrace' : 'the king’s household on the Terrace'; }
   if (H.zone === 'terrace') return 'the garrison quarters on the Terrace';
   if (H.zone === 'transient') return 'on the road: camped for a few days near the Terrace';
   // distance as a walker gives it (about 4.5 km an hour on the plain's tracks: C), never in modern units
@@ -140,6 +153,8 @@ export function relOf(pop: Population, me: Person, o: Person, members: number[])
   if ((o.kin || o.job === 'child') && o.age < me.age - 14 && me.age >= 16) return m ? 'son' : 'daughter';
   if ((me.kin || me.job === 'child') && o.age > me.age + 14 && o.age < me.age + 50 && !o.kin && o.job !== 'elder') return m ? 'father' : 'mother';
   if (o.job === 'elder') return m ? 'the old man of the house' : 'the old woman of the house';
+  // (D-720: the court's households are lodgings of fellows, not kin: "kinswoman of the house" for nine servants of a tent)
+  if (pop.households[me.hh]?.q === 'court') return me.job === o.job && me.job === 'servant' ? 'fellow servant' : 'companion';
   return m ? 'kinsman of the house' : 'kinswoman of the house';
 }
 
@@ -164,12 +179,17 @@ export function lifeRecord(pop: Population, cal: EventCalendar, pid: number, day
   const friends = p.ties.filter(o => pop.persons[o].hh !== hh && pop.present(o, day) && spokenName(pop, o)).slice(0, 4).map(o => { const O = pop.persons[o]; const a = pop.affinity(pid, o, day);
     const how = pop.households[p.hh].kin.includes(O.hh) ? 'kin' : p.group >= 0 && O.group === p.group ? 'works in the same group' : 'a neighbour';
     return { name: spokenName(pop, o)!, how: `${how}, ${jobWords(O)}`, feeling: a < 0 ? 'on bad terms since a quarrel' : a > 0.5 ? 'close' : 'friendly' }; });
+  // (D-720: one with no ties of their own (the court's people, newcomers) is friends with the fellows they live and work beside)
+  if (!friends.length && age >= 12) for (const k of all.filter(k => /^(fellow servant|companion)$/.test(k.rel) && k.age >= 12).slice(0, 2)) friends.push({ name: k.name, how: `lives and works beside you, ${k.job}`, feeling: 'friendly' });
   // (D-371: a small child's friends are the children it plays with in the lane)
   if (age < 12) for (const o of pop.playmatesOf(pid, day)) if (friends.length < 4 && spokenName(pop, o)) friends.push({ name: spokenName(pop, o)!, how: `plays with them in the ${pop.households[pop.home(o, day)].zone === 'plain' ? 'village' : 'lane'}, a ${pop.persons[o].sex === 'm' ? 'boy' : 'girl'} of ${ageWords(pop.ageOn(o, day))}`, feeling: 'close' });
   // the year so far (the regnal year starts at day 0, the month of Nisanu: sim facts only)
   const year: string[] = [], quarrels: string[] = [];
   const when = (d: number) => { const k = day - d; return k === 0 ? 'today' : k === 1 ? 'yesterday' : k < 8 ? `${numWords(k)} days ago` : k < 45 ? (Math.round(k / 7) === 1 ? 'about a week ago' : `about ${numWords(Math.round(k / 7))} weeks ago`) : `in the month ${MONTHS[dateOf(d).month - 1].op}`; };
-  if (p.arrive > 0 && p.arrive <= day) year.push(p.job === 'herder' ? `came down into the plain with the band and the flocks ${when(p.arrive)}` : p.job === 'traveller' ? `came to Parsa on the king’s road ${when(p.arrive)}` : `came to Parsa with a newly sent work group ${when(p.arrive)}`);
+  // (D-720: the court's people came with the court, not with a work group sent to the Terrace)
+  const cm = pop.court && pid >= pop.court.first && pid < pop.court.end ? pop.court.member(pid) : null;
+  if (cm && p.arrive > 0 && p.arrive <= day) year.push(cm.role === 'petitioner' ? `came to Parsa ${when(p.arrive)} to put a petition before the king` : cm.role === 'delegate' ? `came to Parsa ${when(p.arrive)} with a delegation of their people bearing gifts for the king` : `came to Parsa with the king’s household from Šušan ${when(p.arrive)}`);
+  else if (p.arrive > 0 && p.arrive <= day) year.push(p.job === 'herder' ? `came down into the plain with the band and the flocks ${when(p.arrive)}` : p.job === 'traveller' ? `came to Parsa on the king’s road ${when(p.arrive)}` : `came to Parsa with a newly sent work group ${when(p.arrive)}`);
   if (p.marry <= day && p.spouse !== undefined && !p.moved) year.push(`was married ${when(p.marry)} to ${spokenName(pop, p.spouse)}`);
   if (p.marry > day && p.marry < 1e8 && p.spouse !== undefined) year.push(`is to be married this year to ${spokenName(pop, p.spouse)} (the families have agreed)`);
   if (p.moved && p.marry <= day) year.push(`moved ${when(p.marry)} to kin after the death of the last grown-up of the old house`);
@@ -206,6 +226,9 @@ export function lifeRecord(pop: Population, cal: EventCalendar, pid: number, day
   const segs: Seg[] = pop.present(pid, day) ? pop.plan(pid, day) : [];
   const cur = segs.length ? segAt(segs, hour) : null; const i = cur ? segs.indexOf(cur) : -1;
   const next = i >= 0 ? segs.slice(i + 1).find(s => s.why !== cur!.why && s.act !== 'walk') ?? null : null;
+  // D-720: yesterday's own doings that today does not repeat ("what happened lately" had only the year's rare facts to go on)
+  const todayWhy = new Set(segs.map(s => unparen(s.why)));
+  const yesterday = day > 0 && pop.present(pid, day - 1) ? [...new Set(pop.plan(pid, day - 1).filter(s => !ROUTINE.has(s.act)).map(s => unparen(s.why)))].filter(w => !todayWhy.has(w) && !ROUTINE_WHY.test(w)).slice(0, 3) : [];
   const earlier = i > 0 ? [...new Set(segs.slice(0, i).filter(s => s.act !== 'walk' && s.act !== 'sleep' && s.t1 > hour - 8).map(s => unparen(s.why)))].slice(-5) : [];
   const wx = C.wx as any; const weather = [wx.hot ? 'hot' : '', wx.stormH ? 'a storm' : '', wx.rainH ? 'rain' : '', wx.dustH ? 'dust in the air' : '', C.winter ? 'winter cold' : ''].filter(Boolean).join(', ') || 'fair';
   const events = [...new Set(C.events.filter(e => /^(E-(2[0-7]|3[1-8]|4\d|5[01]|6[0-3])|W-)/.test(e.id) || (p.job === 'guard' && /^E-8/.test(e.id))).map(e => e.text.replace(/\s*\([^)]*\)/g, '').replace(/\s*at \d{1,2}:\d{2}/g, '')))].slice(0, 6);
@@ -219,8 +242,8 @@ export function lifeRecord(pop: Population, cal: EventCalendar, pid: number, day
     otherLanguages: [...new Set([p.origin !== 'Persian' && age >= 12 ? 'some Persian' : '', p.job === 'scribe' ? 'Elamite and Aramaic (writes them)' : '', p.group >= 0 && lang !== 'Elamite' ? 'a little Elamite (the language of the ration tablets)' : ''].filter(Boolean))],
     job: jobWords(p), work: cur?.place ?? '', group: p.group >= 0 ? groupWords(pop.groups[p.group].label) : null,
     rank: p.job === 'guard' && p.rank === 1 ? 'leader of a file of ten' : p.rank > 1 ? 'a leader of the group' : null,
-    home: homeWords(pop, hh) + (others > 0 ? ` (a household of ${numWords(all.length + 1)} with the others of the ${p.job === 'herder' ? 'band' : 'group'})` : ''), zone: H.zone, household, kinHouses, friends, year, past: pastWords(pastOf(pop, pid, day, household)).map(spellDigits), marks: marksWords(marksOf(pop, pid, day)).map(spellDigits), ...aimsOf(pop, cal, pid, day, E), ...talkOf(pop, hh, day, age), quarrels, debts, temperament: temper, speech,
-    today: { date: `the ${ordWords(dt.dom)} day of the month ${M.op.replace(/\s*\(\?\)/, '')} (Babylonian ${M.bab}), the nineteenth year of King Xerxes`, season: seasonOf(C.month), weather, now: cur ? `${cur.act.replace(/_/g, ' ')}: ${unparen(cur.why)}` : 'away from Parsa', place: cur ? cur.where : 'away', next: next ? unparen(next.why) : null, earlier, events },
+    home: homeWords(pop, hh) + (others > 0 ? ` (a household of ${numWords(all.length + 1)} with the others of the ${p.job === 'herder' ? 'band' : 'group'})` : ''), zone: H.zone, household, kinHouses, friends, year, past: pastWords(pastOf(pop, pid, day, household)).map(spellDigits), marks: marksWords(marksOf(pop, pid, day)).map(spellDigits), ...aimsOf(pop, cal, pid, day, E), ...talkOf(pop, hh, day, age), lately: LATELY.get(pop)?.(pid, day) ?? [], quarrels, debts, temperament: temper, speech,
+    yesterday, today: { date: `the ${ordWords(dt.dom)} day of the month ${M.op.replace(/\s*\(\?\)/, '')} (Babylonian ${M.bab}), the nineteenth year of King Xerxes`, season: seasonOf(C.month), weather, now: cur ? `${cur.act.replace(/_/g, ' ')}: ${unparen(cur.why)}` : 'away from Parsa', place: cur ? cur.where : 'away', next: next ? unparen(next.why) : null, earlier, events },
     knows, tier: 'C',
   };
 }
@@ -238,6 +261,9 @@ export function bynameOf(pop: Population, pid: number, day: number, fatherHint =
  *  heard (the rumours it holds: the version that reached it, with its certainty), in the town's words */
 const NEED_WORDS: Record<string, string> = { grain: 'barley to feed the house', fuel: 'fuel for the hearth', silver: 'silver for a debt', labour: 'hands for the work', healer: 'someone to tend the sick', company: 'company in mourning', animal: 'a beast for the plough', justice: 'justice for a theft', shelter: 'a roof', time: 'time to pay a debt', petition: 'someone to speak for the house', lost_child: 'a lost child found' };
 const NEWS_WORDS: Record<string, string> = { death: 'a death in', illness: 'sickness in', theft: 'a theft at', default: 'a debt unpaid by', house_fire: 'a fire at', hunger: 'hunger in', suit: 'a suit against', arrest: 'an arrest at', pledge_seized: 'a pledge taken from', debt_labour: 'one bound for debt from', animal_lost: 'an ox lost by', loan: 'a loan to', acquitted: 'an acquittal for', scandal: 'a scandal in', player_deed: 'the stranger\'s doings with',
+  // (D-720: the deeds' own talk (deeds/engine.ts rumour effects): "heard of wrong the house of X" was what reached the brief)
+  wrong: 'a wrong done by', insult: 'an insult given by', curse: 'a cursing by', threaten: 'threats made by', assault: 'a beating given by', damage: 'damage done by', slander: 'slander spread by', threat_to_child: 'a child threatened by',
+  feud: 'a feud with', fine: 'a fine laid on', fined: 'a fine laid on', hearing: 'a hearing for',
   // (D-375: the town's talk of the stranger)
   hosted: 'the stranger taken in as a guest by', guest_sent_away: 'the stranger sent away by', ingrate: 'the stranger leaving without a word of thanks to', guest_repaid: 'the stranger\'s gift in thanks to',
   claim_denied: 'the stranger\'s lie found out by', claim_doubted: 'the stranger\'s tale doubted by', hired_stranger: 'the stranger hired as a hand by', dismissed: 'the stranger dismissed by', ruling_for: 'a ruling for the stranger against', ruling_against: 'a ruling against the stranger, in a matter of', joined_house: 'the stranger taken into', learned_tongue: 'the stranger speaking the tongue of' };
@@ -246,7 +272,7 @@ function talkOf(pop: Population, hh: number, day: number, age: number): { needs:
   const needs = A.asks.sort((a, b) => b.urgency - a.urgency).slice(0, 2).map(a => { const v = a.voices.find(x => x.to === 'stranger');
     return `${NEED_WORDS[a.kind] ?? a.kind}${v?.willing ? `; would ask even a stranger, offering ${v.offers}` : '; would not ask a stranger'}`; });
   const news = [...new Map(A.rumours.filter(r => r.version.about !== `h:${hh}`).sort((a, b) => b.since - a.since).map(r => [`${r.version.kind}|${r.version.about}`, r] as const)).values()].slice(0, 2).map(r => { const who = houseOf(pop, r.version.about, day) ?? 'a house of the quarter';
-    return `heard of ${NEWS_WORDS[r.version.kind] ?? r.version.kind} ${who}${r.version.certainty < 0.5 ? ' (not sure it is true)' : ''}`; });
+    return `heard of ${NEWS_WORDS[r.version.kind] ?? `talk of ${r.version.kind.replace(/_/g, ' ')} about`} ${who}${r.version.certainty < 0.5 ? ' (not sure it is true)' : ''}`; });
   return { needs, news };
 }
 /** D-371: silver in the words of the town (no digits: the §10 lint) */
@@ -266,7 +292,7 @@ export function econFacts(pop: Population, E: Economy, hh: number, day: number):
     harvest_poor: () => 'the harvest was poor', harvest_good: () => 'the harvest was good', default: o => `could not pay ${o ?? 'a creditor'} when the debt fell due`,
     pledge_seized: o => o ? `${o} took a pledge for a debt` : null, suit: o => o ? `${o} went to the judge over a debt` : null, time_granted: () => 'the judge gave the house time to pay',
     debt_labour: () => 'one of the house was bound to work off a debt', hunger: () => 'the house went hungry', animal_lost: () => 'the ox was lost', house_fire: () => 'there was a fire in the house',
-    relief: () => 'grain came from the king\'s stores after a petition', given: o => o ? `${o} gave them grain or help` : null, kin_help: o => o ? `${o}, kin, helped them` : null,
+    relief: () => 'grain came from the king\'s stores after a petition', given: o => o ? `${o} gave them grain when the house ran short` : null, kin_help: o => o ? `${o}, kin, helped them` : null,
     lent_by_neighbour: o => o ? `${o} lent them silver` : null, loan: o => o ? `borrowed silver from ${o}` : null, repaid: o => o ? `paid back ${o}` : null, robbed: () => 'they were robbed',
     hired_by_neighbour: o => o ? `worked for ${o} for grain` : null, acquitted: () => 'the judge found for them', petition_refused: () => 'a petition of theirs was refused',
   };
@@ -295,6 +321,11 @@ const short = (s: string, n = 9) => { const t = s.split(/[:(;]/)[0].trim().split
 /** the record in as few words as keep it whole: the prompt the person's model reads on every answer (D-296: a long prompt
  *  is slow to read in, ~460 tokens a second on a T4, and one read of ~900 tokens hung the card past the Windows watchdog; the
  *  whole prompt stays under ~450 tokens). The events of the day that everyone shares are cut to the two nearest the person */
+/** D-720: the "Lately" line: the late deeds and the year's facts interleaved, the weightiest first (deeds/lately.ts) */
+function lateLine(L: LifeRecord): string {
+  const d = (L.lately ?? []).map(toYou), y = L.year.slice(0, 2), xs = [d[0], y[0], d[1], y[1], ...L.quarrels.slice(-1), ...L.debts].filter(Boolean);
+  return xs.length ? `Lately: ${xs.join('; ')}.` : '';
+}
 export function lifeBriefShort(L: LifeRecord, prose?: string | null): string {
   // "your wife Dātabāmā (28)" reads right to a small model; "Dātabāmā (wife, 28)" was misread (a 2B made a child of two a wife)
   // (D-456: one without a name of their own is not called "unnamed": the 1.5B said "my son Unnamed")
@@ -306,7 +337,9 @@ export function lifeBriefShort(L: LifeRecord, prose?: string | null): string {
     `Work: ${short(L.job, 16)}${L.rank ? `, ${L.rank}` : ''}. Home: ${L.home.replace(/ \(a household of.*\)$/, '')}.`,
     `In your house: ${kin}.`,
     L.friends.length ? `Friends and kin nearby: ${L.friends.slice(0, 2).map(f => `${f.name} (${f.how.split(',')[0]}${f.feeling === 'close' ? '' : '; ' + f.feeling})`).join(', ')}.` : '',
-    [...L.year.slice(0, 2), ...L.quarrels.slice(-1), ...L.debts].length ? `Lately: ${[...L.year.slice(0, 2), ...L.quarrels.slice(-1), ...L.debts].join('; ')}.` : '',
+    // (D-720: the deeds done by and to them among the townsfolk, the weightiest first: the line's first item is the one kept when the budget cuts it)
+    lateLine(L),
+    L.yesterday?.length ? `Yesterday: ${L.yesterday.slice(0, 2).join('; ')}.` : '',
     L.needs.length ? `Your house needs: ${L.needs.join('; ')}.` : '',
     L.news.length ? `Talk of the quarter: ${L.news.join('; ')}.` : '',
     L.past.length ? `Before this year: ${L.past.slice(0, 2).join('; ')}.` : '',
@@ -334,7 +367,7 @@ export function lifeBrief(L: LifeRecord, prose?: string | null): string {
     L.past.length ? `Before this year: ${L.past.join('; ')}.` : '',
     L.marks?.length ? `Plain to see on you: ${L.marks.join('; ')}.` : '',
     L.worries.length ? `Worries: ${L.worries.join('; ')}.` : '', L.hopes.length ? `Hopes: ${L.hopes.join('; ')}.` : '',
-    L.year.length ? `This year: ${L.year.join('; ')}.` : '',
+    L.year.length ? `This year: ${L.year.join('; ')}.` : '', L.lately?.length ? `Lately among the neighbours: ${L.lately.map(toYou).join('; ')}.` : '',
     L.quarrels.length ? `Quarrels: ${L.quarrels.join('; ')}.` : '', L.debts.length ? `Debts: ${L.debts.join('; ')}.` : '',
     `Temperament: ${L.temperament}. Speech: ${L.speech.join('; ')}.`,
     `Today is ${L.today.date}; ${L.today.season}; weather: ${L.today.weather}. Now (${L.today.place}) ${L.today.now}${L.today.next ? `; next: ${L.today.next}` : ''}.`,

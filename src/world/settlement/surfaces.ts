@@ -1,8 +1,12 @@
 // Settlement surfaces (Phase 6), registered into the shared procedural surface table (render/materials.ts) so the town
 // uses the same TSL surface model as the Terrace (weather wetting, puddles, snow, procedural relief). All tier C unless
 // stated: no mud plaster, roof or refuse surface of Achaemenid Persepolis has been measured.
-import { SURFACES, SurfaceDef } from '../../render/materials';
+import { SURFACES, SurfaceDef, type EarthWeatherDef } from '../../render/materials';
 
+/** D-477 (C): the town's and villages' walls weathered for 5-30 m (EarthWeatherDef): a damp, splashed base to ~1 m, mud streaks
+ *  from the earth tops 2-3 m down, patchy recoating, a bleached and rounded crest, and plaster fallen from ~7 % of the faces (the
+ *  bricks behind): an unrendered, lived-in town where each household renews its own walls when it can */
+const HOUSE_WEATHER: EarthWeatherDef = { base: { h: 1.3, dark: 0.2, dirt: 0.35 }, top: { h: 0.5, bleach: 0.08, round: 0.6 }, wash: { amp: 0.3, len: 2.6 }, coat: 0.1, loss: { cover: 0.07, depth: 0.01 } };
 export const SETTLEMENT_SURFACES: Record<string, SurfaceDef> = {
   // town house walls: straw-tempered mud render over mud brick in the local loam (base colour per house from vertex
   // colours); roofs and wall tops: packed earth over reeds and poles
@@ -25,7 +29,7 @@ export const SETTLEMENT_SURFACES: Record<string, SurfaceDef> = {
   // and Persepolis: Stein et al. 2016, B; its tone the local loam per house, vertex colours, C): the renewed skirting coat,
   // damp and a salt line at the foot (D-218's model), float arcs and hairline shrinkage cracks, rain run-off below the tops
   // of exposed walls, a hand-laid undulation; the roofs' clay-and-straw coat on the up-facing faces
-  house_plaster: { albedo: [0.56, 0.47, 0.36], roughness: 0.95, porosity: 0.85, noiseScale: 0.9, noiseAmp: 0.1, tone: { sd: 0.1, chroma: 0.014, patch: -0.07 }, foot: 1.4, skirt: { h: 0.5, dark: 0.2, salt: 0.06 }, runoff: 0.2, plasterWork: { float: 1, cracks: 1 }, bump: { amp: 0.008, freq: 1.4 }, micro: { amp: 0.0007, freq: 50, alb: 0.06 }, top: 'house_roof', tier: 'C', note: 'town house walls: straw-tempered mud plaster over mud brick (earthen plaster B: Stein et al. 2016; tone per house C), a renewed skirting coat with damp and salt at the foot, float arcs, shrinkage cracks, run-off under the tops (D-218 model, C)' },
+  house_plaster: { albedo: [0.56, 0.47, 0.36], roughness: 0.95, porosity: 0.85, noiseScale: 0.9, noiseAmp: 0.1, tone: { sd: 0.1, chroma: 0.014, patch: -0.07 }, foot: 1.4, skirt: { h: 0.5, dark: 0.2, salt: 0.06 }, runoff: 0.2, plasterWork: { float: 1, cracks: 1 }, bump: { amp: 0.008, freq: 1.4 }, micro: { amp: 0.0007, freq: 50, alb: 0.06 }, top: 'house_roof', earthWeather: HOUSE_WEATHER, tier: 'C', note: 'town house walls: straw-tempered mud plaster over mud brick (earthen plaster B: Stein et al. 2016; tone per house C), a renewed skirting coat with damp and salt at the foot, float arcs, shrinkage cracks, run-off under the tops (D-218 model, C)' },
   house_roof: { albedo: [0.60, 0.53, 0.41], roughness: 0.97, porosity: 0.9, noiseScale: 0.5, noiseAmp: 0.12, tone: { sd: 0.06, chroma: 0.01 }, bump: { amp: 0.01, freq: 1.8 }, chips: { cover: 0.05, size: 0.08, albedo: [0.66, 0.60, 0.46] }, micro: { amp: 0.0008, freq: 45, alb: 0.07 }, tier: 'C', note: 'flat roof and wall tops: packed earth with a sun-bleached clay-and-straw coat, rolled and renewed before the rains (C, D-223)' },
   // the footing: rough fieldstones (the local grey limestone) laid in mud mortar (stone foundations under mud brick at Hasanlu,
   // Baba Jan, Tall-i Takht: B analogues; C here)
