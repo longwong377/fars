@@ -51,10 +51,10 @@ describe('polychromy.json', () => {
 });
 
 describe('relief paint coverage (D-030)', () => {
-  it('faces, animals and the background carry no paint; garments are painted, and worn along the raised arrises', () => {
+  it('D-752 (D-771): the figures fully painted, faces, hands and animals included; garments worn along the raised arrises', () => {
     const horse = reliefLodMesh('horse', 0, 257, 1), lb = reliefLodMesh('lion_bull', 0, 257, 1);
     const paintedFrac = (m: typeof horse) => { let p = 0; for (let i = 0; i < m.verts; i++) if (m.paint[i] > 0) p++; return p / m.verts; };
-    expect(paintedFrac(lb)).toBe(0); expect(paintedFrac(horse)).toBeLessThan(0.05); // the horse carries only its painted harness
+    expect(paintedFrac(lb)).toBeGreaterThan(0.3); expect(paintedFrac(horse)).toBeGreaterThan(0.3); // the animals in their coats (was: bare stone)
     for (const [k, s] of [['persian', 0], ['guard', 0], ['delegate', 10], ['king', 0]] as [string, number][]) {
       const m = reliefLodMesh(k, s, 513, 0); let n = 0, sum = 0, worn = 0;
       for (let i = 0; i < m.verts; i++) if (m.paint[i] > 0) { n++; sum += m.paint[i]; if (m.paint[i] < 0.95) worn++; }
@@ -81,7 +81,7 @@ describe('gilding, the royal robe and paint edges (D-151)', () => {
     const k = reliefLodMesh('king', 0, 513, 0), gl = srgbToLinear(GILT_SRGB[0]);
     let n = 0; for (let i = 0; i < k.verts; i++) { expect(k.gilt[i] === 0 || k.gilt[i] === 1).toBe(true); if (k.gilt[i]) { n++; expect(k.col[i * 3]).toBeCloseTo(gl, 5); } }
     expect(n / k.verts, 'gilded share of the seated king (crown, sceptre, lotus)').toBeGreaterThan(0.01); expect(n / k.verts).toBeLessThan(0.2);
-    const horse = reliefLodMesh('horse', 0, 257, 1); expect(Array.from(horse.gilt).some(x => x > 0), 'no gilding on an unpainted animal').toBe(false);
+    const horse = reliefLodMesh('horse', 0, 257, 1); expect(Array.from(horse.gilt).some(x => x > 0), 'no gilding on an animal\'s coat').toBe(false);
     const G = (PC as any).paint.gold.v; // the F0 of gold: red > green > blue, all within (0, 1]
     expect(G.f0[0]).toBeGreaterThan(G.f0[1]); expect(G.f0[1]).toBeGreaterThan(G.f0[2]); for (const c of G.f0) { expect(c).toBeGreaterThan(0); expect(c).toBeLessThanOrEqual(1); }
     expect(G.roughness).toBeGreaterThan(0.2); expect(G.roughness).toBeLessThan(0.6); // burnished leaf on carved stone, not a mirror

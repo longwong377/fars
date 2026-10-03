@@ -82,7 +82,7 @@ describe('the magi, the sacrifices and the funerals in the plans (D-209)', () =>
       expect(g.some(s => s.act === 'tend_fire' && s.t1 > C.sun.set - 0.3 && s.t0 < C.sun.set + 0.5), `d${d} dusk`).toBe(true);
       if (g.some(s => s.act === 'offer' && /^the lan/.test(s.why))) lan++; else { expect(g.some(s => /lan put off/.test(s.why)), `d${d}`).toBe(true); off++; } }
     expect(lan).toBeGreaterThan(300); expect(off).toBeLessThan(30);
-  }, 120_000);
+  }, 600_000); // (the first plan of each day runs that day's economy, fdcc8e56 D-340: ~0.8 s a day, 330 s idle for the year; D-710)
   it('the households\' sacrifices: 120-300 a year; the offerer and his magus at the precinct together, the beast led there, the meat boiled and carried home, the magus chanting over it', () => {
     let n = 0;
     for (let d = 0; d < 354; d++) for (const s of P.cal.ctx(d).sacrifices) { n++;
@@ -101,7 +101,7 @@ describe('the magi, the sacrifices and the funerals in the plans (D-209)', () =>
       for (const pid of who) { if (!P.present(pid, d)) continue; const prev = d > 0 && P.present(pid, d - 1) ? P.plan(pid, d - 1) : null;
         for (const x of checkPlan(P, pid, d, P.plan(pid, d), prev ? prev[prev.length - 1].place : null, prev)) if (bad.length < 6) bad.push(`${pid} d${d} ${x.kind}: ${x.note}`); } }
     expect(bad).toEqual([]);
-  }, 180_000);
+  }, 600_000); // (under 180 s idle; under a loaded CI box it ran out at 180 s: D-710)
   it('a funeral in the town: the men carry the dead to the burial ground and bury it, the women mourn at the grave, at one hour; nothing of the body is shown', () => {
     let funerals = 0; const bad: string[] = [];
     for (let d = 1; d < 354; d++) for (const H of P.households) { if (H.zone !== 'town' || !H.deaths.includes(d - 1)) continue; const f = P.funeralOf(H.id, d, P.cal.ctx(d).wx, P.cal.ctx(d).sun); if (!f || f.magus) continue;
@@ -114,14 +114,20 @@ describe('the magi, the sacrifices and the funerals in the plans (D-209)', () =>
     expect(performanceFor('bury', 'digging the grave and laying the dead in the earth (Herodotus 1.140)', 1).note).toMatch(/Nothing of the body is shown/);
   }, 240_000);
   it('every funeral of the year, town and plain, is over and its people home before the light goes, rain or not (soak s8: a burial at 23:00-24:00 left the bearers at the grave at midnight: farmer 15310, day 245)', () => {
-    const late: string[] = []; let n = 0;
+    const late: string[] = [], all: { h: number; d: number; left: number }[] = []; let n = 0;
     for (let d = 1; d < 354; d++) { const C = P.cal.ctx(d);
-      for (const H of P.households) { if (!H.deaths.includes(d - 1)) continue; const f = P.funeralOf(H.id, d, C.wx, C.sun); if (!f) continue; n++;
+      for (const H of P.households) { if (!H.deaths.includes(d - 1)) continue; const f = P.funeralOf(H.id, d, C.wx, C.sun); if (!f) continue; n++; all.push({ h: H.id, d, left: C.sun.set - f.t });
         if (f.t > C.sun.set - FUNERAL_BEFORE_SET_H + 1e-9 && late.length < 6) late.push(`h${H.id} d${d} at ${f.t.toFixed(2)} (sunset ${C.sun.set.toFixed(2)})`); } }
     expect(late).toEqual([]); expect(n).toBeGreaterThan(100);
-    const segs = P.plan(15310, 246) as Seg[], prev = P.plan(15310, 245) as Seg[];
-    expect(prev.some(s => s.act === 'bury' && s.t1 < P.cal.ctx(245).sun.set)).toBe(true);
-    expect(checkPlan(P, 15310, 246, segs, prev[prev.length - 1].place, prev).filter(x => x.kind === 'teleport')).toEqual([]);
+    // the soak's case, without a pinned person (farmer 15310 was bereaved on day 245 in the s8 population, not today's: D-710):
+    // the bearers of the three funerals of the year nearest their sunset bury before it and walk home without a teleport
+    let bearers = 0;
+    for (const f of all.sort((a, b) => a.left - b.left).slice(0, 3)) for (const m of P.households[f.h].members as number[]) {
+      const prev = P.plan(m, f.d) as Seg[]; if (!prev.some(s => s.act === 'bury')) continue; bearers++;
+      expect(prev.some(s => s.act === 'bury' && s.t1 < P.cal.ctx(f.d).sun.set), `${m} d${f.d}`).toBe(true);
+      expect(checkPlan(P, m, f.d + 1, P.plan(m, f.d + 1) as Seg[], prev[prev.length - 1].place, prev).filter(x => x.kind === 'teleport'), `${m} d${f.d + 1}`).toEqual([]);
+    }
+    expect(bearers).toBeGreaterThan(0);
   }, 120_000);
   it('the places: the magus at the altar facing it; an offerer and his magus side by side W of the plinths; a funeral at one grave of the burial ground', () => {
     const geo = new PopGeo({ pop: P, nav: nav(), town: plan, seed: 1 });

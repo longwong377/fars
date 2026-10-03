@@ -162,7 +162,7 @@ describe('impostors (D-143): the far body baked, matched at the switch', () => {
     expect(worst).toBeLessThan(0.2);
     note('m05', `impostor atlas ${atlas.W}×${atlas.H}, ${atlas.A.length} levels, baked in ${atlas.ms.toFixed(0)} ms (node)`);
   }, 120_000);
-  it('matches the far body: height, width and silhouette area within a texel or 6 %, colour shares within 0.06', () => {
+  it('matches the far body: height and silhouette area within a texel or 6 %, width within a texel an edge, colour shares within 0.06', () => {
     const rig = new RigSolver(A.meta.curlAxes), pal = new Float32Array(PALETTE_STRIDE); const HR = 128; const rows: string[] = [];
     for (const dress of IMP_DRESSES) for (const fid of ['stand', 'walk2', 'kneel']) {
       const fi = FRAMES.findIndex(f => f.id === fid), F = FRAMES[fi], L = farLod(O, dress)!, row = rowOf(dress, fi);
@@ -194,7 +194,9 @@ describe('impostors (D-143): the far body baked, matched at the switch', () => {
       const impShare = share.map(x => x / (aa || 1)), worstShare = Math.max(...impShare.map((x, k) => Math.abs(x - refShare[k])));
       rows.push(`${dress}/${fid}: height ${ref.top.toFixed(3)} vs ${imp.top.toFixed(3)} m, width ${ref.width.toFixed(2)} vs ${imp.width.toFixed(2)} m, area ${ref.area.toFixed(3)} vs ${imp.area.toFixed(3)}; colour slot shares (main, second, trim, skin, hair, leather, fixed) ${refShare.map(x => x.toFixed(2)).join('/')} vs ${impShare.map(x => x.toFixed(2)).join('/')} (worst ${worstShare.toFixed(3)})`);
       expect(Math.abs(ref.top - imp.top), `${dress}/${fid} height`).toBeLessThanOrEqual(texel * 1.01);
-      expect(Math.abs(ref.width - imp.width), `${dress}/${fid} width`).toBeLessThanOrEqual(IMP.width / C * 1.01);
+      // (width has two edges, each of which can lose up to a texel where a limb covers under half of one in the alpha-tested
+      // cell: the mocap walk's swinging arm since D-333 9a125611, child/walk2 0.36 vs 0.30 m; the top has one edge; D-710)
+      expect(Math.abs(ref.width - imp.width), `${dress}/${fid} width`).toBeLessThanOrEqual(2 * IMP.width / C * 1.01);
       expect(Math.abs(imp.area / ref.area - 1), `${dress}/${fid} area`).toBeLessThan(0.08);
       // colour: the slot shares of the covered texels against the far body's visible pixels by slot (at 4× the resolution)
       expect(share.reduce((x, y) => x + y, 0) / aa).toBeCloseTo(1, 1);

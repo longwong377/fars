@@ -44,7 +44,7 @@ export function canalBanks(canals: Canal[], terrain: Terrain): THREE.Mesh {
   const buf = { pos: [] as number[], col: [] as number[], att: [] as number[], idx: [] as number[] };
   for (const c of canals) {
     const w = c.width / 2;
-    ribbon(c.pts, terrain, [[-(w + 2.2), 0.03, 1], [-(w + 0.7), crest, 0.5], [-w, 0.02, 0], [0, -0.25, 0], [w, 0.02, 0], [w + 0.7, crest, 0.5], [w + 2.2, 0.03, 1]], 12.5, buf);
+    ribbon(c.pts, terrain, [[-(w + 2.2), 0.03, 1], [-(w + 0.7), crest, 0.5], [-w, 0.02, 0], [0, -0.25, 0], [w, 0.02, 0], [w + 0.7, crest, 0.5], [w + 2.2, 0.03, 1]], 25, buf); // (D-670: 25 m, the canals' own trace step: was 12.5, half the triangles for the frame budget)
   }
   const mat = surfaceMaterial('earth', { vertexColors: true, variant: 'canalbank', scan: false, modify: (L: Layer) => {
     const t = attribute('lat', 'float');

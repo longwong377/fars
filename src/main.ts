@@ -46,7 +46,7 @@ import { seasonAt } from './world/season';
 import { installSunCascades } from './render/sunShadows';
 import { loadScans } from './render/scans';
 import { BASE } from './core/base';
-import { installProgressiveCompile } from './render/progressive';
+import { installProgressiveCompile, installRenderSafetyNet, guardLiveDisposals } from './render/progressive';
 import { installShaderLog, installDeviceCounters } from './dev/shaderLog';
 import { upgradeLowFirst, lowFirstStats } from './render/lowfirst';
 installWebGPUCompat();
@@ -109,6 +109,7 @@ async function boot() {
   }
   const backend = (renderer.backend as any).isWebGPUBackend ? 'WebGPU' : 'WebGL2';
   releaseUploadedTextures(renderer); // D-354 (s15, page memory): a static texture's page copy dropped once it is on the GPU
+  if (!P.has('nosafetynet')) installRenderSafetyNet(renderer); // D-740 (s18, the black screen): one bad binding skips one object, never the frame (?nosafetynet: off)
   if (P.has('shaderlog')) installShaderLog(renderer, P.get('shaderlog')); // dev (D-250, D-473): which object and material each new render pipeline came from, and why
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2) * Q.pixelRatio);
   renderer.setSize(innerWidth, innerHeight, false);
@@ -364,7 +365,7 @@ async function boot() {
       const hit = rc.intersectObjects(world.root.children, true).find(h => (h.object as THREE.Mesh).isMesh && (h.object as THREE.Mesh).visible && !((h.object as any).material?.transparent));
       if (!hit) return null; const m: any = (hit.object as THREE.Mesh).material, n = hit.face ? hit.face.normal.clone().transformDirection(hit.object.matrixWorld) : null;
       return { name: hit.object.name, parent: hit.object.parent?.name, mat: m?.constructor?.name, skySpec: !!m?.skySpecular, wetScale: !!m?.skySpecularScale, tier: m?.userData?.tier, note: String(m?.userData?.note ?? '').slice(0, 60), d: +hit.distance.toFixed(2), p: hit.point.toArray().map(v => +v.toFixed(2)), ny: n ? +n.y.toFixed(3) : null, roofed: roofedAt(hit.point.x, hit.point.y, hit.point.z) }; },
-    exposureInfo: () => ({ exposure: renderer.toneMappingExposure, meterEV: meterGain, meterLn, meterBright, meterMean, skyVis, sunAlt: sky.state.sunAlt, sunI: sky.sun.intensity, hemiI: sky.hemi.intensity, gain: sky.gain, lux: sky.lux, toneMapping: renderer.toneMapping }),
+    exposureInfo: () => ({ exposure: renderer.toneMappingExposure, meterEV: meterGain, meterLn, meterLost, meterTex: !!meterTex, frameFaults: (globalThis as any).__frameFaults ?? null, meterBright, meterMean, skyVis, sunAlt: sky.state.sunAlt, sunI: sky.sun.intensity, hemiI: sky.hemi.intensity, gain: sky.gain, lux: sky.lux, toneMapping: renderer.toneMapping }),
     popins: [] as { what: string; d: number; t: number }[],
     /** people: summary rows (out-of-world; for tests and the dev overlay) */
     people: () => { const P = (world as any).people; if (!P) return null; return { t: P.sim.t, stock: P.sim.stock, events: P.sim.events.slice(-20),
@@ -454,7 +455,9 @@ async function boot() {
   let freeCam: null | { x: number; y: number; z: number; yaw: number; pitch: number } = null;
   /** debug (D-219): weather uniforms held at given values for before/after renders (__parsa.holdWeather) */
   let wxHold: { wetness?: number; snow?: number; cell?: number } | null = null;
-  let meterLn = NaN, meterBusy = false, meterT = 0, meterGain = 0, meterTex: Float32Array | null = null, meterBright = 0, meterMean = 0; // frame meter (D-159, D-224)
+  let meterLn = NaN, meterBusy = false, meterT = 0, meterGain = 0, meterTex: Float32Array | null = null, meterBright = 0, meterMean = 0, meterAt = 0, meterLost = 0;
+  /** D-680: a meter readback holds a frame's log luminances (not every texel exactly 0, some finite) */
+  const meterReadable = (px: ArrayLike<number>) => { let fin = 0, nz = 0; for (let i = 0; i < METER_W * METER_H; i++) { const v = px[i * 4]; if (Number.isFinite(v)) { fin++; if (v !== 0) nz++; } } return fin > 0 && nz > 0; }; // frame meter (D-159, D-224)
   let botInput: { forward: number; right: number; run: boolean; yawDeg?: number; pitchDeg?: number } = { forward: 0, right: 0, run: false };
   let lastFrameMs = 0; let probeT = 0;
   /** D-337: a frozen test world profiled as the player's loop runs it (the eye rays every 0.25 s, the meter read back without waiting) */
@@ -588,9 +591,15 @@ async function boot() {
     if (++shownFrames === 5) void startTalk();
     // read the frame meter back (every 0.25 s; every frame in frozen test renders, awaited, so captures are deterministic)
     meterT += dt;
+    // D-680 (s18, the live page's dead meter): a readback that never settles is abandoned after 2 s, and one that returns an
+    // unwritten target (every texel exactly 0 or not finite: a frame that never drew the meter pass) is not a measurement;
+    // either way the meter falls back to the law (the sun's, the sky's and the fires' lux at the eye: meter EV 0)
+    if (meterBusy && performance.now() - meterAt > 2000) { meterBusy = false; meterTex = null; meterLn = NaN; meterLost++; }
     tp = pt(); if (pipeline.meterTarget && !meterBusy && ((TEST && !PLAYLIKE) || meterT > 0.25)) {
-      meterBusy = true; meterT = 0;
-      const rd = renderer.readRenderTargetPixelsAsync(pipeline.meterTarget, 0, 0, METER_W, METER_H).then(px => { meterLn = meterLogMean(px as any); meterTex = meterTexels(px as any); }).catch(() => {}).finally(() => { meterBusy = false; });
+      meterBusy = true; meterT = 0; meterAt = performance.now(); const ticket = meterAt;
+      const rd = renderer.readRenderTargetPixelsAsync(pipeline.meterTarget, 0, 0, METER_W, METER_H).then(px => { if (ticket !== meterAt) return;
+        if (meterReadable(px as any)) { meterLn = meterLogMean(px as any); meterTex = meterTexels(px as any); } else { meterLn = NaN; meterTex = null; meterLost++; } })
+        .catch(() => { meterTex = null; meterLn = NaN; meterLost++; }).finally(() => { if (ticket === meterAt) meterBusy = false; });
       if (TEST && !PLAYLIKE) await rd;
     }
     pa('meter', tp); tp = pt();
@@ -631,6 +640,7 @@ async function boot() {
     onDrawStart = pc.drawStart; onDrawEnd = pc.drawEnd; (api as any).compiling = pc.stats;
   }
   renderer.setAnimationLoop(() => { inAnimationLoop = true; try { void frame(); } finally { inAnimationLoop = false; } });
+  if (!P.has('nosafetynet')) guardLiveDisposals(scene, THREE); // D-740: from ready on, never free what a mesh in the scene still draws (a scene walk per dispose: not during the build)
   prog.finish(); api.ready = true; (api as any).readyAt = Math.round(performance.now()); // (D-580: the page clock at ready; the harness sees it late when the main thread is busy)
   // (D-393: a ?norender page shows no frames, so the talk's model streams in from here instead of after the 5th frame)
   if (NORENDER) void startTalk();

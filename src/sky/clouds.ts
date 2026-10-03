@@ -9,6 +9,7 @@
 import * as THREE from 'three/webgpu';
 import { Fn, uniform, positionWorld, cameraPosition, normalize, vec3, vec4, float, Loop, int, max, min, exp, mix, smoothstep, dot, pow, clamp, If, Break, texture, screenCoordinate, fract, floor, mod, sin, vec2, step } from 'three/tsl';
 import { cloudNoiseVolume, cloudNoiseAtlas } from './cloudNoise';
+import { CLOUD } from './cloudCover';
 import { CLOUD_MARCH, EMPTY_STRIDE, K_MS, K_D, G_DROPLET, OCTAVES, OCT_A, OCT_B, OCT_C, PHASE_BACK, PHASE_FWD, PHASE_MIX, lightSamples } from './cloudLight';
 import type { Air } from './aerial';
 
@@ -24,7 +25,7 @@ function noiseAtlas() {
   return (NOISE = { tex: t, tile: a.tile, width: a.width });
 }
 /** horizontal scales (m per texture tile, C): base shapes, the large-scale weather field, erosion detail */
-const BASE_TILE = 7000, WEATHER_TILE = 46000, DETAIL_TILE = 1400;
+const BASE_TILE = 7000, WEATHER_TILE = 46000, DETAIL_TILE = 1400, CLOUD_WARP = CLOUD.warp;
 
 export const CLOUD_BASE = 1500, CLOUD_TOP = 3600; // m above the observer (C)
 /** the approaching rain cell (world x, world z, radius m, strength 0..1; 0 = none), one uniform shared by the cloud layer
@@ -96,8 +97,11 @@ export class VolumetricClouds {
     const density = Fn(([p]: [any]) => {
       const h = clamp(p.y.sub(CLOUD_BASE).div(CLOUD_TOP - CLOUD_BASE), 0, 1);
       const pw = vec3(p.x.add(cameraPosition.x).add(wd.x.mul(tm)), p.y, p.z.add(cameraPosition.z).add(wd.y.mul(tm)));
-      const lo = sample3(pw.mul(1 / BASE_TILE)).r;
-      const weather = sample3(vec3(pw.x.mul(1 / WEATHER_TILE), 0.37, pw.z.mul(1 / WEATHER_TILE))).r;
+      const wv = sample3(vec3(pw.x.mul(1 / WEATHER_TILE), 0.37, pw.z.mul(1 / WEATHER_TILE))), weather = wv.r;
+      // D-680: the base shapes' lookup warped by the weather field (its G, B: no extra fetch). The volume tiles every 7 km, so
+      // a ray along a lattice axis (world x or z) sampled one periodic column again and again: an empty column was a clear
+      // slit to the horizon, and the slits converged on the axis's horizon point (cov-000's "fan of light streaks")
+      const lo = sample3(vec3(pw.x.add(wv.g.sub(0.5).mul(CLOUD_WARP)), pw.y, pw.z.add(wv.b.sub(0.5).mul(CLOUD_WARP))).mul(1 / BASE_TILE)).r;
       // over the rain cell (world position, not the wind-drifted noise frame): more cover and taller towers
       const dcell = vec2(p.x.add(cameraPosition.x).sub(cell.x), p.z.add(cameraPosition.z).sub(cell.y)).length();
       const boost = float(1).sub(smoothstep(cell.z.mul(0.5), cell.z.mul(1.6), dcell)).mul(cell.w); // edges ascending: a reversed smoothstep is undefined in GLSL/SPIR-V (NaN on SwiftShader)

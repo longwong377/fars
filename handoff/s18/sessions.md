@@ -1,7 +1,7 @@
 # s18 cloud sessions (the cloud lead's list; ids for send_message). Integration: s17-int (= cloud-s17-int, kept equal).
 | agent | owns (src) | branch | session |
 |---|---|---|---|
-| cloud lead | merges, records, src/world/world.ts | s17-int, cloud-s17-int | session_01JNSEZTcqarLMRgqNU97TUk |
+| cloud lead (2, from 06:00 UTC; was session_01JNSEZTcqarLMRgqNU97TUk) | merges, records, src/world/world.ts | s17-int, cloud-s17-int | session_01KpNq4F3cEPrA46Jxc87gdC |
 | C1 the new-day tick | src/people/(population,popgeo,sim,aims,calendar,camps,construction,court,courtYear,roofs,history).ts, src/people/living/, src/core/(clock,calendar,newGame,save).ts | cloud-s18-c1-tick | session_01TCmiCNLpccQXVw4kTNTFHs |
 | C2 town roofs and lane fill | src/world/settlement/ (not surfaces.ts), src/world/(fill,fillPlan,roadLitter).ts | cloud-s18-c2-town | session_01RGjJPi9t8WReu1nyCPdtcP |
 | C3 river and plain | src/world/plain/, src/world/(groundRocks,groundFlora).ts, src/world/trees/ | cloud-s18-c3-plain | session_01E16PQ59QUzWsnjBYjgoLUu |
@@ -16,3 +16,9 @@
 Ownership added during the session: C4 + src/world/(fire,firePlaces).ts (night light on the Terrace); C5 + src/people/(props,poseKit,playing).ts (props clipping); C2 + the paradise garden (in settlement/).
 | C11 the opening cinematic and its score (UD-38) | src/shell/intro.ts + cinematic files in src/shell/, src/audio/score*.ts, tools/score/, public/audio/score/ | cloud-s18-c11-cinematic | session_01Jf37fN3YK7tm9trGxq7J6p |
 | C11 (s18) adds src/ui/ and src/shell/ (all) and two isolated lines in src/main.ts (startScore, mountTitleFilm) |
+| C12 the giant-holes audit (finds, no src) | handoff/s18/holes.md | cloud-s18-c12-holes | session_01DVXLsjdyFMHLPUUQvCb4wp |
+| C13 court, ceremony and dress | src/people/(court,courtYear,looks,outfits,wardrobe*).ts (court/courtYear moved from C1), src/world/furnish_palaces.ts | cloud-s18-c13-court | session_013XYfVtvyaLdsAkB76WYZn3 |
+
+Ownership added after C12's audit (04:35): C2 + src/world/settlement/surfaces.ts and the town-shape rule (plan.ts:43 goes); C10 + src/render/(grime,scans).ts; C5 + src/core/settings.ts playerMode default (visitor) and the player's lamp.
+| C14 people up close and the last procedural animals | src/people/(humans,humanAssets,humanFormat,humanGPU,humanMaterial,humanRig,humanScans,body,bodyShape,drape,softbody,marks,mocap,mocapClips,anim,peopleModels,impostors).ts, src/people/(animalForm,animalModels,animalReal,animalRig,animals).ts | cloud-s18-c14-faces | session_01TrboZqCfzNnJ2kLM351EqN |
+| C15 beyond the Terrace (Naqsh-e Rustam, estates, villages) | src/world/plain/(naqsh,villagehouses,villages,villagesite).ts (from C3), src/world/settlement/compounds.ts + plan.ts:274-358 (estates/pavilion/halls block) | cloud-s18-c15-beyond | session_01U22hbmA1DxZZUchN136wkU |

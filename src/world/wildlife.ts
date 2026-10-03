@@ -105,6 +105,11 @@ export function storkAt(base: P2, ground: (e: number, n: number) => number, seed
 /** local sunset by month at 30 deg N (h, to 0.1 h; C): bats hunt from 20 min after it for about two hours */
 export const SUNSET_BY_MONTH = [17.5, 17.9, 18.2, 18.5, 18.9, 19.2, 19.2, 18.9, 18.4, 17.9, 17.4, 17.3];
 export const batHours = (month: number): [number, number] => [SUNSET_BY_MONTH[month] + 0.33, SUNSET_BY_MONTH[month] + 2.3];
+/** D-740 (s18, C12's pass): the species' hours are written for the equinox (sunrise ~6 h, sunset ~18 h at 29.9 deg N); the
+ *  living day follows the sun: a morning bound moves with the month's sunrise, an evening bound with its sunset (the dawn
+ *  chorus 40 min earlier in June than at the equinox, the roost at dusk later), as the swifts' and the starlings' already do */
+export const EQUINOX_SUN: [number, number] = [6.0, 18.1];
+export function solarHour(h: number, month: number): number { const [rise, set] = sunHoursOfMonth(month); return h < 12 ? h + (rise - EQUINOX_SUN[0]) : h + (set - EQUINOX_SUN[1]); }
 /** a bat hawking: a loop of 5-12 m round its beat 3-10 m up, jinking every half second (C) */
 export function batAt(anchor: P2, ground: number, seed: number, t: number, out: BirdPose) {
   const r = new Rng(seed, 'bat'), a = r.range(5, 12), w = r.range(0.5, 0.9) * (r.chance(0.5) ? 1 : -1), p = r.range(0, 6.3), h0 = r.range(3, 10), k = Math.floor(t * 2), f = t * 2 - k;
@@ -364,7 +369,7 @@ export class Birds {
     for (const sp of Object.values(BIRDS)) {
       const sets = this.sets.get(sp.id)!, at = this.at.get(sp.id)!; at.fill(NaN);
       for (const s of sets) for (const l of s.levels.values()) l.n = 0;
-      const hrs = sp.id === 'bat' ? batHours(month) : sp.hours, active = sp.months.includes(month) && hour >= hrs[0] && hour <= hrs[1] && rain < 0.4;
+      const hrs = sp.id === 'bat' ? batHours(month) : [solarHour(sp.hours[0], month), solarHour(sp.hours[1], month)], active = sp.months.includes(month) && hour >= hrs[0] && hour <= hrs[1] && rain < 0.4;
       let n = 0;
       if (active) for (let i = 0; i < sp.count; i++) {
         const p = this.pose, sd = hashSeed(this.seed, sp.id, i); p.stand = false;
@@ -533,10 +538,12 @@ export class Jackals {
     this.mesh.name = 'wildlife-jackals';
   }
   /** dayIndex/hour local; t world seconds */
-  update(dayIndex: number, hour: number, t: number) {
+  /** month: as the birds' (D-740: the dusk-to-dawn hours follow the sun; absent, the equinox's) */
+  update(dayIndex: number, hour: number, t: number, month?: number) {
     this.uTime.value = t % 100000;
-    const on = hour >= JACKAL.hours[0] || hour <= JACKAL.hours[1]; if (!on) { this.mesh.count = 0; return; }
-    const night = hour >= JACKAL.hours[0] ? dayIndex : dayIndex - 1, pack = 2 + new Rng(this.seed, `jackal-pack:${night}`).int(0, JACKAL.count - 2);
+    const h0 = month === undefined ? JACKAL.hours[0] : solarHour(JACKAL.hours[0], month), h1 = month === undefined ? JACKAL.hours[1] : solarHour(JACKAL.hours[1], month); // (D-740: from dusk to dawn by the sun)
+    const on = hour >= h0 || hour <= h1; if (!on) { this.mesh.count = 0; return; }
+    const night = hour >= h0 ? dayIndex : dayIndex - 1, pack = 2 + new Rng(this.seed, `jackal-pack:${night}`).int(0, JACKAL.count - 2);
     for (let i = 0; i < pack; i++) {
       jackalAt(this.seed, night, i, t, this.p); const y = this.terrain.heightAt(this.p.e, -this.p.n);
       this.q.setFromAxisAngle(this.up, Math.PI - this.p.heading); // (D-332: nose +z; heading atan2(east, north), the world's z south)

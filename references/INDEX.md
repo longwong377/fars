@@ -1,7 +1,7 @@
 # references/ — catalogue (session 1, 2026-09-22)
 The user supplied 39 files. Each was viewed in full: converted to PNG thumbnails and inspected image by image.
 **Status of all of them:** third-party, copyrighted, reference only. None is copied into the build or the asset ledger.
-The brief (§15.5) applies: they guide mood, composition and palette. **Where they conflict with the evidence, the evidence wins and the conflict is logged here.**
+The brief (§15.5) applies: they guide mood, composition and palette. **Where they conflict with the evidence, the evidence wins only where the evidence is positive and clear; where it is silent or survives only as traces (paint, textiles, furnishings, colour of walls, capitals and timber), the reconstructions are the target (UD-29, s18: the old rule left the Terrace unpainted). Photographs of the site today (Ph) are for terrain, rock, the plain and the hills only, never for the buildings' finish, colour or completeness.**
 Weight: **P** = plan or measured drawing (usable for geometry checks); **R** = scholarly-advised reconstruction; **A** = artist/hobby
 reconstruction (inspiration, tier C at best); **M** = mood only; **✗** = unreliable (AI-generated, fantasy or romantic).
 

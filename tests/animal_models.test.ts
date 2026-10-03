@@ -99,13 +99,14 @@ describe.skipIf(!HAVE)('the animals are modelled bodies (D-326)', () => {
   });
 });
 describe('the gaits and the poll joint (D-326 round 2, Q-980)', () => {
-  it('the trot moves the diagonal pairs together, the bound the fore pair and the hind pair; the walk is unchanged', async () => {
-    const { gaitOffset, gaitW, animalFrame } = await import('../src/people/animals');
+  it('the trot moves the diagonal pairs together, the gallop the fore pair and the hind pair a beat apart; the walk is unchanged', async () => {
+    const { gaitOffset, gaitW, animalFrame, GALLOP_LEAD } = await import('../src/people/animals');
     const W = [0, Math.PI / 2, Math.PI, 1.5 * Math.PI], fore = [0, 1, 0, 1]; // LH, LF, RH, RF
     const at = (g: number) => W.map((w, i) => ((gaitOffset(w, fore[i], gaitW(g)) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI));
     expect(at(0)).toEqual(W);
     const t = at(1); expect(t[1]).toBeCloseTo(t[2]); expect(t[0]).toBeCloseTo(t[3]); expect(Math.abs(t[0] - t[1])).toBeCloseTo(Math.PI);
-    const h = at(2); expect(h[1]).toBeCloseTo(h[3]); expect(h[0]).toBeCloseTo(h[2]); expect(Math.abs(h[0] - h[1])).toBeCloseTo(Math.PI);
+    // (s18 C14 D-790: the transverse gallop: each pair's right leg lands GALLOP_LEAD after its left, the pairs half a cycle apart)
+    const h = at(2); expect(h[3] - h[1]).toBeCloseTo(GALLOP_LEAD); expect(h[2] - h[0]).toBeCloseTo(GALLOP_LEAD); expect(Math.abs(h[0] - h[1])).toBeCloseTo(Math.PI);
     // the equids carry their heads steep at rest (0.95 rad) and the poll straightens it when they graze
     const F = animalFrame('horse'); expect(Math.asin(-F.hd.y)).toBeCloseTo(0.95); expect(F.bend).toBeGreaterThan(0.35);
   });

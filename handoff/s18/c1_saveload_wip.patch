@@ -1,0 +1,72 @@
+diff --git a/src/people/deeds/engine.ts b/src/people/deeds/engine.ts
+index d00ee6a3..f6a2c014 100644
+--- a/src/people/deeds/engine.ts
++++ b/src/people/deeds/engine.ts
+@@ -351,7 +351,7 @@ export class DeedWorld {
+   // (D-459, the late save 3.66 MB: the overlays of days gone by, the promises settled and the faded feelings are not kept)
+   save() { const d0 = this.dayDone - 1;
+     return { mine: this.mine, minds: this.minds.save(this.dayDone), inj: [...this.injuries].filter(([, v]) => v.until > d0), law: this.law.save(), promises: this.promises.filter(p => !p.kept && !p.broken), skills: [...this.skills],
+-      lays: [...this.lays].filter(([k]) => Number(k.split(':')[1]) >= d0), dayDone: this.dayDone, n: this.log.length, joint: this.joint.save(), agency: this.agency.save(),
++      lays: [...this.lays].filter(([k]) => Number(k.split(':')[1]) >= d0), dayDone: this.dayDone, n: this.base + this.log.length, ev: this.evSeen, // (D-651: the economy's events already felt, and the count of all deeds: a load re-read every event from 0 and felt again those dated ahead) joint: this.joint.save(), agency: this.agency.save(),
+       // D-720: the deeds of the last ten days and the count of all (a save loaded began the ids again at 0: the memories' ids then
+       // read other deeds, the town's talk of deeds (initiative.ts, from its last id seen) stopped until the count caught up, and
+       // what a person had lately done or suffered was gone); kept lean: the outcome's effects and witnesses are spent
+@@ -360,7 +360,7 @@ export class DeedWorld {
+     return this.log.slice(i).map(r => ({ id: r.id, day: r.day, t: r.t, deed: r.deed, out: { ok: r.out.ok, why: r.out.why, ...(r.out.refused ? { refused: true } : {}) } })); }
+   load(s: ReturnType<DeedWorld['save']> | undefined) { if (!s) return; this.mine = s.mine; this.minds.load(s.minds); this.injuries.clear(); for (const [k, v] of s.inj) this.injuries.set(k, v);
+     this.law.load((s as any).law ?? { cases: (s as any).cases }); this.promises.splice(0, this.promises.length, ...s.promises); this.skills.clear(); for (const [k, v] of s.skills) this.skills.set(k, v);
+-    this.lays = new Map(s.lays); this.dayDone = s.dayDone; this.evSeen = 0;
++    this.lays = new Map(s.lays); this.dayDone = s.dayDone; this.evSeen = (s as any).ev ?? 0;
+     const rs = ((s as any).recent ?? []) as DeedRec[]; this.log.splice(0, this.log.length, ...rs); this.base = ((s as any).next ?? s.n ?? 0) - rs.length; this.joint.load(s.joint); this.agency.load(s.agency); }
+ }
+ 
+diff --git a/src/people/mind/goals.ts b/src/people/mind/goals.ts
+index 0d879a8a..8832b39a 100644
+--- a/src/people/mind/goals.ts
++++ b/src/people/mind/goals.ts
+@@ -123,7 +123,9 @@ export class Goals {
+     return null; }
+   /** a master's or employer's work and its place, read once a month */
+   private bossAt = new Map<number, { act: ActivityId; place: string; day: number }>();
+-  private bossWork(pid: number, day: number) { const c = this.bossAt.get(pid); if (c && day - c.day < 30) return c; const s = this.workOf(pid, day), v = { act: s?.act ?? 'carry_sack', place: s?.place ?? `h:${this.hid(pid, day)}`, day };
++  // (D-651: read on the first day of the person's own 30-day window, not on the day first asked: a loaded world asked first on
++  // another day and its people helped at other work, the save/load round trip)
++  private bossWork(pid: number, day: number) { const d0 = Math.max(0, day - (day + pid) % 30), c = this.bossAt.get(pid); if (c && c.day === d0) return c; const s = this.workOf(pid, d0), v = { act: s?.act ?? 'carry_sack', place: s?.place ?? `h:${this.hid(pid, d0)}`, day: d0 };
+     if (this.bossAt.size > 5000) this.bossAt.clear(); this.bossAt.set(pid, v); return v; }
+ 
+   // ------------------------------------------------------------------ forming: a person's state gives rise to a goal
+diff --git a/src/people/population.ts b/src/people/population.ts
+index f89ac4c9..6cf9d718 100644
+--- a/src/people/population.ts
++++ b/src/people/population.ts
+@@ -197,6 +197,8 @@ export const DEPOT_EARLY_H = 1;
+  *  posts; not a house, a workshop, a store, a hall or a tent */
+ export const OPEN_PLACE = /^(lane:|well:|market:|field:|canal:|pasture:|meadow:|bank:|edge:|slope:|outside|threshing:|garden:|orchard:|vineyard:|estate:|stockyard|crown_fields|river|clay_pit|worksite|h100_|hall100_site|stair_foot|querns|oven|work_hearth|water|forecourt|brickyard|terrace_round|post_|training:|flock:|route:|road:|scrub:|naqsh:(?:tomb|watch|flock))/; // (D-640: the hill's scrub, the ground below the tombs)
+ /** at the house but out of doors: on the roof, in the courtyard, at the wall where the dung cakes dry, on the doorstep */
++/** D-651: the stand-in day the deeds' overlay is laid on in segLight (an hour outside what the deeds laid reads the common lot) */
++const LIGHT_BASE: Seg[] = [{ t0: 0, t1: 24, place: '@light', act: 'rest', why: '', where: 'town' }];
+ /** D-461: the day's work of a trade, as the town's own minds guess it when no plan is built (Population.segLight; C) */
+ const LIGHT_WORK: Partial<Record<string, ActivityId>> = { farmer: 'field_work', gardener: 'garden_work', builder: 'lay_brick', porter: 'carry_sack', camp: 'bake', weaver: 'weave', craftsman: 'craft', scribe: 'write_tablet',
+   treasury: 'polish_metal', official: 'inspect', storekeeper: 'weigh', miller: 'grind', brewer: 'brew', groom: 'tend_animals', shepherd: 'herd', herder: 'herd', servant: 'clean', steward: 'inspect', homemaker: 'spin', caretaker: 'clean', messenger: 'walk' };
+@@ -1939,12 +1941,17 @@ export class Population {
+   /** D-461: the plan as the town's own minds read it when they judge a deed among themselves: the base day (cached) and the
+    *  deeds' overlay only (the full overlays cost ~10 ms a person on a fresh day; the stranger's deeds keep the full plan) */
+   planLight(pid: number, day: number): Seg[] { const b = this.basePlan(pid, day); return this.deeds?.touches(pid, day) ? this.deeds.overlay(pid, day, b) : b; }
+-  /** D-461: the light plan only if the planner has built the base day already (no build: ~1.5 ms each), else null */
+-  planIfBuilt(pid: number, day: number): Seg[] | null { const b = this.planCache.get(day)?.get(pid); if (!b) return null; return this.deeds?.touches(pid, day) ? this.deeds.overlay(pid, day, b) : b; }
++  /** D-461: the light plan only if the planner has built the base day already (no build: ~1.5 ms each), else null.
++   *  D-651: always null now. Whether a plan happened to be cached depended on the history of the caches (what the camera had
++   *  looked at, a load, a jump made in slices, the 20,000-plan clear), so the town's own minds decided differently in two runs of
++   *  one seed, and a loaded world went its own way within a day (the save/load round trip). Kept for its callers */
++  planIfBuilt(_pid: number, _day: number): Seg[] | null { return null; }
+   /** D-461: what a person is doing at an hour as the town's own minds judge it: the built plan, else the hour's common lot
+    *  by their age and trade (asleep at night, at home of an evening, by day a working man or woman at their work, a child at
+-   *  play, the old at rest; the festival a day off: C). No plan is built (a fresh house's plans are 1.5 to 70 ms) */
+-  segLight(pid: number, day: number, hour: number): Seg { const b = this.planIfBuilt(pid, day); if (b) return segAt(b, hour);
++   *  play, the old at rest; the festival a day off: C). No plan is built (a fresh house's plans are 1.5 to 70 ms).
++   *  D-651: never the cached plan (planIfBuilt), always the common lot, with what the deeds have laid into the day on top */
++  segLight(pid: number, day: number, hour: number): Seg {
++    if (this.deeds?.touches(pid, day)) { const s = segAt(this.deeds.overlay(pid, day, LIGHT_BASE), hour); if (s.place !== LIGHT_BASE[0].place) return s; }
+     const h = this.home(pid, day), z = this.households[h]?.zone, where: Where = z === 'plain' ? 'plain' : z === 'terrace' ? 'terrace' : 'town', at = `h:${h}`;
+     const s = (act: ActivityId, why: string): Seg => ({ t0: hour, t1: hour, place: at, act, why, where });
+     if (hour < 5.5 || hour >= 21.5) return s('sleep', 'asleep'); if (hour >= 17 || hour < 7) return s('rest', 'at home');

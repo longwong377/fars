@@ -286,7 +286,10 @@ export class PlainGround {
       const stFar = irrFar.mul(bI).add(meanRain.mul(bR)).add(meanOrch.mul(bO)).div(bSum);
       const S = mix(stFar, st, plotKeep), M = mix(bI.add(bR).add(bO).min(1).mul(allowed), mask, plotKeep);
       // --- colour of the plot from its state
-      const soil0 = attribute('color', 'vec3').mul(float(1).add(mx_noise_float(positionWorld.mul(0.25)).mul(0.08)));
+      // D-670 (holes P2-10, Q-603): the soil's moisture by season: the loam dark and damp in spring (the winter rains and the
+      // irrigation), pale dry dust in late summer; damper in the low spots and on the irrigated land (C)
+      const moist = SEASON.green.div(SEASON.green.add(SEASON.dry).max(0.001)).mul(0.75).add(mx_noise_float(vec3(p.x.mul(0.012), 2.2, p.y.mul(0.012))).mul(0.15)).clamp(0, 1);
+      const soil0 = attribute('color', 'vec3').mul(float(1).add(mx_noise_float(positionWorld.mul(0.25)).mul(0.08))).mul(mix(vec3(1.08, 1.07, 1.05), vec3(0.82, 0.81, 0.8), moist));
       const soil = soil0.mul(det(dustC)); // D-302: the loam with the dust scan's grain (wet: the mud's)
       const hgt = S.x.mul(1.5);
       // D-670 (the "flat saturated-green rectangles"): the greens a little greyer and olive (young cereal under a dry sky, C); each
@@ -346,6 +349,12 @@ export class PlainGround {
       plotAlb = mix(plotAlb, mix(soil.mul(1.04), weedC, 0.35), ridge.mul(basinOn).mul(0.7));
       plotAlb = mix(plotAlb, mix(soil.mul(1.05), lin(0.36, 0.40, 0.2).mul(det(G.green)), 0.45), bund.mul(0.85));
       plotAlb = mix(plotAlb, soil0.mul(det(G.packed)).mul(1.15).add(vec3(0.02, 0.018, 0.012)), track.mul(0.9));
+      // D-670 (ledger row 16): the field ditches: beside every district track of the irrigated land a ditch ~0.9 m wide that
+      // carries the canal's water to the plots, wet mud and a thread of water in the watering months (Mar-Oct), a dry dark
+      // groove otherwise; drawn by its pixel coverage like the bunds (C)
+      const dw = float(2.35), dh = float(0.45), ditch = float(1).sub(smoothstep(dh.sub(fwDd), dh.add(fwDd), abs(dEdge.sub(dw)))).mul(clamp(dh.mul(2).div(fwDd.mul(2)), 0, 1)).mul(wI).mul(mask);
+      const watering = SEASON.green.add(0.25).min(1);
+      plotAlb = mix(plotAlb, mix(soil0.mul(0.62), vec3(0.09, 0.11, 0.1), watering.mul(0.55)), ditch.mul(0.9));
       plotH = mix(plotH, G.packed.h.mul(0.01), track.mul(0.9));
       // --- the uncultivated ground (D-302; was the earth surface's own procedural herbs and chips, whose 3 m blobs cut by a
       // hard threshold read as camouflage): the loam's dust (wet: mud), stony patches over ~150-400 m, dried and cracked silt

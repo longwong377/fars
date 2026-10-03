@@ -82,6 +82,10 @@ describe('D-459 deeds in the world (a real town, seed 1, day 60)', () => {
   it('saved and loaded, the minds and the wounds go on', () => {
     const s = JSON.parse(JSON.stringify(sim.save())), b = simAt(1, 60, 10, { asks: true }); b.load(s);
     expect(b.deeds.log.length).toBe(0); expect(b.deeds.cases.length).toBe(sim.deeds.cases.length);
+    // (D-720: the ids go on from the saved count, and the last day's deeds are read back: a memory reads its own deed)
+    expect(b.deeds.next).toBe(sim.deeds.next);
+    const last = sim.deeds.log.filter(r => /^(attack|steal|break|curse|accuse|threaten|insult|mock|push|court|reconcile|heal|forgive|apologize|intercede|comfort)$/.test(r.deed.verb) && r.day >= sim.deeds.log[sim.deeds.log.length - 1].day - 9).slice(-1)[0];
+    if (last) { expect(b.deeds.rec(last.id)?.deed.verb).toBe(last.deed.verb); expect(b.deeds.rec(last.id)?.deed.actor).toBe(last.deed.actor); }
     const v = sim.deeds.cases.find(c => c.accused === 'player')!.victim as number; expect(b.deeds.minds.feelOf(v, 'player', day + 1).anger).toBeCloseTo(sim.deeds.minds.feelOf(v, 'player', day + 1).anger, 6);
   });
 });
@@ -94,4 +98,13 @@ describe('D-459 a talk turn carries the deed (stand-in model)', () => {
     expect(o.deed?.deed.verb).toBe('insult'); expect(o.deed?.done?.out.ok).toBe(true);
     expect(sim.deeds.minds.feelOf(pid, 'player', day).anger).toBeGreaterThan(0.2);
   });
+});
+
+describe('D-720 (C7\'s CI): the deeds\' save round trip', () => {
+  it('a world run live, saved, loaded and saved again gives the same deeds save, byte for byte', async () => {
+    const { PeopleSim } = await import('../src/people/sim'); const { nav, envOf } = await import('./sim_fixture');
+    const a = new PeopleSim(1, nav(), envOf(1), { asks: true }); a.jumpTo(12 * 24 + 10);
+    const s1 = JSON.stringify(a.deeds.save()), b = new PeopleSim(1, nav(), envOf(1), { asks: true }); b.load(JSON.parse(JSON.stringify(a.save())));
+    expect(JSON.stringify(b.deeds.save())).toBe(s1);
+  }, 600_000);
 });

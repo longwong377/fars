@@ -28,7 +28,9 @@ export const WORK_ANIMS = ['hoe', 'irrigate', 'reap', 'bind', 'winnow', 'drive',
   // D-292: the body's care: the face washed over a basin, a child's hair gone through for lice, a man shaved
   'wash_face', 'delouse', 'shave',
   // D-292 (GC27): the herd boy's sling
-  'sling'] as const;
+  'sling',
+  // D-780: the bow before the king, the right hand raised before the mouth (the Treasury relief)
+  'proskynesis'] as const;
 export type WorkAnim = typeof WORK_ANIMS[number];
 /** how each cycle meets the ground (humanRig: planted feet, or the body resting on the ground) and whether it moves the
  *  performer's root along a path of its own (the ploughman along the furrow, the thresher turning with his team) */
@@ -48,7 +50,7 @@ export const WORK_META: Record<WorkAnim, { ground: 'feet' | 'seat'; path?: boole
   smith: { ground: 'feet' }, bellows: { ground: 'feet', aside: true }, chasing: { ground: 'seat', aside: true }, weigh: { ground: 'feet' }, seal: { ground: 'seat', aside: true },
   seal_jar: { ground: 'feet' }, drill: { ground: 'seat', aside: true }, scrape: { ground: 'feet' }, pound: { ground: 'feet' },
   wash_face: { ground: 'seat', aside: true }, delouse: { ground: 'seat', aside: true }, shave: { ground: 'seat', aside: true },
-  sling: { ground: 'feet' },
+  sling: { ground: 'feet' }, proskynesis: { ground: 'feet' },
 };
 /** D-215: the children's paths (C): running round after one another on a circle of 2.2 m at 2 m/s; walking round pulling
  *  a toy on a circle of 1.5 m at 0.5 m/s. Both start at the view's spot and come back to it */
@@ -727,6 +729,16 @@ function feedFire(t: number, k: number): Pose {
   grip(p, T, 'r', [R[0], R[1], R[2]], [-0.8, -0.9, -0.3], 0.6); grip(p, T, 'l', [0.14, 1.0, 0.2], [0.8, -1, -0.2], -0.8);
   look(p, T, [0, 1.2, 0.9]); p.grip = [1, 1]; p.show = [q > 0.1 && q < 0.6, false]; return p;
 }
+/** D-780: the bow before the king as the Treasury relief carves the figure before the throne (B): the body bowed forward from
+ *  the hips, the head inclined, the right forearm raised with the hand before the mouth, the left hand at the belt (the depth of
+ *  the bow and its slow rise and fall C) */
+function proskynesis(t: number, k: number): Pose {
+  const P = 9, q = fr(t / P + k * 0.13), deep = 0.6 + 0.3 * win(q, 0.15, 0.55, 0.15);
+  const p = blank(), T = body(p, { hp: 0.16 * deep, sp: 0.16 * deep, ch: 0.06, drop: -0.01, hy: 0.01 * wob(t * 0.1, k) }, t, k);
+  stance(p, T, { w: 0.12, zl: 0.03, zr: -0.02, out: 0.14 });
+  grip(p, T, 'r', [-0.035, 1.36 - 0.06 * deep, 0.22 + 0.1 * deep], [-0.6, -1, 0.1], 0.6); grip(p, T, 'l', [0.12, 0.98, 0.12], [0.8, -1, -0.2], -0.9);
+  look(p, T, [0, 0.3, 2.4], 0.2); p.grip = [0.2, 0.4]; return p;
+}
 /** D-209: standing in mourning at a grave: the head bowed, the hands joined low (C: no wailing or tearing is staged) */
 function mourn(t: number, k: number): Pose {
   const p = blank(), T = body(p, { hp: 0.04, sp: 0.1, ch: 0.08, drop: -0.01, hy: 0.02 * wob(t * 0.1, k) }, t, k);
@@ -995,6 +1007,7 @@ function workCycle(id: WorkAnim, t: number, ph: number, k: number, g: Gait): Pos
     case 'delouse': return delouse(t, k);
     case 'shave': return shave(t, k);
     case 'sling': return sling(t, k);
+    case 'proskynesis': return proskynesis(t, k);
   }
 }
 /** the root path of a path cycle at time t (called every frame by the crowd, also between pose refreshes) */

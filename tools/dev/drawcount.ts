@@ -40,7 +40,7 @@ for (const v of views) {
   for (const a of sim.agents) if (!a.offmap && inView(a.pos[0], a.y, -a.pos[1])) agents++;
   let bodies = 0; for (const p of crowd.persons.values()) if (p.shown && p.drawnFrame === (crowd as any).frame && inView(p.root[0], p.root[1], p.root[2])) bodies++;
   { const near: string[] = []; let walled = 0, lanes = 0, lodN = [0, 0, 0, 0]; for (const p of crowd.persons.values()) { if (!p.shown || p.drawnFrame !== (crowd as any).frame) continue; const d = Math.hypot(p.root[0] - v.e, -p.root[2] - v.n); if (d > R) continue;
-      const w = !p.agent && p.vp && (crowd as any).walledOff(p.vp, cam.position.y); if (w) walled++; lodN[p.lod]++; }
+      const w = !p.agent && p.vp && (crowd as any).walledOff(p.vp, cam.position.y); if (w) walled++; lodN[p.lod ?? 3]++; }
     console.log(`  ${v.id}: attached and shown within ${R} m: lods ${JSON.stringify(lodN)}, walled off (in a court the camera is outside of, below its walls) ${walled}`); }
   let imps = 0; const IL = (crowd as any).impList as any[]; for (let i = 0; i < (crowd as any).nImp; i++) { const e = IL[i]; if (inView(e.x, e.y, e.z)) imps++; }
   console.log(`${v.id.padEnd(8)} d${v.day} ${v.hour.toFixed(2)}h: within ${R} m ${near.length} (bearing from the view's axis ${JSON.stringify(bh)}); in view: placed ${placed} (+${agents} agents) | bodies drawn ${bodies}, impostor candidates ${imps} | crowd ${JSON.stringify({ drawn: crowd.perf.drawn, attached: crowd.perf.attached, imp: crowd.impPerf.drawn, rigClear: (crowd as any).rigClear })} | view pending ${view.stats.pending}`);

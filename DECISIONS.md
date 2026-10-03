@@ -9894,6 +9894,48 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   stacks, heaps and folds drawn to 2.2 km; crop guards' reed shelters at irrigated plot edges and herders' wattle pens with
   their huts on the fallow (the kit's models), to 2.2 km (fieldFill.ts LAND). Census (plain_census, 18 Apr): bare 3.0 % and
   repeats 0.0 % as in s17; field trees near paths 25 -> 77.
+- Qanats unblocked (the lead's ask from C12's holes audit): Q-052 says no qanat in Fars is dated to the Achaemenids, not that
+  there were none; Polybius 10.28 has the Persian kings rewarding underground water works. By D-207 they are drawn, tier C
+  (qanats.ts): 56 lines (~2,700 shaft mounds, 20-45 m apart, larger upslope) from the hill-foot fans down onto the plain,
+  clear of the zones, Terrace, rivers, roads and villages, in 3 km tiles shown within ~3.2 km. blocklist.json's qanat entry
+  removed, ANACHRONISM_BLOCKLIST.md row marked unblocked, plain.json not_placed line removed, the plain test's banned-name
+  list updated. settlement.json, lives.json (others' files) still say "no qanats" in their notes.
+- Trees (trees/render.ts setDay): every day change after the first bake re-bakes the impostors in the worker, jumps too (C1's
+  sliced day jump made the 1.7 s main-thread bake the worst frame); the far trees follow within a second or two.
+- crossings.ts: one ford per place across roads (D-730's two roads share a line and a ford). tools/plain/meander.ts re-runs
+  (it undoes the last meander from the base course and prior samples it kept); re-run after D-730's rerouted roads.
+- The plain's frame budget (D-040's 2 M at the village wells) after the s17-int merge (+80 k of village door leaves): the fords'
+  and quarries' shared stone mesh cast its 361 k shadow triangles in every frame (the castShadow line sat inside a comment);
+  now within 300 m of a ford or 450 m of a quarry. The river apron in two steps (11 vertices a section, was 13); canal banks
+  at the canals' 25 m trace step (was 12.5).
+- Wind (C12's "nothing moves in the wind"): windField.ts, one wind for every plant from the weather's speed and direction
+  (the smoke's convention): a steady lean downwind, gusts carried across the land at about the wind's speed (25-60 m
+  patches: waves in the wheat and the reeds) and each plant's flutter; crops, reeds and bank grass, the trees (near sets) and
+  the ground cover (flutter only: its instance turn is not in the shader) read it. Impostors stay still.
+- Names: plain.json's Pulvar is the Medos of the Greeks and the Kur the Araxes (Strabo 15.3.6; was "Araxes?" on both); the
+  second tomb at Naqsh-e Rustam is a royal tomb being cut, later attributed to Xerxes (alive in 467). The people's lines and
+  chronology.json (C1/C8's, not mine) keep their own wording. Millet (W19) not added: a new crop row touches the crop table,
+  the shader's rows and the mix tests (left for a later package; sesame stands for the summer crops).
+- The plain-side works built (C1's ask: staffed, not built): works.ts lays out, at town.json's facilities (moved to the nearest
+  clear ground within 160 m when a town site or road is in the way), the brickyard by the canal (mixing pits, ~600 brick
+  moulds drying in rows, dry stacks, straw stacks) plus a drying field at the Terrace's N foot by the Hall of 100 Columns'
+  works (94,279), the walled stockyard (hurdle pens, mangers, trough), tannery (vats, hide frames, hides), press house (wine
+  and oil presses, jars), mill (querns, sacks), bakery-brewery (ovens, vats, jars) and the clay pit (heaps), from the period
+  kit, walls of mud brick with colliders; 55 work spots (worksLayout(plan).spots: facility, act, e, n, yaw) for C1's people.
+- Soil moisture by season (holes P2-10, Q-603): the plain's loam dark and damp in spring, pale dust in late summer, damper in
+  patches (terrainPlain.ts soil0: fields, tracks and open ground alike); the rain's wetness on top as before.
+- The ring seam (C7: terrain.test 53 m step, terrain_walk 0.54 m gap after ef9df75f): the far ring's carve changed what the
+  mid ring's outer 12-cell band is blended into (build_terrain.py's seam blending); meander.ts now re-blends that band
+  (each sample's own height recovered from the old blend or taken from the carve, mixed with the far ring as it is now). The
+  horizon map rebuilt (tools/build_horizon.ts). terrain, terrain_walk, horizon and plain tests green; villages unchanged.
+- The T4's black screen (Vagon's culprit probe: plain-stone's shadow pass bound a released buffer): the fords' merged stone
+  mesh casts no shadow from birth and is never re-flagged at run time; the shared quarry mesh is hidden, never disposed.
+- Far flora no longer black (the flora atlas's transparent texels are black, so its coarser mips darkened the far cards:
+  groundFlora.ts un-premultiplies the colour by the mip's coverage). plantedTrees() (src/world/trees/planted.ts) for C10's
+  Terrace planters. The river works (ledger row 16): two kit models built in the cloud's pip bpy (model_props.py
+  a_wo_shaduf, a_wo_pontoon); waterworks.ts places ~127 shadufs on the river and canal banks within 12 km (every ~420 m /
+  ~330 m, sides alternating, none near a ford or on a road) with a 'lift' spot each for C1, and a bridge of boats on the
+  royal road over the Kur whose deck rides on the river's level of the day.
 
 ## D-720 Follow thirty: the people answer from their own lives without the model, and the town's deeds and yesterday reach their talk (session 18, cloud C8; UD-07, UD-08, UD-11, UD-21, UD-24, UD-32)
 - Measured (tools/dev/follow30.ts; REVIEWS/follow30.json): thirty people drawn by seed across the town, the villages, the Terrace's
@@ -9927,6 +9969,11 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
 - Measured first (tools/dev/jump_bench.ts; node, seed 1, the world's options): a jump of +180 days was one call of 90-105 s, +1 day 1.3-2.3 s, the turn at midnight one 30-s step of 1.6-1.8 s; in the page (?norender, cloud, `__parsa.setTime` + `tick`) +1 day 0.98 s, +60 days 20.5 s (≈ 0.34 s a day; the T4's 723 s for day 180 was a busy box). 90 % of it is the living world stepped day by day (the town's talk 50 %, the minds' deeds 25 %, the asks, the relations' weeks), ~2,100 people's raw days built a day with no single hot spot; the rest is the ~135 Terrace people's plans for the new day (~20 ms each). It cannot be skipped or cached: a save and its load are not the same world (≈ 1 % of plans differ; tests/sim_fixture, living_world and day_slice already fail on that and on the minds' wall-clock counters in the save, before this change).
 - So the cost is moved off the frame, not cut: `PeopleSim.jumpTo(t, sliceMs)` steps the days up to the target's next morning (LivingWorld.advanceSliced) and then warms the people's plans, within about sliceMs a call; the people stay as they were until it is done (`catchingUp`), then the jump is made in ~5-25 ms. `aheadMs` runs D-388's stepAhead each step (tomorrow made ready through the evening). The relations' first weeks (setup + two weeks, ~1.1 s) are stepped a week a part. The same days in the same order: tests/day_jump.test.ts (sliced jump = whole jump from a cached and from a new world; midnight with aheadMs = midnight on demand: the same events and save, the minds' timers aside). Defaults are the old behaviour (0); the world must pass them (ask to the lead: world.ts simulate `sim.jumpTo(target, dt > 0 ? 8 : 0)`, `sim.aheadMs = 4`).
 - After (node): +180 days 8,091 calls, the longest 1.05 s (EconPlans.steps, one piece per day, ~0.8 s; the relations' week ~0.2 s), the placing call 21 ms; midnight's longest step 1.78 s → 0.91 s (EconPlans.steps again, now in the evening). In the page with the wiring: +180 days in 4,502 frames, median 44 ms, worst 1.6 s (the trees' day rebake, trees/render.ts setDay ~1.7 s, not the sim), 2nd 0.81 s; the total CPU is unchanged (≈ 60 s for +180 in the page). Not done: EconPlans.steps as a generator (economy/plans.ts), the relations' re-derivation after a load (~0.6 s + 0.16 s a week, relations/world.ts), a worker (needs an exact save).
+- D-474 final (04:37 UTC): s14-int <- c3bde8ab (tonight's measured line + V10's load fix; NOT the cloud's later wave 1, per the
+  cloud lead). Built site, cold, T4, vs the morning 5fc087ea: world built 34.8 -> 32.8 s, first frames 45.5 -> 39.2 s, memory
+  10.48 -> 10.54 GB (+0.6 %), frame 117 -> 135 ms, shaders settled 753 -> 922 s, pipeline validation errors 15 -> 1. Load passes;
+  frame time and settle are worse against a baseline that skipped 15 failed pipelines (objects never compiled or drawn), so
+  they were judged a pass by the lead and are recorded here, not hidden. Budget baseline unchanged.
 
 ## D-660 The town's roofs, lane fill, doors and the last shut houses (s18 cloud C2, town)
 - Measured first (node probes: a ray down every house room on the far mesh and on both near levels; the fill's drawn height against the lane ground mesh). The "roofless" town is not missing roofs: the far level roofs 92 % of the 6,878 house rooms (the rest carry the roof fuel on top), both near levels ~97 % of a 982-room sample. From 20 m up and the Terrace they read as open boxes because the roof top was the walls' own plaster tone, the parapets (0.22-0.62 m) hide them at a few degrees' elevation and the courts are dark holes; nothing of a roof's life was drawn beyond 120 m. Fix: every roof in a straw-and-clay coat (houses.ts roofCol, both levels: the plot's earth mixed 45-70 % toward a sun-bleached coat, ±9 % roof to roof) and the roofs' jars, mats, fleeces and dung cakes on the far level (+39 k triangles town-wide).
@@ -9949,6 +9996,244 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   body reaches (walkers.ts now samples plot cells reachable from their door), and a person stepping across the walker's way in
   q_s2's 1.4 m lanes (fixed).
 
+## D-770 The giant-holes audit: what else the ruin bias and the early "attested only" rules left out (s18 cloud C12; UD-14, UD-29)
+- handoff/s18/holes.md ranks 25 holes by screen share x time x how jarring, with evidence, the most probable 467 fill and an
+  owner. The nine tests and rules that enforce an absence (polychromy faces/background, Treasury-only clay paint, no shrine,
+  no qanat, the king never staged, delegations/feasts `never`, words never joined) are listed so the fixes change them too.
+  No src edits (an audit).
+- B580: a landlocked house whose only lane contact is a corner cell keeps a 0.02-0.3 m slot between the two crossing 0.7 m walls whatever door is cut (measured at 10 cm). access.ts' last pass cuts up to three connected cells at that corner (the house's own or a neighbour's; never a door cell or a small plot) back to the lane, the door through the cut (a narrow 0.6 m door allowed there), a neighbour's room the cut strands given an inner door, kept when the house is then at least half reached and no other plot loses a reached place; the cut reaching most is kept. q_s4-0074 (100/100 cells), q_s4-0161 (91/141: its inside split by a narrow inner passage), q_w3-0122 and one more entered. Then a lane pocket no body walks into (q_w2-0077 and q_w2-0082 faced a 40-cell one whose one exit was a one-cell lane, 0.15 m of room) gets its one-cell corridor widened into the larger plot along it (and, if the two wall corners across the junction still leave a diagonal slot, one cell beyond), kept when the pocket is then reached and every plot keeps its reached places (a large yard may lose 0.2 %). Every house of the town can now be entered: shut houses 6 → 0, quarter plot cells reached 99.437 → 99.805 %, lane cells 99.742 → 100 % (reach_census.ts). town_plots.json regenerated. The nav grid (public/generated/nav.i16, tools/build_nav.ts) still holds the old doors: the people do not yet route through the new ones (asked of the lead).
+
+## D-661 The lower-city belt at the Terrace's foot; the houses washed, the doors painted (s18 cloud C2, the lead's call on C12's holes audit #4 and #5)
+- The rule that kept the Terrace's whole approach empty is gone (plan.ts): the town was nine blocks 0.5-2 km out in grass and the first frame an empty field with dark lumps before a lone platform. Five belt quarters (C) join the quarters to the Terrace's foot and run along the roads: q_b1 (N of the road west by q_w1), q_b3 (between q_w3 and the foot), q_b4 (on the road south between the Terrace and q_s1, the road its main street), q_b5 (between q_w1 and the officials' houses), q_b6 (on the road west, the processional way a 14 m main street through it). Kept open: the processional way, the stair's forecourt, the court's camps (court.json), and the people's walkable grid round the Terrace (e −620…262, n −245…185: the nav grid holds no town walls, so a quarter there would let people walk through houses; widening it means rebuilding the nav grid with the town's colliders, not done). Plots 1,505 → 2,244, homes 1,456 → 2,173 (town_plots.json), every one reached (reach_census: 0 shut, lane cells 100 %). The population is unchanged: households take the nearest houses of their zone, so the belt draws people in toward the Terrace and leaves more houses empty further out. Cost: the town's build grows with its plots (~+50 %); measured in the report.
+- The houses all one buff mud: each household's wash over the mud plaster (houses.ts washOf; C: gypsum and lime whites, yellow and red ochre earth washes), 12-52 % of houses white by standing, 10-18 % yellow ochre, 4-10 % red ochre, the rest bare mud; full in the court, thinner on the lane face, fading in the months since the last renewal; the roofs keep their earth coat. Street doors: 60 % bare weathered poplar, the rest painted red ochre, a blue-grey or a green-grey earth (towndoors.ts, an instance tint; C). Five more dyes in the cloths' palette (fillPlan.ts CLOTHS: weld-over-woad green, madder-over-woad purple, weld yellow, bright madder, deep woad) for the awnings, the washing and the market's cloth.
+- C5's q_w1 plot 141 (B691) is not a collider fault: plot index 141 is q_w1-0142, a pen whose street door opens onto a one-cell strip of the pen (its row 34) with the pen's own outer wall 0.8 m behind; the routes reach it (siteReach), the door walk walks into that wall.
+
+## D-680 (s18, cloud C4): the far sun cascade; the Rahmat streak traced
+- sunShadows.ts: past the last cascade (600 m) nothing had a sun shadow, so the Terrace and town from the plain read flat-lit.
+  A fifth, static map fitted to the box of the Terrace and the town (FAR_BOX: east -1480..330, north -1580..840, 4096²,
+  texel <= 0.9 m at every sun: farCascadeFit), drawn once at load and again only when the sun has moved 0.4 deg (never while
+  it is down), shades fragments 560-600 m+ from the lens. It is read with textureLoad and a hand-made 2x2 bilinear comparison
+  (its depth texture has no compare function and nearest filtering), so it adds NO sampler to any material (the T4's 16 per
+  fragment stage, D-300); tests/far_cascade_d680.test.ts builds a lit surface with the cascades on and off: same sampler
+  count, the far map read by textureLoad. ?farcsm=0 (load) or __parsaFarCascade.value = 0 (run time) for the A/B. C.
+- The night's "fan of light streaks from one horizon point" (cov-000; still one streak on this tree after light v2b): found by
+  elimination (hidden Milky Way: still there; hidden clouds: gone; world-fixed at 1024 px and turned 20 deg) and reproduced in a
+  CPU replica of the march: the cloud noise tiles every 7 km, so a ray running along a lattice axis (world x or z) samples one
+  periodic column again and again, and an empty column draws a clear slit to the horizon; all such slits converge on the
+  axis's horizon point. clouds.ts (and the CPU mirror cloudCover.ts) warp the base shapes' lookup by the weather field's G, B
+  (CLOUD.warp 12 km; no extra fetch): near-horizon rays along the axes clear 5.4 % vs 1.9 % off them before, 3.3 % vs 2.7 %
+  after (tests/cloud_slits_d680.test.ts; fails unwarped). The cover calibration tests pass unchanged. C.
+- Kuh-e Rahmat's bright streak: road_pasargadae's first segment (settlement.json [250,250] -> [2600,1900]) runs ruler-straight
+  from 2 m up to ~290 m over the mountain behind the Terrace; a data fix (reroute round the north end) asked of the lead.
+- Unseen: the cloud cannot draw Q=high (WebGL2: program validation failures and a lost device with the cascade on AND off;
+  WebGPU: SwiftShader's 16-texture cap), so the far cascade is verified node-side only; it needs a T4 frame.
+
+## D-750 The Terrace at 100-300 m: crowned, banded, hung and flagged (s18 cloud C10; UD-19, UD-29, UD-35, UD-36)
+- **Why:** Vagon's final train (s17-renders final2) showed the Gate, the palaces and the Terrace's edge as plain boxes from the
+  stair, the town and the plain: flat roof lines, blank walls, open stone porticoes, nothing moving in the wind.
+- **What (render geometry only; no parts, colliders, grid or plan changed; every class C, tiered in F3):**
+  1. Stepped stone merlons on every palace roof line (roofedge.ts `crowns`: Gate, Apadana, Tachara, Hadish, Harem; not the
+     fortification, which keeps its mud merlons, nor the garrison and Treasury) at 1.35x the stair merlon (UD-29: 0.9 m is a
+     hairline at 300 m), and on the Terrace's edge parapet at the stair size (terrace.parapet_height: "low crenellated parapet").
+     The Blender merlon's own geometry and material (no new pipeline), instanced in 23 chunks of 128 m per building so the far
+     levels (far_terrace.ts) apply per chunk; MerlonNear inside 16 m. ~2,900 merlons; duplicates where two parapet lines
+     coincide (a wall top flush with a roof edge) dropped.
+  2. Glazed-brick bands (the Apadana frieze's rosettes, 1.62 m, 18 courses) under the string course of the Gate's, the
+     Tachara's and the Hadish's outer wall runs (glazed.ts `palaceBandFaces`).
+  3. The porticoes' hangings (dressings.ts; Esther 1:6 for the practice, B): two tied-back curtains per front-row bay and a
+     scalloped valance under the capitals, white, green, blue and purple; 30 bays (Apadana 15, Tachara 3, Hadish 7, Harem 5).
+  4. Royal standards (Xenophon Cyr. 7.1.4 for the standard, B): 12 poles with bronze finials and swallow-tailed purple-red
+     banners over the Gate's corners, the Apadana towers, the Tachara and the Hadish (static cloth: no wind shader).
+  5. Blind windows in dark stone frames with gorge cornices on the Apadana towers' free outer faces (52; global.r_window's
+     frame by analogy).
+  Materials are ones the world already compiles (the merlon, the torches' textile/wood, the brazier stone, bronze, glazed):
+  no new shader, no new sampler. Dressings ride under the glazed-frieze mesh (world.ts adds it); ~30 k triangles.
+- **Measured (cloud, SwiftShader WebGL2, Q=test, one page, each view with the additions hidden then shown; handoff/s18/c10):**
+  stair foot +0.65 M triangles / +39 draws (11.83 -> 12.48 M; +0.95 M before the 128 m chunks), approach 700 m +0.35 M / +27,
+  plain 930 m +0.27 M / +27, Rahmat 350 m +0.41 M / +30, on the Terrace (inside the Apadana stair) +0.81 M / +41. Upper bounds:
+  the far levels are built in a worker and a 3-frame test render may draw before they land. Frame time and memory unmeasured
+  (the T4's budget run decides; the merge budget binds).
+- **Unseen:** the tower windows (committed after the last render); any frame at Q=high; the cloth and merlons under the T4's
+  shadows and lighting; whether the banners' static droop reads as cloth at 20 m.
+
+
+## D-790 People up close: faces that speak, listen and look; the Bactrian camel and the zebu from library bodies; library ears that flick (session 18, cloud C14; UD-18, UD-21, UD-19)
+- The face while speaking (src/people/face.ts, new): mouth shapes from a phone stream (the spoken line's transliteration
+  when the voice hands it over, FaceState.say; else a seeded babble in the shape of the period's speech, consonant-vowel and
+  a-heavy, C), coarticulated over a raised-cosine window (+-70 ms, stateless): jaw, rounding (u o w), spreading (i e), the
+  lips pressed (m b p), the lower lip tucked (f v). The brows lift on stressed syllables (some people far more than others),
+  knit a little in thought; the head beats a small nod on the stress; the chest draws breath at the pauses.
+- Listening and looking: saccades as jumps (30 ms) with fixations of 0.3-2.2 s, between the other's eyes and mouth when
+  looking at someone (~70 % on the eyes), a blink after most large saccades, a slight drift; back-channel nods every few
+  seconds and a slow tilt while the other speaks; a faint smile for the one looked at, warmer in some. The head follows the
+  eyes beyond 10-15 degrees (an integrator on the eyes' unclamped need): a captured talking head bowed over its hands lifts
+  to the face it speaks to instead of rolling its eyes up under the brows. The upper lids rest 1-2 mm over the iris (the
+  bind pose's wide stare read as a doll's). All C, from the common picture of visemes (Preston-Blair, MPEG-4) and of
+  conversational gaze.
+- Where it runs: humanRig.faceMotion, per FaceState (WeakMap), only where the caller keeps a clock and animates the face
+  (the crowd's lod 0-1 people: a far person or an impostor bake stays still: the bake is byte-identical); +1.6 us per
+  near person per solve. The controls go to the vertex stage through a 4th extra palette group (bodyShape EX.mouth/vis/brow;
+  PALETTE_STRIDE 744 -> 756 floats, +48 B a person). bodyShape.faceOffset (mirrored term for term in humanMaterial): the
+  lips rounded (corners in, lips forward 7.5 mm), spread, pressed, tucked; the smile (corners up and back, cheeks up); the
+  brows lifted (5.4 mm) or knit; on head and jaw vertices only (eyes, teeth, mouth and lashes excluded; the beard follows).
+  The mouth's frame is measured per body variant from the mesh (the lips' line between the last unweighted and the first
+  jaw-weighted midline vertex; their front; the width by sex and age).
+- Shading: the brows as clumped hair strands laid as brows grow (the inner ends up, the tail out and down), spilling past the
+  map's edge, band-limited (650 and 2800 lines a metre); the eye's white shaded into its corners (0.38) and a deeper upper
+  lid shadow (0.45 -> 0.55). No new texture or sampler (the 16-sampler budget unchanged).
+- Animals (the library is not reachable from the cloud: B820): tools/blender/animals_derive.py reshapes a built library body
+  (its lod0 subdivided once, its maps decoded from KTX2: tools/blender/lib/ktx2png.mjs) and the library route builds the
+  result like any source (animals_real.mjs, registry `derive: {from, recipe}`; the derive script joins the input hash):
+  camel and camel_pack from the dromedary (one hump made two, over the withers and the loins, the saddle between where the
+  pack's bundle rides; the dark winter hair under the throat, on the upper fore legs and the humps' tops, painted into the
+  coat through the UVs; a browner coat), zebu from the cow (a rounded hump over the withers, the deep dewlap, grey-white;
+  the cow's ears kept). Credits: "Dromader" and "Cow" by hendrikReyneke, CC-BY-4.0, modified (ASSET_LEDGER). The boar was
+  tried from the hyena and left as it was (it read as a hyena with a beak); the boar and the hare stay procedural.
+- Ears and tails (B550): a library model's ears are found on its mesh (animalRig realEars: near the poll, the head's thin
+  parts, whose opposite surface lies within 5 cm or a fifth of the head's length along -normal; horned and antlered heads
+  left out; animalModels passes the normals): they flick now (1.5-2.4 cm on donkeys, horses, sheep, dogs, camels). The
+  camels' and the dromedary's tails swing (tail_r 0.06 / 0.07; a library tail's lever capped at 0.42 m so the hair against
+  the hocks is not torn: TAIL_LEVER_REAL); the camel_pack's lying tear (lod1, 4 cm) gone with it.
+
+
+
+## D-740 The budget: every scan in KTX2 with low-first twins, one shader for the birds, the T4's pipeline limits counted on real WGSL (s18 cloud C9; UD-31)
+- Measured in the cloud (built site as Pages serves it, 100 Mbit/s, cold, `?quality=high&norender&seed=1`, headless Chromium on SwiftShader's WebGPU; tools/dev/pipeline_census.mjs, n=2 each). Base: s17 tip bc1afaca. After: this branch (s17-int 0b3871de merged, so V10's load fixes are in it too). The T4's own path is measured with `?twins=1`:
+  ready 64.3 -> 52.3 s; bytes before ready 370 -> 371 MB (textures 56 -> 56); page memory at ready 5.35 -> 4.55 GB, peak 5.87 -> 5.15 GB; textures bound by the scene's pipelines 2,259 -> 1,374 MB of GPU bytes; scene-pass shader programs 254 -> 216 (vertex modules 199 -> 160); pipelines over 16 vertex inputs / 8 buffers / 16 samplers: 0 (worst 16 / 8 / 11).
+- Textures: the 36 scan maps still loaded as 2048² jpgs (22.4 MB each on the GPU as RGBA8 with mips) are now UASTC KTX2 (BC7: 5.6 MB), and the ground's 12 layers are one KTX2 array (~64 MB, not 256 MB; no 192 MB array packed by hand on the page). KTX-Software 4.4.2's Linux release downloads in the cloud: /tmp/ktxsw, KTX=<it> for tools/bake_world/ktx_scans.ts, ktx_ground.ts and the new ktx_low.ts.
+- Low first for KTX2 (lowfirst.ts, loaders.ts): each KTX2 scan and the ground array has an ETC1S twin (`.low.ktx2`, the same size and mips, 35.7 MB for all 46), loaded before ready. After the world is up, the UASTC file's mips go into the same texture. This only happens where both transcode to BC7 (a desktop GPU without ETC2 or ASTC: the T4). Elsewhere (SwiftShader, Apple) the listed scans take their jpgs, low first, as before (cloud: 339 MB before ready). `?twins=1/0` force it either way.
+- Birds: the wingbeat's rate and shoulder are uniforms. shareInstancing.fitsAttributes now counts exactly (4 matrix + 4 previous matrix + 1 colour only when present). On three's uniform path an instanced mesh's matrix buffer is named after its node (`NodeBuffer_<id>`), so every such mesh had its own program. Flying birds: 31 programs -> 2. Each bird model's uv is packed into life.zw (one input and one buffer less).
+- Starling: D-570's fix holds on the real WGSL: 14 inputs now (6 geometry + 4 matrix + 4 previous matrix). D-570's geometry count had missed TRAA's previous matrix; on the pre-D-570 file the new test reads exactly the T4's 17. Doves: 9-16 inputs, <= 8 buffers, 3 node samplers in every level. The node census finds no fault; the T4's own log is asked for.
+- Tests: tests/pipeline_limits.test.ts (three's WGSLNodeBuilder, velocity MRT on, share-instancing on, 64 KiB uniform limit: every bird level, the jackals and the small life within 16 / 8 / 5 node samplers; the flying birds <= 2 programs); shader_share's buffer case follows the exact rule. In-page census: `__parsa.census()` (src/dev/pipelineCensus.ts).
+- Not done / not mine: the dist grew 704 -> 934 MB (Pages limit 1 GB). build_site.mjs should leave out the jpgs whose KTX2 is listed (77 MB) and the ground-only layer jpgs (84 MB): ~773 MB (asked of the lead). RGBA8 textures left in other owners' files: models/land cover/ground (6 x 21 MB), people_cloth_folds (21 MB), humans scans array (107 MB), tree leaf atlases (2 x 32 MB), bark array (45 MB) (asked).
+- Round 2 (the lead's asks): (1) build_site.mjs (now C9's) leaves out every image whose KTX2 the page loads (the listed scan maps, the ground layers, ktx_maps.json's, the people's scan layers and folds png, the bark jpgs) and fails the deploy above 950 MB (SITE_MAX_MB); off-BC7 GPUs load the full KTX2. (2) Format-only KTX2 for other owners' RGBA8 textures: the people's 20-layer scan array (tools/bake_world/ktx_humans.ts, 107 -> ~28 MB GPU), the land's rock and cover atlases (ktx_maps.ts + loaders.ts loadMap with a 128-px thumbnail for the mean colours; 128 -> 32 MB), the bark array (ktx_bark.ts via assets.ts barkTexels; ~45 -> 12 MB). The leaf atlases are not done (computed on the page with coverage-preserving mips: an ask). tests/ktx_fresh checks every KTX2 against its sources. (3) The T4's black screen: scans.ts's jpg ground array was released after upload and the low-first upgrade re-flagged it with image.data null (writeTexture threw, every frame aborted); fixed, release.ts never re-uploads a released texture without data, and progressive.ts installRenderSafetyNet (main.ts, ?nosafetynet) skips a bad writeBuffer/writeTexture or a throwing object draw, logged once (window.__renderFaults). (4) ?shaderlog records every rejected pipeline's targets, write masks and fragment outputs (the T4's 'writeMask' on three's post quad, renderPipeline_RenderPipeline_61x: not reproducible here, SwiftShader rejects that pipeline earlier at 18 sampled textures of 16). (5) pipeline_census.mjs --check: the built site's pipelines at noon and at night against 16 inputs / 8 buffers / 16 samplers, exit 1 (for CI). (6) Birds and jackals keep the sun's hours (solarHour; tests/wildlife_sun). (7) build_fire_occ.ts bakes firePlaces.ts banquetFireLights when C4 adds it. (8) Mules and camels back at the stair foot (D-227's cut): donkeys plus the day's second kind, within tests/terrace_foot's 10 calls.
+- Not done: the frame-time cut (the cloud's SwiftShader took > 40 min to compile one view's pipelines at quality high; no profile rows), the leaf atlases' KTX2, the writeMask fix itself (diagnostics shipped).
+
+## D-771 The ruin rules rewritten in research/ and the blocklist (s18 cloud C12; UD-02, UD-14, UD-29)
+- Every absence rule that only recorded the evidence's silence now says what 467 most probably had (tier C, each change
+  marked "s18 D-771" in place with its reason and the old wording). In COURT, EVENTS, PEOPLE and CHRONOLOGY (and Q-005), the
+  court now comes and goes by default (D-236), so "court ABSENT is the default / evidence-strict" is gone. The king is
+  staged as a king (column, audience, bow, feast, gift day) but never addresses the visitor. A gift day of the delegations
+  with their animals; tukta and E-36 scheduled; harp and pipes at court; secular songs may have reconstructed words (UD-24).
+  The magi's chant stays wordless (CLAUDE.md ritual rule). Relief backgrounds, faces, animals and eyes are painted on the
+  whitish ground; capitals and colossi are painted; shafts have a finish coat, not raw stone; garments have borders; the
+  throne has lion bands; windows have shutters or grilles; the named work places are built; the brick fields, tower stairs,
+  drum ramp, Rahmat quarries, E-foot cistern, Akhor Rostam niches, private tombs, soil moisture, mules and camels; household
+  niches in non-Persian homes; qanats allowed (Ayn Manawir, Polybius 10.28).
+- Blocklist: "modern tents/villages"; gilding is banned as everything-gold, not outside attested zones; cats unblocked
+  (mousers); qanat allowed.
+- Kept: fire temples, statues of gods, music at Persian sacrifice, post-467 buildings and sites, windcatchers, domes,
+  fired-brick houses, glass windows, silk, rice as a staple.
+- Not mine to change (asked): src/data/blocklist.json (the 'qanat' term and the descriptions), tests/plain.test.ts:356
+  ('qanat'), tools/chrono_to_md.py:12 (CHRONOLOGY.md is generated: the new line must go into the generator), and the data
+  files (C13).
+
+## D-780 The court as a living spectacle, its dress dyed, its halls laid (s18 cloud C13; holes #10, #11, #14, #18; UD-09, UD-10, UD-29)
+- UD-09, UD-10 and UD-29 overrule "no procession is staged" (court.ts, court.json, COURT.md) and the `never` rules of E-24 and
+  E-35. src/people/ceremony.ts: the court's programme, a pure function of (seed, day): audiences (0.55 of mornings), the days of
+  the peoples' gifts (every delegation then at Persepolis goes up in the reliefs' order behind its usher, the leader bowing with
+  his hand before his mouth; the first a few days after the king comes, then every 10-16 days), the king's gifts and his dawn at
+  the magi's fire the morning after he comes, the tukta on a seeded day, great banquets in the Apadana (seats round low tables in
+  the bays; servers crossing the Terrace; lamps), rides and hunts with the king, escort, nobles, grooms and beaters on the plain,
+  royal-road couriers every day, grooms exercising the horses. court.ts reads it into each person's day (new: the chiliarch).
+  Every day, hour, count and place is C (sources in court.json `ceremony`). The king still never speaks to or reacts to the
+  visitor (brief 1.1).
+- Dress (looks.ts, garments.ts, delegations.json): madder, woad and weld were cheap: working dress dyed about 3 in 5, women 4 in
+  5, children's hems dyed; guards in the Susa archers' yellow, white and purple; torques on 60 % of Persians (40 % guards); bronze
+  rings for a share of working men; gold plaques on a third of the court robes (drawn as the rosette motif in gold-yellow).
+  people_look's rank test: court chroma > 1.5x the working dress's (was 2x; rank still shows).
+- Furnishings (furnish_palaces.ts): the Apadana laid for the banquets (a carpet and a table in each seated bay, lamp stands,
+  hangings on the W, E and N walls); with the court away the halls keep their hangings, and the Apadana a keeper's corner and lamps.
+
+
+  hangings on the W, E and N walls: dropped in the second pass for the 450 k budget, the tables then drawn at the model's lowest
+  level); with the court away the halls keep their hangings, and the Apadana a keeper's corner and lamps.
+- Second pass (the lead's go-ahead and C12's passes 2-4): the asks applied in activities.ts, calendar.ts (E-28, E-29) and
+  performers.ts (the banquet's music); the proskynesis pose; the crown prince and the weapon-bearer behind the throne, the parasol
+  furled indoors; the plain kidaris; guards in the court robe; head pieces fitted by the head's radius, not its support function;
+  the delegations' gifts modelled (tools/blender/model_props.py gift_*); the stale 'court absent by default' texts rewritten.
+- Third pass (the lead's asks, C14's measures, C6's frames): the king seen daily (audience_share 0.9 of mornings, the drive out
+  in the royal chariot on 0.65 of afternoons, the hunts in the morning, the arrival by chariot); the banquet laid as a feast
+  (seats round tables, the servers by the tables, the lamp tenders by the walls, a phiale and a jug on each table); the royal
+  women's outing to the paradise; bead necklaces; barefoot labourers and stripping to the waist in the heat (lookInput.tempC);
+  fewer look-alikes in a crowd (12.8 % -> 2-3 %); the gifts drawn as a prop class of their own.
+
+## D-760 An original score, out of world: recorded orchestra, a main theme, an hour for the world, and a director that leaves silence (session 18, cloud C11; UD-38, UD-39)
+- The user's words (UD-38, UD-39) add non-diegetic music to the out-of-world layer, at a Hollywood bar and never recognisable as AI: the brief's "no background score" (§11) gives way to them; its ban on the "ancient Persia" cliché stands and binds the score (blocklist 'music-cliche': no duduk, oud or santur, no augmented-second "exotic" modes, no bent ethnic solo as the theme's identity; after C12's fourth pass the first draft's cor-anglais "duduk", alto-flute "ney" and Phrygian/Hijaz cues were rewritten for solo cello, horn, clarinet and flute in minor, Dorian and Aeolian). Majesty comes from harmony, brass, choir and rhythm; the period's colour (harp, frame drum) is used lightly. Equal temperament is the orchestra's own: the brief's tuning rule governs the world's players (src/audio/music.ts), not the out-of-world score. C.
+- Composed, not generated: every note is written (tools/score/cues/*.ts; the arranger's kit lib/kit.ts voice-leads pads and basses but never invents a tune), performed with expression (lib/write.ts: CC1 hairpins with each long note's own swell, vibrato blooming on held notes, section onsets spread, rubato tempo maps, legato overlaps), rendered through recorded instruments only (Sonatina Symphonic Orchestra, CC Sampling Plus 1.0; VSCO-2 Community Edition, CC0; MuseScore General, MIT; via sfizz and fluidsynth: tools/score/fetch.sh), mixed on a stage (pan, depth, a hall, glue compression, a look-ahead limiter) and mastered to BS.1770 loudness (-16 LUFS the theme, -18 to -22 the world's cues, true peak under -1 dBTP). The composer checks by measurement (tools/score/analyze.ts loudness curve and spectrogram; the build's semitone-clash check of long notes against the harmony): nobody in the cloud can listen. The hall is synthetic (no recorded hall IR is reachable here: a Vagon fetch can replace it).
+- The main theme "Pārsa" (2:25, D minor, its bars the title film's cuts); 21 cues for the world (64 min: dawn, day, dusk, night, rain, the Terrace and its court, the roads, the town, the plain), each 2:15-3:45, Opus in WebM at 80 kbps (the opening's cue also AAC): public/audio/score/, catalogue manifest.json.
+- In the world (src/audio/score.ts): after the opening (or at once on a continued visit, 4-7 min of silence first), one cue at a time fitting the hour, place and weather, never the last one, nothing heard in the last 8 cues or the last hour while a fresh one fits, 5-12 min of silence between, 6 s in, 8 s out. Settings › Sound: "Score" On/Off and "Score volume" of its own ("Music in the world" stays the people's playing). Streams on demand: nothing of the score loads before the walk but the opening's.
+
+## D-761 The title film: a pre-rendered main-title sequence over the load, and the in-engine opening cut to "First Light" (session 18, cloud C11; UD-38, UD-39)
+- As the page opens a title film plays over the loading screen (src/shell/film.ts; any key begins it, the browser's gesture rule for sound; any key skips): macro shots in the manner of a prestige historical series' main titles, cut to the theme's bars: an ember over carved rosettes, a reed stylus pressing wedges into clay, an Elamite tablet's lines, the Gate's XPa inscription as its stone has it (op_signs, D-184) in raking dawn light, the glazed rosette frieze with dust in the sun, a brazier catching, the braziers of a night hall flaring down the rows, the colonnade in morning haze, the double-bull capital against the sky, the stair climbing to the sunrise, the parapet's merlons against the sun, the hall backlit, and the name 𐎱𐎠𐎼𐎿 in gold. Built in Blender from the project's data and models (tools/film: carve.ts heightmaps from the period fonts, film.py the shots, assemble.mjs the grade, grain, 24 fps and the encodes: AV1/Opus WebM, H.264/AAC MP4). The game's bull and capital meshes read as faceted in close-up, so they appear only in silhouette, haze and firelight. C throughout (compositions, light, grade).
+- Then the in-engine opening (src/shell/intro.ts, D-590's shots plus the stars over Kuh-e Rahmat first) plays to "First Light", each cut on a bar, its clock following the music, landing on the player's eye as the horn closes the theme's first half; the music rings on into the walk and the director takes over.
+## D-662 The roofs read as roofs; the lane fill lifted onto the lane, not the lane lowered (s18 cloud C2, the lead's round-1 call on C6's frames)
+- "Still roofless" (C6 round 1, town-20m): the page draws the roofs (C6's own frame and C2's at the same view show a pale earth slab over every room, the open courts the dark holes), but each roof sat in a tray of parapets 0.22-0.62 m high and from 20 m up or the Terrace the town read as open-topped boxes. Parapets now a lip, 0.05-0.39 m by standing (houseplan.ts parapetOf; C: most of the region's flat roofs have a lip, the better-off a low wall).
+- The pale green hard-edged strip across the q_s1 market (C6, new on the D-660 head) was D-660's lowered lane ground: at 1 cm the terrain's finer mesh rose through the 4 m quads. The ground is back at 10 cm over the terrain; the town's fill items are lifted 10 cm instead (fillPlan.ts TOWN_LIFT; villages, which have no lane ground, are not). The lanes' things stay above ground (the D-660 census holds).
+- Cost kept: the far level's full-room roofs draw their top only (their sides lie in the walls), a door's infill its long faces and top, the roofs' flat things a top; the wall crests' stations ~6 m apart (were ~3) and each deep notch its centre: the town is 1.02 M triangles if all drawn (cap 1.2 M) and the far level under 800 k (houses.test) with the belt's ~680 more plots. q_b1 shrunk off the stair-foot-to-q_w1 walk (settlement_build), q_b4 re-sized so no house there is landlocked; the corner-cut search capped at 40 floods a house (each re-derives the site's walls): the plan 19 s → ~37 s in node (baked in the browser).
+
+
+## D-651 The working Terrace and the court at the start (s18 cloud C1; C12's holes #1, #2)
+- Hole #1 measured first (tools/dev/terrace_count.ts and the life census's reading at the s17 final frames' own seed and moments): the sim had 118-271 people within 60 m of the "empty" T4 frames (cov-252, cov-112, cov-037, cov-142, cov-266), so those frames are a drawing failure (popview/crowd or the people's assets on the T4), reported to the lead. On top of it, six more building gangs of 100 (nine: three each of stone, labour, brick), made last from their own stream (nobody earlier changes), housed in the four villages nearest the Terrace (the town's plots are full; the kurtaš of the tablets at Matezziš and the settlements around Pārsa, B; 900 builders on the one great hall C). Seed 1, day 200, court away: ~870 -> ~1,150 awake on the Terrace by day; population.json's Terrace court-absent day figures follow (spring w 575 -> 1175).
+- Hole #2: a new game begins at dawn the day after the court's arrival (in residence), not 1-3 days before it (newGame.ts; tests/defaults). The king's daily presence is C13's (court.ts): asked through the lead.
+- Parked: the save/load identity (handoff/s18/c1_saveload_wip.patch: the minds' cache-dependent plan read, the employer memo, the deeds' evSeen; found: the economy snapshot drops recent events and opts.trust, and a mended roof did not survive a load).
+## D-790 People up close: faces that speak, listen and look; the Bactrian camel and the zebu from library bodies; library ears that flick (session 18, cloud C14; UD-18, UD-21, UD-19)
+- The face while speaking (src/people/face.ts, new): mouth shapes from a phone stream (the spoken line's transliteration
+  when the voice hands it over, FaceState.say; else a seeded babble in the shape of the period's speech, consonant-vowel and
+  a-heavy, C), coarticulated over a raised-cosine window (+-70 ms, stateless): jaw, rounding (u o w), spreading (i e), the
+  lips pressed (m b p), the lower lip tucked (f v). The brows lift on stressed syllables (some people far more than others),
+  knit a little in thought; the head beats a small nod on the stress; the chest draws breath at the pauses.
+- Listening and looking: saccades as jumps (30 ms) with fixations of 0.3-2.2 s, between the other's eyes and mouth when
+  looking at someone (~70 % on the eyes), a blink after most large saccades, a slight drift; back-channel nods every few
+  seconds and a slow tilt while the other speaks; a faint smile for the one looked at, warmer in some. The head follows the
+  eyes beyond 10-15 degrees (an integrator on the eyes' unclamped need): a captured talking head bowed over its hands lifts
+  to the face it speaks to instead of rolling its eyes up under the brows. The upper lids rest 1-2 mm over the iris (the
+  bind pose's wide stare read as a doll's). All C, from the common picture of visemes (Preston-Blair, MPEG-4) and of
+  conversational gaze.
+- Where it runs: humanRig.faceMotion, per FaceState (WeakMap), only where the caller keeps a clock and animates the face
+  (the crowd's lod 0-1 people: a far person or an impostor bake stays still: the bake is byte-identical); +1.6 us per
+  near person per solve. The controls go to the vertex stage through a 4th extra palette group (bodyShape EX.mouth/vis/brow;
+  PALETTE_STRIDE 744 -> 756 floats, +48 B a person). bodyShape.faceOffset (mirrored term for term in humanMaterial): the
+  lips rounded (corners in, lips forward 7.5 mm), spread, pressed, tucked; the smile (corners up and back, cheeks up); the
+  brows lifted (5.4 mm) or knit; on head and jaw vertices only (eyes, teeth, mouth and lashes excluded; the beard follows).
+  The mouth's frame is measured per body variant from the mesh (the lips' line between the last unweighted and the first
+  jaw-weighted midline vertex; their front; the width by sex and age).
+- Shading: the brows as clumped hair strands laid as brows grow (the inner ends up, the tail out and down), spilling past the
+  map's edge, band-limited (650 and 2800 lines a metre); the eye's white shaded into its corners (0.38) and a deeper upper
+  lid shadow (0.45 -> 0.55). No new texture or sampler (the 16-sampler budget unchanged).
+- Animals (the library is not reachable from the cloud: B820): tools/blender/animals_derive.py reshapes a built library body
+  (its lod0 subdivided once, its maps decoded from KTX2: tools/blender/lib/ktx2png.mjs) and the library route builds the
+  result like any source (animals_real.mjs, registry `derive: {from, recipe}`; the derive script joins the input hash):
+  camel and camel_pack from the dromedary (one hump made two, over the withers and the loins, the saddle between where the
+  pack's bundle rides; the dark winter hair under the throat, on the upper fore legs and the humps' tops, painted into the
+  coat through the UVs; a browner coat), zebu from the cow (a rounded hump over the withers, the deep dewlap, grey-white;
+  the cow's ears kept). Credits: "Dromader" and "Cow" by hendrikReyneke, CC-BY-4.0, modified (ASSET_LEDGER). The boar was
+  tried from the hyena and left as it was (it read as a hyena with a beak); the boar and the hare stay procedural.
+- Ears and tails (B550): a library model's ears are found on its mesh (animalRig realEars: near the poll, the head's thin
+  parts, whose opposite surface lies within 5 cm or a fifth of the head's length along -normal; horned and antlered heads
+  left out; animalModels passes the normals): they flick now (1.5-2.4 cm on donkeys, horses, sheep, dogs, camels). The
+  camels' and the dromedary's tails swing (tail_r 0.06 / 0.07; a library tail's lever capped at 0.42 m so the hair against
+  the hocks is not torn: TAIL_LEVER_REAL); the camel_pack's lying tear (lod1, 4 cm) gone with it.
+- D-720 addendum (the lead's asks): EconPlans.stepsSliced (C1's sliced day); no wall-clock in the deeds' save; the deeds' save keeps
+  the deed count and the last day's and ten days of the weighty deeds (tuples, under the 600 KB budget); E speaks with whoever is
+  faced, the player sees words and keys only, every reply voice through the mixer (holes #9); the eight peoples without a lexicon
+  speak reconstructed tongues of their own sounds (audio/tongues.ts), the lexicon languages add everyday reconstructed sentences,
+  the heard reply says the reply, overheard pairs say their own fact (#15); the court's people, travellers and herders not sent
+  to market (C7); meals bought by the stranger (4-12); trespass (4-1); W5, W6, W13, W14, W15, W17, W22; Kokoro blends without a
+  regional colour (all C).
+- D-790 round 2 (the leads' asks): the mouth takes the voices' words (crowd.voice's optional 5th argument `words`, IPA or
+  transliteration, sets FaceState.say; face.ts folds IPA onto the viseme classes; world.ts:815 to pass `v.ipa ?? v.text`);
+  mounts trot and gallop by their pace (gaitOfPace: walk to ~1.8 m/s, trot to ~3.6, gallop above; a transverse gallop:
+  each pair's right leg GALLOP_LEAD 0.65 rad after its left; the stride x1.3 / x2.4) and the rider's seat bounces at the trot
+  and sits forward at the gallop (anim 'ride' from the rider's own speed); the wild herds bolt from the player (beasts.ts
+  BeastFlight: within the flight distance an alarm snort, a gallop away `far` m with the members fanning, hooves drumming,
+  15-30 s watching the threat, then grazing and a 0.4 m/s walk home; the old force field kept as a floor at a third of the
+  distance), walk to water at dawn and at dusk (the nearest river point within 8 km) and face the way they drift; the
+  domestic cat (D-771 unblocked it): a species from the leopard library body (animals_derive 'cat': the head rounder, a
+  tabby), in about a sixth of the town's house yards (fauna.json cat; lying by day, about the yard at dusk and dawn, off
+  over the yard when someone comes within 4 m); the anatomy's boar and hare rebuilt for the species list; the mother's
+  held hand 7 cm back to the child's under the skirted gait (people_children's palms within 12 cm again).
+
 ## D-691 Carried props sit on the body, seated poses clear their props (s18 cloud C5)
 - tools/dev/prop_clip.ts: every activity and variant that holds a prop, and the goods in the plan's words (basket, sack, jar,
   head jar, tablet) under walking, standing, talking, sitting, eating and resting, over a man's and a woman's body at 8 phases:
@@ -9962,6 +10247,43 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   (6.6 cm into the pelvis before); the sack sits out over the shoulder's point; the hauling rope ends in the rear hand and
   bows round the body between the hands (8 cm into the belly before); the towel hangs on the hand's outer side. All C.
 
+## D-663 A kept town, washing in the courts (s18 cloud C2: the lead's V9 note and C12's W11)
+- The town's plaster loss (V9's EarthWeatherDef on house_plaster) 7 % → 1.5 % of the face: the houses are re-plastered each spring; the bricks show where houses.ts's own losses put them (by the household's upkeep and the wall's age), the splash and streaks kept (surfaces.ts).
+- No washing lines across the public lanes (C12 W11): each line now hangs across the household's own court, wall to wall over a straight run of 2-7 court cells, for six houses in ten (fillPlan.ts; C); the roofs keep theirs.
+- tests/plain.test.ts's village_p22 frame (C7: 2.04 M > 2.0 M on D-660) passes on this head: D-662's far-level trims (roofs a top, door infills, the crests) won it back.
+
+## D-664 Every house its hearth, quern and oven; the work objects for the people (s18 cloud C2: C12's 4-4 "the house is mimed", W12)
+- A hearth indoors (interiors/plan.ts, drawn with the court hearth's model and its cooking pot): against the back wall of the kitchen, or of the living room where a house has no kitchen, with a quern, a kneading trough and a cooking pot beside it (C: the region's house hearth, the smoke out through the roof; the court keeps the summer hearth). Census (node, 1,931 town houses): a hearth 1,711 (1,259 indoors, 1,251 courts), a quern 1,889, an oven 1,929 (440 their own in the court; the rest the nearest court oven within 40 m of the door, shared with the neighbours: C), rooms walkable as before (interiors.test).
+- interiors/ring.ts houseWorkObjects(plotId, day): a house's work objects in world terms (kind, e, n, y, rot, room or −1 for the court, inside, shared, note) from the same room plans the ring draws and the court's fittings, for C1 to put people at real work objects.
+- C12 W12: a tray-table only in the better-off houses (standing > 0.6); the rest eat from a tray of flat bread on the mat.
+## D-800 Beyond the Terrace in 467: Naqsh-e Rustam painted and in use, the estates porticoed, the villages washed (s18 cloud C15; holes.md row 20)
+- Naqsh-e Rustam (plain/naqsh.ts, naqsh_paint.ts, naqsh_life.ts): the façades' architecture painted and gilded per vertex over the Blender model's baked maps (column bases' tori blue, astragals red, bull capitals a warm wash with gilded horns and a gold-studded red harness, fasciae red/blue/green, dentils blue, cornice red, the doorway's bands, the throne's beams and slab, its legs gilded; the recess's back, the lower arm and the shafts bare: the reliefs' ground is the stone, D-030); the Ka'ba's white fresh (albedo 0.79, finer grain); DNc, DNd and DNe carved in Old Persian from ARIo Q007154-6 (CC0; tools/build_naqsh_captions.ts, data/corpus/ario_dn_captions.catf), 18 of DNe's 30 lines (the rest lost in the edition, uncut); the Elamite and Babylonian of DNa/DNb stay uncut (Q-1730: no licensed digital text exists); the second tomb's scaffold (16 standards, 4 decks, ladders), its spoil of fresh chips and the cutters' lean-to; the keepers' whitewashed courtyard house at D-640's NAQSH.house; the offering table before Darius' tomb (bowls of flour, wine and water, the barsom, flowers). One extra draw (nr-life, 7.8 k tris); the DNa/DNb panels now draw with the Elamite relief's panel (the plain stays at 40 meshes).
+- The estates, the pavilion, the Dasht-e Gohar hall (settlement/estates.ts; plan.ts estateSite, pavilionProps, the hall block): Achaemenid columns (stone plinth, bell and torus, a plastered timber shaft painted red ochre with blue and yellow bands, a blue bracket capital), painted architraves over glazed-brick friezes of white, turquoise and yellow, roofs with painted eave boards; each estate a nine-column garden porch, a four-column talar in the court, a gatehouse, and a four-part garden of stone-lined channels crossing at its pool; the estates' columns and piers stand as the town's 'column' fittings (colliders, far level) under the painted props. All C by analogy with Pasargadae (Palace P, the pavilions, the garden) and the Terrace's paint. +1 settlement mesh (the estates' prop batch), +34 k triangles.
+- The villages (plain/villagehouses.ts): the far level takes each household's wash by C2's draw (D-661), so villages read from afar as they do near; 38 % of households a cloth or two drying over the eave, 30 % dung cakes drying on the lane wall (C). +~60 k far triangles (the plain 1.87 M of 2.0 M).
+
+## D-665 A house being built (s18 cloud C2, the lead's ask)
+- q_b1-0015 (105 m², centre grid -511.9, 227.9; on the walk from the Grand Stair's foot): its smallest room finished and roofed, the household living in it; the other rooms' walls at 1.5 m and open to the sky; scaffold poles along its long walls, three brick stacks, the mud-mixing heap, a brick mould, a water jar, the footing's spoil, a sack and a hoe in its open rooms (houseplan.ts buildingPlot, houses.ts: drawn through roofFill's instanced things, `at: 'site'`; C). C1 puts a household and a brick squad there.
+- The belt's quarters (D-661) drawn in the far meshes of the quarters beside them: settlement_build's mesh count back to the base's 51 (its ≤ 45 already failed before s18).
+
+## D-772 The in-page truth check: tools/dev/pagecheck.mjs (s18 cloud C12)
+- The built site (dist at /fars/, its own static server with COOP/COEP) is loaded headless with ?norender at the coverage
+  views. The world is stepped, and the scene graph is read per view: what is effectively visible and in the frustum (meshes,
+  instances, triangles, per object key); the crowd's own drawn counts against the out-of-doors people the page's simulation
+  holds within 60 and 250 m (split by open ground, walled court and walking); a roof-area probe for the town; the
+  shadow-casting light's reach.
+- Run on every s17-int head the lead names; results go to handoff/s18/pagecheck.md and to each owner.
+- First run (92d6a6bf): the town lanes are empty in the simulation (everyone at home in the courts at 13:48); people in
+  courts are not drawn from an eye above the walls; the Terrace draws what the simulation holds; the roofs exist in the
+  geometry; the far shadow reaches 2,000 m.
+
+## D-810 The deploy rule while the live site is black (s18 cloud lead, 2026-10-03 07:4x UTC)
+The deployed c3bde8ab shows players a black screen on a real GPU (Vagon, asks_cloud 06:2x-07:0x), so any head that draws is
+better for every player than what is live. Rule for today: a head that (1) draws on the T4 in the live path (title, Enter,
+60 s walk, no frameFaults/renderFaults that blank the frame) and (2) is not worse than c3bde8ab on first frames, page memory
+and frame time is deployed at once; settle time and download-before-ready (worse on 9700b06d: 1266 vs 611 s, 413 vs 372 MB)
+become C9's next fix and the next deploy must recover them. No threshold in gates/thresholds.json or gates/budgets.json is
+touched; the budget baseline is not re-accepted from such a head.
+- Then the in-engine opening (src/shell/intro.ts, D-590's shots; a night 'stars' shot was tried and cut after C6's frame) plays to "First Light", each cut on a bar, its clock following the music, landing on the player's eye as the horn closes the theme's first half; the music rings on into the walk and the director takes over.
 ## D-692 Life drawn where it is simulated: the cause of the empty frames, the first second after a jump, the lanes (s18 cloud C5)
 - The cause (C12's hole C1): nothing is dropped between the view and the screen. Headless (tools/dev/drawcount.ts) and in a
   cloud browser (?norender scene count + a 640x360 frame of C6's q_s1 lane), the crowd draws what the view places in the

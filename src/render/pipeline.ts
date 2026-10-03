@@ -102,6 +102,11 @@ export function ssrBlurLod(dHit: number, rough: number, viewDist: number, pxAngl
  *  reflection (its own reflection model: userData.ssr === false, the water) */
 export function reflectionClass(m: any): 0 | 1 | 2 { return !m ? 0 : m.userData?.ssr === false ? 2 : m.skySpecular ? 1 : 0; }
 
+/** D-680: a post pass that throws, logged once per message (window.__frameFaults: message -> count) */
+function frameFault(e: unknown) {
+  const F: Record<string, number> = ((globalThis as any).__frameFaults ??= {}), k = String((e as any)?.message ?? e).slice(0, 200);
+  if (!F[k]) console.error('[pipeline] the post pass threw (the frame goes on):', e); F[k] = (F[k] ?? 0) + 1;
+}
 export class Pipeline {
   rp: THREE.RenderPipeline | null = null;
   readonly flash = uniform(0); // lightning flash (additive)
@@ -138,7 +143,10 @@ export class Pipeline {
   private post: { ssgi?: any; ssr?: any; sss?: any } = {};
   /** set the screen-space passes' resolution scales at run time (each node resizes its target on its next frame) */
   setPostScale(o: { ssgi?: number; ssr?: number; sss?: number }) { for (const k of ['ssgi', 'ssr', 'sss'] as const) { const n = this.post[k], v = o[k]; if (n && v) n.resolutionScale = v; } return { ssgi: this.post.ssgi?.resolutionScale, ssr: this.post.ssr?.resolutionScale, sss: this.post.sss?.resolutionScale }; }
+  /** the renderer's tone mapping and output colour space when the pipeline was made (main.ts: AgX, sRGB): D-680 */
+  private toneMapping: THREE.ToneMapping; private outputColorSpace: string;
   constructor(private renderer: THREE.WebGPURenderer, private scene: THREE.Scene, private camera: THREE.PerspectiveCamera, readonly quality: Quality, private hemi?: THREE.HemisphereLight) {
+    this.toneMapping = renderer.toneMapping; this.outputColorSpace = renderer.outputColorSpace;
     installProbeLight(renderer); // before any material is built
     // the sun: the shadow-casting directional light (SkySystem.sun); the sky dome (SkySystem.sky) for the environment
     let skyMesh: any = null;
@@ -372,7 +380,17 @@ export class Pipeline {
     { const H = this.renderer.getDrawingBufferSize(new THREE.Vector2()).y || 540; this.pxAngle.value = 2 * Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2) / H; }
     this.env?.update(this.hemi); // the sky environment, re-captured when the sun or the light has changed (D-157)
     if (!this.built) this.build();
-    if (this.rp) this.rp.render(); else this.renderer.render(scene, camera);
+    if (this.rp) {
+      // D-680 (s18, the live page's black frames): three's RenderPipeline sets the renderer to NoToneMapping and the working
+      // colour space around its pass and restores them after it; a throw in between left NoToneMapping behind, and the next
+      // frame rebuilt the output node WITHOUT the tone mapping (exposure and AgX gone: black frames, toneMapping 0 on the live
+      // page vs 6 in ?test). The look is pinned before the pass and restored however the pass ends; a throwing pass is
+      // logged (window.__frameFaults) and the frame goes on, so the meter's readback and the rest of frame() still run.
+      const R = this.renderer;
+      if (R.toneMapping !== this.toneMapping) R.toneMapping = this.toneMapping;
+      if (R.outputColorSpace !== this.outputColorSpace) R.outputColorSpace = this.outputColorSpace;
+      try { this.rp.render(); } catch (e) { frameFault(e); } finally { R.toneMapping = this.toneMapping; R.outputColorSpace = this.outputColorSpace; }
+    } else this.renderer.render(scene, camera);
     // after the frame: the first render of the scene initialises the sun's cascades with ITS camera (CSMShadowNode keeps the
     // camera it first sees), so the height map's top-down camera must never render first
     if (this.skyVis && this.rp) this.skyVis.update(this.renderer, scene as THREE.Scene, this.camera.position);

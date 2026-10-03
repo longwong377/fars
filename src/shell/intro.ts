@@ -1,8 +1,11 @@
-// The opening (s17 C5, D-590; UD-37): a wordless, in-engine cinematic that plays when a new visit begins: the river at first
-// light, the plain, the town waking, the Terrace in the first sun, people at their work, and the last shot coming down to the
-// eye where the player's walk begins. Out of world in form only (letterbox, the dips to black, one English hint "any key
-// skips"); everything seen is the world itself, at its own hour. No narrator, no title card, nothing that names or hints at
-// the place's fate (§1.1).
+// The opening (s17 C5, D-590; UD-37; s18 C11, D-760, UD-38/39): a wordless, in-engine cinematic that plays when a new
+// visit begins, cut to the score's "First Light" (src/audio/score.ts; the title film with the main theme plays before it, over
+// the loading screen: src/shell/film.ts): the river at first light,
+// the plain, the town waking, the Terrace in the first sun, people at their work, and the last shot coming down to the eye
+// where the player's walk begins, landing as the solo horn ends the theme's first half. Each cut falls on a bar of the music
+// and the shots follow the music's clock (a stalled stream holds no shot back: the frame clock takes over). Out of world in
+// form only (letterbox, the dips to black, one English hint "any key skips"); everything seen is the world itself, at its own
+// hour. No narrator, nothing that names or hints at the place's fate (§1.1).
 //
 // It STARTS WHEN THE WORLD IS WALKABLE (main.ts calls play() from the title's Enter, after ready) and never delays it: any
 // key, click or touch skips at once, and the shots cover the minute in which the rest streams in (the animals, the far
@@ -12,6 +15,9 @@
 // walk begins in the morning light. Shots are grid (east, north) with heights above the terrain; tests/intro.test.ts checks
 // every path's clearance against the committed terrain and the Terrace's platform.
 import { sunTimes } from '../people/calendar';
+import { ScoreTrack, startScore } from '../audio/score';
+import scoreManifest from '../../public/audio/score/manifest.json';
+import './film'; // the title film mounts itself as the page opens
 
 /** a camera key: grid east/north (m), height above the terrain (m), grid azimuth (deg, 0 = grid north, 90 = grid east),
  *  pitch (deg, up positive), vertical field of view (deg) */
@@ -28,31 +34,37 @@ export interface IntroShot {
   ease?: 'glide' | 'land';
 }
 
-/** the shots in order; the last is built at play() from where the player stands (shotToPlayer) */
+/** the music of the opening and its bars (s): the build's marks (tools/score/build.ts), or 57 BPM in fours if missing */
+export const OPENING_CUE = 'first_light';
+const MARKS: Record<string, number> = ((scoreManifest as any).cues?.[OPENING_CUE]?.marks) ?? {};
+export const barAt = (n: number) => MARKS[`bar${n}`] ?? (n - 1) * 4 * (60 / 57);
+const span = (a: number, b: number) => +(barAt(b) - barAt(a)).toFixed(3);
+
+/** the shots in order (each from bar to bar of the music); the last is built at play() from where the player stands */
 export const SHOTS: IntroShot[] = [
   // the Pulvar 3.8 km N of the Terrace, from its S bank 1.5 m above the water's edge, drifting upstream (E) into the glow
   // before sunrise: the sky in the water, the far bank's reeds and willows (plain riparian), the mountains black
-  { id: 'river', what: 'the river at first light', dur: 13, atRise: -0.35,
+  { id: 'river', what: 'the river at first light', dur: span(1, 5), atRise: -0.35, // (from bar 1: the 'stars' shot was cut after C6's frame, 07:13: the engine's night sky reads as a dot field and Rahmat lit flat, no silhouette)
     keys: [{ e: 880, n: 3787, h: 2.4, az: 70, pitch: -2, fov: 38 }, { e: 990, n: 3790, h: 2.8, az: 80, pitch: -1.5, fov: 38 }] },
   // high over the fields S of the river, moving S toward the Terrace (3 km): the patchwork, the villages' first smoke,
-  // Kuh-e Rahmat dark against the dawn on the left
-  { id: 'plain', what: 'the plain at dawn', dur: 14, atRise: -0.1,
+  // Kuh-e Rahmat dark against the dawn on the left (the alto flute's tune begins as it ends)
+  { id: 'plain', what: 'the plain at dawn', dur: span(5, 9), atRise: -0.1,
     keys: [{ e: -380, n: 2700, h: 95, az: 168, pitch: -5, fov: 42 }, { e: -300, n: 2520, h: 82, az: 170, pitch: -4.5, fov: 42 }] }, // (moved W of the low ridge between the river and the Terrace after the cloud's frame, 02:20: from e 700 the ridge hid the Terrace and Rahmat; tools: the line of sight to the Terrace is clear from here, +0.6-0.9 deg)
   // the town N of the Terrace from just over its roofs, looking S to the Terrace with the low sun raking across from the E;
   // lanes, courts, smoke from the first fires
-  { id: 'town', what: 'the town waking', dur: 15, atRise: 0.35,
+  { id: 'town', what: 'the town waking', dur: span(9, 11), atRise: 0.35,
     keys: [{ e: -280, n: 880, h: 24, az: 150, pitch: -12, fov: 45 }, { e: -320, n: 862, h: 20, az: 154, pitch: -11, fov: 45 }, { e: -360, n: 846, h: 17, az: 158, pitch: -10, fov: 45 }] }, // (moved W over the quarter after the cloud's first frame, 01:36: from e -165 the town lay off the right edge and the frame was empty plain)
   // the W face of the Terrace from the plain, the camera rising past the wall's top: the Grand Stair, the Gate, the columns
   // of the Apadana in the first sun over Rahmat
-  { id: 'terrace', what: 'the Terrace in the first sun', dur: 16, atRise: 1.1,
+  { id: 'terrace', what: 'the Terrace in the first sun', dur: span(11, 14), atRise: 1.1,
     keys: [{ e: -175, n: 40, h: 2.5, az: 62, pitch: 9, fov: 46 }, { e: -155, n: 70, h: 14, az: 72, pitch: 5, fov: 46 }, { e: -140, n: 96, h: 30, az: 84, pitch: -1, fov: 46 }] },
   // the building site of the Hall of a Hundred Columns from 9 m over its N forecourt: the gangs at work from sunrise + 0.5 h
   // (people/calendar.ts E-60), drums on the ramps, the dust (D-220); heights over the plain, the platform ~12 m above it
-  { id: 'work', what: 'people at their work', dur: 12, atRise: 1.3, overTerrace: 8,
+  { id: 'work', what: 'people at their work', dur: span(14, 17), atRise: 1.3, overTerrace: 8,
     keys: [{ e: 118, n: 60, h: 21.5, az: 158, pitch: -17, fov: 42 }, { e: 136, n: 52, h: 21, az: 172, pitch: -15, fov: 42 }] },
 ];
-/** the last shot's length (s) */
-export const LAST_SHOT_SECONDS = 15;
+/** the last shot's length (s): the horn's half of the theme (bars 17-21) */
+export const LAST_SHOT_SECONDS = span(17, 21);
 /** the world's hour at the last cut, from sunrise */
 export const LAST_SHOT_AT_RISE = 1.45;
 export const INTRO_SECONDS = SHOTS.reduce((a, s) => a + s.dur, 0) + LAST_SHOT_SECONDS;
@@ -120,6 +132,8 @@ export class Intro {
   playing = false; private shots: IntroShot[] = []; private shot = -1; private t = 0; private last = 0; private raf = 0; private began = 0; private ending = 0;
   private look0 = { yaw: 0, pitch: 0 };
   private bars: HTMLElement | null = null; private fade: HTMLElement | null = null; private hint: HTMLElement | null = null;
+  /** the music, and the opening's clock (s from the first cut): the music's own time while it plays, the frames' otherwise */
+  private music: ScoreTrack | null = null; private G = 0; private shotStart = 0;
   /** what happened, for tests and the trace */
   readonly log: { shot: string; at: number; hour: number }[] = [];
   constructor(private d: IntroDeps) {}
@@ -137,6 +151,8 @@ export class Intro {
     requestAnimationFrame(() => this.bars?.classList.add('on'));
     setTimeout(() => this.hint?.classList.add('on'), 1500); setTimeout(() => this.hint?.classList.remove('on'), 7000);
     addEventListener('keydown', this.onKey, true); addEventListener('mousedown', this.onKey, true); addEventListener('touchstart', this.onKey, true);
+    this.G = 0; this.shotStart = 0;
+    if (typeof Audio === 'function' && typeof window !== 'undefined') { this.music = new ScoreTrack(OPENING_CUE, 1, 'auto'); void this.music.play(0); } // (inside the Enter's gesture: sound is allowed)
     this.next(); this.loop();
     (globalThis as any).__intro = this;
   }
@@ -151,7 +167,7 @@ export class Intro {
   skip() { if (!this.playing || this.ending) return; this.ending = performance.now(); }
 
   private next() {
-    this.shot++; this.t = 0;
+    this.shot++;
     const s = this.shots[this.shot]; if (!s) { this.finish(); return; }
     const now = this.d.getTime(), want = sunTimes(now.day).rise + s.atRise;
     if (want > now.hour) this.d.setTime(now.day, want); // forward only
@@ -162,9 +178,12 @@ export class Intro {
     if (!this.playing) return;
     if (this.d.paused?.()) { this.finish(); return; }
     const now = performance.now(), dt = Math.min(0.1, (now - this.last) / 1000); this.last = now;
-    this.t += dt;
+    // follow the music: slew toward its time (never a jump back), or run on the frames while it is not sounding
+    const m = this.music, mt = m && m.playing && m.el.readyState >= 3 && m.time > 0 ? m.time : null;
+    this.G += dt; if (mt != null && Math.abs(mt - this.G) < 3) this.G += Math.max(-dt * 0.5, Math.min(dt * 0.5, mt - this.G));
+    this.t = this.G - this.shotStart;
     let s = this.shots[this.shot];
-    if (this.t >= s.dur) { this.next(); if (!this.playing) return; s = this.shots[this.shot]; }
+    while (this.t >= s.dur) { this.shotStart += s.dur; this.t -= s.dur; this.next(); if (!this.playing) return; s = this.shots[this.shot]; }
     const u = this.t / s.dur, P = shotPose(s, u, (e, n) => this.d.heightAt(e, -n));
     this.d.setCam({ x: P.e, y: P.y, z: -P.n, yaw: yawOf(P.az), pitch: (P.pitch * Math.PI) / 180 });
     if (Math.abs(this.d.camera.fov - P.fov) > 1e-3) { this.d.camera.fov = P.fov; this.d.camera.updateProjectionMatrix(); }
@@ -180,6 +199,9 @@ export class Intro {
   finish() {
     if (!this.playing) return;
     this.playing = false; cancelAnimationFrame(this.raf);
+    // the music: played out, it rings on into the walk and fades; skipped, it fades at once; then the score in the world begins
+    this.music?.fadeOut(this.ending ? 2.5 : 14); this.music = null;
+    if (typeof window !== 'undefined' && typeof Audio === 'function') startScore({ getTime: () => this.d.getTime(), player: () => this.d.player(), active: () => !this.d.paused?.() });
     removeEventListener('keydown', this.onKey, true); removeEventListener('mousedown', this.onKey, true); removeEventListener('touchstart', this.onKey, true);
     // a skip lands at the last shot's hour, as a played-out opening does
     const now = this.d.getTime(), want = sunTimes(now.day).rise + LAST_SHOT_AT_RISE; if (want > now.hour) this.d.setTime(now.day, want);

@@ -40,3 +40,46 @@ export function installProgressiveCompile(renderer: THREE.WebGPURenderer, budget
     stats: () => { const d = deferred; deferred = 0; return { live, done, deferred: d }; },
   };
 }
+
+/** D-740 (s18, the T4's black screen): one bad binding must cost one object, never the frame. Three's per-object draw
+ *  (updateBindings -> GPUQueue.writeBuffer / writeTexture) throws on a destroyed or missing buffer, or a texture without
+ *  data, and the throw aborts the whole render pass and every frame after it (Vagon: 0 draw calls; with the two bad calls
+ *  skipped the frame drew 167 -> 259). Here: a writeBuffer to something that is not a GPU buffer, and a writeTexture that
+ *  throws, are skipped; an object whose draw throws is skipped for that frame. Each is logged once, with the object's name
+ *  and its parents (window.__renderFaults). Call after installProgressiveCompile. */
+export function installRenderSafetyNet(renderer: THREE.WebGPURenderer) {
+  const R: any = renderer; if (R.__safetyNet) return; R.__safetyNet = true;
+  const faults: Record<string, { n: number; what: string; first: string }> = ((globalThis as any).__renderFaults = {});
+  let cur: any = null;
+  const pathOf = (o: any) => { const p: string[] = []; for (let x = o; x && p.length < 5; x = x.parent) p.push(x.name || x.type); return p.join(' < '); };
+  const note = (what: string, e?: unknown) => { const k = `${what}|${cur ? pathOf(cur) : '?'}`, f = faults[k];
+    if (f) { f.n++; return; }
+    faults[k] = { n: 1, what, first: String((e as any)?.message ?? e ?? '').slice(0, 200) };
+    console.warn(`[render] skipped: ${what} on "${cur ? pathOf(cur) : 'unknown object'}" (${faults[k].first}); logged once`); };
+  const Q: any = (globalThis as any).GPUQueue?.prototype, B: any = (globalThis as any).GPUBuffer;
+  if (Q && !Q.__parsaSafe) { Q.__parsaSafe = true; const wb = Q.writeBuffer, wt = Q.writeTexture;
+    Q.writeBuffer = function (this: any, buf: any, ...a: any[]) { if (B && !(buf instanceof B)) { note('writeBuffer to a missing buffer'); return; } try { return wb.call(this, buf, ...a); } catch (e) { note('writeBuffer', e); } };
+    Q.writeTexture = function (this: any, ...a: any[]) { try { return wt.apply(this, a); } catch (e) { note('writeTexture', e); } }; }
+  const direct = R._renderObjectDirect;
+  R._renderObjectDirect = function (object: any, ...rest: any[]) { const prev = cur; cur = object;
+    try { return direct.call(this, object, ...rest); } catch (e) { note('draw', e); } finally { cur = prev; } };
+  R._handleObjectFunction = R._renderObjectDirect;
+}
+
+/** D-740 (s18, the T4's last validation error: "[Buffer bindingBuffer863] used in submit while destroyed" on a
+ *  MeshBasicNodeMaterial): a material or geometry disposed while a mesh in the scene still draws it frees the GPU buffers that
+ *  mesh binds, and the next submit is invalid as a whole (nothing of the frame is drawn). Such a dispose is refused (a small
+ *  leak, or a later dispose once the mesh has left the scene) and logged once with the mesh's path and the material's name
+ *  (window.__liveDisposals), so the disposer can be fixed. Disposals of things no mesh in the scene uses go through. */
+export function guardLiveDisposals(scene: THREE.Object3D, T: { Material: any; BufferGeometry: any }) {
+  const log: Record<string, number> = ((globalThis as any).__liveDisposals = {}), cost = ((globalThis as any).__disposeChecks = { n: 0, ms: 0 });
+  const userOf = (x: any, geo: boolean) => { let hit: any = null; scene.traverse((o: any) => { if (hit || !o.isMesh && !o.isLine && !o.isPoints && !o.isSprite) return;
+    if (geo ? o.geometry === x : (Array.isArray(o.material) ? o.material.includes(x) : o.material === x)) hit = o; }); return hit; };
+  const pathOf = (o: any) => { const p: string[] = []; for (let x = o; x && p.length < 5; x = x.parent) p.push(x.name || x.type); return p.join(' < '); };
+  for (const [C, geo] of [[T.Material, false], [T.BufferGeometry, true]] as const) {
+    const proto = C.prototype; if (proto.__parsaLiveGuard) continue; proto.__parsaLiveGuard = true; const dispose = proto.dispose;
+    proto.dispose = function (this: any) { const t0 = performance.now(), u = userOf(this, geo); cost.n++; cost.ms += performance.now() - t0;
+      if (u) { const k = `${geo ? 'geometry' : 'material'} ${this.name || this.type} on ${pathOf(u)}`; if (!(k in log)) { log[k] = 0; console.warn(`[render] dispose refused: ${k} is still drawn (D-740); fix the disposer`); } log[k]++; return; }
+      return dispose.call(this); };
+  }
+}

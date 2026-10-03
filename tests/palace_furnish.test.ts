@@ -24,19 +24,21 @@ const colRect = (c: Column, pad = 0): Rect => { const h = c.order.baseW / 2 + pa
 const place = (id: string) => (courtJson as any).places.find((p: any) => p.id === id).at as [number, number];
 
 describe('palace furnishings: the plan (all C)', () => {
-  it('the court away: only stored pieces are drawn; the Apadana stands empty; the Tachara keeps its steward\'s corner', () => {
+  it('the court away: only stored pieces are drawn; the Apadana keeps its hangings, its keeper\'s corner and lamps (D-780); the Tachara keeps its steward\'s corner', () => {
     const pf = new PalaceFurnishings(parts, manifest, doorways, { court: false });
     expect(pf.plan.every(it => it.state === 'stored')).toBe(true);
-    expect(pf.plan.some(it => it.building === 'apadana')).toBe(false);
+    // D-780 (holes #14): not a bare hall while the court is away: hangings, the keeper's corner, lamp stands; nothing laid out
+    expect([...new Set(pf.plan.filter(it => it.building === 'apadana').map(it => it.kind))].every(k => ['hanging', 'mat', 'stool', 'jar', 'lamp_stand'].includes(k))).toBe(true);
+    expect(pf.plan.some(it => it.building === 'apadana' && it.kind === 'hanging')).toBe(true);
     const hall = pf.plan.filter(it => it.building === 'tachara' && it.room === 'hall').map(it => it.kind).sort();
     expect(hall).toEqual(['jar', 'lamp_stand', 'mat', 'stool']);
     for (const k of ['carpet_rolls', 'couch_covered', 'hanging_rolls', 'chest', 'jar', 'stool_stack']) expect(pf.plan.some(it => it.kind === k), k).toBe(true);
-    expect(pf.plan.some(it => it.kind === 'couch' || it.kind === 'carpet' || it.kind === 'hanging' || it.kind === 'canopy')).toBe(false); // nothing laid out
+    expect(pf.plan.some(it => it.kind === 'couch' || it.kind === 'carpet' || it.kind === 'canopy')).toBe(false); // nothing laid out (D-780: the hangings stay up)
     console.log(pf.summary());
   });
   it('the court in residence: the four palaces laid out; the canopy and the two incense burners at the throne', () => {
     const use = plan.filter(it => it.state === 'use');
-    for (const b of ['apadana', 'tachara', 'hadish', 'harem']) for (const k of b === 'apadana' ? ['carpet', 'canopy', 'incense_burner', 'hanging'] : ['carpet', 'couch', 'footstool', 'table', 'lamp_stand'])
+    for (const b of ['apadana', 'tachara', 'hadish', 'harem']) for (const k of b === 'apadana' ? ['carpet', 'canopy', 'incense_burner', 'hanging', 'table'] : ['carpet', 'couch', 'footstool', 'table', 'lamp_stand'])
       expect(use.some(it => it.building === b && it.kind === k), `${b} ${k}`).toBe(true);
     const th = place('court_throne'), can = use.find(it => it.kind === 'canopy')!;
     expect(Math.hypot(can.e - th[0], can.n - th[1])).toBeLessThan(1); // over the throne's place

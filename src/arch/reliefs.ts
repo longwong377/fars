@@ -96,12 +96,16 @@ const defs = new Map<string, FigureDef>();
 const defOf = (kind: string, seed: number) => { const k = kind + '|' + seed; let d = defs.get(k); if (!d) { d = figureDef(kind, seed); defs.set(k, d); } return d; };
 const boundsOf = (kind: string, seed: number) => { const k = kind + '|' + seed; let b = bounds.get(k); if (!b) { b = defBounds(defOf(kind, seed)); bounds.set(k, b); } return b; };
 /** synchronous generation of one LOD mesh (node / tests / no-Worker fallback) */
+/** D-752 (the relief triangle gate, 1.5 M along the façades): the error bound of the vertex-painted levels raised per kind where
+ *  the carving is a fine texture rather than an outline: the cypress's needle fans and cone curls (61 k triangles at L0, 1.7x a
+ *  person; the rows of trees on the flights put the façade at 1.57 M). The atlas levels carry the texture in their map */
+export const ERR_K: Record<string, number> = { cypress: 1.6 };
 export function reliefLodMesh(kind: string, seed: number, n: number, lod: number, atlas = false): LodMesh {
   const key = `${atlas ? AK : ''}${kind}|${seed}|${n}|${lod}`; let m = meshCache.get(key); if (m) return m;
   const t0 = performance.now();
   if (atlas) { // the atlas levels (D-320): no refinement at paint edges, positions and triangles only
     const L = ATLAS_LODS[lod], f = rasterize(defOf(kind, seed), n, L.pre); m = extractLod(f, rtinErrors(f, 0), L.err, 1, PIGMENT.stone, true);
-  } else { const f = rasterize(defOf(kind, seed), n, RELIEF_LODS[lod].pre); m = extractLod(f, rtinErrors(f), RELIEF_LODS[lod].err, RELIEF_LODS[lod].grad, PIGMENT.stone); }
+  } else { const f = rasterize(defOf(kind, seed), n, RELIEF_LODS[lod].pre); m = extractLod(f, rtinErrors(f), RELIEF_LODS[lod].err * (ERR_K[kind] ?? 1), RELIEF_LODS[lod].grad, PIGMENT.stone); }
   genStats.generated++; genStats.ms += performance.now() - t0;
   meshCache.set(key, m); return m;
 }
@@ -123,7 +127,7 @@ class WorkerPool {
   request(key: string, kind: string, seed: number, n: number, lod: number, atlas = false) {
     if (this.pending.has(key) || meshCache.has(key)) return;
     const L = (atlas ? ATLAS_LODS : RELIEF_LODS)[lod];
-    this.pending.add(key); this.queue.push({ key, job: { kind, seed, n, err: L.err, grad: L.grad, pre: L.pre, ...(atlas ? { lean: true } : {}) } }); this.pump();
+    this.pending.add(key); this.queue.push({ key, job: { kind, seed, n, err: L.err * (atlas ? 1 : ERR_K[kind] ?? 1), grad: L.grad, pre: L.pre, ...(atlas ? { lean: true } : {}) } }); this.pump();
   }
   private onField = new Map<string, (f: { n: number; x0: number; y0: number; cell: number; h: Float32Array }) => void>();
   /** a rasterised field (the relief shadow atlas, D-226), delivered to `done`; queued behind the meshes already asked for */

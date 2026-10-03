@@ -10578,6 +10578,432 @@
     0.5018176734447479
    ],
    "tex": 0
+  },
+  "m_gift_amphora": {
+   "file": "models/props/m_gift_amphora.glb",
+   "of": "gift_amphora",
+   "role": "model",
+   "parts": [
+    "metal"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/model_props.py (D-325)",
+   "bytes": 72280,
+   "sha256": "652fe0279fe597f5d034e8ea687eadda400c588a648800f77911c61c6718a8f5",
+   "tris": {
+    "lod0": 2048,
+    "lod1": 800,
+    "lod2": 234
+   },
+   "partTris": {
+    "lod0__metal": 2048,
+    "lod1__metal": 800,
+    "lod2__metal": 234
+   },
+   "box": [
+    [
+     -0.20308636128902435,
+     0,
+     -0.11999999731779099
+    ],
+    [
+     0.20308636128902435,
+     0.4571617543697357,
+     0.11999999731779099
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    0.4061727225780487,
+    0.4571617543697357,
+    0.23999999463558197
+   ],
+   "tex": 0
+  },
+  "m_gift_armlets": {
+   "file": "models/props/m_gift_armlets.glb",
+   "of": "gift_armlets",
+   "role": "model",
+   "parts": [
+    "gold"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/model_props.py (D-325)",
+   "bytes": 32400,
+   "sha256": "d8487e81f05eecd349c7569a6f8e6c4e9d7b4e4fd02caad9512e012fb77ab081",
+   "tris": {
+    "lod0": 900,
+    "lod1": 300,
+    "lod2": 97
+   },
+   "partTris": {
+    "lod0__gold": 900,
+    "lod1__gold": 300,
+    "lod2__gold": 97
+   },
+   "box": [
+    [
+     -0.06399999558925629,
+     -0.010516984388232231,
+     -0.06226717680692673
+    ],
+    [
+     0.062099114060401917,
+     0.026516985148191452,
+     0.06226717680692673
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    0.1260991096496582,
+    0.03703396953642368,
+    0.12453435361385345
+   ],
+   "tex": 0
+  },
+  "m_gift_tusk": {
+   "file": "models/props/m_gift_tusk.glb",
+   "of": "gift_tusk",
+   "role": "model",
+   "parts": [
+    "ivory"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/model_props.py (D-325)",
+   "bytes": 16396,
+   "sha256": "08008d8c8d4d0117637f5d14a05451ecbf09e450598f6940fb0cb7839138f166",
+   "tris": {
+    "lod0": 380,
+    "lod1": 140,
+    "lod2": 140
+   },
+   "partTris": {
+    "lod0__ivory": 380,
+    "lod1__ivory": 140,
+    "lod2__ivory": 140
+   },
+   "box": [
+    [
+     -0.05400000140070915,
+     -0.0007534151081927121,
+     -0.18370793759822845
+    ],
+    [
+     0.05400000140070915,
+     0.8615004420280457,
+     0.05399474874138832
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    0.1080000028014183,
+    0.8622538571362384,
+    0.23770268633961678
+   ],
+   "tex": 0
+  },
+  "m_gift_daggers": {
+   "file": "models/props/m_gift_daggers.glb",
+   "of": "gift_daggers",
+   "role": "model",
+   "parts": [
+    "leather",
+    "metal"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/model_props.py (D-325)",
+   "bytes": 24084,
+   "sha256": "1e29dcc0a9434d9a9babbeeee357345efafa3a06e28458236f3c568669c2bb40",
+   "tris": {
+    "lod0": 304,
+    "lod1": 292,
+    "lod2": 292
+   },
+   "partTris": {
+    "lod0__leather": 112,
+    "lod0__metal": 192,
+    "lod1__leather": 112,
+    "lod1__metal": 180,
+    "lod2__leather": 112,
+    "lod2__metal": 180
+   },
+   "box": [
+    [
+     -0.06499999761581421,
+     -0.012000000104308128,
+     -0.024000000208616257
+    ],
+    [
+     0.08749615401029587,
+     0.41279423236846924,
+     0.024000000208616257
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    0.15249615162611008,
+    0.42479423247277737,
+    0.04800000041723251
+   ],
+   "tex": 0
+  },
+  "m_gift_bows": {
+   "file": "models/props/m_gift_bows.glb",
+   "of": "gift_bows",
+   "role": "model",
+   "parts": [
+    "wood"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/model_props.py (D-325)",
+   "bytes": 23540,
+   "sha256": "2fbd14fa6bc6d0910fd59ba7d26484b5263981e802f87bda85ed3402bf0c2918",
+   "tris": {
+    "lod0": 592,
+    "lod1": 200,
+    "lod2": 200
+   },
+   "partTris": {
+    "lod0__wood": 592,
+    "lod1__wood": 200,
+    "lod2__wood": 200
+   },
+   "box": [
+    [
+     -0.4257533550262451,
+     -0.010392304509878159,
+     -0.07199999690055847
+    ],
+    [
+     0.4257533550262451,
+     0.040392301976680756,
+     0.014526152051985264
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    0.8515067100524902,
+    0.050784606486558914,
+    0.08652614895254374
+   ],
+   "tex": 0
+  },
+  "m_gift_cloth": {
+   "file": "models/props/m_gift_cloth.glb",
+   "of": "gift_cloth",
+   "role": "model",
+   "parts": [
+    "cloth",
+    "band"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/model_props.py (D-325)",
+   "bytes": 35156,
+   "sha256": "116c6e8ed11c3fb9f43b478060ab5a7c0e56586d53827bfd1bb2e50ae6724641",
+   "tris": {
+    "lod0": 808,
+    "lod1": 320,
+    "lod2": 320
+   },
+   "partTris": {
+    "lod0__cloth": 700,
+    "lod0__band": 108,
+    "lod1__cloth": 240,
+    "lod1__band": 80,
+    "lod2__cloth": 240,
+    "lod2__band": 80
+   },
+   "box": [
+    [
+     -0.2150000035762787,
+     -0.0020000000949949026,
+     -0.14972184598445892
+    ],
+    [
+     0.2150000035762787,
+     0.12300000339746475,
+     0.1525000035762787
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    0.4300000071525574,
+    0.12500000349245965,
+    0.3022218495607376
+   ],
+   "tex": 0
+  },
+  "m_wo_shaduf": {
+   "file": "models/props/m_wo_shaduf.glb",
+   "of": "wo_shaduf",
+   "role": "model",
+   "parts": [
+    "mud",
+    "wood",
+    "wood_d",
+    "clay",
+    "cord",
+    "hide"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/model_props.py (D-325)",
+   "bytes": 80716,
+   "sha256": "92ccf3beb98c40a104f4d8bfa0af4c88c7e134c408bf25d116114467f902353a",
+   "tris": {
+    "lod0": 1636,
+    "lod1": 804,
+    "lod2": 804
+   },
+   "partTris": {
+    "lod0__mud": 216,
+    "lod0__wood": 352,
+    "lod0__wood_d": 352,
+    "lod0__clay": 644,
+    "lod0__cord": 12,
+    "lod0__hide": 60,
+    "lod1__mud": 216,
+    "lod1__wood": 140,
+    "lod1__wood_d": 160,
+    "lod1__clay": 256,
+    "lod1__cord": 8,
+    "lod1__hide": 24,
+    "lod2__mud": 216,
+    "lod2__wood": 140,
+    "lod2__wood_d": 160,
+    "lod2__clay": 256,
+    "lod2__cord": 8,
+    "lod2__hide": 24
+   },
+   "box": [
+    [
+     -0.9025433659553528,
+     -0.05000000074505806,
+     -2.569999933242798
+    ],
+    [
+     0.9058977365493774,
+     2.8499999046325684,
+     3.819999933242798
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    1.8084411025047302,
+    2.8999999053776264,
+    6.389999866485596
+   ],
+   "tex": 0
+  },
+  "m_wo_pontoon": {
+   "file": "models/props/m_wo_pontoon.glb",
+   "of": "wo_pontoon",
+   "role": "model",
+   "parts": [
+    "wood_d",
+    "wood",
+    "cord"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/model_props.py (D-325)",
+   "bytes": 85392,
+   "sha256": "52b83f7a9aab89bfa8e5d30e47f9d9f889462171140c7a46679f31e26c904318",
+   "tris": {
+    "lod0": 1770,
+    "lod1": 756,
+    "lod2": 336
+   },
+   "partTris": {
+    "lod0__wood_d": 148,
+    "lod0__wood": 1598,
+    "lod0__cord": 24,
+    "lod1__wood_d": 148,
+    "lod1__wood": 600,
+    "lod1__cord": 8,
+    "lod2__wood_d": 148,
+    "lod2__wood": 180,
+    "lod2__cord": 8
+   },
+   "box": [
+    [
+     -3.8440146446228027,
+     -0.9293324947357178,
+     -3
+    ],
+    [
+     3.8440146446228027,
+     1.0299999713897705,
+     3.0005974769592285
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    7.6880292892456055,
+    1.9593324661254883,
+    6.0005974769592285
+   ],
+   "tex": 0
+  },
+  "m_wo_litter": {
+   "file": "models/props/m_wo_litter.glb",
+   "of": "wo_litter",
+   "role": "model",
+   "parts": [
+    "wood",
+    "gilt",
+    "blue",
+    "red"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/model_props.py (D-325)",
+   "bytes": 89764,
+   "sha256": "fc18c51482d1e00dad59c3352ddde21bc371090b20d323d61f7cc813a5ebe881",
+   "tris": {
+    "lod0": 1664,
+    "lod1": 940,
+    "lod2": 590
+   },
+   "partTris": {
+    "lod0__wood": 600,
+    "lod0__gilt": 188,
+    "lod0__blue": 108,
+    "lod0__red": 768,
+    "lod1__wood": 200,
+    "lod1__gilt": 180,
+    "lod1__blue": 60,
+    "lod1__red": 500,
+    "lod2__wood": 200,
+    "lod2__gilt": 180,
+    "lod2__blue": 60,
+    "lod2__red": 150
+   },
+   "box": [
+    [
+     -0.5330826044082642,
+     0.44999998807907104,
+     -1.6598236560821533
+    ],
+    [
+     0.5613513588905334,
+     2.059999942779541,
+     1.6585475206375122
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    1.0944339632987976,
+    1.60999995470047,
+    3.3183711767196655
+   ],
+   "tex": 0
   }
  }
 }
