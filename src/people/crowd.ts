@@ -125,6 +125,8 @@ export const MAX_FULL = 50, MAX_MID = 100;
 export const ATTACH_R = 620, DETACH_R = 660;
 /** the most simulated people attached at once (the cap passed to sim.visibleAgents) */
 export const POOL_MAX = 400;
+/** D-693: a person this close to the eye across (m) is not drawn (their body would enclose the camera) */
+export const EYE_CLEAR = 0.5;
 /** D-693: the GPU's person slots made at the start: the pool, its hysteresis and the extras (lineups, drivers, riders, musicians) */
 export const SLOTS_AT_START = 640;
 /** people cast shadows within this distance (m) only. An instanced caster is drawn whole in every cascade its bounds
@@ -695,7 +697,10 @@ export class Crowd {
       if (p.drawnFrame === this.frame - 1) { pr[0] = r[0]; pr[1] = r[1]; pr[2] = r[2]; pr[3] = r[3]; } else { pr[0] = x; pr[1] = y; pr[2] = z; pr[3] = yaw; }
       r[0] = x; r[1] = y; r[2] = z; r[3] = yaw;
       const d = len3(x - cam.x, y + 0.9 - cam.y, z - cam.z); p.dist = d;
-      p.shown = d < LOD_DIST[3] && !(d < this.rigClear);
+      // (D-693: nobody is drawn around the eye: a body within EYE_CLEAR m of the camera across, its height spanning the
+      // eye's, would be seen from inside: the dawn guard at the stair top, the hall's crowd. The player's own capsule keeps
+      // people off by physics; a camera placed by a rig or a teleport is not)
+      p.shown = d < LOD_DIST[3] && !(d < this.rigClear) && !(Math.hypot(x - cam.x, z - cam.z) < EYE_CLEAR && cam.y > y - 0.1 && cam.y < y + 2.0);
       if (!p.shown) continue;
       const reach = p.perf?.animals || p.perf?.work?.length ? 4 : 1.3; // a performance's things and animals spread a few metres
       if (camera && !this.wide.intersectsSphere(_s.set(_v.set(x, y + 0.9, z), reach * p.look.scale))) { if (a || !p.extra) this.soundsOnly(p, d, time); continue; }

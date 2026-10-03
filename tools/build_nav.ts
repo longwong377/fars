@@ -14,6 +14,8 @@ import { buildTerrace } from '../src/arch/terrace';
 import { partsKey } from '../src/arch/partsKey';
 import { buildMeshes } from '../src/arch/meshes';
 import { NAV } from '../src/people/navgrid';
+import { Settlement } from '../src/world/settlement/build';
+import { FireSystem } from '../src/world/fire';
 
 const t0 = Date.now();
 const meta: TerrainMeta = JSON.parse(readFileSync('public/generated/terrain.json', 'utf8'));
@@ -22,6 +24,11 @@ const T = new Terrain(meta, ring('near'), ring('mid'), ring('far'));
 const P = await Physics.create(); P.updateTerrain(T, { x: 0, y: 0, z: 0 });
 const { parts } = buildTerrace();
 buildMeshes(parts, P);
+// s18 C5 (D-694): the town's colliders where its quarters reach into the grid (q_b1 at the Terrace foot, q_b3's E edge): the
+// houses' walls, with C2's doors in them (every house enterable), so the grid's routes neither pass through a house nor
+// miss its door. Streamed over the grid's box, every box
+{ const town = new Settlement(P, T, new FireSystem(2), 'test'), E1 = NAV.e0 + NAV.w * NAV.cell, N1 = NAV.n0 + NAV.h * NAV.cell;
+  for (let e = NAV.e0; e <= E1 + 1; e += 150) for (let n = NAV.n0; n <= N1 + 1; n += 150) town.streamColliders(e, -n, Infinity); }
 P.step(1 / 60);
 const R = P.R, world = P.world;
 
