@@ -11,6 +11,7 @@
 #              dark winter hair under the throat, on the upper fore legs and on the humps' tops, the coat darker and browner;
 #   boar     — from the hyena (the nearest build: the high forehand and sloping back): the snout drawn out into the long wedge,
 #              the legs a fifth shorter, the bristled crest along the spine, the hide dark grey-brown grizzle;
+#   cat      — from the leopard: the head rounder and larger, the muzzle shorter, a tabby coat (D-771: the cat is in);
 #   zebu     — from the cow: the hump over the withers, the deep dewlap under the throat and brisket, the coat grey-white with
 #              the bull's darker forehand (the cow's ears kept: a drooping ear is a later breed's mark, and the mesh's ears are thin).
 import bpy, sys, json, math
@@ -99,6 +100,14 @@ if job['recipe'] in ('bactrian', 'bactrian_pack'):
     G[tops, 1] += 0.035 * fringe(G[tops, 0], G[tops, 2]); dark[tops] *= 0.5
     coat = np.array([0.66, 0.50, 0.39])  # browner and darker than the dromedary's sand (linear factor)
     log('hair: throat', int((hair > 0.05).sum()), 'sleeves', int((sleeve > 0.05).sum()), 'hump tops', int(tops.sum()))
+elif job['recipe'] == 'cat':
+    # the leopard's body made a house cat's: the head rounder and larger for the body (C), the coat a tabby (below); the library
+    # route scales it to the species' size
+    hdv = np.array(R['muzzle']) - top; hl = float(np.linalg.norm(hdv)); hd = hdv / hl
+    s_ = (G - top) @ hd; headv = (np.linalg.norm(G - (top + np.outer(np.clip(s_, 0, hl), hd)), axis=1) < 0.42 * hl) & (s_ > -0.12 * hl)
+    c = top + hd * (0.45 * hl); G[headv] = c + (G[headv] - c) * 1.1; G[headv, 2] -= 0.12 * hl * np.clip(s_[headv] / hl, 0, 1)  # (a shorter muzzle)
+    coat = None
+    log('head', int(headv.sum()))
 elif job['recipe'] == 'zebu':
     x, y, z = G[:, 0], G[:, 1], G[:, 2]
     zf_leg = np.mean([l['z'] for l in R['legs'] if l['fore'] > 0])
@@ -151,7 +160,13 @@ me.vertices.foreach_set('co', co.ravel()); me.update()
 img = bpy.data.images.load(job['albedo']); img.colorspace_settings.name = 'sRGB'
 W_, H_ = img.size; px = np.empty(W_ * H_ * 4, np.float32); img.pixels.foreach_get(px); px = px.reshape(-1, 4)
 lin = np.where(px[:, :3] <= 0.04045, px[:, :3] / 12.92, ((px[:, :3] + 0.055) / 1.055) ** 2.4)
-if job['recipe'] == 'boar':
+if job['recipe'] == 'cat':
+    # the rosettes to a tabby's stripes and blotches: the luminance kept as the pattern,
+    # on a grey-brown (the game's coat colours vary it per cat); the rosettes' contrast halved into a tabby's blotches
+    lum = lin @ np.array([0.2126, 0.7152, 0.0722]); fg = px[:, 3] > 0.5; mu = float(lum[fg].mean()) if fg.any() else 0.1
+    l2 = np.clip(mu + (lum - mu) * 0.55, 0, 1)
+    lin = np.clip(np.outer(l2 / max(mu, 1e-4), [0.11, 0.095, 0.075]), 0, 1)
+elif job['recipe'] == 'boar':
     # the spotted hide to a boar's dark grizzled bristles: the luminance's contrast halved (the spots fade into grizzle), on
     # a grey-brown (C: Sus scrofa's winter coat)
     lum = lin @ np.array([0.2126, 0.7152, 0.0722]); fg = px[:, 3] > 0.5; mu = float(lum[fg].mean()) if fg.any() else 0.1

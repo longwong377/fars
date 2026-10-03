@@ -31,11 +31,11 @@ import { RIDE } from './anim';
 
 export type Species = 'sheep' | 'goat' | 'ox' | 'donkey' | 'horse' | 'dog' | 'mule' | 'camel' | 'dromedary' | 'zebu' | 'deer' | 'stag' | 'gazelle' | 'gazelle_m' | 'boar' | 'hen' | 'cock'
   | 'donkey_pack' | 'mule_pack' | 'camel_pack' | 'horse_saddle'
-  | 'wolf' | 'lion' | 'lioness' | 'cheetah' | 'leopard' | 'hyena' | 'onager' | 'fox' | 'hare' | 'wild_goat' | 'urial'
+  | 'wolf' | 'lion' | 'lioness' | 'cheetah' | 'leopard' | 'hyena' | 'onager' | 'fox' | 'hare' | 'wild_goat' | 'urial' | 'cat'
   // D-256: the cows and calves of the village herds (WORLD_INVENTORY G17)
   | 'cow' | 'calf';
 export const SPECIES: Species[] = ['sheep', 'goat', 'ox', 'donkey', 'horse', 'dog', 'mule', 'camel', 'dromedary', 'zebu', 'deer', 'stag', 'gazelle', 'gazelle_m', 'boar', 'hen', 'cock',
-  'donkey_pack', 'mule_pack', 'camel_pack', 'horse_saddle', 'wolf', 'lion', 'lioness', 'cheetah', 'leopard', 'hyena', 'onager', 'fox', 'hare', 'wild_goat', 'urial', 'cow', 'calf'];
+  'donkey_pack', 'mule_pack', 'camel_pack', 'horse_saddle', 'wolf', 'lion', 'lioness', 'cheetah', 'leopard', 'hyena', 'onager', 'fox', 'hare', 'wild_goat', 'urial', 'cow', 'calf', 'cat'];
 type RGB = [number, number, number];
 interface Build { len: number; h: number; girth: number; neck: number; neckA: number; nb?: number; head: number; headR: number; leg: number;
   tail: 'fat' | 'short' | 'long' | 'tuft' | 'hair' | 'curl' | 'hen' | 'cock' | 'brush' | 'cat'; ears: 'small' | 'long' | 'mid' | 'prick' | 'none';
@@ -107,6 +107,9 @@ export const ANIMAL_BUILD: Record<Species, Build> = {
     tier: 'B species (the Persian onager on the steppes of Iran; hunted by the Achaemenid and Assyrian kings: the Nineveh reliefs, recollection; RECOLLECTION NOT SEEN) / C form', note: 'Persian onager (wild ass): sandy with a pale belly (belly NOT modelled), a dark dorsal stripe NOT modelled' },
   fox: { len: 0.68, h: 0.4, girth: 0.22, neck: 0.23, neckA: 1, nb: -0.05, head: 0.2, headR: 0.055, leg: 0.015, tail: 'brush', ears: 'prick', coat: [[0.72, 0.42, 0.22], [0.66, 0.44, 0.28]], stride: 0.7, row: 'red_fox',
     tier: 'B species (red fox in Fars: research/SOUNDSCAPE.md §5) / C form', note: 'red fox, rufous with a bushy tail (white tip and dark legs NOT modelled)' },
+  // s18 C14 (D-790; D-771 unblocked the cat): the town's mousers
+  cat: { len: 0.46, h: 0.26, girth: 0.15, neck: 0.1, neckA: 0.85, nb: -0.05, head: 0.1, headR: 0.04, leg: 0.012, tail: 'cat', ears: 'small', coat: [[0.48, 0.42, 0.34], [0.62, 0.5, 0.36], [0.3, 0.27, 0.24], [0.7, 0.62, 0.5]], stride: 0.42, row: 'cat',
+    tier: 'C (D-771: the domestic cat kept in Egypt for millennia and known in the Near East; the town has Egyptian households; mousers in yards and stores probable)', note: 'domestic cat, a mackerel tabby, grey-brown, sandy or dark (the coat C); the body the leopard library model made small (animals_derive.py)' },
   hare: { len: 0.5, h: 0.32, girth: 0.2, neck: 0.1, neckA: 0.6, nb: 0.05, head: 0.13, headR: 0.045, leg: 0.012, tail: 'short', ears: 'long', coat: [[0.62, 0.52, 0.38], [0.56, 0.46, 0.33]], stride: 0.6, row: 'hare',
     tier: 'C (the Cape or European hare of the Iranian plateau: RECOLLECTION NOT SEEN)', note: 'hare, sandy brown, long ears (the hopping gait NOT modelled: it walks)' },
   wild_goat: { len: 1.2, h: 0.85, girth: 0.4, neck: 0.48, neckA: 0.8, head: 0.28, headR: 0.07, leg: 0.028, tail: 'short', ears: 'mid', horns: 'goat', coat: [[0.6, 0.48, 0.34], [0.52, 0.42, 0.3]], stride: 1.0, row: 'wild_goat',
@@ -142,7 +145,7 @@ function tube(a: THREE.Vector3, b: THREE.Vector3, r0: number, r1: number, seg = 
 const HEAD_PITCH: Record<string, number> = { equid: 0.95, bovid: 0.8, caprine: 0.75, cervid: 0.7, antelope: 0.65, suid: 0.85, camelid: 0.3, canid: 0.4, felid: 0.35 };
 const GRAZE_PITCH = 0.55;
 const FAMILY_OF = (sp: Species) => /^(donkey|horse|mule|onager)/.test(sp) ? 'equid' : /^(ox|cow|calf|zebu)$/.test(sp) ? 'bovid' : /^(sheep|goat|wild_goat|urial)$/.test(sp) ? 'caprine' : /^(deer|stag)$/.test(sp) ? 'cervid'
-  : /^gazelle/.test(sp) ? 'antelope' : sp === 'boar' ? 'suid' : /^(camel|dromedary)/.test(sp) ? 'camelid' : /^(dog|wolf|fox|hyena)$/.test(sp) ? 'canid' : /^(lion|lioness|cheetah|leopard)$/.test(sp) ? 'felid' : sp === 'hare' ? 'hare' : 'fowl';
+  : /^gazelle/.test(sp) ? 'antelope' : sp === 'boar' ? 'suid' : /^(camel|dromedary)/.test(sp) ? 'camelid' : /^(dog|wolf|fox|hyena)$/.test(sp) ? 'canid' : /^(lion|lioness|cheetah|leopard|cat)$/.test(sp) ? 'felid' : sp === 'hare' ? 'hare' : 'fowl';
 /** the neck base (head pivot), the head's centre and direction, and the graze angle that brings the muzzle to the ground */
 export function animalFrame(sp: Species) {
   const B = ANIMAL_BUILD[sp], RR = realRig(sp);

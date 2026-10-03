@@ -370,6 +370,18 @@
     "from": "cow",
     "recipe": "zebu"
    }
+  },
+  "cat": {
+   "class": "tiny",
+   "uid": "2528ea73ca62461c9b300a1ff216521e",
+   "shard": "000-019",
+   "name": "leopard",
+   "author": "dinomaster",
+   "licence": "CC-BY-4.0",
+   "derive": {
+    "from": "leopard",
+    "recipe": "cat"
+   }
   }
  }
 }

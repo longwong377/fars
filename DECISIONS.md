@@ -10154,3 +10154,15 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   the heard reply says the reply, overheard pairs say their own fact (#15); the court's people, travellers and herders not sent
   to market (C7); meals bought by the stranger (4-12); trespass (4-1); W5, W6, W13, W14, W15, W17, W22; Kokoro blends without a
   regional colour (all C).
+- D-790 round 2 (the leads' asks): the mouth takes the voices' words (crowd.voice's optional 5th argument `words`, IPA or
+  transliteration, sets FaceState.say; face.ts folds IPA onto the viseme classes; world.ts:815 to pass `v.ipa ?? v.text`);
+  mounts trot and gallop by their pace (gaitOfPace: walk to ~1.8 m/s, trot to ~3.6, gallop above; a transverse gallop:
+  each pair's right leg GALLOP_LEAD 0.65 rad after its left; the stride x1.3 / x2.4) and the rider's seat bounces at the trot
+  and sits forward at the gallop (anim 'ride' from the rider's own speed); the wild herds bolt from the player (beasts.ts
+  BeastFlight: within the flight distance an alarm snort, a gallop away `far` m with the members fanning, hooves drumming,
+  15-30 s watching the threat, then grazing and a 0.4 m/s walk home; the old force field kept as a floor at a third of the
+  distance), walk to water at dawn and at dusk (the nearest river point within 8 km) and face the way they drift; the
+  domestic cat (D-771 unblocked it): a species from the leopard library body (animals_derive 'cat': the head rounder, a
+  tabby), in about a sixth of the town's house yards (fauna.json cat; lying by day, about the yard at dusk and dawn, off
+  over the yard when someone comes within 4 m); the anatomy's boar and hare rebuilt for the species list; the mother's
+  held hand 7 cm back to the child's under the skirted gait (people_children's palms within 12 cm again).
