@@ -230,7 +230,9 @@ export function propGeometry(kind: string): THREE.BufferGeometry | null {
       for (const s of [-1, 1]) { g.push(paint(box(t, h, w, s * (w / 2 - t / 2), h / 2, 0), WOOD, 0, 0.8)); g.push(paint(box(w, h, t, 0, h / 2, s * (w / 2 - t / 2)), WOOD, 0, 0.8)); g.push(paint(box(0.09, 0.03, 0.05, s * (w / 2 + 0.045), h * 0.7, 0), WOOD_D, 0, 0.8)); }
       return merge(g); }
     case 'brick': return paint(box(0.33, 0.11, 0.33), [0.62, 0.53, 0.4], 0, 0.95);
-    case 'rope': { const g: THREE.BufferGeometry[] = []; const pts: [number, number, number][] = [[0, -0.55, -0.62], [0, -0.1, -0.42], [0, 0, -0.26], [0, 0, 0.3], [0, -0.06, 1.5], [0, -0.22, 3], [0, -0.5, 4.6]];
+    case 'rope': { const g: THREE.BufferGeometry[] = []; const pts: [number, number, number][] = [[0, 0, -0.26], // (D-691: it ends in the rear hand; the tail past it ran down through the belly, the rear hand being at the belly in the haul)
+       [-0.07, 0, -0.13], [0, 0, 0], [0, 0, 0.3], // (between the hands it bows out round the body: the haul holds them across the belly)
+       [0, -0.06, 1.5], [0, -0.22, 3], [0, -0.5, 4.6]];
       for (let i = 0; i + 1 < pts.length; i++) g.push(paint(rod(pts[i], pts[i + 1], 0.013, 0.013, 4), [0.62, 0.54, 0.38], 0, 0.95)); return merge(g); }
     case 'adze': return merge([paint(rod([0, 0, -0.08], [0, 0, 0.36], 0.015, 0.017, 5), WOOD, 0, 0.7), paint(box(0.05, 0.12, 0.018, 0, -0.06, 0.36).rotateX(-0.25).translate(0, 0, 0.09), IRON, 0.6, 0.5)]);
     case 'bow': case 'toy_bow': { // grip at the origin; limbs ±Y (1.05 m; the toy 0.6 m), recurved tips toward +Z (the target); string at z −0.14, its middle drawn back by the parameter (m)
@@ -374,8 +376,8 @@ export const PROP_KINDS = ['spear', 'sack', 'jar', 'tablet', 'mallet', 'basket']
 
 /** how a prop is held: legacy (the Phase 3 placements), one hand (axis toward the cycle's tip or along the fist),
  *  two hands (the axis threads rear → front grip), mid (between the palms), hang (below the hand, turning), hip, palm,
- *  at (placed by the cycle), bow, arrow */
-type Rule = 'legacy' | 'one' | 'two' | 'mid' | 'hang' | 'hip' | 'palm' | 'at' | 'bow' | 'arrow' | 'inst' | 'mouth' | 'toss' | 'dangle';
+ *  at (placed by the cycle), bow, arrow, ground (set down on the ground beside the body: setDown, D-691) */
+type Rule = 'legacy' | 'one' | 'two' | 'mid' | 'hang' | 'hip' | 'palm' | 'at' | 'bow' | 'arrow' | 'inst' | 'mouth' | 'toss' | 'dangle' | 'ground';
 export interface PropSpec { geom: string; rule: Rule; hand?: 'l' | 'r'; front?: 'l' | 'r'; roll?: 'up' | 'palm' | 'away' | 'down'; up?: number; grip?: [number, number] }
 /** every prop an activity can name (activities.ts); geometry is shared between kinds that are held differently */
 export const PROPS: Record<string, PropSpec> = {
@@ -391,7 +393,7 @@ export const PROPS: Record<string, PropSpec> = {
   cloth: { geom: 'cloth', rule: 'mid' }, wisp: { geom: 'wisp', rule: 'one', hand: 'r', roll: 'up' }, bowl: { geom: 'bowl', rule: 'palm', hand: 'l' }, rag: { geom: 'rag', rule: 'one', hand: 'r', roll: 'up' },
   awl: { geom: 'awl', rule: 'one', hand: 'r', roll: 'up' }, ladle: { geom: 'ladle', rule: 'one', hand: 'r', roll: 'up' }, stick: { geom: 'stick', rule: 'one', hand: 'r', roll: 'up' },
   lead: { geom: 'lead', rule: 'one', hand: 'r', roll: 'up' }, jar_both: { geom: 'jar', rule: 'mid' }, sack_both: { geom: 'sack', rule: 'mid' },
-  basket_hip: { geom: 'basket', rule: 'hip', hand: 'l' }, basket_both: { geom: 'basket', rule: 'mid' }, basket_lap: { geom: 'basket', rule: 'palm', hand: 'l' },
+  basket_hip: { geom: 'basket', rule: 'hip', hand: 'l' }, basket_both: { geom: 'basket', rule: 'mid' }, basket_lap: { geom: 'basket', rule: 'ground' }, // (D-691: on the ground by the seated, not on the palm in the lap: it sank into the chest and calves)
   // instruments (D-200)
   harp_v: { geom: 'harp_v', rule: 'inst' }, harp_h: { geom: 'harp_h', rule: 'inst' }, lyre: { geom: 'lyre', rule: 'inst' }, frame_drum: { geom: 'frame_drum', rule: 'inst' },
   plectrum: { geom: 'plectrum', rule: 'one', hand: 'r', roll: 'up' }, double_pipe: { geom: 'double_pipe', rule: 'mouth' }, reed_pipe: { geom: 'reed_pipe', rule: 'mouth' },
@@ -492,6 +494,25 @@ const frame = (o: THREE.Vector3, z: THREE.Vector3, yRef: THREE.Vector3, out: THR
   const Z = z.clone().normalize(); let Y = yRef.clone().sub(Z.clone().multiplyScalar(yRef.dot(Z))); if (Y.lengthSq() < 1e-8) Y = Math.abs(Z.y) < 0.9 ? new V(0, 1, 0).sub(Z.clone().multiplyScalar(Z.y)) : new V(1, 0, 0).sub(Z.clone().multiplyScalar(Z.x)); Y.normalize();
   const X = new V().crossVectors(Y, Z); return out.makeBasis(X, Y, Z).setPosition(o);
 };
+/** D-691: the sack's seat over the right shoulder (from the upper arm's head: out, up, back; m, C) and how far out from the
+ *  pelvis's axis a basket rides on the hip (m: the hip's half width and the basket's, C) */
+export const SACK_SEAT = [-0.1, 0.17, -0.08] as const, HIP_OUT = 0.34;
+/** D-691: goods carried with no pose made for them (goods in the plan's words while standing, talking, sitting or at work)
+ *  are set down: the geometry's base on the ground (character space y 0: the feet, or the seat's ground), beside the right
+ *  hip, a hand's breadth forward. Base heights of the geometries (their origin is their middle: basket 0.09, sack 0.165) */
+const BASE_Y: Record<string, number> = { basket: 0.09, sack: 0.165, jar: 0, tablet: 0.02 };
+/** beside the right hip standing; seated (the pelvis low), farther out and a little behind, clear of the legs */
+export const SET_DOWN = { side: 0.38, ahead: 0.12, seatSide: 0.5, seatAhead: -0.12 } as const;
+export function setDown(geom: string, R: RigView, s: number, out: THREE.Matrix4): boolean {
+  const pv = bone(R, HB.pelvis), th = bone(R, HB.thigh_r), lat = th.clone().sub(pv); lat.y = 0; if (lat.lengthSq() < 1e-6) lat.set(-1, 0, 0); lat.normalize();
+  const fwd = new V(-lat.z, 0, lat.x); if (fwd.z < 0) fwd.negate(); // (the body's forward: +z of the rig, square to the hips)
+  const seated = pv.y < 0.5, o = pv.clone().add(lat.multiplyScalar(seated ? SET_DOWN.seatSide : SET_DOWN.side)).add(fwd.multiplyScalar(seated ? SET_DOWN.seatAhead : SET_DOWN.ahead)).multiplyScalar(s); o.y = BASE_Y[geom] ?? 0;
+  out.makeRotationY(0.4).setPosition(o); return true;
+}
+/** the goods kinds and the poses made to carry or work them (the rest set them down: crowd.ts) */
+export const GOODS_POSES: Record<string, string[]> = { basket: ['carry_front'], bread: ['carry_front', 'eat'], jar: ['carry_shoulder', 'draw_water'], jar_head: ['carry_head'], sack: ['carry_shoulder', 'pass'] };
+/** the carrying pose for goods on the move (crowd.ts: a walker with goods in the plan's words walks with them so) */
+export const CARRY_POSE: Record<string, string> = { basket: 'carry_front', bread: 'carry_front', jar: 'carry_shoulder', jar_head: 'carry_head', sack: 'carry_shoulder' };
 /** a prop's transform in character space (scaled body: bone positions × s; the prop keeps its size). Returns false when
  *  the cycle hides it this frame. `slot` 0 or 1 (prop or prop2). `param` receives the instance parameter (bow draw,
  *  spindle drop) */
@@ -504,7 +525,7 @@ export function placeProp(kind: string, R: RigView, po: Pose, s: number, time: n
       const k = kind === 'bread' ? 'basket' : kind.startsWith('spear') ? 'spear' : kind; let pos: THREE.Vector3; let rot = new THREE.Matrix4(); let sc = 1;
       switch (k) {
         case 'spear': { const h = palm0(R, 'r'); pos = new V(h.x, 0, h.z).multiplyScalar(s); pos.y = 0; break; } // upright, butt on the ground by the right hand
-        case 'sack': { pos = bone(R, HB.upperarm_r).multiplyScalar(s).add(new V(0.02, 0.13, -0.02)); rot.makeRotationZ(0.3); break; }
+        case 'sack': { pos = bone(R, HB.upperarm_r).multiplyScalar(s).add(new V(SACK_SEAT[0], SACK_SEAT[1], SACK_SEAT[2])); rot.makeRotationZ(0.3); break; } // (D-691: out over the shoulder's point and back; it sat 6 cm into the chest)
         case 'jar': {
           if (po.shoulder) { // borne on the right shoulder (D-217): the base on the shoulder's top, the axis to the raised hand, which holds the neck
             const base = bone(R, HB.upperarm_r).add(new V(SHOULDER_JAR.medial, SHOULDER_JAR.lift, 0)).multiplyScalar(s);
@@ -531,6 +552,7 @@ export function placeProp(kind: string, R: RigView, po: Pose, s: number, time: n
       if (P.rule === 'palm') { const n = palmNormal(R, h); const o = g.clone().add(n.clone().multiplyScalar(0.035)); // resting on the palm, upright
         if (P.geom === 'brick' || P.geom === 'basket') o.y -= P.geom === 'brick' ? 0.02 : 0.05;
         out.makeRotationY(Math.atan2(n.x, n.z) * 0).setPosition(o); return true; }
+      if (P.geom === 'towel') g.add(new V(h === 'l' ? 0.018 : -0.018, 0, 0)); // (D-691: hung on the outside of the hand, clear of the thigh as far as the grip allows)
       const z = tip ? new V(tip[0] * s, tip[1] * s, tip[2] * s).sub(g) : P.up ? new V(0, 1, 0.35) : gripAxis(R, h);
       const yRef = P.roll === 'palm' ? palmNormal(R, h) : P.roll === 'down' ? new V(0, -1, 0) : new V(0, 1, 0);
       frame(g, z, yRef, out); return true;
@@ -553,7 +575,12 @@ export function placeProp(kind: string, R: RigView, po: Pose, s: number, time: n
     case 'hang': { const g = gripPoint(R, P.hand ?? 'r').multiplyScalar(s); out.makeRotationY((time * 21) % (2 * Math.PI)).setPosition(g); if (param) param.v = po.aux ?? 0.4; return true; }
     // D-255: hung upright from the hand, square to the body (the balance: its beam across, the pans rocked by the pose's ip)
     case 'dangle': { const g = gripPoint(R, P.hand ?? 'l').multiplyScalar(s); out.makeTranslation(g.x, g.y, g.z); if (param) param.v = po.ip ?? 0; return true; }
-    case 'hip': { const g = gripPoint(R, 'l').multiplyScalar(s).add(new V(0.03, -0.1, 0)); out.makeRotationZ(0.15).setPosition(g); return true; }
+    // D-691: on the left hip, outside it (the basket's half width beside the hip's), at the hip's height, whatever the hand
+    // does (from the grip it sank 6-7 cm into the pelvis when the hand worked in front)
+    case 'hip': { const pv = bone(R, HB.pelvis), th = bone(R, HB.thigh_l), lat = th.clone().sub(pv); lat.y = 0; if (lat.lengthSq() < 1e-6) lat.set(1, 0, 0); lat.normalize();
+      const gr = gripPoint(R, 'l'), g = pv.clone().add(lat.multiplyScalar(HIP_OUT)); g.y = Math.max(th.y, gr.y - 0.08); g.z = Math.min(pv.z + 0.12, Math.max(pv.z - 0.05, gr.z)); g.multiplyScalar(s); // (its rim in the hand: at the hand's height and as far forward as the hip allows)
+      out.makeRotationZ(0.15).setPosition(g); return true; }
+    case 'ground': return setDown(P.geom, R, s, out);
     case 'at': { const a = po.at; if (!a) return false; out.makeRotationY(a[3]).setPosition(a[0] * s, a[1] * s, a[2] * s); return true; }
     case 'inst': { const f = po.inst; if (!f) return false; // the cycle frames the instrument (reference-body units, scaled)
       frame(new V(f[0][0] * s, f[0][1] * s, f[0][2] * s), new V(...f[1]), new V(...f[2]), out); return true; }
