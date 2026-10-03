@@ -73,6 +73,8 @@ export interface Seg { t0: number; t1: number; place: string; act: ActivityId; w
   with?: number;
   /** the evidence behind the reason (event ids, sources: out-of-world, for the dev overlay), taken out of the reason text */
   ev?: string;
+  /** D-651: laid by the out-of-doors layer (Population.outOfDoors): who is with this person follows it (Population.follow) */
+  od?: 1;
   /** what the person carries in this part of the day (§9.5; C unless the reason says otherwise) */
   carry?: string;
   /** how the person is dressed against the weather in this part of the day (W-03: the face wrapped against the dust; C) */
@@ -1996,8 +1998,8 @@ export class Population {
           : [nb >= 0 ? `lane:${H.q}:${nb}` : lane, 'talk', 0.3 + 0.5 * u(30 + k), nb >= 0 ? 'talking with kin at their door' : 'talking with the neighbours in the lane', undefined];
         const w = Math.min(0.4, Math.max(0.04, this.walkH(home, place, d, W, W))), len = 2 * w + stay; if (x.t1 - x.t0 < len + 0.2) continue;
         const a = Math.min(Math.max(t, x.t0 + 0.05), x.t1 - len - 0.05); if (!dry(a, a + len) || !free(a, a + len)) continue;
-        swap(x, [{ ...x, t1: a }, { t0: a, t1: a + w, place: `road:${W}`, act: 'walk', why: why.endsWith('at the well') ? 'going down to the well' : why.startsWith('at the market') ? 'going to the market ground' : 'going to see a neighbour', where: 'road' },
-          { t0: a + w, t1: a + w + stay, place, act, why, where: W }, { t0: a + w + stay, t1: a + len, place: `road:${W}`, act: 'walk', why: 'walking home', where: 'road', ...(back ? { carry: back } : {}) }, { ...x, t0: a + len }]); } }
+        swap(x, [{ ...x, t1: a }, { od: 1, t0: a, t1: a + w, place: `road:${W}`, act: 'walk', why: why.endsWith('at the well') ? 'going down to the well' : why.startsWith('at the market') ? 'going to the market ground' : 'going to see a neighbour', where: 'road' },
+          { od: 1, t0: a + w, t1: a + w + stay, place, act, why, where: W }, { od: 1, t0: a + w + stay, t1: a + len, place: `road:${W}`, act: 'walk', why: 'walking home', where: 'road', ...(back ? { carry: back } : {}) }, { ...x, t0: a + len }]); } }
     // the children's play out in the lane before their door (by day, dry, nobody's charge)
     // (the play of a house's court goes out as one, the playmates of other houses with it: the draw is the house's and the
     // day's, so whoever plays there that day is in the lane; never with a little one, or a child someone small is with)
@@ -2005,11 +2007,37 @@ export class Population {
     if (age >= 5 && age <= 13) for (const x of [...out]) { const ph = x.place.startsWith('h:') ? +x.place.slice(2) : -1, PH = this.households[ph];
       if (!PH || x.act !== 'play' || /minding|little|baby/.test(x.why) || (x.with !== undefined && !kid(x.with)) || x.t0 < 7 || x.t1 > 19 || x.t1 - x.t0 < 0.5 || !dry(x.t0, x.t1) || u01(this.seed, S_OUT, ph, d, 40) >= 0.8) continue;
       if (this.membersOn(ph, d).some(m => !kid(m) && m !== pid && this.basePlan(m, d).some(y => y.with === pid && y.t0 < x.t1 && y.t1 > x.t0))) continue;
-      swap(x, [{ t0: x.t0, t1: x.t0 + step, place: `road:${W}`, act: 'walk', why: 'out to the lane', where: 'road' }, { ...x, t0: x.t0 + step, t1: x.t1 - step, place: `lane:${PH.q}:${ph}`, why: 'playing in the lane with the other children' }, { t0: x.t1 - step, t1: x.t1, place: `road:${W}`, act: 'walk', why: 'back in', where: 'road' }]); }
+      swap(x, [{ od: 1, t0: x.t0, t1: x.t0 + step, place: `road:${W}`, act: 'walk', why: 'out to the lane', where: 'road' }, { ...x, od: 1, t0: x.t0 + step, t1: x.t1 - step, place: `lane:${PH.q}:${ph}`, why: 'playing in the lane with the other children' }, { od: 1, t0: x.t1 - step, t1: x.t1, place: `road:${W}`, act: 'walk', why: 'back in', where: 'road' }]); }
+    // the heat of the day in the lane's shade and on the doorstep (a house's draw, so the house is together there: its "with the
+    // household" hours, and its little ones with their minders: follow)
+    const keptBy = (a: number, b: number) => this.membersOn(hid, d).some(m => m !== pid && this.basePlan(m, d).some(y => y.with === pid && (y.act === 'sleep' || y.act === 'lie_ill') && y.t0 < b && y.t1 > a));
+    if (u01(this.seed, S_OUT, hid, d, 60) < 0.45) for (const x of [...out]) { const a = Math.max(x.t0, 11), b = Math.min(x.t1, 16.5);
+      if (x.place !== home || x.with !== undefined || !['rest', 'craft', 'spin', 'talk', 'play'].includes(x.act) || /asleep|nurs/.test(x.why) || b - a < 0.6 || !dry(a, b) || keptBy(a, b)) continue;
+      swap(x, [{ ...x, t1: a, ...(/heat/.test(x.why) && x.act === 'rest' ? { why: 'resting at home' } : {}) }, { od: 1, t0: a, t1: a + step, place: `road:${W}`, act: 'walk', why: 'out to the door', where: 'road' }, { ...x, od: 1, t0: a + step, t1: b - step, place: lane, why: x.act === 'rest' ? 'resting in the shade of the lane by the door' : x.act === 'play' ? 'playing in the lane by the door' : x.act === 'talk' ? 'talking with the neighbours on the doorstep in the shade' : `${x.why.replace(/,? ?with the household/, '')}, out on the doorstep in the shade` }, { od: 1, t0: b - step, t1: b, place: `road:${W}`, act: 'walk', why: 'back in', where: 'road' }, { ...x, t0: b, ...(/heat/.test(x.why) && x.act === 'rest' ? { why: 'resting at home' } : {}) }]); }
     // the evening at the door (half the houses: the household's own draw)
     if (age >= 14 && u01(this.seed, S_OUT, hid, d, 50) < 0.5) for (const x of [...out]) { const a = Math.max(x.t0, 17.5), b = Math.min(x.t1, 20.5);
       if (x.place !== home || !['rest', 'talk'].includes(x.act) || x.with !== undefined || /asleep|nurs/.test(x.why) || b - a < 0.6 || !dry(a, b) || !free(a, b)) continue;
-      swap(x, [{ ...x, t1: a }, { t0: a, t1: a + step, place: `road:${W}`, act: 'walk', why: 'out to the door', where: 'road' }, { ...x, t0: a + step, t1: b - step, place: lane, act: 'talk', why: 'sitting at the door in the evening with the neighbours' }, { t0: b - step, t1: b, place: `road:${W}`, act: 'walk', why: 'back in', where: 'road' }, { ...x, t0: b }]); }
+      swap(x, [{ ...x, t1: a }, { od: 1, t0: a, t1: a + step, place: `road:${W}`, act: 'walk', why: 'out to the door', where: 'road' }, { ...x, od: 1, t0: a + step, t1: b - step, place: lane, act: 'talk', why: 'sitting at the door in the evening with the neighbours' }, { od: 1, t0: b - step, t1: b, place: `road:${W}`, act: 'walk', why: 'back in', where: 'road' }, { ...x, t0: b }]); }
+    // (who stays in while the house is out at its door: no longer "with the household", which says the house is there)
+    const doorDay = u01(this.seed, S_OUT, hid, d, 60) < 0.45, eveDay = u01(this.seed, S_OUT, hid, d, 50) < 0.5;
+    for (const x of [...out]) if (x.place === home && /with the household/.test(x.why) && ((doorDay && x.t0 < 16.5 && x.t1 > 11) || (eveDay && x.t0 < 20.5 && x.t1 > 17.5))) { own(); const i = out.indexOf(x); out[i] = { ...x, why: x.why.replace(/with the household/, 'at home') }; }
+    return this.follow(pid, d, out);
+  }
+  /** D-651: who is "with" another (a child with its mother or minder, a baby carried, a playmate) is where that one is in
+   *  their own day as laid out of doors (outOfDoors): the follower's stretch takes the other's place, the lane or the walk to
+   *  it, piece by piece. Guarded against a pair each with the other */
+  private following = new Set<number>();
+  private follow(pid: number, d: number, segs: Seg[]): Seg[] {
+    if (this.following.has(pid) || !segs.some(x => x.with !== undefined && x.with !== pid && x.where !== 'road')) return segs;
+    this.following.add(pid); let out = segs;
+    try {
+      for (const x of [...segs]) { if (x.with === undefined || x.with === pid || x.where === 'road' || !this.persons[x.with] || this.following.has(x.with)) continue;
+        const T = this.plan(x.with, d), parts: Seg[] = []; let moved = false;
+        for (const y of T) { const a = Math.max(x.t0, y.t0), b = Math.min(x.t1, y.t1); if (b - a <= 1e-6) continue;
+          if (y.place === x.place || !y.od) { parts.push({ ...x, t0: a, t1: b }); continue; }
+          moved = true; parts.push(y.where === 'road' ? { ...x, od: 1, t0: a, t1: b, place: y.place, where: 'road', act: 'walk', why: `${x.why.startsWith('carried') ? 'carried' : 'walking'} with them` } : { ...x, od: 1, t0: a, t1: b, place: y.place, where: y.where }); }
+        if (!moved) continue; if (out === segs) out = segs.slice(); const i = out.indexOf(x); if (i >= 0) out.splice(i, 1, ...parts); }
+    } finally { this.following.delete(pid); }
     return out;
   }
   /** D-651: the overlays' stretches dressed as the planner's are: the economy's hired day in the cold or the dust (planCheck's
