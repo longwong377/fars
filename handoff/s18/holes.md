@@ -161,7 +161,7 @@ New holes this pass found (not in pass 1), ranked:
 
 | # | Hole | Evidence | 467 BC most probably (tier) | Fix | Owner |
 |---|---|---|---|---|---|
-| P2-1 | **Skin tone is not tied to origin**: a Kushite, an Indian and a Persian are drawn from the same range | DECISIONS D-092 (DECISIONS.md:229): "Nothing is tied to origin: no evidence was read" | Kushite, Indian, Egyptian and Arab workers and delegates visibly darker. The Apadana delegations are the evidence of who came. (A for who; B for skin) | S | C13 (looks) |
+| P2-1 | ~~RETRACTED (third pass): skin tone IS tied to origin since D-155 (looks.ts ORIGIN_TONE, Q-240: Egyptian 0.62, Indian 0.68, Kushite 0.84 … Thracian 0.2); D-092's line was superseded.~~ Was: **Skin tone is not tied to origin**: a Kushite, an Indian and a Persian are drawn from the same range | DECISIONS D-092 (DECISIONS.md:229): "Nothing is tied to origin: no evidence was read" | Kushite, Indian, Egyptian and Arab workers and delegates visibly darker. The Apadana delegations are the evidence of who came. (A for who; B for skin) | S | C13 (looks) |
 | P2-2 | **The delegations' animals, chariots and dress are left out**: lioness, okapi, ibex and chariots "NOT drawn", animals "stay at the camp"; mantles, cloaks, shawls, tassels and the chin wrap "not modelled" | delegations.json:5-87; fauna.json:76; COURT.md:90-112,191 | The Apadana stair reliefs (A): every delegation leads its gifts and animals up the stair. | M | C13 + C9 (fauna) |
 | P2-3 | **Nobles' and delegates' robes are plain; the throne's lion bands are not drawn; relief eyes have no pupils** | Q-427 "every other garment plain"; Q-238; RELIEFS_AND_COLOUR:114,117 | Patterned borders (the Susa archers, the Oxus finds, B). Lion bands on the throne covers (B). Painted pupils. | S–M | C13 (dress); C10 (throne, reliefs) |
 | P2-4 | **No storks, bats, cats, rats or flies; mules and camels left off the plain for budget; no herders' bands on the move; reins not drawn and wheels do not turn** | fauna.json:85,103; Q-563; DECISIONS.md:3888-3890; blocklist `later-animals` keeps cats out | Storks on columns and roofs (a Fars signature), bats at dusk, cats as mousers in the stores (long kept in Egypt and the Near East), turning wheels. (B) | M | C9 (fauna, smallLife); the wheels and reins belong to C9 or V5 |
@@ -233,5 +233,5 @@ At 0.3–3 m (V3, s17 report_people.md):
 5. Pass-1 #4 and #5, town shape and colour (C2).
 6. **F1** faces, lips, guards' dress and pose (new; C13 + C14).
 7. Pass-1 #9 plus the newcomer's ten minutes: talk undiscoverable (C11, C8, C5).
-8. **P2-1 / P2-2** skin by origin; the delegations with their animals (new; C13, C9).
+8. **P2-2** the delegations with their animals (new; C13, C9). (P2-1 retracted.)
 9. The stale "court absent default" text in 9 files (new; C13, lead).

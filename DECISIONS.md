@@ -9983,3 +9983,21 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
 - Starling: D-570's fix holds on the real WGSL: 14 inputs now (6 geometry + 4 matrix + 4 previous matrix). D-570's geometry count had missed TRAA's previous matrix; on the pre-D-570 file the new test reads exactly the T4's 17. Doves: 9-16 inputs, <= 8 buffers, 3 node samplers in every level. The node census finds no fault; the T4's own log is asked for.
 - Tests: tests/pipeline_limits.test.ts (three's WGSLNodeBuilder, velocity MRT on, share-instancing on, 64 KiB uniform limit: every bird level, the jackals and the small life within 16 / 8 / 5 node samplers; the flying birds <= 2 programs); shader_share's buffer case follows the exact rule. In-page census: `__parsa.census()` (src/dev/pipelineCensus.ts).
 - Not done / not mine: the dist grew 704 -> 934 MB (Pages limit 1 GB). build_site.mjs should leave out the jpgs whose KTX2 is listed (77 MB) and the ground-only layer jpgs (84 MB): ~773 MB (asked of the lead). RGBA8 textures left in other owners' files: models/land cover/ground (6 x 21 MB), people_cloth_folds (21 MB), humans scans array (107 MB), tree leaf atlases (2 x 32 MB), bark array (45 MB) (asked).
+## D-771 The ruin rules rewritten in research/ and the blocklist (s18 cloud C12; UD-02, UD-14, UD-29)
+- Every absence rule that only recorded the evidence's silence now says what 467 most probably had (tier C, each change
+  marked "s18 D-771" in place with its reason and the old wording). In COURT, EVENTS, PEOPLE and CHRONOLOGY (and Q-005), the
+  court now comes and goes by default (D-236), so "court ABSENT is the default / evidence-strict" is gone. The king is
+  staged as a king (column, audience, bow, feast, gift day) but never addresses the visitor. A gift day of the delegations
+  with their animals; tukta and E-36 scheduled; harp and pipes at court; secular songs may have reconstructed words (UD-24).
+  The magi's chant stays wordless (CLAUDE.md ritual rule). Relief backgrounds, faces, animals and eyes are painted on the
+  whitish ground; capitals and colossi are painted; shafts have a finish coat, not raw stone; garments have borders; the
+  throne has lion bands; windows have shutters or grilles; the named work places are built; the brick fields, tower stairs,
+  drum ramp, Rahmat quarries, E-foot cistern, Akhor Rostam niches, private tombs, soil moisture, mules and camels; household
+  niches in non-Persian homes; qanats allowed (Ayn Manawir, Polybius 10.28).
+- Blocklist: "modern tents/villages"; gilding is banned as everything-gold, not outside attested zones; cats unblocked
+  (mousers); qanat allowed.
+- Kept: fire temples, statues of gods, music at Persian sacrifice, post-467 buildings and sites, windcatchers, domes,
+  fired-brick houses, glass windows, silk, rice as a staple.
+- Not mine to change (asked): src/data/blocklist.json (the 'qanat' term and the descriptions), tests/plain.test.ts:356
+  ('qanat'), tools/chrono_to_md.py:12 (CHRONOLOGY.md is generated: the new line must go into the generator), and the data
+  files (C13).
