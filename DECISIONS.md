@@ -9912,6 +9912,8 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   works (94,279), the walled stockyard (hurdle pens, mangers, trough), tannery (vats, hide frames, hides), press house (wine
   and oil presses, jars), mill (querns, sacks), bakery-brewery (ovens, vats, jars) and the clay pit (heaps), from the period
   kit, walls of mud brick with colliders; 55 work spots (worksLayout(plan).spots: facility, act, e, n, yaw) for C1's people.
+- Soil moisture by season (holes P2-10, Q-603): the plain's loam dark and damp in spring, pale dust in late summer, damper in
+  patches (terrainPlain.ts soil0: fields, tracks and open ground alike); the rain's wetness on top as before.
 
 ## D-720 Follow thirty: the people answer from their own lives without the model, and the town's deeds and yesterday reach their talk (session 18, cloud C8; UD-07, UD-08, UD-11, UD-21, UD-24, UD-32)
 - Measured (tools/dev/follow30.ts; REVIEWS/follow30.json): thirty people drawn by seed across the town, the villages, the Terrace's
