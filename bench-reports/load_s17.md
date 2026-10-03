@@ -26,6 +26,7 @@ Chromium 141 on the cloud container: 4 cores, 15 GB, no GPU)
 | same dist, `?prefetch=0`, n=3 | 79.3-86.3 | 65.4 / 73.4 / 73.6 | 337 MB | 5.64-5.71 | no measurable difference now |
 | s17 tip 329bbbb1 (C5's lighter loading screen, C10, C9 merged) + C4, n=2 | 73.5 / 70.5 | 60.2 / 57.7 | 339 MB | 5.68-5.77 | compositor 62 -> 5 CPU-s |
 | tip 9e2f5201 (C2's plain bake + atlas worker, C6, C10 merged) + C4, no 404s, n=2 (new container host after a restart) | **60.1 / 53.2** | **50.0 / 43.9** | 338 MB | 5.78-5.81 | main thread 38 CPU-s (was 53-71) |
+| **final: merged tip b9c44423 (all of Vagon's s17-int + the cloud), n=2** | **59.8 / 52.5** | **50.6 / 43.2** | 347 MB | 5.88-5.92 | no 404s, no errors; site 660 MB (1 seed baked; ~705 MB with 8) |
 | + the talk's start at the first idle moment, n=2 | 73.7 / 70.8 | 60.3 / 57.4 | 339 MB | 5.76-5.80 | the gap after ready is the first frames (C10) |
 | shared decoder + reaper, n=2 | 82.7 / 86.5 | 68.8 / 73.7 | 334 MB | 5.55 / 5.59 | renderer 4.9 GB (5.0-5.05 before) |
 | loading screen animations off (`--css`) | 76.7 | 63.7 | 337 MB | 5.64 | compositor 62 -> 1 CPU-s |

@@ -1,9 +1,9 @@
 // D-309: the fitted AgX look (src/render/toneLook.ts; tools/dev/tone_fit.mjs). The CPU mirror at the identity look is three's
 // AgX; the fitted look opens the top of the range (sunlit stone toward the photographs' p95) and keeps night dark.
 import { describe, it, expect } from 'vitest';
-import { agxCPU, TONE_LOOK } from '../src/render/toneLook';
+import { agxCPU, TONE_LOOK, type Look } from '../src/render/toneLook';
 const toS = (l: number) => 255 * (l <= 0.0031308 ? 12.92 * l : 1.055 * Math.pow(l, 1 / 2.4) - 0.055);
-const grey = (x: number, L = TONE_LOOK) => toS(agxCPU([x, x, x], L)[1]);
+const grey = (x: number, L: Look = TONE_LOOK) => toS(agxCPU([x, x, x], L)[1]);
 const ID = { slope: 1, power: 1, sat: 1, exposure: 1 };
 describe('tone look (D-309)', () => {
   it('identity look = plain AgX (mid grey 0.18 → ~ sRGB 128 ± 25; monotonic; white clips at ~16× scene)', () => {
