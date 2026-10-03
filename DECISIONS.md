@@ -9954,6 +9954,11 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   bare or thick (+-45 % herb cover), and grey-green Artemisia stands 150-400 m across (terrainPlain.ts; C).
 - The river drew as sky-blue and bank-brown blotches (riv-a): the long ripple octaves calmer (2.4 m 0.075 -> 0.04, 1 m 0.07 ->
   0.05) and the spring river's ripple scale 1.15 -> 0.85, so the far bank's reflection breaks in streaks, not patches (C).
+- The plain's static triangles went over 2 M (2.009 M: the merged Naqsh relief figures, 0.5 M): the rivers' sections beyond 12 km
+  from the Apadana every 20-45 m (were 12-45 m), 1.99 M (C).
+- Millet (W19): a summer crop row after flax, 3 % of the irrigated plots taken from the fallow (17 %), sown June, cut mid-September
+  (Herodotus 3.117: millet and sesame of summer irrigation, B analogy; calendar C). plain_d223 (field share 0.397 < 0.4, from the
+  town's growth: irrigated -4.1 k census px, town site and trodden +3.6 k) and land_work (planCheck, timber carts) fail without it too.
 
 ## D-720 Follow thirty: the people answer from their own lives without the model, and the town's deeds and yesterday reach their talk (session 18, cloud C8; UD-07, UD-08, UD-11, UD-21, UD-24, UD-32)
 - Measured (tools/dev/follow30.ts; REVIEWS/follow30.json): thirty people drawn by seed across the town, the villages, the Terrace's
