@@ -10560,3 +10560,7 @@ touched; the budget baseline is not re-accepted from such a head.
   approach cells fewer walkable (the quarters). Bots: approach 40/40 (0.53 % stuck), Terrace 39/40 (the miss: people at the
   Tachara's door; stuck time at the Hall of 100's masons, sim.ts). terrace_walk's "every road block ... decides to an on-Terrace
   task" fails identically on the old grid (not this rebuild).
+- (D-694, rebuild 2) The grid rebuilt on C2's 3c2eec36 (q_w3 moved west): 4 sites, 6,509 boxes, 32,821 approach pocket cells
+  blocked, 1,291,033 walkable. Bots: approach 40/40 (0.64 % stuck), town 40/40 (8.25 % stuck time: up from 0.40 % this
+  morning, not yet traced). Walkers drawn within 60 m: cov-142 1 of 58, q_s1 lane 5 of 307 (the plans: 42 of 69 and 67 of 97
+  residents within 400 m on the move walk).
