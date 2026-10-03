@@ -115,7 +115,8 @@ export function walkHours(a: string, b: string) {
 }
 
 // ------------------------------------------------------------------ the people
-const S = { arr: salt('court-arrive'), gen: salt('court-gen'), plan: salt('court-plan'), vis: salt('court-visitors'), day: salt('court-day'), vig: salt('court-vigil'), aud: salt('court-audience'), king: salt('court-king'), ret: salt('court-retinue'), face: salt('court-face'), cer: salt('court-ceremony'), cour: salt('court-courier') };
+const S = { arr: salt('court-arrive'), gen: salt('court-gen'), plan: salt('court-plan'), vis: salt('court-visitors'), day: salt('court-day'), vig: salt('court-vigil'), aud: salt('court-audience'), king: salt('court-king'), ret: salt('court-retinue'), face: salt('court-face'), cer: salt('court-ceremony'), cour: salt('court-courier'), house: salt('court-houses') };
+const HS = (COURT as any).houses;
 const CE = COURT.ceremony;
 type Group = 'royal_guard' | 'women' | 'attendants' | 'palace' | 'table' | 'porters' | 'butchers' | 'officials' | 'nobles' | 'visitor' | 'king' | 'retinue' | 'herald' | 'courier';
 interface Member { g: Group; role: string; sleep: string }
@@ -377,9 +378,43 @@ export class CourtResidents {
    *  they dine in the portico) */
   private seats = new Map<number, Map<number, number>>();
   seatOf(pid: number, d: number): number {
-    let m = this.seats.get(d); if (!m) { m = new Map(); let k = 0; for (const g of ['king', 'nobles', 'officials'] as Group[]) for (const q of this.byGroup.get(g) ?? []) if (this.dines(q, d)) m.set(q, k++);
+    // (UD-27: the Persians of rank seated by the king's favour, the most favoured nearest the throne)
+    let m = this.seats.get(d); if (!m) { m = new Map(); let k = 0; for (const g of ['king', 'nobles', 'officials'] as Group[]) { const qs = (this.byGroup.get(g) ?? []).filter(q => this.dines(q, d));
+      if (g === 'nobles') { const f = new Map(qs.map(q => [q, this.favour(q, d)])); qs.sort((a, b) => f.get(b)! - f.get(a)! || a - b); } for (const q of qs) m.set(q, k++); }
       this.seats.set(d, m); if (this.seats.size > 4) this.seats.delete(this.seats.keys().next().value!); }
     const k = m.get(pid); return k === undefined || k >= FEAST_SEATS.length ? -1 : k;
+  }
+  /** D-780 (UD-27 at the court; court.json houses): the great houses of the Persians of rank, each tent of ten one house's
+   *  following; their marriages into one another (allies) and into the king's house, their rivalries, and the king's favour,
+   *  which rises and falls by the season. Shown in where a man stands at an audience, where he sits at the banquet and with whom
+   *  he talks (C throughout) */
+  private houseList?: { hh: number[]; at: Map<number, number>; allies: number[][]; rivals: number[][]; kin: boolean[]; head: number[] };
+  houses() {
+    if (this.houseList) return this.houseList; const seed = this.pop.seed, hh: number[] = [], at = new Map<number, number>();
+    const head: number[] = []; for (const q of this.byGroup.get('nobles') ?? []) { const h = this.pop.persons[q].hh; if (!at.has(h)) { at.set(h, hh.length); hh.push(h); head.push(q); }
+      const i = at.get(h)!; if (this.pop.persons[q].age > this.pop.persons[head[i]].age) head[i] = q; }
+    const n = hh.length, allies: number[][] = hh.map(() => []), rivals: number[][] = hh.map(() => []), kin = hh.map((_, i) => u01(seed, S.house, i, 1) < HS.king_kin);
+    // marriages first (each house gives a daughter to one or two others), then a rival among the houses it is not allied to
+    for (let i = 0; i < n && n > 2; i++) for (let k = 0; allies[i].length < HS.allies && k < 8; k++) { const j = Math.floor(u01(seed, S.house, i, 10 + k) * n); if (j !== i && !allies[i].includes(j) && allies[j].length < HS.allies + 1) { allies[i].push(j); allies[j].push(i); } }
+    for (let i = 0; i < n && n > 3; i++) for (let k = 0; rivals[i].length < HS.rivals && k < 8; k++) { const j = Math.floor(u01(seed, S.house, i, 30 + k) * n); if (j !== i && !allies[i].includes(j) && !rivals[i].includes(j)) { rivals[i].push(j); rivals[j].push(i); } }
+    return this.houseList = { hh, at, allies, rivals, kin, head };
+  }
+  /** the house (index) of a Persian of rank, or -1 */
+  houseOf(pid: number): number { return this.mem.get(pid)?.g === 'nobles' ? this.houses().at.get(this.pop.persons[pid].hh) ?? -1 : -1; }
+  /** the head of a house: its eldest */
+  headOf(house: number): number { return this.houses().head[house] ?? -1; }
+  /** the king's favour to a house in the season of day d, 0..1: its standing, a kinship by marriage with the king, and a drift by
+   *  periods of the residence (a house rises and falls); a rival's rise is its loss */
+  houseFavour(house: number, d: number): number {
+    const H = this.houses(), F = HS.favour, seed = this.pop.seed, per = Math.floor((d - this.firstDay) / F.period_days);
+    const drift = (h: number) => (u01(seed, S.house, h, per, 50) - 0.5) * 2 * F.drift;
+    let f = 0.35 + 0.3 * u01(seed, S.house, house, 2) + (H.kin[house] ? F.king_kin : 0) + drift(house);
+    for (const r of H.rivals[house]) f -= 0.4 * Math.max(0, drift(r)); return Math.min(1, Math.max(0, f));
+  }
+  /** a Persian of rank's favour: his house's, the head above it, the young below it */
+  favour(pid: number, d: number): number {
+    const h = this.houseOf(pid); if (h < 0) return 0; const age = this.pop.persons[pid].age, F = HS.favour;
+    return Math.min(1, Math.max(0, this.houseFavour(h, d) + (this.headOf(h) === pid ? F.head : 0) - (age < F.age_from ? 0.1 : 0) + (u01(this.pop.seed, S.house, pid, 3) - 0.5) * 0.1));
   }
   /** D-221: does the party wait in the forecourt on day d (it has a place there) */
   upOn(pa: Party, d: number) { const o = this.dayOrder(d); return o.turnOf.has(pa.i) || o.station.has(pa.i) || o.line.has(pa.i); }
@@ -955,8 +990,22 @@ class CourtDay {
     this.fill(r.range(15.8, 17), opts); this.go(this.m.sleep, 'going down to the camp');
     this.fill(r.range(18.6, 19.4), camp); this.meal(this.m.sleep, 0.6, 'the evening meal at the camp'); this.fill(r.range(20.8, 21.8), camp); this.night();
   }
+  /** D-780 (UD-27 at the court): who a Persian of rank talks with: the men of his own house gather at one place of the Terrace
+   *  each day, a house married into his meets them at a place of the pair's, and his house keeps apart from its rival's
+   *  (houses: court.json; C). Adds the talks to the options and thins those where the rivals stand */
+  private houseTalk(opts: Opt[]) {
+    const K = this.K, d = this.d, h = K.houseOf(this.pid); if (h < 0) return; const H = K.houses(), seed = K.pop.seed;
+    const PL = ['court_portico', 'forecourt', 'gate_hall', 'court_apadana_e'], NM: Record<string, string> = { court_portico: 'the Apadana portico', forecourt: 'the forecourt', gate_hall: 'the Gate of All Nations', court_apadana_e: 'below the Apadana’s E stair' };
+    const hp = (x: number) => PL[Math.floor(u01(seed, S.house, x, d, 60) * 3)], name = (x: number) => K.pop.nameOf(K.headOf(x));
+    const rv = H.rivals[h].map(hp); for (const o of opts) if (rv.includes(o[0]) && o[1] === 'talk') o[3] *= 0.25;
+    opts.push([hp(h), 'talk', `talking with the men of his house in ${NM[hp(h)]}`, 2]);
+    if (H.allies[h].length) { const a = H.allies[h][(d + h) % H.allies[h].length], pp = PL[Math.floor(u01(seed, S.house, Math.min(h, a) * 1000 + Math.max(h, a), d, 61) * 3)];
+      if (!rv.includes(pp)) opts.push([pp, 'talk', `talking with ${name(a)} and the men of his house, a house his own is joined to by marriage, in ${NM[pp]}`, 2]); }
+    if (H.rivals[h].length && u01(seed, S.house, this.pid, d, 62) < 0.3) opts.push([hp(h), 'talk', `talking low with the men of his house about ${name(H.rivals[h][0])}’s house, their rival at court`, 0.8]);
+    if (H.kin[h] && this.pid === K.headOf(h)) opts.push(['apadana_hall', 'inspect', 'in attendance in the Apadana, near the king, whose wife is of his house (HDT 7.61, 9.108-113: claims of the kind, B; C: D-780)', 1.5]);
+  }
   noble() {
-    const r = this.r, K = this.K, d = this.d, sd = K.set, gift = isGiftDay(K.pop.seed, d), gifts = d === sd.kingGifts || d === sd.birthday;
+    const r = this.r, K = this.K, d = this.d, sd = K.set, gift = isGiftDay(K.pop.seed, d), gifts = d === sd.kingGifts || d === sd.birthday, fav = K.favour(this.pid, d);
     // D-780: on the days of the peoples' gifts, of the king's gifts and his birthday every Persian of rank at Persepolis attends (C)
     const atCourt = gift || gifts || u01(K.pop.seed, S.day, this.pid, d) < 0.72, nN = (K.byGroup.get('nobles') ?? []).length || 1;
     const o = this.outing(), rides = !!o && K.inOut(this.pid, d, (o.kind === 'hunt' ? CE.hunt.nobles[0] + (CE.hunt.nobles[1] - CE.hunt.nobles[0]) * u01(K.pop.seed, S.cer, d, 1) : CE.ride.nobles[0] + (CE.ride.nobles[1] - CE.ride.nobles[0]) * u01(K.pop.seed, S.cer, d, 2)) / nN);
@@ -971,8 +1020,10 @@ class CourtDay {
       this.fill(r.range(18.5, 19.5), camp); this.meal(this.m.sleep, 0.7, 'the evening meal at the camp'); this.fill(r.range(20.8, 22), camp); this.night(); return; }
     const opts: Opt[] = gift ? [['court_portico', 'inspect', 'standing in the Apadana’s N portico among the Persians of rank while the delegations go up with their gifts (the reliefs, B; C: D-780)', 3], ['apadana_hall', 'inspect', 'in attendance in the Apadana on the day of the peoples’ gifts', 2.5], ['court_apadana_e', 'inspect', 'standing below the Apadana’s E stair while the delegations go up', 1]]
       : gifts ? [['court_portico', 'talk', 'talking with other Persians of rank in the Apadana portico on the day of the king’s gifts', 2], ['apadana_hall', 'inspect', 'in attendance in the Apadana while the king gives gifts', 1.5], ['forecourt', 'talk', 'talking with other Persians of rank in the forecourt', 0.6]]
-      : [['apadana_hall', 'inspect', 'in attendance in the Apadana', 2.5], ['court_portico', 'talk', 'talking with other Persians of rank in the Apadana portico', 2], ['forecourt', 'talk', 'talking with other Persians of rank in the forecourt', 1],
-      ['court_apadana_e', 'inspect', 'waiting below the Apadana’s E stair to be called', 1], ['gate_hall', 'talk', 'talking in the Gate of All Nations', 0.6]];
+      : [['apadana_hall', 'inspect', 'in attendance in the Apadana', 2.5 * (0.3 + 1.4 * fav)], ['court_portico', 'talk', 'talking with other Persians of rank in the Apadana portico', 2], ['forecourt', 'talk', 'talking with other Persians of rank in the forecourt', 1.5 - fav],
+      ['court_apadana_e', 'inspect', fav < 0.3 ? 'waiting below the Apadana’s E stair to be called, his house out of the king’s favour this season (C: D-780)' : 'waiting below the Apadana’s E stair to be called', 1.5 - fav], ['gate_hall', 'talk', 'talking in the Gate of All Nations', 0.6 * (1.5 - fav)]];
+    if (!gift && !gifts && fav > 0.75) opts.push(['apadana_hall', 'inspect', 'in attendance in the Apadana, standing near the throne, high in the king’s favour (Cyr. 8.1.38-40: a claim, B; C: D-780)', 2]);
+    this.houseTalk(opts);
     this.go('forecourt', 'going up to the Terrace');
     // D-780: on the morning of the king's gifts (and his birthday) each Persian of rank is called before the king in turn and
     // receives his gift (Cyr. 8.5.21, HDT 9.110: claims, B; the turns C)
