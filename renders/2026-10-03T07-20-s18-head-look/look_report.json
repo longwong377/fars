@@ -1,0 +1,6621 @@
+{
+ "dist": "T:\\s18-head\\dist",
+ "seed": 1,
+ "pointsSeed": 515948316,
+ "q": "high",
+ "viewport": "1920x1080",
+ "views": [
+  {
+   "id": "cov-252",
+   "why": "empty-frames hunt: Terrace d168 12.6 h (sim: 271 within 60 m)",
+   "cam": [
+    84.8,
+    9.85,
+    1.6,
+    69.6,
+    1.9
+   ],
+   "day": 168,
+   "hour": 12.586,
+   "w": "auto",
+   "guarded": {
+    "writeBuffer": 0,
+    "writeTexture": 0
+   },
+   "pop": "population 83591 simulated · out of doors near: 8187 (592 walking) of 47861 kept, drawn 401 skinned + 209 impostors",
+   "popLine": "population 83591 simulated · out of doors near: 8187 (592 walking) of 47861 kept, drawn 401 skinned + 209 impostors [D-143]",
+   "terraceLine": "people 85/135 on the Terrace (drawn 0/100/301/0 full/mid/far/farthest + 209 impostors (baked in 1610 ms)",
+   "summary": "light probes (C): 24 volumes, 83259 probes, 4.1 MB, parts ef102d0205ed8106; outdoor light (C, D-357): 19 regions, 26.4 MB · people 85/135 on the Terrace (drawn 0/100/301/0 full/mid/far/farthest + 209 impostors (baked in 1610 ms), 402 pooled, pose 12.20 ms, view 8.40 ms) · population 83591 simulated · out of doors near: 8187 (592 walking) of 47861 kept, drawn 401 skinned + 209 impostors [D-143] · places not built: 22 · activities with no performance, shown standing: 0 skinned + 0 impostors · props 151 · work objects 95, animals 0 [D-142] · pop-ins 4 · motion (D-333): 193 from capture, 208 authored strokes over the capture layer [PLACEHOLDER] · architecture: 3723 parts, 5.87 M tris, 3428 colliders, built in 23623 ms · palace furnishings (D-212, C): 130 pieces stored / in the steward's use, 303.5 k tris in 24 meshes, 97 colliders · solid near the player: 0 people + 0 animals of 0 + 0 within 16 m, 0.00 ms (D-237) · fires {\"fires\":12975,\"lit\":48,\"smoke\":0} · smoke layer 0 cells (0 round the eye; D-220, C) · dust 638 puffs from 248 (dry 1) · town 37 meshes, 1.40 M tris, colliders 0/41968, built in 3441 ms · court camps 1979 tents, 0.0 k tris in 15 meshes (D-199, C) · animals (D-210, C; fauna.json): yard dogs 239 town + 1007 village + 4 stable, strays 38, hens 11293 in 2194 yards + 150 in the state poultry yard, deer 8, gazelle 11, boar 4; drawn 431 (8 draws, 435.7 k tris) {\"horse\":2,\"mule\":2,\"sheep\":227,\"goat\":153,\"horse_saddle\":13,\"donkey\":24,\"leopard\":1,\"urial\":9}; on the roads 1 drivers and riders (cart); built in 688 ms · plain: 37 villages (3983 compounds), 36 canals, 64100 river/canal trees, 4220 orchard plots, near trees 0 (LOD0 0), mid-ring impostors 284, crop tufts 0, built in 2918 ms · royal inscriptions: 117 versions carved; 4 copies or versions standing in 467 NOT carved [PLACEHOLDER: Q-290, src/data/royal_inscriptions.json]",
+   "meshes": [
+    {
+     "name": "settlement:tol_ajori:body",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:brazier:bronze",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 8,
+     "instMax": 8,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:brazier:coal",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 8,
+     "instMax": 8,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:torch:wood",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 36,
+     "instMax": 36,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:torch:head",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 36,
+     "instMax": 36,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:torch:bracket",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 36,
+     "instMax": 36,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:hearth:stone",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 18,
+     "instMax": 18,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:hearth:ash",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 18,
+     "instMax": 18,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:oven:mud",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": 1,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "people",
+     "type": "Group",
+     "visible": true,
+     "chain": "visible",
+     "count": null,
+     "instMax": null,
+     "drawRange": null,
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 13
+    },
+    {
+     "name": "people:humans",
+     "type": "Group",
+     "visible": true,
+     "chain": "visible",
+     "count": null,
+     "instMax": null,
+     "drawRange": null,
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 48
+    },
+    {
+     "name": "humans:persian:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:persian:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:persian:shadow-far",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:persian:shadow-far",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:persian:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:persian:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:persian:lod1",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:persian:lod1",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:persian:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:persian:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:persian:lod3",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:persian:lod3",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:median:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:median:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:median:shadow-far",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:median:shadow-far",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:median:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:median:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:median:lod1",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:median:lod1",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:median:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:median:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:median:lod3",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:median:lod3",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:worker:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:worker:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:worker:shadow-far",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:worker:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:worker:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:worker:lod1",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:worker:lod2",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:worker:lod3",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:worker:lod3",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:woman:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:woman:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:woman:shadow-far",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:woman:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:woman:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:woman:lod1",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:woman:lod2",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:woman:lod3",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:woman:lod3",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:child:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:child:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:child:shadow-far",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:child:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:child:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:child:lod1",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:child:lod2",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:child:lod3",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:child:lod3",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy:shadow-far",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy:shadow-far",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy:lod1",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy:lod1",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy:lod3",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy:lod3",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_short:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_short:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_short:shadow-far",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_short:shadow-far",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_short:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_short:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_short:lod1",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_short:lod1",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_short:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_short:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_short:lod3",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_short:lod3",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_bare:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_bare:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_bare:shadow-far",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_bare:shadow-far",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_bare:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_bare:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_bare:lod1",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_bare:lod1",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_bare:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_bare:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_bare:lod3",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_bare:lod3",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "people:hit",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at people:hit",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "people:impostors",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": false,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "player-body",
+     "type": "Group",
+     "visible": false,
+     "chain": "hidden at player-body",
+     "count": null,
+     "instMax": null,
+     "drawRange": null,
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 2
+    },
+    {
+     "name": "humans:median:lod0",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "hidden at player-body",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:median:lod1",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "hidden at player-body",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    }
+   ],
+   "humans": {
+    "draws": 6,
+    "triangles": 1512872,
+    "people": 401,
+    "byLod": [
+     0,
+     100,
+     301,
+     0
+    ],
+    "shadowDraws": 3,
+    "shadowTriangles": 281791,
+    "propDraws": 3,
+    "props": 151,
+    "propTriangles": 586918,
+    "propsDropped": 0,
+    "placeholderActs": 0,
+    "motionCapture": 193,
+    "motionAuthored": 208,
+    "things": {
+     "draws": 6,
+     "instances": 95,
+     "triangles": 111706,
+     "kinds": {
+      "knucklebones": 3,
+      "brick_stack": 40,
+      "mortar_tub": 25,
+      "brick_course": 25,
+      "toy_wheeled": 1,
+      "stake": 1
+     },
+     "dropped": 0
+    },
+    "animals": {
+     "draws": 0,
+     "instances": 0,
+     "triangles": 0,
+     "species": {},
+     "dropped": 0,
+     "modelled": 0
+    },
+    "perf": {
+     "ms": 12.200000002980232,
+     "poseMs": 9.200000002980232,
+     "posed": 204,
+     "drawn": [
+      0,
+      100,
+      301,
+      0
+     ],
+     "attached": 402
+    },
+    "impostors": 209,
+    "impostorDraws": 1,
+    "impostorTriangles": 418,
+    "impPerf": {
+     "drawn": 209,
+     "candidates": 7282,
+     "looksPending": 0,
+     "poolCands": 1099,
+     "popins": 4,
+     "doorEntries": 0,
+     "walking": 15,
+     "placeholders": 0,
+     "walled": 0,
+     "bands": [
+      208,
+      1,
+      0,
+      0
+     ],
+     "feedMs": 2.2999999970197678,
+     "impMs": 2.100000001490116
+    },
+    "view": {
+     "doorKept": 666,
+     "yielding": 0,
+     "yieldSteps": 0,
+     "candidates": 47861,
+     "planned": 11298,
+     "planMs": 2751.600000143051,
+     "pending": 0,
+     "visible": 8187,
+     "walking": 592,
+     "hurried": 81,
+     "lateLeaves": 241,
+     "steps": 241,
+     "hidden": 17,
+     "unresolved": 22,
+     "routeWait": 0,
+     "agentsOff": 39,
+     "evalMs": 8.399999998509884,
+     "updates": 26,
+     "carried": 729,
+     "nanTimes": 0,
+     "spread": 1607,
+     "crowded": 229,
+     "warmed": 0,
+     "warmMs": 0,
+     "noRoom": 17,
+     "stepsIn": 2,
+     "inside": 712
+    },
+    "load": {
+     "load": 10464.89999999851,
+     "outfits": 6627.10000000149,
+     "gpu": 178.79999999701977,
+     "worker": true
+    },
+    "NV": 68682,
+    "sourceMB": 25.3,
+    "capacity": 512
+   },
+   "drawCalls": 835,
+   "triangles": 27605386,
+   "clock": "21 Ululu, Xerxes yr 19 · 2 Oct 467 BCE (Julian) · 12:36 local mean time",
+   "pageErrors": [],
+   "within60": 18,
+   "sampleN": 400
+  },
+  {
+   "id": "cov-037",
+   "why": "empty-frames hunt: lane court d14 11.1 h (sim: 198 within 60 m); + a face at 0.5 m",
+   "cam": [
+    -535.43,
+    401.14,
+    1.6,
+    29.5,
+    -3.8
+   ],
+   "day": 14,
+   "hour": 11.07,
+   "w": "auto",
+   "guarded": {
+    "writeBuffer": 0,
+    "writeTexture": 0
+   },
+   "pop": "population 83591 simulated · out of doors near: 20402 (960 walking) of 47897 kept, drawn 393 skinned + 1532 impostors",
+   "popLine": "population 83591 simulated · out of doors near: 20402 (960 walking) of 47897 kept, drawn 393 skinned + 1532 impostors [D-143]",
+   "terraceLine": "people 100/135 on the Terrace (drawn 1/2/0/390 full/mid/far/farthest + 1532 impostors (baked in 1610 ms)",
+   "summary": "light probes (C): 24 volumes, 83259 probes, 4.1 MB, parts ef102d0205ed8106; outdoor light (C, D-357): 19 regions, 26.4 MB · people 100/135 on the Terrace (drawn 1/2/0/390 full/mid/far/farthest + 1532 impostors (baked in 1610 ms), 437 pooled, pose 23.00 ms, view 11.10 ms) · population 83591 simulated · out of doors near: 20402 (960 walking) of 47897 kept, drawn 393 skinned + 1532 impostors [D-143] · places not built: 286 · activities with no performance, shown standing: 0 skinned + 0 impostors · props 273 · work objects 54, animals 152 [D-142] · pop-ins 4 · motion (D-333): 269 from capture, 124 authored strokes over the capture layer [PLACEHOLDER] · architecture: 3723 parts, 5.87 M tris, 3428 colliders, built in 23623 ms · palace furnishings (D-212, C): 470 pieces laid out for the court, 702.9 k tris in 25 meshes, 205 colliders · solid near the player: 0 people + 0 animals of 0 + 0 within 16 m, 0.00 ms (D-237) · fires {\"fires\":12975,\"lit\":48,\"smoke\":25} · smoke layer 0 cells (0 round the eye; D-220, C) · dust 1 puffs from 1 (dry 0.5) · town 37 meshes, 1.40 M tris, colliders 0/41968, built in 3441 ms · court camps 1979 tents, 15.2 k tris in 15 meshes (D-199, C) · animals (D-210, C; fauna.json): yard dogs 239 town + 1007 village + 4 stable, strays 38, hens 11293 in 2194 yards + 150 in the state poultry yard, deer 8, gazelle 11, boar 4; drawn 652 (10 draws, 550.6 k tris) {\"dog\":74,\"hen\":262,\"cock\":37,\"horse\":19,\"mule\":12,\"camel\":1,\"sheep\":148,\"goat\":79,\"horse_saddle\":6,\"donkey\":14}; on the roads 13 drivers and riders (cart,camel,camel,camel,camel,camel,camel,camel,camel,camel,camel,camel,camel); built in 688 ms · plain: 37 villages (3983 compounds), 36 canals, 64100 river/canal trees, 4220 orchard plots, near trees 1 (LOD0 0), mid-ring impostors 6, crop tufts 0, built in 2918 ms · royal inscriptions: 117 versions carved; 4 copies or versions standing in 467 NOT carved [PLACEHOLDER: Q-290, src/data/royal_inscriptions.json]",
+   "meshes": [
+    {
+     "name": "settlement:tol_ajori:body",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:brazier:bronze",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 8,
+     "instMax": 8,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:brazier:coal",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 8,
+     "instMax": 8,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:torch:wood",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 36,
+     "instMax": 36,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:torch:head",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 36,
+     "instMax": 36,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:torch:bracket",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 36,
+     "instMax": 36,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:hearth:stone",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 18,
+     "instMax": 18,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:hearth:ash",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 18,
+     "instMax": 18,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:oven:mud",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": 1,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "people",
+     "type": "Group",
+     "visible": true,
+     "chain": "visible",
+     "count": null,
+     "instMax": null,
+     "drawRange": null,
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 13
+    },
+    {
+     "name": "people:humans",
+     "type": "Group",
+     "visible": true,
+     "chain": "visible",
+     "count": null,
+     "instMax": null,
+     "drawRange": null,
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 48
+    },
+    {
+     "name": "humans:persian:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:persian:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:persian:shadow-far",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:persian:shadow-far",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:persian:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:persian:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:persian:lod1",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:persian:lod1",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:persian:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:persian:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:persian:lod3",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:median:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:median:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:median:shadow-far",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:median:shadow-far",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:median:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:median:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:median:lod1",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:median:lod1",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:median:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:median:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:median:lod3",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:worker:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:worker:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:worker:shadow-far",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:worker:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:worker:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:worker:lod1",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:worker:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:worker:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:worker:lod3",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:woman:shadow",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:woman:shadow-far",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:woman:lod0",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:woman:lod1",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:woman:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:woman:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:woman:lod3",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:child:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:child:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:child:shadow-far",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:child:shadow-far",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:child:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:child:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:child:lod1",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:child:lod1",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:child:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:child:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:child:lod3",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy:shadow-far",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy:shadow-far",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy:lod1",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy:lod1",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy:lod3",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy:lod3",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_short:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_short:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_short:shadow-far",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_short:shadow-far",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_short:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_short:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_short:lod1",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_short:lod1",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_short:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_short:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_short:lod3",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_short:lod3",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_bare:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_bare:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_bare:shadow-far",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_bare:shadow-far",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_bare:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_bare:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_bare:lod1",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_bare:lod1",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_bare:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_bare:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_bare:lod3",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_bare:lod3",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "people:hit",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at people:hit",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "people:impostors",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": false,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "player-body",
+     "type": "Group",
+     "visible": false,
+     "chain": "hidden at player-body",
+     "count": null,
+     "instMax": null,
+     "drawRange": null,
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 2
+    },
+    {
+     "name": "humans:median:lod0",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "hidden at player-body",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:median:lod1",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "hidden at player-body",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    }
+   ],
+   "humans": {
+    "draws": 8,
+    "triangles": 321137,
+    "people": 393,
+    "byLod": [
+     1,
+     2,
+     0,
+     390
+    ],
+    "shadowDraws": 3,
+    "shadowTriangles": 3855,
+    "propDraws": 4,
+    "props": 273,
+    "propTriangles": 1012126,
+    "propsDropped": 0,
+    "placeholderActs": 0,
+    "motionCapture": 269,
+    "motionAuthored": 124,
+    "things": {
+     "draws": 13,
+     "instances": 54,
+     "triangles": 60018,
+     "kinds": {
+      "knucklebones": 10,
+      "toy_wheeled": 7,
+      "basin": 1,
+      "jar": 5,
+      "basket_fruit": 9,
+      "wash_stone": 4,
+      "drying_rack": 4,
+      "beam": 5,
+      "anvil": 1,
+      "bellows_stand": 1,
+      "spoil": 5,
+      "target": 1,
+      "seal_bench": 1
+     },
+     "dropped": 0
+    },
+    "animals": {
+     "draws": 2,
+     "instances": 152,
+     "triangles": 178947,
+     "species": {
+      "donkey_pack": 151,
+      "horse_saddle": 1
+     },
+     "dropped": 0,
+     "modelled": 152
+    },
+    "perf": {
+     "ms": 23,
+     "poseMs": 14.800000004470348,
+     "posed": 76,
+     "drawn": [
+      1,
+      2,
+      0,
+      390
+     ],
+     "attached": 437
+    },
+    "impostors": 1532,
+    "impostorDraws": 1,
+    "impostorTriangles": 3064,
+    "impPerf": {
+     "drawn": 1532,
+     "candidates": 19459,
+     "looksPending": 0,
+     "poolCands": 3499,
+     "popins": 4,
+     "doorEntries": 0,
+     "walking": 79,
+     "placeholders": 0,
+     "walled": 2,
+     "bands": [
+      299,
+      1020,
+      62,
+      151
+     ],
+     "feedMs": 6.799999997019768,
+     "impMs": 10.600000001490116
+    },
+    "view": {
+     "doorKept": 1370,
+     "yielding": 0,
+     "yieldSteps": 0,
+     "candidates": 47897,
+     "planned": 41526,
+     "planMs": 6179.800000086427,
+     "pending": 0,
+     "visible": 20402,
+     "walking": 960,
+     "hurried": 268,
+     "lateLeaves": 501,
+     "steps": 242,
+     "hidden": 19,
+     "unresolved": 286,
+     "routeWait": 0,
+     "agentsOff": 31,
+     "evalMs": 11.100000001490116,
+     "updates": 48,
+     "carried": 342,
+     "nanTimes": 0,
+     "spread": 8848,
+     "crowded": 828,
+     "warmed": 0,
+     "warmMs": 0,
+     "noRoom": 19,
+     "stepsIn": 2,
+     "inside": 961
+    },
+    "load": {
+     "load": 10464.89999999851,
+     "outfits": 6627.10000000149,
+     "gpu": 178.79999999701977,
+     "worker": true
+    },
+    "NV": 68682,
+    "sourceMB": 25.3,
+    "capacity": 1024
+   },
+   "drawCalls": 693,
+   "triangles": 13815471,
+   "clock": "15 Nisanu (Adukanaiša), Xerxes yr 19 · 1 May 467 BCE (Julian) · 11:05 local mean time",
+   "pageErrors": [],
+   "within60": 0,
+   "sampleN": 400,
+   "facePerson": {
+    "pid": 95,
+    "act": "play",
+    "place": "h:1070",
+    "e": -496.09,
+    "n": 452.16,
+    "moving": false,
+    "d": 64.42574019753286
+   }
+  },
+  {
+   "id": "town-20m",
+   "why": "the town from 20 m",
+   "cam": [
+    -535,
+    401,
+    20,
+    29.5,
+    -14
+   ],
+   "day": 14,
+   "hour": 11.2,
+   "w": "auto",
+   "guarded": {
+    "writeBuffer": 0,
+    "writeTexture": 0
+   },
+   "pop": "population 83591 simulated · out of doors near: 20344 (876 walking) of 47897 kept, drawn 402 skinned + 1521 impostors",
+   "popLine": "population 83591 simulated · out of doors near: 20344 (876 walking) of 47897 kept, drawn 402 skinned + 1521 impostors [D-143]",
+   "terraceLine": "people 101/135 on the Terrace (drawn 0/16/0/386 full/mid/far/farthest + 1521 impostors (baked in 1610 ms)",
+   "summary": "light probes (C): 24 volumes, 83259 probes, 4.1 MB, parts ef102d0205ed8106; outdoor light (C, D-357): 19 regions, 26.4 MB · people 101/135 on the Terrace (drawn 0/16/0/386 full/mid/far/farthest + 1521 impostors (baked in 1610 ms), 416 pooled, pose 22.20 ms, view 11.00 ms) · population 83591 simulated · out of doors near: 20344 (876 walking) of 47897 kept, drawn 402 skinned + 1521 impostors [D-143] · places not built: 286 · activities with no performance, shown standing: 0 skinned + 0 impostors · props 279 · work objects 54, animals 190 [D-142] · pop-ins 4 · motion (D-333): 301 from capture, 101 authored strokes over the capture layer [PLACEHOLDER] · architecture: 3723 parts, 5.87 M tris, 3428 colliders, built in 23623 ms · palace furnishings (D-212, C): 470 pieces laid out for the court, 702.9 k tris in 25 meshes, 205 colliders · solid near the player: 0 people + 0 animals of 0 + 0 within 16 m, 0.00 ms (D-237) · fires {\"fires\":12975,\"lit\":48,\"smoke\":25} · smoke layer 0 cells (0 round the eye; D-220, C) · dust 3 puffs from 2 (dry 0.5) · town 37 meshes, 1.40 M tris, colliders 0/41968, built in 3441 ms · court camps 1979 tents, 15.2 k tris in 15 meshes (D-199, C) · animals (D-210, C; fauna.json): yard dogs 239 town + 1007 village + 4 stable, strays 38, hens 11293 in 2194 yards + 150 in the state poultry yard, deer 8, gazelle 11, boar 4; drawn 652 (10 draws, 550.6 k tris) {\"dog\":74,\"hen\":262,\"cock\":37,\"horse\":19,\"mule\":12,\"camel\":1,\"sheep\":148,\"goat\":79,\"horse_saddle\":6,\"donkey\":14}; on the roads 14 drivers and riders (cart,camel,camel,camel,camel,camel,camel,camel,camel,camel,camel,camel,camel,camel); built in 688 ms · plain: 37 villages (3983 compounds), 36 canals, 64100 river/canal trees, 4220 orchard plots, near trees 1 (LOD0 0), mid-ring impostors 6, crop tufts 0, built in 2918 ms · royal inscriptions: 117 versions carved; 4 copies or versions standing in 467 NOT carved [PLACEHOLDER: Q-290, src/data/royal_inscriptions.json]",
+   "meshes": [
+    {
+     "name": "settlement:tol_ajori:body",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:brazier:bronze",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 8,
+     "instMax": 8,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:brazier:coal",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 8,
+     "instMax": 8,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:torch:wood",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 36,
+     "instMax": 36,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:torch:head",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 36,
+     "instMax": 36,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:torch:bracket",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 36,
+     "instMax": 36,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:hearth:stone",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 18,
+     "instMax": 18,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:hearth:ash",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 18,
+     "instMax": 18,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:oven:mud",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": 1,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "people",
+     "type": "Group",
+     "visible": true,
+     "chain": "visible",
+     "count": null,
+     "instMax": null,
+     "drawRange": null,
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 13
+    },
+    {
+     "name": "people:humans",
+     "type": "Group",
+     "visible": true,
+     "chain": "visible",
+     "count": null,
+     "instMax": null,
+     "drawRange": null,
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 48
+    },
+    {
+     "name": "humans:persian:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:persian:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:persian:shadow-far",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:persian:shadow-far",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:persian:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:persian:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:persian:lod1",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:persian:lod1",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:persian:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:persian:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:persian:lod3",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:median:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:median:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:median:shadow-far",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:median:shadow-far",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:median:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:median:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:median:lod1",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:median:lod1",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:median:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:median:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:median:lod3",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:worker:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:worker:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:worker:shadow-far",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:worker:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:worker:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:worker:lod1",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:worker:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:worker:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:worker:lod3",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:woman:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:woman:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:woman:shadow-far",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:woman:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:woman:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:woman:lod1",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:woman:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:woman:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:woman:lod3",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:child:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:child:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:child:shadow-far",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:child:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:child:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:child:lod1",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:child:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:child:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:child:lod3",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy:shadow-far",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy:shadow-far",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy:lod1",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy:lod1",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy:lod3",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy:lod3",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_short:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_short:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_short:shadow-far",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_short:shadow-far",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_short:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_short:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_short:lod1",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_short:lod1",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_short:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_short:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_short:lod3",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_short:lod3",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_bare:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_bare:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_bare:shadow-far",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_bare:shadow-far",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_bare:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_bare:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_bare:lod1",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_bare:lod1",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_bare:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_bare:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_bare:lod3",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_bare:lod3",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "people:hit",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at people:hit",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "people:impostors",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": false,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "player-body",
+     "type": "Group",
+     "visible": false,
+     "chain": "hidden at player-body",
+     "count": null,
+     "instMax": null,
+     "drawRange": null,
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 2
+    },
+    {
+     "name": "humans:median:lod0",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "hidden at player-body",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:median:lod1",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "hidden at player-body",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    }
+   ],
+   "humans": {
+    "draws": 8,
+    "triangles": 373023,
+    "people": 402,
+    "byLod": [
+     0,
+     16,
+     0,
+     386
+    ],
+    "shadowDraws": 3,
+    "shadowTriangles": 9252,
+    "propDraws": 4,
+    "props": 279,
+    "propTriangles": 1056492,
+    "propsDropped": 0,
+    "placeholderActs": 0,
+    "motionCapture": 301,
+    "motionAuthored": 101,
+    "things": {
+     "draws": 13,
+     "instances": 54,
+     "triangles": 58372,
+     "kinds": {
+      "knucklebones": 12,
+      "toy_wheeled": 8,
+      "basin": 1,
+      "jar": 4,
+      "basket_fruit": 9,
+      "wash_stone": 3,
+      "drying_rack": 3,
+      "beam": 5,
+      "anvil": 1,
+      "bellows_stand": 1,
+      "spoil": 5,
+      "target": 1,
+      "seal_bench": 1
+     },
+     "dropped": 0
+    },
+    "animals": {
+     "draws": 2,
+     "instances": 190,
+     "triangles": 223635,
+     "species": {
+      "donkey_pack": 189,
+      "horse_saddle": 1
+     },
+     "dropped": 0,
+     "modelled": 190
+    },
+    "perf": {
+     "ms": 22.200000002980232,
+     "poseMs": 13.200000002980232,
+     "posed": 82,
+     "drawn": [
+      0,
+      16,
+      0,
+      386
+     ],
+     "attached": 416
+    },
+    "impostors": 1521,
+    "impostorDraws": 1,
+    "impostorTriangles": 3042,
+    "impPerf": {
+     "drawn": 1521,
+     "candidates": 19422,
+     "looksPending": 0,
+     "poolCands": 3562,
+     "popins": 4,
+     "doorEntries": 0,
+     "walking": 77,
+     "placeholders": 0,
+     "walled": 0,
+     "bands": [
+      345,
+      969,
+      58,
+      149
+     ],
+     "feedMs": 8.200000002980232,
+     "impMs": 9.300000004470348
+    },
+    "view": {
+     "doorKept": 1421,
+     "yielding": 0,
+     "yieldSteps": 1,
+     "candidates": 47897,
+     "planned": 41526,
+     "planMs": 6179.800000086427,
+     "pending": 0,
+     "visible": 20344,
+     "walking": 876,
+     "hurried": 328,
+     "lateLeaves": 719,
+     "steps": 250,
+     "hidden": 19,
+     "unresolved": 348,
+     "routeWait": 905,
+     "agentsOff": 31,
+     "evalMs": 11,
+     "updates": 106,
+     "carried": 341,
+     "nanTimes": 0,
+     "spread": 9357,
+     "crowded": 980,
+     "warmed": 0,
+     "warmMs": 0,
+     "noRoom": 19,
+     "stepsIn": 2,
+     "inside": 980
+    },
+    "load": {
+     "load": 10464.89999999851,
+     "outfits": 6627.10000000149,
+     "gpu": 178.79999999701977,
+     "worker": true
+    },
+    "NV": 68682,
+    "sourceMB": 25.3,
+    "capacity": 1024
+   },
+   "drawCalls": 692,
+   "triangles": 14195922,
+   "clock": "15 Nisanu (Adukanaiša), Xerxes yr 19 · 1 May 467 BCE (Julian) · 11:12 local mean time",
+   "pageErrors": [],
+   "within60": 0,
+   "sampleN": 400
+  },
+  {
+   "id": "cov-159",
+   "why": "lane 1",
+   "cam": [
+    -1037.92,
+    582.75,
+    1.6,
+    92.6,
+    -3
+   ],
+   "day": 101,
+   "hour": 12.439,
+   "w": "auto",
+   "guarded": {
+    "writeBuffer": 0,
+    "writeTexture": 0
+   },
+   "pop": "population 83591 simulated · out of doors near: 28848 (546 walking) of 48252 kept, drawn 61 skinned + 7427 impostors",
+   "popLine": "population 83591 simulated · out of doors near: 28848 (546 walking) of 48252 kept, drawn 61 skinned + 7427 impostors [D-143]",
+   "terraceLine": "people 69/135 on the Terrace (drawn 1/0/0/60 full/mid/far/farthest + 7427 impostors (baked in 1610 ms)",
+   "summary": "light probes (C): 24 volumes, 83259 probes, 4.1 MB, parts ef102d0205ed8106; outdoor light (C, D-357): 19 regions, 26.4 MB · people 69/135 on the Terrace (drawn 1/0/0/60 full/mid/far/farthest + 7427 impostors (baked in 1610 ms), 402 pooled, pose 32.20 ms, view 13.40 ms) · population 83591 simulated · out of doors near: 28848 (546 walking) of 48252 kept, drawn 61 skinned + 7427 impostors [D-143] · places not built: 762 · activities with no performance, shown standing: 0 skinned + 0 impostors · props 13 · work objects 10, animals 0 [D-142] · pop-ins 4 · motion (D-333): 9 from capture, 52 authored strokes over the capture layer [PLACEHOLDER] · architecture: 3723 parts, 5.87 M tris, 3428 colliders, built in 23623 ms · palace furnishings (D-212, C): 470 pieces laid out for the court, 702.9 k tris in 25 meshes, 205 colliders · solid near the player: 0 people + 0 animals of 0 + 0 within 16 m, 0.00 ms (D-237) · fires {\"fires\":12975,\"lit\":48,\"smoke\":91} · smoke layer 0 cells (0 round the eye; D-220, C) · dust 0 puffs from 0 (dry 1) · town 37 meshes, 1.40 M tris, colliders 0/41968, built in 3441 ms · court camps 1979 tents, 30.2 k tris in 15 meshes (D-199, C) · animals (D-210, C; fauna.json): yard dogs 239 town + 1007 village + 4 stable, strays 38, hens 11293 in 2194 yards + 150 in the state poultry yard, deer 8, gazelle 11, boar 4; drawn 801 (5 draws, 714.1 k tris) {\"dog\":35,\"hen\":178,\"cock\":22,\"sheep\":332,\"goat\":234}; on the roads 0 drivers and riders (none); built in 688 ms · plain: 37 villages (3983 compounds), 36 canals, 64100 river/canal trees, 4220 orchard plots, near trees 1 (LOD0 0), mid-ring impostors 0, crop tufts 0, built in 2918 ms · royal inscriptions: 117 versions carved; 4 copies or versions standing in 467 NOT carved [PLACEHOLDER: Q-290, src/data/royal_inscriptions.json]",
+   "meshes": [
+    {
+     "name": "settlement:tol_ajori:body",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:brazier:bronze",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 8,
+     "instMax": 8,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:brazier:coal",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 8,
+     "instMax": 8,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:torch:wood",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 36,
+     "instMax": 36,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:torch:head",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 36,
+     "instMax": 36,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:torch:bracket",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 36,
+     "instMax": 36,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:hearth:stone",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 18,
+     "instMax": 18,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:hearth:ash",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 18,
+     "instMax": 18,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:oven:mud",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": 1,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "people",
+     "type": "Group",
+     "visible": true,
+     "chain": "visible",
+     "count": null,
+     "instMax": null,
+     "drawRange": null,
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 13
+    },
+    {
+     "name": "people:humans",
+     "type": "Group",
+     "visible": true,
+     "chain": "visible",
+     "count": null,
+     "instMax": null,
+     "drawRange": null,
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 48
+    },
+    {
+     "name": "humans:persian:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:persian:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:persian:shadow-far",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:persian:shadow-far",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:persian:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:persian:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:persian:lod1",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:persian:lod1",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:persian:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:persian:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:persian:lod3",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:persian:lod3",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:median:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:median:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:median:shadow-far",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:median:shadow-far",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:median:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:median:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:median:lod1",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:median:lod1",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:median:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:median:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:median:lod3",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:median:lod3",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:worker:shadow",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:worker:shadow-far",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:worker:shadow-far",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:worker:lod0",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:worker:lod1",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:worker:lod1",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:worker:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:worker:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:worker:lod3",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:woman:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:woman:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:woman:shadow-far",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:woman:shadow-far",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:woman:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:woman:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:woman:lod1",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:woman:lod1",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:woman:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:woman:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:woman:lod3",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:child:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:child:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:child:shadow-far",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:child:shadow-far",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:child:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:child:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:child:lod1",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:child:lod1",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:child:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:child:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:child:lod3",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy:shadow-far",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy:shadow-far",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy:lod1",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy:lod1",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy:lod3",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy:lod3",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_short:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_short:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_short:shadow-far",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_short:shadow-far",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_short:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_short:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_short:lod1",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_short:lod1",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_short:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_short:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_short:lod3",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_short:lod3",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_bare:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_bare:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_bare:shadow-far",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_bare:shadow-far",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_bare:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_bare:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_bare:lod1",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_bare:lod1",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_bare:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_bare:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_bare:lod3",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_bare:lod3",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "people:hit",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at people:hit",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "people:impostors",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": false,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "player-body",
+     "type": "Group",
+     "visible": false,
+     "chain": "hidden at player-body",
+     "count": null,
+     "instMax": null,
+     "drawRange": null,
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 2
+    },
+    {
+     "name": "humans:median:lod0",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "hidden at player-body",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:median:lod1",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "hidden at player-body",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    }
+   ],
+   "humans": {
+    "draws": 4,
+    "triangles": 75777,
+    "people": 61,
+    "byLod": [
+     1,
+     0,
+     0,
+     60
+    ],
+    "shadowDraws": 1,
+    "shadowTriangles": 2926,
+    "propDraws": 3,
+    "props": 13,
+    "propTriangles": 33700,
+    "propsDropped": 0,
+    "placeholderActs": 0,
+    "motionCapture": 9,
+    "motionAuthored": 52,
+    "things": {
+     "draws": 5,
+     "instances": 10,
+     "triangles": 17352,
+     "kinds": {
+      "toy_wheeled": 2,
+      "basin": 2,
+      "jar": 2,
+      "beam": 2,
+      "pigment_slab": 2
+     },
+     "dropped": 0
+    },
+    "animals": {
+     "draws": 0,
+     "instances": 0,
+     "triangles": 0,
+     "species": {},
+     "dropped": 0,
+     "modelled": 0
+    },
+    "perf": {
+     "ms": 32.20000000298023,
+     "poseMs": 20.30000000447035,
+     "posed": 37,
+     "drawn": [
+      1,
+      0,
+      0,
+      60
+     ],
+     "attached": 402
+    },
+    "impostors": 7427,
+    "impostorDraws": 1,
+    "impostorTriangles": 14854,
+    "impPerf": {
+     "drawn": 7427,
+     "candidates": 27646,
+     "looksPending": 0,
+     "poolCands": 4531,
+     "popins": 4,
+     "doorEntries": 0,
+     "walking": 248,
+     "placeholders": 0,
+     "walled": 57,
+     "bands": [
+      578,
+      6445,
+      397,
+      7
+     ],
+     "feedMs": 10.5,
+     "impMs": 18.899999998509884
+    },
+    "view": {
+     "doorKept": 2263,
+     "yielding": 0,
+     "yieldSteps": 1,
+     "candidates": 48252,
+     "planned": 74989,
+     "planMs": 23801.59999999404,
+     "pending": 0,
+     "visible": 28848,
+     "walking": 546,
+     "hurried": 352,
+     "lateLeaves": 964,
+     "steps": 252,
+     "hidden": 29,
+     "unresolved": 762,
+     "routeWait": 905,
+     "agentsOff": 41,
+     "evalMs": 13.399999998509884,
+     "updates": 128,
+     "carried": 807,
+     "nanTimes": 0,
+     "spread": 21650,
+     "crowded": 1889,
+     "warmed": 0,
+     "warmMs": 0,
+     "noRoom": 26,
+     "stepsIn": 2,
+     "inside": 3584
+    },
+    "load": {
+     "load": 10464.89999999851,
+     "outfits": 6627.10000000149,
+     "gpu": 178.79999999701977,
+     "worker": true
+    },
+    "NV": 68682,
+    "sourceMB": 25.3,
+    "capacity": 1024
+   },
+   "drawCalls": 1060,
+   "triangles": 14900107,
+   "clock": "13 Duzu (Garmapada), Xerxes yr 19 · 27 Jul 467 BCE (Julian) · 12:26 local mean time",
+   "pageErrors": [],
+   "within60": 0,
+   "sampleN": 400
+  },
+  {
+   "id": "cov-255",
+   "why": "lane 2",
+   "cam": [
+    -280.5,
+    688.5,
+    1.6,
+    165.3,
+    1
+   ],
+   "day": 173,
+   "hour": 9.975,
+   "w": "auto",
+   "guarded": {
+    "writeBuffer": 0,
+    "writeTexture": 0
+   },
+   "pop": "population 83591 simulated · out of doors near: 8839 (348 walking) of 48483 kept, drawn 179 skinned + 5043 impostors",
+   "popLine": "population 83591 simulated · out of doors near: 8839 (348 walking) of 48483 kept, drawn 179 skinned + 5043 impostors [D-143]",
+   "terraceLine": "people 88/135 on the Terrace (drawn 6/5/0/168 full/mid/far/farthest + 5043 impostors (baked in 1610 ms)",
+   "summary": "light probes (C): 24 volumes, 83259 probes, 4.1 MB, parts ef102d0205ed8106; outdoor light (C, D-357): 19 regions, 26.4 MB · people 88/135 on the Terrace (drawn 6/5/0/168 full/mid/far/farthest + 5043 impostors (baked in 1610 ms), 402 pooled, pose 662.80 ms, view 12.40 ms) · population 83591 simulated · out of doors near: 8839 (348 walking) of 48483 kept, drawn 179 skinned + 5043 impostors [D-143] · places not built: 894 · activities with no performance, shown standing: 0 skinned + 0 impostors · props 133 · work objects 60, animals 0 [D-142] · pop-ins 4 · motion (D-333): 44 from capture, 135 authored strokes over the capture layer [PLACEHOLDER] · architecture: 3723 parts, 5.87 M tris, 3428 colliders, built in 23623 ms · palace furnishings (D-212, C): 130 pieces stored / in the steward's use, 303.5 k tris in 24 meshes, 97 colliders · solid near the player: 0 people + 0 animals of 0 + 0 within 16 m, 0.00 ms (D-237) · fires {\"fires\":12975,\"lit\":48,\"smoke\":0} · smoke layer 0 cells (0 round the eye; D-220, C) · dust 1 puffs from 1 (dry 1) · town 37 meshes, 1.40 M tris, colliders 0/41968, built in 3441 ms · court camps 1979 tents, 0.0 k tris in 15 meshes (D-199, C) · animals (D-210, C; fauna.json): yard dogs 239 town + 1007 village + 4 stable, strays 38, hens 11293 in 2194 yards + 150 in the state poultry yard, deer 8, gazelle 11, boar 4; drawn 705 (9 draws, 625.1 k tris) {\"dog\":35,\"hen\":190,\"cock\":27,\"horse\":2,\"mule\":4,\"sheep\":250,\"goat\":161,\"donkey\":27,\"horse_saddle\":9}; on the roads 2 drivers and riders (cart,camel); built in 688 ms · plain: 37 villages (3983 compounds), 36 canals, 64100 river/canal trees, 4220 orchard plots, near trees 2 (LOD0 0), mid-ring impostors 126, crop tufts 0, built in 2918 ms · royal inscriptions: 117 versions carved; 4 copies or versions standing in 467 NOT carved [PLACEHOLDER: Q-290, src/data/royal_inscriptions.json]",
+   "meshes": [
+    {
+     "name": "settlement:tol_ajori:body",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:brazier:bronze",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 8,
+     "instMax": 8,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:brazier:coal",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 8,
+     "instMax": 8,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:torch:wood",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 36,
+     "instMax": 36,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:torch:head",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 36,
+     "instMax": 36,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:torch:bracket",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 36,
+     "instMax": 36,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:hearth:stone",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 18,
+     "instMax": 18,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:hearth:ash",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 18,
+     "instMax": 18,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:oven:mud",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": 1,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "people",
+     "type": "Group",
+     "visible": true,
+     "chain": "visible",
+     "count": null,
+     "instMax": null,
+     "drawRange": null,
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 13
+    },
+    {
+     "name": "people:humans",
+     "type": "Group",
+     "visible": true,
+     "chain": "visible",
+     "count": null,
+     "instMax": null,
+     "drawRange": null,
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 48
+    },
+    {
+     "name": "humans:persian:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:persian:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:persian:shadow-far",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:persian:shadow-far",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:persian:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:persian:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:persian:lod1",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:persian:lod1",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:persian:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:persian:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:persian:lod3",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:persian:lod3",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:median:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:median:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:median:shadow-far",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:median:shadow-far",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:median:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:median:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:median:lod1",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:median:lod1",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:median:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:median:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:median:lod3",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:worker:shadow",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:worker:shadow-far",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:worker:shadow-far",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:worker:lod0",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:worker:lod1",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:worker:lod1",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:worker:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:worker:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:worker:lod3",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:woman:shadow",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:woman:shadow-far",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:woman:lod0",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:woman:lod1",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:woman:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:woman:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:woman:lod3",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:child:shadow",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:child:shadow-far",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:child:lod0",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:child:lod1",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:child:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:child:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:child:lod3",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy:shadow-far",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy:shadow-far",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy:lod1",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy:lod1",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy:lod3",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy:lod3",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_short:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_short:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_short:shadow-far",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_short:shadow-far",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_short:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_short:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_short:lod1",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_short:lod1",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_short:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_short:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_short:lod3",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_short:lod3",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_bare:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_bare:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_bare:shadow-far",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_bare:shadow-far",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_bare:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_bare:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_bare:lod1",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_bare:lod1",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_bare:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_bare:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_bare:lod3",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_bare:lod3",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "people:hit",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at people:hit",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "people:impostors",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": false,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "player-body",
+     "type": "Group",
+     "visible": false,
+     "chain": "hidden at player-body",
+     "count": null,
+     "instMax": null,
+     "drawRange": null,
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 2
+    },
+    {
+     "name": "humans:median:lod0",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "hidden at player-body",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:median:lod1",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "hidden at player-body",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    }
+   ],
+   "humans": {
+    "draws": 9,
+    "triangles": 330637,
+    "people": 179,
+    "byLod": [
+     6,
+     5,
+     0,
+     168
+    ],
+    "shadowDraws": 5,
+    "shadowTriangles": 15774,
+    "propDraws": 4,
+    "props": 133,
+    "propTriangles": 433202,
+    "propsDropped": 0,
+    "placeholderActs": 0,
+    "motionCapture": 44,
+    "motionAuthored": 135,
+    "things": {
+     "draws": 11,
+     "instances": 60,
+     "triangles": 63114,
+     "kinds": {
+      "knucklebones": 9,
+      "toy_wheeled": 5,
+      "jar": 12,
+      "basket_fruit": 5,
+      "wash_stone": 10,
+      "drying_rack": 10,
+      "anvil": 3,
+      "bellows_stand": 3,
+      "spoil": 1,
+      "mud_heap": 1,
+      "brick_field": 1
+     },
+     "dropped": 0
+    },
+    "animals": {
+     "draws": 0,
+     "instances": 0,
+     "triangles": 0,
+     "species": {},
+     "dropped": 0,
+     "modelled": 0
+    },
+    "perf": {
+     "ms": 662.7999999970198,
+     "poseMs": 15.399999998509884,
+     "posed": 51,
+     "drawn": [
+      6,
+      5,
+      0,
+      168
+     ],
+     "attached": 402
+    },
+    "impostors": 5043,
+    "impostorDraws": 1,
+    "impostorTriangles": 10086,
+    "impPerf": {
+     "drawn": 5043,
+     "candidates": 7395,
+     "looksPending": 0,
+     "poolCands": 791,
+     "popins": 4,
+     "doorEntries": 0,
+     "walking": 161,
+     "placeholders": 0,
+     "walled": 9,
+     "bands": [
+      83,
+      2312,
+      2611,
+      37
+     ],
+     "feedMs": 646,
+     "impMs": 12.399999998509884
+    },
+    "view": {
+     "doorKept": 2879,
+     "yielding": 0,
+     "yieldSteps": 1,
+     "candidates": 48483,
+     "planned": 86807,
+     "planMs": 35364.199999935925,
+     "pending": 0,
+     "visible": 8839,
+     "walking": 348,
+     "hurried": 418,
+     "lateLeaves": 1126,
+     "steps": 254,
+     "hidden": 31,
+     "unresolved": 894,
+     "routeWait": 905,
+     "agentsOff": 30,
+     "evalMs": 12.400000005960464,
+     "updates": 150,
+     "carried": 445,
+     "nanTimes": 0,
+     "spread": 23499,
+     "crowded": 2180,
+     "warmed": 0,
+     "warmMs": 0,
+     "noRoom": 28,
+     "stepsIn": 2,
+     "inside": 3806
+    },
+    "load": {
+     "load": 10464.89999999851,
+     "outfits": 6627.10000000149,
+     "gpu": 178.79999999701977,
+     "worker": true
+    },
+    "NV": 68682,
+    "sourceMB": 25.3,
+    "capacity": 1024
+   },
+   "drawCalls": 1254,
+   "triangles": 20622501,
+   "clock": "26 Ululu, Xerxes yr 19 · 7 Oct 467 BCE (Julian) · 09:58 local mean time",
+   "pageErrors": [],
+   "within60": 20,
+   "sampleN": 400
+  },
+  {
+   "id": "cov-059",
+   "why": "a court",
+   "cam": [
+    -425.09,
+    -864.23,
+    1.6,
+    210.3,
+    -1.2
+   ],
+   "day": 27,
+   "hour": 12.476,
+   "w": "auto",
+   "guarded": {
+    "writeBuffer": 0,
+    "writeTexture": 0
+   },
+   "pop": "population 83591 simulated · out of doors near: 27787 (490 walking) of 47275 kept, drawn 360 skinned + 3142 impostors",
+   "popLine": "population 83591 simulated · out of doors near: 27787 (490 walking) of 47275 kept, drawn 360 skinned + 3142 impostors [D-143]",
+   "terraceLine": "people 94/135 on the Terrace (drawn 2/81/0/277 full/mid/far/farthest + 3142 impostors (baked in 1610 ms)",
+   "summary": "light probes (C): 24 volumes, 83259 probes, 4.1 MB, parts ef102d0205ed8106; outdoor light (C, D-357): 19 regions, 26.4 MB · people 94/135 on the Terrace (drawn 2/81/0/277 full/mid/far/farthest + 3142 impostors (baked in 1610 ms), 405 pooled, pose 623.80 ms, view 13.20 ms) · population 83591 simulated · out of doors near: 27787 (490 walking) of 47275 kept, drawn 360 skinned + 3142 impostors [D-143] · places not built: 1101 · activities with no performance, shown standing: 0 skinned + 0 impostors · props 163 · work objects 60, animals 7 [D-142] · pop-ins 4 · motion (D-333): 69 from capture, 291 authored strokes over the capture layer [PLACEHOLDER] · architecture: 3723 parts, 5.87 M tris, 3428 colliders, built in 23623 ms · palace furnishings (D-212, C): 470 pieces laid out for the court, 702.9 k tris in 25 meshes, 205 colliders · solid near the player: 0 people + 0 animals of 0 + 0 within 16 m, 0.00 ms (D-237) · fires {\"fires\":12975,\"lit\":48,\"smoke\":25} · smoke layer 0 cells (0 round the eye; D-220, C) · dust 25 puffs from 10 (dry 1) · town 37 meshes, 1.40 M tris, colliders 0/41968, built in 3441 ms · court camps 1979 tents, 30.2 k tris in 15 meshes (D-199, C) · animals (D-210, C; fauna.json): yard dogs 239 town + 1007 village + 4 stable, strays 38, hens 11293 in 2194 yards + 150 in the state poultry yard, deer 8, gazelle 11, boar 4; drawn 622 (9 draws, 521.9 k tris) {\"dog\":64,\"hen\":270,\"cock\":37,\"mule\":19,\"donkey\":11,\"horse\":4,\"goat\":94,\"sheep\":123}; on the roads 1 drivers and riders (pack); built in 688 ms · plain: 37 villages (3983 compounds), 36 canals, 64100 river/canal trees, 4220 orchard plots, near trees 2 (LOD0 0), mid-ring impostors 65, crop tufts 0, built in 2918 ms · royal inscriptions: 117 versions carved; 4 copies or versions standing in 467 NOT carved [PLACEHOLDER: Q-290, src/data/royal_inscriptions.json]",
+   "meshes": [
+    {
+     "name": "settlement:tol_ajori:body",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:brazier:bronze",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 8,
+     "instMax": 8,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:brazier:coal",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 8,
+     "instMax": 8,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:torch:wood",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 36,
+     "instMax": 36,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:torch:head",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 36,
+     "instMax": 36,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:torch:bracket",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 36,
+     "instMax": 36,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:hearth:stone",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 18,
+     "instMax": 18,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:hearth:ash",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 18,
+     "instMax": 18,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "fire-body:oven:mud",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": 1,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "people",
+     "type": "Group",
+     "visible": true,
+     "chain": "visible",
+     "count": null,
+     "instMax": null,
+     "drawRange": null,
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 13
+    },
+    {
+     "name": "people:humans",
+     "type": "Group",
+     "visible": true,
+     "chain": "visible",
+     "count": null,
+     "instMax": null,
+     "drawRange": null,
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 48
+    },
+    {
+     "name": "humans:persian:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:persian:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:persian:shadow-far",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:persian:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:persian:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:persian:lod1",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:persian:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:persian:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:persian:lod3",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:persian:lod3",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:median:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:median:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:median:shadow-far",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:median:shadow-far",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:median:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:median:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:median:lod1",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:median:lod1",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:median:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:median:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:median:lod3",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:worker:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:worker:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:worker:shadow-far",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:worker:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:worker:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:worker:lod1",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:worker:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:worker:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:worker:lod3",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:woman:shadow",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:woman:shadow-far",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:woman:lod0",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:woman:lod1",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:woman:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:woman:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:woman:lod3",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:child:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:child:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:child:shadow-far",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:child:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:child:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:child:lod1",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:child:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:child:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:child:lod3",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy:shadow-far",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy:shadow-far",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy:lod1",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy:lod1",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy:lod3",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy:lod3",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_short:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_short:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_short:shadow-far",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_short:shadow-far",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_short:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_short:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_short:lod1",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_short:lod1",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_short:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_short:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_short:lod3",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_short:lod3",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_bare:shadow",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_bare:shadow",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_bare:shadow-far",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_bare:shadow-far",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_bare:lod0",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_bare:lod0",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_bare:lod1",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_bare:lod1",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_bare:lod2",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_bare:lod2",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:envoy_bare:lod3",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at humans:envoy_bare:lod3",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "people:hit",
+     "type": "Mesh",
+     "visible": false,
+     "chain": "hidden at people:hit",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "people:impostors",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "visible",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": false,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "player-body",
+     "type": "Group",
+     "visible": false,
+     "chain": "hidden at player-body",
+     "count": null,
+     "instMax": null,
+     "drawRange": null,
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 2
+    },
+    {
+     "name": "humans:median:lod0",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "hidden at player-body",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 1,
+     "children": 0
+    },
+    {
+     "name": "humans:median:lod1",
+     "type": "Mesh",
+     "visible": true,
+     "chain": "hidden at player-body",
+     "count": 1,
+     "instMax": null,
+     "drawRange": [
+      0,
+      null
+     ],
+     "frustumCulled": true,
+     "layers": 128,
+     "children": 0
+    }
+   ],
+   "humans": {
+    "draws": 9,
+    "triangles": 772664,
+    "people": 360,
+    "byLod": [
+     2,
+     81,
+     0,
+     277
+    ],
+    "shadowDraws": 5,
+    "shadowTriangles": 61565,
+    "propDraws": 4,
+    "props": 163,
+    "propTriangles": 580466,
+    "propsDropped": 0,
+    "placeholderActs": 0,
+    "motionCapture": 69,
+    "motionAuthored": 291,
+    "things": {
+     "draws": 9,
+     "instances": 60,
+     "triangles": 136598,
+     "kinds": {
+      "knucklebones": 7,
+      "toy_wheeled": 5,
+      "basin": 3,
+      "jar": 3,
+      "beam": 22,
+      "seal_bench": 1,
+      "cart": 1,
+      "loom": 17,
+      "bellows": 1
+     },
+     "dropped": 0
+    },
+    "animals": {
+     "draws": 3,
+     "instances": 7,
+     "triangles": 8815,
+     "species": {
+      "ox": 2,
+      "donkey": 4,
+      "mule": 1
+     },
+     "dropped": 0,
+     "modelled": 7
+    },
+    "perf": {
+     "ms": 623.8000000044703,
+     "poseMs": 17.200000002980232,
+     "posed": 119,
+     "drawn": [
+      2,
+      81,
+      0,
+      277
+     ],
+     "attached": 405
+    },
+    "impostors": 3142,
+    "impostorDraws": 1,
+    "impostorTriangles": 6284,
+    "impPerf": {
+     "drawn": 3142,
+     "candidates": 27356,
+     "looksPending": 0,
+     "poolCands": 4965,
+     "popins": 4,
+     "doorEntries": 0,
+     "walking": 19,
+     "placeholders": 0,
+     "walled": 35,
+     "bands": [
+      624,
+      2510,
+      8,
+      0
+     ],
+     "feedMs": 605.5,
+     "impMs": 13.100000001490116
+    },
+    "view": {
+     "doorKept": 3647,
+     "yielding": 1,
+     "yieldSteps": 2,
+     "candidates": 47275,
+     "planned": 118770,
+     "planMs": 52029.59999959171,
+     "pending": 0,
+     "visible": 27787,
+     "walking": 490,
+     "hurried": 458,
+     "lateLeaves": 1452,
+     "steps": 336,
+     "hidden": 41,
+     "unresolved": 1101,
+     "routeWait": 905,
+     "agentsOff": 36,
+     "evalMs": 13.200000002980232,
+     "updates": 172,
+     "carried": 685,
+     "nanTimes": 0,
+     "spread": 35863,
+     "crowded": 3053,
+     "warmed": 0,
+     "warmMs": 0,
+     "noRoom": 37,
+     "stepsIn": 8,
+     "inside": 4761
+    },
+    "load": {
+     "load": 10464.89999999851,
+     "outfits": 6627.10000000149,
+     "gpu": 178.79999999701977,
+     "worker": true
+    },
+    "NV": 68682,
+    "sourceMB": 25.3,
+    "capacity": 1024
+   },
+   "drawCalls": 609,
+   "triangles": 13154575,
+   "clock": "28 Nisanu (Adukanaiša), Xerxes yr 19 · 14 May 467 BCE (Julian) · 12:28 local mean time",
+   "pageErrors": [],
+   "within60": 0,
+   "sampleN": 400
+  }
+ ],
+ "errs": [],
+ "warns": []
+}
