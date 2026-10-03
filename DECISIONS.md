@@ -9716,3 +9716,8 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
 - light v2b (D-480 cont.): the cloud deck fades out between 30 and 60 km (the march at grazing angles smeared the noise into
   streets converging on the vanishing point: cov-000's horizon fan; gone in the lab), and the night toe lift eases by up to
   75 % under a bright moon (GRADE.nightLift from the SkySystem): the moonlit plain p50 73 → 52, the moonless one unchanged (17).
+- (D-500, mocap) CMU takes re-fetched (T:/fars-assets-s12/mocap/cmu) and baked through tools/mocap/bake.ts (the old clips
+  reproduce byte for byte): sweep_a (13_23), sweep_b (14_13 mop), drink_a (13_09), dance_a (55_01), dance_b (90_31). The
+  sweepers' body layer is now a sweeping capture (weight 0.22, the broom hand within 3.5 cm). drink and dance are baked but
+  NOT wired: a new pose cycle needs impostor frames of its own (tests/impostor_frames: drink 0.27 m from the nearest frame),
+  i.e. tools/dev/imp_keys.ts --cover and an impostor re-render; next pass (B530).
