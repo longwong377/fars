@@ -13,6 +13,19 @@ export function installDeviceCounters() {
   const wrap = (k: string, f: keyof typeof C) => { const o = D[k]; if (o) D[k] = function (this: any, ...a: any[]) { C[f]++; return o.apply(this, a); }; };
   wrap('createShaderModule', 'modules'); wrap('createRenderPipeline', 'pipes'); wrap('createRenderPipelineAsync', 'asyncPipes');
   wrap('createComputePipeline', 'compute'); wrap('createComputePipelineAsync', 'compute');
+  // D-740 (s18 C9): a render pipeline the device rejects is logged with what decides its validity (window.__pipeFail): its
+  // label, the colour targets (format, write mask, blend), the depth format, the vertex buffers' attribute count, and the
+  // fragment entry point's output declarations (the T4's last error, 'writeMask' on renderPipeline_RenderPipeline_61x, only
+  // its label known)
+  const F: any[] = (globalThis as any).__pipeFail = [];
+  const descOf = (d: any) => { const fsrc: string = d?.fragment?.module?.__code ?? '', ep = d?.fragment?.entryPoint ?? 'main';
+    const outs = (fsrc.split(new RegExp(`fn\\s+${ep}\\s*\\(`))[1] ?? '').split('{')[0].slice(0, 400);
+    return { label: d?.label, targets: (d?.fragment?.targets ?? []).map((t: any) => t && { format: t.format, writeMask: t.writeMask, blend: !!t.blend }), depth: d?.depthStencil?.format ?? null,
+      vertexAttrs: (d?.vertex?.buffers ?? []).reduce((n: number, b: any) => n + (b?.attributes?.length ?? 0), 0), fragmentOut: outs }; };
+  const sm = D.createShaderModule; D.createShaderModule = function (this: any, d: any) { const m = sm.call(this, d); try { m.__code = d?.code; } catch {} return m; };
+  const ra = D.createRenderPipelineAsync; if (ra) D.createRenderPipelineAsync = function (this: any, d: any) { return ra.call(this, d).catch((e: any) => { F.push({ ...descOf(d), error: String(e?.message ?? e).slice(0, 600) }); console.warn('[shaderlog] pipeline failed', JSON.stringify(F[F.length - 1])); throw e; }); };
+  const rs = D.createRenderPipeline; if (rs) D.createRenderPipeline = function (this: any, d: any) { this.pushErrorScope?.('validation'); const p = rs.call(this, d);
+    this.popErrorScope?.().then((e: any) => { if (e) { F.push({ ...descOf(d), error: String(e.message).slice(0, 600) }); console.warn('[shaderlog] pipeline failed', JSON.stringify(F[F.length - 1])); } }).catch(() => {}); return p; };
 }
 
 export function installShaderLog(renderer: THREE.WebGPURenderer, codeRe: string | null) {

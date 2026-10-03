@@ -2,7 +2,7 @@
 // the page's memory at ready (every process of the profile; a relative signal: no GPU here), the seconds to ready, and the
 // pipeline census (src/dev/pipelineCensus.ts: programs, the T4's per-pipeline limits, texture GPU bytes) on ?norender, so
 // nothing is compiled. Headless Chromium on SwiftShader's WebGPU (the WGSL builder is the T4's).
-//   node tools/dev/pipeline_census.mjs <dist> <out.json> [--mbps 100] [--params 'seed=1']
+//   node tools/dev/pipeline_census.mjs <dist> <out.json> [--mbps 100] [--params 'seed=1'] [--check: noon and night, exit 1 over a limit]
 import { chromium } from '@playwright/test';
 import { spawn, execFileSync } from 'node:child_process';
 import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
@@ -40,6 +40,9 @@ r.beforeReadyByKind = Object.fromEntries(Object.entries(r.beforeReadyByKind).sor
 r.missing = served.filter(e => e.s === 404).map(e => e.p).slice(0, 20);
 console.log('ready', r.readyS, 's', r.backend, 'before ready', r.beforeReadyMB, 'MB', 'memory', r.memAtReadyGB, 'GB');
 r.census = await page.evaluate(() => window.__parsa.census?.() ?? null).catch(e => String(e).slice(0, 300));
+// --check (D-740): also at night (the fire lights and their maps are in the scene then), and exit 1 on any pipeline over the
+// T4's limits (16 vertex inputs, 8 vertex buffers, 16 fragment samplers): a page-wide texture added anywhere fails here
+if (a.includes('--check')) { r.censusNight = await page.evaluate(async () => { window.__parsa.setTime(0, 22.5); await window.__parsa.step(2); return window.__parsa.census(); }).catch(e => String(e).slice(0, 300)); }
 // the low-first upgrades (D-740: the UASTC mips into the ETC1S twins' textures) run after ready: wait for them (5 min at most)
 for (let i = 0; i < 100; i++) { const L = await page.evaluate(() => window.__parsa.lowFirst?.() ?? null); r.lowFirst = L; if (!L || L.pending === 0) break; await page.waitForTimeout(3000); }
 r.lowFirstWarnings = lowWarn.slice(0, 12); r.memAfterUpgradesGB = memGB();
@@ -47,4 +50,7 @@ r.peakGB = Math.max(peak, memGB()); r.errors = errs.slice(0, 10);
 clearInterval(poll); writeFileSync(out, JSON.stringify(r, null, 1));
 console.log(JSON.stringify({ ...r, census: r.census && { ...r.census, byWhere: undefined, textures: r.census.textures && { ...r.census.textures, top: r.census.textures.top?.slice(0, 8) } } }, null, 1));
 await ctx.close(); srv.kill(); try { rmSync(prof, { recursive: true, force: true }); } catch {}
+if (a.includes('--check')) { const bad = [r.census, r.censusNight].flatMap(c => (typeof c === 'object' && c ? c.over : [`census failed: ${c}`]));
+  if (r.error || bad.length) { console.log('PIPELINE LIMITS FAILED (D-740):', JSON.stringify(r.error ? [r.error, ...bad] : bad, null, 1)); process.exit(1); }
+  console.log(`pipeline limits ok: worst day ${JSON.stringify(r.census.worst)}, night ${JSON.stringify(r.censusNight.worst)}`); }
 process.exit(0);

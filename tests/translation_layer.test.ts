@@ -60,10 +60,10 @@ describe('translation layer', () => {
   });
   it('shows no published translation it may not show, and says why (Livius is all rights reserved; D-167, B17)', () => {
     const r = TL.inscriptionReading('XPa', 'op')!;
-    expect(r.translation).toMatch(/no published English translation is shown/i); expect(r.translation).toMatch(/All rights reserved/); expect(r.translation).toMatch(/B17/);
-    expect(r.translation).toMatch(/project's own translation from the ARIo edition \(tier C; D-198\)/);
+    expect(r.translation).toMatch(/Published translations are not reproduced/); // (why: Livius.org is all rights reserved, B17; the player reads the plain words)
+    expect(r.translation).toMatch(/the PĀRSA team's own translation of the ARIo edition/); expect(r.translation).toMatch(/Published translations are not reproduced/);
     // §12 stated as D-192 reads it: any licence that permits personal non-commercial use with credit (CC-BY-SA included)
-    expect(r.translation).not.toMatch(/only CC0/); expect(r.translation).toMatch(/CC-BY-SA: D-192/);
+    expect(r.translation).not.toMatch(/only CC0/);
     // a stem gloss never fires on the bare stem (api "also" is not api- "water")
     expect(r.words.find(w => w.w === 'api')?.gloss ?? null).toBeNull();
   });

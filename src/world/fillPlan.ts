@@ -82,13 +82,16 @@ export const rotFacing = (de: number, dn: number) => Math.atan2(de, -dn);
 
 export interface FillStats { market: number; stalls: number; lane: number; door: number; line: number; terrace: number; squares: number; /** s17 C1: the gap fill along the walls and the lanes' litter */ gap?: number; litter?: number; tethers?: number }
 
+/** s18 C2 (D-662): the town's things stand on its trodden ground, drawn 10 cm over the terrain (settlement/build.ts
+ *  GROUND_LIFT), not on the terrain's height the fill and the nav grid take: 1,959 of them lay wholly under it, the rest sunk */
+export const TOWN_LIFT = 0.1;
 /** the town's fill from its sites (every quarter; compounds have no lanes or squares) */
 export function townFill(sites: Site[], seed = 1, villages: Site[] = [], markets: [number, number][] = []): { items: FillItem[]; stats: FillStats } {
   const items: FillItem[] = [], st: FillStats = { market: 0, stalls: 0, lane: 0, door: 0, line: 0, terrace: 0, squares: 0, gap: 0, litter: 0, tethers: 0 };
   // s17 C1 (D-550): the simulation's market grounds (Population.quarters' points: where popgeo stands each selling household's
   // stall, market:<q>:<hid>, D-359), each to the site it lies in
   const mk = new Map<Site, [number, number][]>(); for (const xy of markets) { const s = sites.find(x => { const [u, v] = toLocal(x.frame, xy[0], xy[1]); return x.inb(x.ci(u), x.cj(v)); }); if (s) (mk.get(s) ?? mk.set(s, []).get(s)!).push(toLocal(s.frame, xy[0], xy[1])); else openMarket(xy, sites, seed, items, st); }
-  for (const s of sites) siteFill(s, seed, items, st, false, mk.get(s));
+  for (const s of sites) { const n0 = items.length; siteFill(s, seed, items, st, false, mk.get(s)); for (let k = n0; k < items.length; k++) items[k].dy += TOWN_LIFT; }
   for (const s of villages) siteFill(s, seed, items, st, true);
   // (s17 C1: the plan is cached as JSON in the baked world, 21-25 MB with the villages (C4): positions to the centimetre, turns
   // and sizes to the thousandth, the sale hour to the minute's hundredth; nothing the eye or the colliders can tell)

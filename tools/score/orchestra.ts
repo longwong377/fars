@@ -7,9 +7,9 @@
 // solo winds were recorded as ~4 s notes: their 'sus' is the library's looped variant; their legato is not looped, so the
 // composer keeps legato notes under ~4 s and holds longer notes with 'sus'.
 //
-// Stand-ins, said plainly: no free duduk or ney library is reachable from the cloud, so the "duduk" voice is SSO's cor
-// anglais (its reedy alto, with bends written into the part) and the "ney" is SSO's alto flute (breathy, low); a recorded
-// duduk would replace them through tools/score/fetch_vagon.mjs.
+// The score is a Western symphonic score by choice (UD-39's "Hollywood level"), and keeps out the "ancient Persia" cliché
+// the brief bans (§11; blocklist 'music-cliche'): no duduk, oud or santur, no augmented-second modes, no bent "ethnic"
+// solo lines; the period's colour is the harp and the frame drum, used lightly.
 
 export type Art = 'sus' | 'leg' | 'mar' | 'stac' | 'pizz' | 'trem' | 'harm' | 'hit';
 export interface Inst {
@@ -47,9 +47,9 @@ export const ORCH = {
   tuba: { src: { sso: S(BR, 'Tuba', ['sus', 'leg', 'mar', 'stac'], true) }, lo: 26, hi: 58, pan: 0.55, depth: 0.72, width: 0.3, trim: -2, jitter: 8 },
   // woodwinds in the middle
   fl: { src: { sso: S(WW, 'Flutes', ['sus', 'leg', 'stac'], true) }, lo: 60, hi: 96, pan: -0.12, depth: 0.5, width: 0.4, trim: -2, jitter: 7 },
-  afl: { src: { sso: S(WW, 'Alto Flute Solo', ['sus', 'leg', 'stac'], true) }, lo: 55, hi: 86, pan: -0.08, depth: 0.25, width: 0.3, trim: 0, jitter: 5 }, // the ney's stand-in
+  afl: { src: { sso: S(WW, 'Alto Flute Solo', ['sus', 'leg', 'stac'], true) }, lo: 55, hi: 86, pan: -0.08, depth: 0.25, width: 0.3, trim: 0, jitter: 5 },
   ob: { src: { sso: S(WW, 'Oboe Solo', ['sus', 'leg', 'stac'], true) }, lo: 58, hi: 91, pan: 0.05, depth: 0.45, width: 0.3, trim: -1, jitter: 5 },
-  eh: { src: { sso: S(WW, 'Cor Anglais Solo', ['sus', 'leg', 'stac'], true) }, lo: 52, hi: 81, pan: 0.0, depth: 0.12, width: 0.3, trim: 1, jitter: 4 }, // the duduk's stand-in
+  eh: { src: { sso: S(WW, 'Cor Anglais Solo', ['sus', 'leg', 'stac'], true) }, lo: 52, hi: 81, pan: 0.0, depth: 0.2, width: 0.3, trim: 0, jitter: 4 },
   cl: { src: { sso: S(WW, 'Clarinets', ['sus', 'leg', 'stac'], true) }, lo: 50, hi: 91, pan: -0.15, depth: 0.5, width: 0.4, trim: -2, jitter: 7 },
   bcl: { src: { sso: S(WW, 'Bass Clarinet Solo', ['sus', 'leg', 'stac'], true) }, lo: 34, hi: 70, pan: 0.0, depth: 0.5, width: 0.3, trim: -1, jitter: 7 },
   bsn: { src: { sso: S(WW, 'Bassoons', ['sus', 'leg', 'stac'], true) }, lo: 34, hi: 72, pan: 0.12, depth: 0.5, width: 0.4, trim: -2, jitter: 7 },

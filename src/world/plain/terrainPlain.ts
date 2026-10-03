@@ -286,7 +286,10 @@ export class PlainGround {
       const stFar = irrFar.mul(bI).add(meanRain.mul(bR)).add(meanOrch.mul(bO)).div(bSum);
       const S = mix(stFar, st, plotKeep), M = mix(bI.add(bR).add(bO).min(1).mul(allowed), mask, plotKeep);
       // --- colour of the plot from its state
-      const soil0 = attribute('color', 'vec3').mul(float(1).add(mx_noise_float(positionWorld.mul(0.25)).mul(0.08)));
+      // D-670 (holes P2-10, Q-603): the soil's moisture by season: the loam dark and damp in spring (the winter rains and the
+      // irrigation), pale dry dust in late summer; damper in the low spots and on the irrigated land (C)
+      const moist = SEASON.green.div(SEASON.green.add(SEASON.dry).max(0.001)).mul(0.75).add(mx_noise_float(vec3(p.x.mul(0.012), 2.2, p.y.mul(0.012))).mul(0.15)).clamp(0, 1);
+      const soil0 = attribute('color', 'vec3').mul(float(1).add(mx_noise_float(positionWorld.mul(0.25)).mul(0.08))).mul(mix(vec3(1.08, 1.07, 1.05), vec3(0.82, 0.81, 0.8), moist));
       const soil = soil0.mul(det(dustC)); // D-302: the loam with the dust scan's grain (wet: the mud's)
       const hgt = S.x.mul(1.5);
       // D-670 (the "flat saturated-green rectangles"): the greens a little greyer and olive (young cereal under a dry sky, C); each
