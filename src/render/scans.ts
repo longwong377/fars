@@ -36,13 +36,15 @@ export const SCAN_USE: Record<string, ScanUse> = {
   // fresh ashlar) with a second tile of 6-8 m multiplied in, so a block no longer repeats its 1.6-2 m tile's smudges (the
   // session-11 lens render). Fresh 467 stone (≈50 years from the quarry, D-230) at a lighter blend than the ruin's (Now view)
   // D-490: the scan's lichen-grey and rust mottle at 45 % of its chroma, half its own buff mean laid in (the sun-bleached grey-cream
-  // of the art direction; the probe frames read cold grey marble)
-  limestone: { scan: 'rock_boulder_dry', chroma: 0.45, hue: 0.5, scale: 1.7, scale2: 7.3, alb: 0.45, height: 0.004, rough: 0.5, nor: 1.5 },
-  limestone_merlon: { scan: 'rock_boulder_dry', chroma: 0.45, hue: 0.5, scale: 1.7, scale2: 7.3, alb: 0.45, height: 0.004, rough: 0.5, nor: 1.5 },
-  limestone_carved: { scan: 'rock_boulder_dry', chroma: 0.45, hue: 0.5, scale: 1.3, scale2: 5.9, alb: 0.35, height: 0.0015, rough: 0.4, nor: 0.5 },
+  // of the art direction; the probe frames read cold grey marble). D-752 (holes.md #6): 467's stone is 15-50 years from the quarry
+  // and kept by a court: the boulder's weathered mottle at 20 % chroma and two thirds of its weight (the Now view keeps its own)
+  limestone: { scan: 'rock_boulder_dry', chroma: 0.2, hue: 0.5, scale: 1.7, scale2: 7.3, alb: 0.3, height: 0.004, rough: 0.5, nor: 1.5 },
+  limestone_merlon: { scan: 'rock_boulder_dry', chroma: 0.2, hue: 0.5, scale: 1.7, scale2: 7.3, alb: 0.3, height: 0.004, rough: 0.5, nor: 1.5 },
+  limestone_carved: { scan: 'rock_boulder_dry', chroma: 0.2, hue: 0.5, scale: 1.3, scale2: 5.9, alb: 0.3, height: 0.0015, rough: 0.4, nor: 0.5 },
   limestone_dark: { scan: 'rock_surface', scale: 1.4, alb: 0.35, height: 0.001, rough: 0.3 },
-  terrace: { scan: 'rock_boulder_dry', chroma: 0.45, hue: 0.5, scale: 2.1, scale2: 8.9, alb: 0.5, height: 0.006, rough: 0.5, nor: 1.8 },
-  terrace_foot: { scan: 'rock_boulder_dry', chroma: 0.45, hue: 0.5, scale: 2.1, scale2: 8.9, alb: 0.6, height: 0.01, rough: 0.5, nor: 2.2 }, // (the foot's rougher-dressed blocks)
+  frame_coat: { scan: 'rock_surface', scale: 1.4, alb: 0.3, height: 0.0005, rough: 0.2 }, // D-752: the coat over the stone: its grain only
+  terrace: { scan: 'rock_boulder_dry', chroma: 0.2, hue: 0.5, scale: 2.1, scale2: 8.9, alb: 0.32, height: 0.006, rough: 0.5, nor: 1.8 },
+  terrace_foot: { scan: 'rock_boulder_dry', chroma: 0.3, hue: 0.5, scale: 2.1, scale2: 8.9, alb: 0.45, height: 0.01, rough: 0.5, nor: 2.2 }, // (the foot's rougher-dressed blocks)
   stone_rough: { scan: 'rock_boulder_dry', chroma: 0.45, hue: 0.5, scale: 1.7, scale2: 7.3, alb: 0.5, height: 0.004, rough: 0.5 }, // D-321: the blocks being worked (the Terrace's stone, quarry-fresh)
   terrace_now: { scan: 'rock_boulder_dry', scale: 2.1, scale2: 8.9, alb: 0.8, height: 0.008, rough: 0.5, nor: 2.2 },
   stone_plain: { scan: 'rock_wall_02', scale: 1.6, alb: 0.6, height: 0.005, rough: 0.5 },
@@ -54,6 +56,7 @@ export const SCAN_USE: Record<string, ScanUse> = {
   // windows Ystd/Y 0.062 at 1 cm/px) in place of Brown Mud Dry (a gravelly soil, 0.31: the Gate's walls read as sandpaper)
   mudbrick: { scan: 'clay_floor_001', scale: 2.2, scale2: 9.7, alb: 0.6, height: 0.003, rough: 0.4, nor: 2.0 },
   mudbrick_painted: { scan: 'clay_floor_001', scale: 2.2, scale2: 9.7, alb: 0.5, height: 0.003, rough: 0.4, nor: 2.0 },
+  palace_plaster: { scan: 'clay_floor_001', scale: 2.2, scale2: 9.7, alb: 0.45, height: 0.0025, rough: 0.4, nor: 1.6 }, // D-752
   mudbrick_bare: { scan: 'clay_block_wall', scale: 1.9, alb: 0.5, height: 0.003, rough: 0.4 }, // D-334: the walls under construction
   // D-334: the palaces' roofs and exposed tops: the rolled clay-and-straw coat (a clay plaster scan; the roller, straw and cracks baked)
   roof_earth: { scan: 'clay_plaster', scale: 2.4, scale2: 10.3, alb: 0.6, height: 0.003, rough: 0.4 },
@@ -82,8 +85,8 @@ export const SCAN_USE: Record<string, ScanUse> = {
   road: { scan: 'dirt_floor', scale: 1.9, scale2: 8.3, alb: 0.9, chroma: 0.6, hue: 0.35, height: 0.008, rough: 0.5 }, // D-302: trodden earth and fine gravel (was sandy_gravel_02: too fine to read)
   bank: { scan: 'dry_ground_rocks', scale: 2.5, scale2: 11, alb: 0.8, height: 0.015, rough: 0.5 },
   refuse: { scan: 'dry_ground_rocks', scale: 2.0, alb: 0.7, height: 0.01, rough: 0.5 },
-  timber: { scan: 'rough_wood', scale: 1.2, alb: 0.6, height: 0.002, rough: 0.5 },
-  roof_timber: { scan: 'rough_wood', scale: 1.2, alb: 0.6, height: 0.002, rough: 0.5 },
+  timber: { scan: 'rough_wood', scale: 1.2, alb: 0.3, height: 0.002, rough: 0.5 },
+  roof_timber: { scan: 'rough_wood', scale: 1.2, alb: 0.3, height: 0.002, rough: 0.5 },
   house_timber: { scan: 'rough_wood', scale: 1.2, alb: 0.6, height: 0.002, rough: 0.5 },
   // s17 C1 (Vagon's probe frames: the door leaves read as poles): the street doors' boarded leaves, Poly Haven Weathered Planks (CC0; vertical boards)
   door_planks: { scan: 'weathered_planks', scale: 1.0, alb: 0.6, height: 0.002, rough: 0.5 },
@@ -128,6 +131,7 @@ export const WALL_BAKE: Record<string, { tex: string; scale: number; nor: number
   // or not, and their parapets; the roofs' rolled clay-and-straw coat (the roller's tracks, coarse straw, a crack network)
   mudbrick: { tex: 'palacewall_bake', scale: 2.61, nor: 2.2, cav: 0.25, ktx: true },
   mudbrick_painted: { tex: 'palacewall_bake', scale: 2.61, nor: 2.2, cav: 0.25, ktx: true },
+  palace_plaster: { tex: 'palacewall_bake', scale: 2.61, nor: 2.2, cav: 0.25, ktx: true }, // D-752
   roof_earth: { tex: 'palaceroof_bake', scale: 3.13, nor: 1.8, cav: 0.3, ktx: true },
 };
 const BAKE = new Map<string, THREE.Texture>();
@@ -136,7 +140,7 @@ const BAKE = new Map<string, THREE.Texture>();
  *  timber). Drawn without one (no SCAN_USE entry, or a blend under ALB_MIN) such a surface is a procedural stand-in. Not here
  *  (no fitting scan: judged by T-A4): bronze, the glazed brick, the red-painted floors, reed matting, cloth */
 export const ALB_MIN = 0.3;
-export const SCANNABLE: Record<string, true> = Object.fromEntries(['limestone', 'limestone_merlon', 'limestone_carved', 'limestone_dark',
+export const SCANNABLE: Record<string, true> = Object.fromEntries(['limestone', 'limestone_merlon', 'limestone_carved', 'limestone_dark', 'frame_coat', 'palace_plaster',
   'terrace', 'terrace_now', 'terrace_foot', 'stone_rough', 'stone_plain', 'takht_stone', 'nr_dressed', 'nr_rock', 'rubble', 'kaba_white', 'mudbrick', 'mudbrick_painted', 'roof_earth', 'mudbrick_bare',
   'house_brick', 'baked_brick', 'mud_plaster', 'house_plaster', 'house_socle', 'house_roof', 'mud_roof', 'plaster', 'village_mud', 'earth', 'court_fill', 'road', 'bank',
   'refuse', 'timber', 'roof_timber', 'house_timber', 'door_planks', 'scaffold'].map(k => [k, true]));
