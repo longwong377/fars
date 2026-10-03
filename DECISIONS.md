@@ -9946,6 +9946,14 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
 - The plain from the Terrace read as one sheet past ~300 m: every plot fades to its zone's mean there. Holdings (~260 m, wandering
   edges) now vary the far mean (+-40 % green cover, -25 % straw, +-14 % shade) while a holding spans pixels (terrainPlain.ts;
   colour only, the plot hashes, crops and CPU mirror unchanged; C).
+- The fields 4-7 km out stood empty at working hours (C12): fieldWork.ts gives the people layer each plot's village (nearest
+  within 2.5 km), use, crop, season stage (ploughing, growing, reaping, stubble, fallow, vines, orchard) and its workers' spots
+  (ploughman and sower at the furrow front, reapers in a line with binders behind, carriers and gleaners, waterer at the head,
+  weeders, pruners, pickers, a herder), fronts moving along the strip through the work's days; plain.fieldWork(e, n, r, day) (C).
+- The open ground before the Terrace drew one even sheet to 700 m (noon frame): the range now in 100-300 m patches, grazed
+  bare or thick (+-45 % herb cover), and grey-green Artemisia stands 150-400 m across (terrainPlain.ts; C).
+- The river drew as sky-blue and bank-brown blotches (riv-a): the long ripple octaves calmer (2.4 m 0.075 -> 0.04, 1 m 0.07 ->
+  0.05) and the spring river's ripple scale 1.15 -> 0.85, so the far bank's reflection breaks in streaks, not patches (C).
 
 ## D-720 Follow thirty: the people answer from their own lives without the model, and the town's deeds and yesterday reach their talk (session 18, cloud C8; UD-07, UD-08, UD-11, UD-21, UD-24, UD-32)
 - Measured (tools/dev/follow30.ts; REVIEWS/follow30.json): thirty people drawn by seed across the town, the villages, the Terrace's
@@ -10045,6 +10053,13 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   pass and restores them in a finally (a throw inside it left NoToneMapping, and the next frame rebuilt the output without
   AgX: toneMapping 0 on the live T4 page); a throwing pass is logged (window.__frameFaults) and the frame goes on. (3) main.ts:
   a meter readback pending over 2 s is abandoned and an all-zero or non-finite one rejected; both fall back to the lux law.
+- (4) TRAA on the WebGL backend copied the scene depth into its history depth every frame; a depth copy there needs the texture
+  bound as a framebuffer once, which the history never was, so it threw ("Invalid value used as weak map key") inside the
+  post quad's draw and the frame was black at quality high on ?webgl=1. pipeline.ts binds and depth-clears the history target
+  when its depth has no framebuffer (cloud: the fault at 94 s before, none through 493 s after). (5) A black-frame watchdog
+  (pipeline.ts watchMeter/enterSafe, WATCHDOG; tests/black_watchdog_d680.test.ts): after a 20 s grace, 3 black meter samples
+  in a row (target unwritten or log-luminance < -20) in daylight with the scene drawing, 10 readback timeouts, or 3 frames of
+  a throwing post pass switch to the renderer's own tone-mapped output without post passes (window.__safeMode; ?nosafe off).
 - Unseen: the cloud cannot draw Q=high (WebGL2: program validation failures and a lost device with the cascade on AND off;
   WebGPU: SwiftShader's 16-texture cap), so the far cascade is verified node-side only; it needs a T4 frame.
 
@@ -10294,7 +10309,7 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
 - interiors/ring.ts houseWorkObjects(plotId, day): a house's work objects in world terms (kind, e, n, y, rot, room or −1 for the court, inside, shared, note) from the same room plans the ring draws and the court's fittings, for C1 to put people at real work objects.
 - C12 W12: a tray-table only in the better-off houses (standing > 0.6); the rest eat from a tray of flat bread on the mat.
 ## D-800 Beyond the Terrace in 467: Naqsh-e Rustam painted and in use, the estates porticoed, the villages washed (s18 cloud C15; holes.md row 20)
-- Naqsh-e Rustam (plain/naqsh.ts, naqsh_paint.ts, naqsh_life.ts): the façades' architecture painted and gilded per vertex over the Blender model's baked maps (column bases' tori blue, astragals red, bull capitals a warm wash with gilded horns and a gold-studded red harness, fasciae red/blue/green, dentils blue, cornice red, the doorway's bands, the throne's beams and slab, its legs gilded; the recess's back, the lower arm and the shafts bare: the reliefs' ground is the stone, D-030); the Ka'ba's white fresh (albedo 0.79, finer grain); DNc, DNd and DNe carved in Old Persian from ARIo Q007154-6 (CC0; tools/build_naqsh_captions.ts writes their entries in inscriptions.json from data/corpus/ario_dn_captions.catf; 18 of DNe's 30 lines, the rest lost and uncut; lines 29-30 under each tier's last bearer), moved from the programme's 'missing' to 'carved', with the project's translations (the lead's go; no pick rectangles: the plain's mesh cap); the Elamite and Babylonian of DNa/DNb stay uncut (Q-1730: no licensed digital text exists); the second tomb's scaffold (16 standards, 4 decks, ladders), its spoil of fresh chips and the cutters' lean-to; the keepers' whitewashed courtyard house at D-640's NAQSH.house; the offering table before Darius' tomb (bowls of flour, wine and water, the barsom, flowers). One extra draw (nr-life, 7.8 k tris); the DNa/DNb panels now draw with the Elamite relief's panel (the plain stays at 40 meshes).
+- Naqsh-e Rustam (plain/naqsh.ts, naqsh_paint.ts, naqsh_life.ts): the façades' architecture painted and gilded per vertex over the Blender model's baked maps (column bases' tori blue, astragals red, bull capitals a warm wash with gilded horns and a gold-studded red harness, fasciae red/blue/green, dentils blue, cornice red, the doorway's bands, the throne's beams and slab, its legs gilded; the recess's back, the lower arm and the shafts bare: the reliefs' ground is the stone, D-030); the Ka'ba's white fresh (albedo 0.79, finer grain); DNc, DNd and DNe carved in Old Persian from ARIo Q007154-6 (CC0; tools/build_naqsh_captions.ts writes their entries in inscriptions.json from data/corpus/ario_dn_captions.catf; 18 of DNe's 30 lines, the rest lost and uncut; lines 29-30 under each tier's last bearer), moved from the programme's 'missing' to 'carved', with the project's translations (the lead's go; no pick rectangles: the plain's mesh cap); the Elamite and Babylonian of DNa/DNb stay uncut (Q-1730: no licensed digital text exists); the second tomb's scaffold (16 standards, 4 decks, ladders), its spoil of fresh chips and the cutters' lean-to; the keepers' whitewashed courtyard house at D-640's NAQSH.house; the offering table before Darius' tomb (bowls of flour, wine and water, the barsom, flowers). The keepers' working ground: a sheepfold with a reed-roofed shelter, a well with posts and a trough, a kitchen garden, a fuel stack of brushwood and dung cakes, and trodden paths from the house along the cliff foot to the offering table and the Ka'ba's stair, to the works, and S toward the road (C); the spoil's chips paler (fresh). One extra draw (nr-life, 7.8 k tris); the DNa/DNb panels now draw with the Elamite relief's panel (the plain stays at 40 meshes).
 - The estates, the pavilion, the Dasht-e Gohar hall (settlement/estates.ts; plan.ts estateSite, pavilionProps, the hall block): Achaemenid columns (stone plinth, bell and torus, a plastered timber shaft painted red ochre with blue and yellow bands, a blue bracket capital), painted architraves over glazed-brick friezes of white, turquoise and yellow, roofs with painted eave boards; each estate a nine-column garden porch, a four-column talar in the court, a gatehouse, and a four-part garden of stone-lined channels crossing at its pool; the estates' columns and piers stand as the town's 'column' fittings (colliders, far level) under the painted props. All C by analogy with Pasargadae (Palace P, the pavilions, the garden) and the Terrace's paint. +1 settlement mesh (the estates' prop batch), +34 k triangles.
 - The villages (plain/villagehouses.ts): the far level takes each household's wash by C2's draw (D-661), so villages read from afar as they do near; 38 % of households a cloth or two drying over the eave, 30 % dung cakes drying on the lane wall (C). +~60 k far triangles (the plain 1.87 M of 2.0 M).
 
@@ -10399,3 +10414,52 @@ touched; the budget baseline is not re-accepted from such a head.
 - Draws and triangles held: the three in their neighbours' far meshes (settlement_build 45 meshes), the far roofs' things the jars and mats only (houses.test's far level < 800 k).
 - tests/settlement.test.ts's "no plot inside the nav box" (the old rule) now fails by design: asked of the lead to narrow it to the Terrace and the stair forecourt; the nav grid wants C5's rebuild with the town's colliders.
 - Addendum (lead 2, lead 3): tests/settlement.test.ts's nav check narrowed to the Terrace (e −65…262, n −245…240) and the stair forecourt (e −250…−60, n 40…200), houses only kept out of those; q_b1 removed (it sat on the forecourt's approach), the house being built moved to q_b10-0027 (centre −342.2, 136.4); 2,164 plots, capacity 10,638 ≤ 11,000. C7's red "no run points at the camera" (plain/townGround.ts, not mine, lead 3's mandate): a desire line longer than ~12 m whose midpoint bearing from the stair lies within 15° of its own is not drawn (radial runs 1 → 0). Town props take `bottom?: boolean` (C15's ask, plan.ts Prop, build.ts passes it to Batch.box); the town's own props all stand on the ground, so none set it. The plain_d223 fields share (0.177 < 0.4) is NOT fixed: the town now fills the stair view's 200–1,000 m foreground, a conflict put to the lead, the test not loosened.
+## D-751 The cloud frames' black walls: the KTX2 target from the WebGL2 context (s18 cloud C10)
+- The cloud's eyes draw through WebGL2 (?webgl=1) while sharedKTX2 (render/loaders.ts) took its transcode target from the WebGPU
+  adapter's features: BC7, which SwiftShader's WebGL2 cannot upload (compressedTexSubImage2D 'invalid format'), so every KTX2
+  scan sampled black (the Terrace's walls in every cloud frame since D-354). With ?webgl=1 the target now comes from a WebGL2
+  context's extensions. The T4 (WebGPU) path is unchanged. Probe frames before and after (handoff/s18/c10).
+
+## D-752 The Terrace in residence: the polychromy pass (s18 cloud C10; holes.md #3, #6, P2-3; D-771; UD-14, UD-29)
+- Palace walls and towers draw in palace_plaster (meshes.ts renderMaterial): the interior scheme inside (global.r_interior_paint)
+  and PALACE_OUTER_PAINT outside (a yellow-ochre lime ground, a red ochre dado 1.4 m edged by white, Egyptian blue and white
+  bands, a red frieze 1.1 m under the wall's head with a white edge); kept by the court (PALACE_KEPT: no fallen plaster, faint
+  wash and damp). The Treasury keeps its clay paint; the fortification and the working ranges keep PALACE_WEATHER. Pigments B
+  (RELIEFS_AND_COLOUR §3a), layout and tones C.
+- The frames (limestone_dark parts) draw in frame_coat: the whitish fluorapatite-and-calcite coat over the dark stone (Askari
+  Chaverdi et al. 2016, B), burnished (C). limestone_dark itself (the Now view, the Ka'ba) is unchanged (UD-20).
+- 467 stone fresh: no lichen on the Terrace's own stone (grime.ts LICHEN), the boulder scan's mottle at 20 % chroma and two
+  thirds of its weight (scans.ts; ALB_MIN kept). Royal cedar planed and painted red ochre (timber, roof_timber).
+- The protome capitals, the volutes and the Gate's colossi painted and gilded (src/arch/model_paint.ts: zones in each model's own
+  space, vertex colour plus a gilt mask on its own baked material; ~5 new pipelines). Every relief figure painted: flesh, leather,
+  the eye's white with a dark pupil, the animals' coats, the Elamite worshippers (relief_figures.ts); the paint atlas rebuilt
+  alone by tools/blender/relief_paint.ts (same layout, nao.ktx2 as baked; all 221 definitions checked against the index's grid).
+  The inscriptions' signs in Egyptian blue (C). Tests that pinned the ruin changed (polychromy, surfaces_s6, roofedge).
+- The relief triangle gate held: the cypress's error bound x1.6 on the vertex-painted levels (reliefs.ts ERR_K): 1.57 M -> 1.39 M.
+- Not done: the relief backgrounds (the façade stone) bare; the ceilings plain red.
+
+## D-753 The Apadana's tower stairs and walkable roofs (s18 cloud C10; holes.md P2-5, Q-630, D-771)
+- Each corner tower hollow (src/arch/tower_stairs.ts): 2.4 m walls carrying the tower's envelope, a door from its portico, a
+  stair of plastered mud brick climbing round the inside in flights with corner landings to a hatch in the tower's slab; a short
+  flight from the hall roof up to each tower top; the Apadana's roofs solid (walkable where the stairs reach them). The frieze,
+  the standards and the windows read the envelopes (glazed.ts towerEnvelopes). All sizes C.
+- roofedge.ts: an edge where a part continues the top flush at its own level is not free (no parapet between a tower's slab and
+  its walls' heads; also the doubled parapet where a wall's top is flush with a roof). arris_slabs.ts: a stair joint just past a
+  tread's end (under the parapet it abuts) grooved at the end, and clipped joints kept down to 4 mm (was 2 cm): a latent hole at
+  the Tripylon and Hadish stairs that the new faces' resampling of tests/arris_slabs exposed.
+- nav, probes and fire occlusion rebaked (parts hash).
+
+## D-754 The drums' sledge road and ramp (s18 cloud C10; holes.md P2-6, Q-710, D-771)
+- From the drum ground (traffic.ts DRUM_GROUND) south 104 m to the Terrace's N edge, on the ground as the heightfield gives it
+  (src/arch/drum_road_profile.json from tools/blender/drum_road_profile.ts): a packed-earth bed with the runners' ruts, timber
+  sleepers every 0.9 m, fieldstone kerbs; at the drum ground 18 drums on chocks and two sledges. The heightfield's bank stands
+  ~4 m over the court along the whole N edge, so an earth ramp (parts, walkable) comes down westward from a head against the
+  edge (e 146-154) to the court along the strip between the edge and the garrison. All C; the movers (traffic.ts) still stop at
+  the drum ground: their last 250 m onto the ramp is C1's.
+- (D-696, the walk) a post held keeps its place, but two people of a post are never on one spot (SEP_POST 0.1 m: a shared spot
+  is spread, the court's files keep their own spacing), and a guard at his post gives half a step (0.5 m) to the stranger;
+  the court's waiting keep facing what they wait on (no group facing for FACING_ACTS). Terrace bots seed 1: stuck time 4.8-6.6 %
+  -> 0.47 % (gate 0.5 %), 40/40; seed 2: 1.56 %, 40/40, the rest at the Hall of 100's site where detailed agents (masons,
+  sim.ts) stand in the way: they do not make way yet (sim.ts, C1). tools/dev/walkers.ts --stuck: where the time is spent.
+## D-801 The roads of the plain in use: wells, halts, carts, field shrines, the road's dung (s18 cloud C15, lead 3's round 2)
+- src/world/plain/wayside.ts, drawn in Naqsh-e Rustam's nr-life mesh (no new draw): along the first 9 km of every road present in 467 (settlement.json; the Naqsh-e Rustam road its whole length), a well every ~2.2 km (fieldstone kerb, posts and beam, a stone trough), a halt every ~2.6 km (a mud-brick shelter open to the road, a bench, jars, a tethering post and dung, an ox-cart stood by it with solid wheels, shafts and sacks), a field shrine every ~3.1 km on the far side (a small stepped altar of the Naqsh reliefs' form, its ash heap and stacked wood; the fire is the people's action, not drawn), nothing in a settlement zone or on steep ground. Measured: 4 roads, 12 wells, 12 halts and carts, 10 shrines, ~6.7 k triangles (the road's droppings are roadLitter.ts's, session 10: not repeated). Way-stations and travel rations B (the Fortification texts); the spacing and the forms C. To pay for it inside the plain's 2.0 M: the threshing floors' kerbs 12 larger stones (were 26), the roof stacks three faces.

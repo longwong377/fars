@@ -43,7 +43,7 @@ const parts: Part[] = [
   { id: 'flute', inst: 'afl', art: 'leg', notes: line('G4:1.5 A4:1.5 | Bb4:3 | Bb4:1.5 G4:1.5 | F4:3 | G4:1 A4:.5 Bb4:1 C5:.5 | D5:3 | C5:1 Bb4:.5 A4:1 G4:.5 | F#4:3', B(25)),
     dyn: [[B(25), 0.38], ...swell(B(25), B(33), 0.38, 0.6, 0.35)], depth: 0.4, pan: -0.3 },
   { id: 'va_pad', inst: 'va', art: 'sus', notes: pad(sec(25, 32), 'G3', 'D5', 2), dyn: [[B(25), 0.2], [B(29), 0.38], [B(33), 0.25]], lead: 0.3 },
-  { id: 'vn1', inst: 'vn1', art: 'leg', notes: [...line(ROAD, B(33), 12), ...line(ROAD, B(41))], dyn: [[B(33), 0.5], ...swell(B(33), B(41), 0.5, 0.68, 0.5), ...swell(B(41), B(49), 0.52, 0.7, 0.45)] },
+  { id: 'vn1', inst: 'vn1', art: 'leg', notes: [...line(ROAD, B(33)), ...line(ROAD, B(41))], dyn: [[B(33), 0.42], ...swell(B(33), B(41), 0.42, 0.56, 0.45), ...swell(B(41), B(49), 0.47, 0.62, 0.42)] },
   { id: 'vn2_spic', inst: 'vn2', art: 'stac', notes: arp(sec(33, 64), 'G4', 'D5', [0, 1, 2, 1, 0, 2], 0.5, 0.4), dyn: [[B(33), 0.4], [B(48), 0.5], [B(49), 0.45], [B(64), 0.55]], gain: -3 },
   { id: 'va_spic', inst: 'va', art: 'stac', notes: arp(sec(33, 48), 'D3', 'Bb3', [0, 1, 2, 1, 2, 1], 0.5, 0.4), dyn: [[B(33), 0.35], [B(48), 0.45]], gain: -4 },
   { id: 'hn_open', inst: 'hn', art: 'leg', notes: [...line(OPEN, B(49), -12), ...line(OPEN, B(57))], dyn: [[B(49), 0.45], ...swell(B(49), B(57), 0.45, 0.6, 0.48), ...swell(B(57), B(65), 0.5, 0.68, 0.35)] },

@@ -8,7 +8,7 @@
 import * as THREE from 'three/webgpu';
 import { HALO_R } from './halo';
 import { SkyMesh } from 'three/addons/objects/SkyMesh.js';
-import { float, vec2, vec3, vec4, uniform, attribute, normalWorld, max, dot, mix, smoothstep, color, Fn, positionWorld, cameraPosition, normalize, atan, asin, acos, abs, exp, clamp, sqrt, length, texture, mx_fractal_noise_float, int, step, pow } from 'three/tsl';
+import { float, vec2, vec3, vec4, uniform, attribute, normalWorld, max, dot, mix, smoothstep, color, Fn, positionWorld, cameraPosition, normalize, atan, asin, acos, abs, exp, clamp, sqrt, length, texture, mx_fractal_noise_float, int, step, pow, sin, pointUV, time } from 'three/tsl';
 import { sunHorizon, moonHorizon, moonPhase, azAltToWorld, j2000ToHorizonMatrix, starAzAlt, earthShadow, UMBRA_RGB, UMBRA_DISPLAY, UMBRA_DISPLAY_CORE } from './ephemeris';
 import { VolumetricClouds } from './clouds';
 import { Meteors } from './meteors';
@@ -55,13 +55,26 @@ export const NIGHT_GREY = 0.05;
 /** D-480 (light v2, night): the night dome (renderer radiance, drawn at the dark-adapted exposure X_MAX): a deep blue zenith and a
  *  paler blue-grey horizon, replacing the Preetham dome's night tail (D-047), which drew a brown-grey sky brighter than the
  *  land (the baseline train's cov-000). Moonlight brightens it (×(1 + NIGHT_MOON_SKY · up · phase)). Perceptual, C (RDR2 nights) */
-export const NIGHT_SKY_ZENITH: [number, number, number] = [0.00042, 0.00048, 0.00069], NIGHT_SKY_HORIZON: [number, number, number] = [0.0009, 0.00098, 0.00126], NIGHT_MOON_SKY = 2.5;
+// D-680: zenith x2.5, horizon x4 (were [0.00042, 0.00048, 0.00069] and [0.0009, 0.00098, 0.00126]): with the night fill
+// on the land (NIGHT_GREY) the moonless land drew ~5x brighter than the sky at the horizon, so Kuh-e Rahmat and the Terrace
+// stood lit flat brown against a black sky (C6's pre-dawn frame); now the sky at the horizon is about as bright as the land
+// and ridges, walls and trees stand as silhouettes against a luminous deep-blue night (the art direction's night). C
+export const NIGHT_SKY_ZENITH: [number, number, number] = [0.00105, 0.0012, 0.00172], NIGHT_SKY_HORIZON: [number, number, number] = [0.0036, 0.0039, 0.005], NIGHT_MOON_SKY = 2.5;
 const nightSkyAt = (y: number, k: number): [number, number, number] => { const t = Math.sqrt(Math.max(0, Math.min(1, y))); return [0, 1, 2].map(i => k * (NIGHT_SKY_HORIZON[i] + (NIGHT_SKY_ZENITH[i] - NIGHT_SKY_HORIZON[i]) * t)) as [number, number, number]; };
 export const groundRho = (snowCover: number): [number, number, number] => { const s = Math.min(1, Math.max(0, snowCover)); return [0, 1, 2].map(c => GROUND_RHO[c] + (SNOW_RHO[c] - GROUND_RHO[c]) * s) as [number, number, number]; };
 const _mdir = new THREE.Vector3();
 /** D-473: the sun kept in the scene at intensity 0 while down (on: the default); off is the old switch (A/B: __parsaSunKept) */
 export const SUN_KEPT = { on: true };
 if (typeof window !== 'undefined') (window as any).__parsaSunKept = SUN_KEPT;
+/** D-680: the naked eye's limiting magnitude near the zenith for the sun at `alt` (deg): none while the sky is bright, the
+ *  brightest stars and planets near the end of civil twilight (-5 to -6), magnitude 3 at -9, 5 at -13, 6.5 in astronomical
+ *  night (C: the observers' rule of thumb for first stars, second, third magnitude through the twilights) */
+export function starLimitMag(alt: number): number {
+  const K: [number, number][] = [[-2, -3], [-4, -1.2], [-6, 0.6], [-9, 2.9], [-11, 4.0], [-13, 5.0], [-15, 5.8], [-18, 6.5]];
+  if (alt >= K[0][0]) return K[0][1]; if (alt <= K[K.length - 1][0]) return K[K.length - 1][1];
+  for (let i = 1; i < K.length; i++) if (alt >= K[i][0]) { const [a0, m0] = K[i - 1], [a1, m1] = K[i], t = (alt - a0) / (a1 - a0); return m0 + (m1 - m0) * t; }
+  return 6.5;
+}
 export class SkySystem {
   readonly sky = new SkyMesh();
   readonly sun = new THREE.DirectionalLight(0xffffff, 3);
@@ -75,6 +88,8 @@ export class SkySystem {
   private starData: Float32Array | null = null;
   private starCount = 0;
   private uNight = uniform(0);
+  /** D-680: the naked eye's limiting magnitude at the zenith now (twilight and moonlight; starLimitMag) and the stars' cloud factor */
+  private uLimMag = uniform(-3); private uStarK = uniform(0);
   private uMoonSun = uniform(new THREE.Vector3(0, 1, 0));
   /** the Earth's shadow on the Moon (session 9; ephemeris.ts earthShadow): its centre (world direction) and umbra, penumbra
    *  (rad) and 1 while any of the disc is in the penumbra; `eclipse`: the disc's brightness for the overlay and the light */
@@ -282,8 +297,18 @@ export class SkySystem {
     const bright = attribute('bright', 'float'), tint = attribute('tint', 'vec3');
     // (a star behind the Moon's disc is hidden: 0.265 deg, the disc's radius; session 9, the Moon now drawn additively)
     const behindMoon = step(float(Math.cos((0.265 * Math.PI) / 180)), dot(normalize(positionWorld.sub(cameraPosition)), this.uMoonDirW));
-    pm.colorNode = vec4(tint.mul(bright).mul(this.uNight).mul(float(1).sub(behindMoon)), 1);
-    pm.sizeNode = float(1.0).add(bright.mul(1.5));
+    // D-680 (the night sky read as a uniform sprinkle of 1 px squares): each star a soft round sprite whose size and weight
+    // follow its magnitude, coming out one by one as the twilight deepens (the limiting magnitude: Sirius and the planets
+    // at the end of civil twilight, the faintest only in full night), dimmed and twinkling near the horizon (air mass), and
+    // its colour (B-V) a little richer than the bare blackbody tint
+    const mag = attribute('mag', 'float'), dS = normalize(positionWorld.sub(cameraPosition)), up = clamp(dS.y, 0, 1);
+    const seen = smoothstep(-0.7, 0.7, this.uLimMag.sub(mag));
+    const airMass = float(1).div(up.add(0.03)), ext = exp(airMass.sub(1).mul(-0.23)); // ~0.25 mag per air mass (C)
+    const twinkle = float(1).add(sin(time.mul(float(7).add(mag.mul(2.3))).add(dS.x.mul(997)).add(dS.z.mul(613))).mul(0.4).mul(float(1).sub(smoothstep(0.03, 0.45, up))));
+    const pr = (pointUV as any).sub(0.5), disc = exp(dot(pr, pr).mul(-18)); // Gaussian, ~1/e at a third of the sprite's radius
+    const tY = dot(tint, vec3(0.2126, 0.7152, 0.0722)), tintS = mix(vec3(tY), tint, 1.5).max(0);
+    pm.colorNode = vec4(tintS.mul(bright).mul(this.uStarK).mul(seen).mul(ext).mul(twinkle).mul(disc).mul(1.6).mul(float(1).sub(behindMoon)), 1);
+    pm.sizeNode = float(2.0).add(pow(bright, 0.6).mul(5.0));
     this.stars = new THREE.Points(geo, pm);
     this.stars.frustumCulled = false; this.stars.renderOrder = -9;
     this.stars.userData = { tier: 'A', src: 'HYG41', note: 'HYG v4.1 positions + proper motion to 467 BCE, precessed (astronomy-engine)' };
@@ -328,6 +353,7 @@ export class SkySystem {
       const c = kelvinToRGB(T); tint.set(c, i * 3);
     }
     g.setAttribute('bright', new THREE.BufferAttribute(bright, 1));
+    { const m = new Float32Array(this.starCount); for (let i = 0; i < this.starCount; i++) m[i] = this.starData[i * 6 + 4]; g.setAttribute('mag', new THREE.BufferAttribute(m, 1)); }
     g.setAttribute('tint', new THREE.BufferAttribute(tint, 3));
     this.lastStarJD = -1;
   }
@@ -386,6 +412,8 @@ export class SkySystem {
       else this.uShadow.value.z = 0;
       this.eclipse = { light, sepDeg: sep, active: light < 0.999 }; }
     this.uNight.value = night * (1 - 0.85 * cloudCover);
+    { const moonUpS = smoothstepJS(-2, 8, mo.altitude); // (the full moon washes out about two magnitudes)
+      this.uLimMag.value = starLimitMag(s.altitude) - 2.2 * moonUpS * ph.fraction * this.eclipse.light; this.uStarK.value = 1 - 0.85 * cloudCover; }
     this.meteors.update(jdUT, camPos, this.uNight.value);
     this.planets.update(jdUT, camPos, s.altitude, cloudCover);
     // faint diffuse light (Milky Way, airglow): only in full darkness, washed out by moonlight, hidden by cloud (C)

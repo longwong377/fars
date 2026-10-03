@@ -33,8 +33,12 @@
 - The banquet uses the place `court_audience`, an ORDERED place in popgeo.ts, so diners get seats.
 - **Pre-existing failures, also on the base commit:** humans_faces "the kandys hangs past the knee" and court_view "no pop-in"
   (a forecourt talker at 41.7 m).
-- **court.test's sealed-letter test still exceeds 600 s** on this 4-core box (909 s with the court's sim cut to its residence
-  plus 30 days). Each day's first plan advances the town's economy to that day, and the year of it is the cost; see Tests.
+- **court.test's sealed-letter test checks less of the year than its title says.** It now passes in 436 s (it was 1,120 s,
+  over its 600 s limit). The cost was the town's economy: the first plan of each day advances the economy to that day, about
+  600 s for the court-less year alone. So the plans and the desk's receipts are now read only:
+  - for the court's sim: through the residence and a month after;
+  - for the court-less town: through the first half of the year.
+  Every letter's hour is still checked against the desk on every day of the year, from the calendar.
 - **Favour, houses and rivalries are words and places only.** Nothing in the view shows a rival's glance or a kinsman's
   greeting beyond who stands with whom. The talk lines name the ally house's head; the dialogue system (C8) does not read
   them yet.
@@ -171,10 +175,14 @@ See handoff/s18/c13_frames/ (if present): the forecourt and N stair at 09:12 on 
     near the throne, and the head of a king-kin house stands near the king "whose wife is of his house";
   - **talk:** the men of a house gather at one place each day. A man meets the house he is married into, its head named
     (165 such talks that morning). Rivals' places are avoided, and 48 men talk low about their rival house.
-- **Sealed-letter test:** see Tests.
+- **Sealed-letter test:** see the first section. Combined with C7's letter-day sampling (D-710) in the merge of s17-int.
 
 ## Tests
 - tests/court_ceremony.test.ts (new, 5 tests): the programme, the seats, the people on the programme's days, well-formed plans.
 - tests/palace_furnish.test.ts: updated for the stored state (hangings stay up).
 - tests/people_look.test.ts: updated so court chroma must be > 1.5× the working dress's (it was 2×).
 - tests/court.test.ts: see the run below.
+- Fourth pass, on the merged tree (s17-int at 1c746135), targeted files: court_ceremony (7, including the couches' clearance
+  and the reclining pose on the rig), court_fill, people_children, performances (including the 300 performers' CPU budget,
+  alone on the box) and palace_furnish: 64 passed. model_props: the work object kinds, all modelled. court.test's sealed-letter
+  test passes in 436 s alone.

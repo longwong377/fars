@@ -6,7 +6,7 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import * as THREE from 'three/webgpu';
 import { buildTerrace } from '../src/arch/terrace';
 import { buildMeshes } from '../src/arch/meshes';
-import { buildGlazedFrieze, friezeFaces } from '../src/arch/glazed';
+import { buildGlazedFrieze, friezeFaces, towerEnvelopes } from '../src/arch/glazed';
 import { reliefLodMesh } from '../src/arch/reliefs';
 import { v } from '../src/arch/spec';
 import { labToLinear } from '../src/core/colour';
@@ -21,7 +21,7 @@ const lin = (s: number[]) => { const c = new THREE.Color().setRGB(s[0], s[1], s[
 describe('the Apadana\'s glazed-brick frieze (apadana.r_glazed_frieze)', () => {
   it('one band on every outer face of the four corner towers, under their tops and above the portico roofs, of the glazes found at Persepolis', () => {
     const F = v<any>('apadana', 'r_glazed_frieze'), faces = friezeFaces(B.parts), m = buildGlazedFrieze(B.parts)!;
-    const towers = B.parts.filter(p => p.building === 'apadana' && p.kind === 'tower') as Box[];
+    const towers = towerEnvelopes(B.parts); // (D-753: the hollow towers' envelopes)
     expect(towers.length).toBe(4); expect(faces.length).toBe(16);
     for (const f of faces) { const t = towers.find(q => `${q.c[1] > 0 ? 'N' : 'S'}${q.c[0] > 0 ? 'E' : 'W'}` === f.tower)!; expect(f.y1).toBeCloseTo(t.y1 - F.top_below, 6); expect(f.y1 - f.y0).toBeCloseTo(F.courses * F.course, 6); }
     const roofTop = Math.max(...(B.parts.filter(p => p.building === 'apadana' && p.kind === 'roof') as Box[]).map(r => r.y1));

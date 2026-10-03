@@ -7,7 +7,7 @@ export interface Base { building: string; kind: string; material: Material; tier
 /** vertical prism: polygon extruded from y0 to y1 (heights relative to the court datum) */
 export interface Prism extends Base { type: 'prism'; polygon: Pt[]; y0: number; y1: number }
 /** oriented box, grid-aligned (rot = rotation about vertical, radians, counter-clockwise in grid) */
-export interface Box extends Base { type: 'box'; c: Pt; size: [number, number]; y0: number; y1: number; rot?: number; sculpt?: Sculpt; door?: DoorLeafData }
+export interface Box extends Base { type: 'box'; c: Pt; size: [number, number]; y0: number; y1: number; rot?: number; sculpt?: Sculpt; door?: DoorLeafData; /** D-753: the envelope (grid x0, y0, x1, y1) of the hollow tower this wall belongs to */ env?: [number, number, number, number] }
 /** a box that is RENDERED as sculpture (the box stays the collider and plan footprint): doorway colossus model, the grid
  *  x direction its head faces (±1) and the grid y side (±1) its relief faces (the doorway passage) */
 export interface Sculpt { model: 'bull' | 'lamassu'; facing: 1 | -1; passage: 1 | -1 }

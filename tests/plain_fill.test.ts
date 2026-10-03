@@ -123,3 +123,18 @@ describe('the plain-side works and the qanats (D-670)', () => {
       expect(l.shafts[0].r).toBeGreaterThan(l.shafts[l.shafts.length - 1].r); expect(T.aslAt(l.shafts[0].e, -l.shafts[0].n)).toBeGreaterThan(T.aslAt(l.shafts.at(-1)!.e, -l.shafts.at(-1)!.n)); }
   });
 });
+
+// D-670: the plain's field work for the people layer (fieldWork.ts)
+import { fieldWorkNear } from '../src/world/plain/fieldWork';
+import { doyOf } from '../src/world/plain/seasonal';
+describe('field work by plot and season (D-670)', () => {
+  const irr = { data: new Uint8Array(4 * 4 * 4).map((_, i) => (i % 4 === 0 ? 255 : 0)), n: 4, half: 40960, cell: 64 * 320, ground: null } as any;
+  const vil = [{ id: 'v1', x: 3000, y: 2000, r: 120 }], day = (doy: number) => doy - doyOf(0);
+  it('reaps the barley in late May, ploughs in November, every spot inside its plot and tied to its village', () => {
+    const stages = (doy: number) => { const w = fieldWorkNear(irr, vil, 3000, 2600, 500, day(doy)); const c: Record<string, number> = {}; for (const p of w) c[p.stage] = (c[p.stage] ?? 0) + 1; return { w, c }; };
+    const may = stages(145), nov = stages(312), jul = stages(200);
+    expect(may.c.reaping ?? 0).toBeGreaterThan(3); expect(nov.c.ploughing ?? 0).toBeGreaterThan(3);
+    expect(may.w.flatMap(p => p.spots).filter(s => s.act === 'reap').length).toBeGreaterThan(10);
+    for (const p of [...may.w, ...nov.w, ...jul.w]) { expect(p.village).toBe('v1'); for (const s of p.spots) expect(plotAt(s.e, -s.n).h).toBe(p.plot); }
+  });
+});

@@ -1168,7 +1168,7 @@
      "bytes": 2035606
     }
    },
-   "inHash": "452916ee671b5443ef76a4cbc0583037903f1835bad2c2b85ccc4588ffe9cba1",
+   "inHash": "ccc899e407aa54c4195392774c68c33da9af4826eb3ae6b993fc529bf0e0d1b9",
    "bytes": 10257681,
    "gpuBytes": 13981014,
    "stats": {
@@ -1238,7 +1238,7 @@
    "src": "RELIEF-R;IR-WOMEN;MH-CC0",
    "blender": "5.0.1",
    "ktx": "ktx version: v4.4.2-compatible (ktx2-encoder, Basis Universal WASM)",
-   "build_s": 213,
+   "build_s": 229,
    "reproduced": {
     "files": {
      "people_hair.json": "452908a9c04dd4fcfd9561c07420da024379dfdba837b37c8103cf59e64034fd",
