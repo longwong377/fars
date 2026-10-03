@@ -73,6 +73,14 @@ export const SPECS: Spec[] = [
   { id: 'idle_w_b', take: 'accad:Female1/Female1_A02_Sway', kind: 'loop', len: 5, out: 15, note: 'standing, swaying (ACCAD Female1)' },
   { id: 'idle_w_c', take: 'accad:Female1/Female1_D2_Wait', kind: 'loop', len: 8, out: 15, note: 'waiting (ACCAD Female1)' },
   { id: 'talk_w_a', take: 'accad:Female1/Female1_D3_ConversationGestures', kind: 'loop', len: 10, out: 20, note: 'conversation gestures (ACCAD Female1)' },
+  // ---- s18 C14 (D-790): 100STYLE (Mason, Starke, Komura 2022; CC BY 4.0; one performer acting a hundred walking styles):
+  // the old and the bent, hands behind the back, a heavy man, a neutral walk, the tired; an old man standing
+  { id: 'walk_bent', take: 'style:BentForward/BentForward_FW', kind: 'gait', from: 20, to: 80, face: 3.2, note: 'bent forward (100STYLE)' },
+  { id: 'walk_behind', take: 'style:ArmsBehindBack/ArmsBehindBack_FW', kind: 'gait', from: 20, to: 80, face: 3.2, note: 'arms behind the back (100STYLE)' },
+  { id: 'walk_heavy', take: 'style:Heavyset/Heavyset_FW', kind: 'gait', from: 20, to: 80, face: 3.2, note: 'heavyset (100STYLE)' },
+  { id: 'walk_neutral', take: 'style:Neutral/Neutral_FW', kind: 'gait', from: 20, to: 80, face: 3.2, note: 'neutral (100STYLE)' },
+  { id: 'walk_tired', take: 'style:Depressed/Depressed_FW', kind: 'gait', from: 20, to: 80, face: 3.2, note: 'depressed, tired (100STYLE)' },
+  { id: 'idle_old', take: 'style:Old/Old_ID', kind: 'loop', from: 5, to: 40, len: 8, out: 15, note: 'old, standing (100STYLE)' },
   { id: 'sit_a', take: '82_05', kind: 'loop', gaze: true, seat: true, from: 0, to: 18.7, len: 15, out: 15, note: 'sitting on the ground relaxing (subject 82)' },
 ];
 

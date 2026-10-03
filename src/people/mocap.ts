@@ -87,9 +87,11 @@ export const pickOf = (k: number, n: number, salt = 0) => Math.floor(fr(Math.sin
 export type GaitStyle = 'man' | 'woman' | 'old' | 'carry' | 'carry_side' | 'limp' | 'run';
 export const GAITS: Record<GaitStyle, { slow: string[]; normal: string[]; brisk: string[] }> = {
   // (s18 C14 D-790: + ACCAD's Male1 (walk_m_h, normal) and its woman, walk_w_c, a woman's own walk at last)
-  man: { slow: ['walk_slow_a', 'walk_slow_c', 'walk_slow_d'], normal: ['walk_c', 'walk_d', 'walk_e', 'walk_g', 'walk_a', 'walk_m_h'], brisk: ['walk_brisk_a', 'walk_brisk_b', 'walk_b'] },
+  // (and 100STYLE's performer: a neutral and a tired walk among the slow, a heavy man's among the normal)
+  man: { slow: ['walk_slow_a', 'walk_slow_c', 'walk_slow_d', 'walk_neutral', 'walk_tired'], normal: ['walk_c', 'walk_d', 'walk_e', 'walk_g', 'walk_a', 'walk_m_h', 'walk_heavy'], brisk: ['walk_brisk_a', 'walk_brisk_b', 'walk_b'] },
   woman: { slow: ['walk_slow_c', 'walk_w_b'], normal: ['walk_w_c', 'walk_w_b', 'walk_w_c', 'walk_g'], brisk: ['walk_w_c', 'walk_brisk_a'] },
-  old: { slow: ['walk_slow_d', 'walk_slow_c'], normal: ['walk_slow_c', 'walk_slow_a'], brisk: ['walk_slow_a'] },
+  // (s18 C14: the old bent forward or with their hands behind the back, 100STYLE)
+  old: { slow: ['walk_slow_d', 'walk_slow_c', 'walk_bent'], normal: ['walk_slow_c', 'walk_slow_a', 'walk_behind', 'walk_bent'], brisk: ['walk_slow_a', 'walk_behind'] },
   carry: { slow: ['carry_a', 'carry_b'], normal: ['carry_a', 'carry_b', 'carry_w'], brisk: ['carry_a', 'carry_b', 'carry_w'] },
   carry_side: { slow: ['carry_side'], normal: ['carry_side'], brisk: ['carry_side'] },
   limp: { slow: ['limp_a'], normal: ['limp_a'], brisk: ['limp_a'] },
@@ -134,3 +136,5 @@ export const TALKS = ['talk_a', 'talk_b', 'talk_c'] as const;
 /** s18 C14 (D-790): a woman's standing and talking from ACCAD's female performer (CC BY 3.0), with two of the men's */
 export const IDLES_W = ['idle_w_a', 'idle_w_b', 'idle_w_c', 'idle_b', 'idle_e'] as const;
 export const TALKS_W = ['talk_w_a', 'talk_b', 'talk_w_a'] as const;
+/** s18 C14 (D-790): the old standing (100STYLE's 'old' idle, CC BY 4.0) among the men's */
+export const IDLES_O = ['idle_old', 'idle_a', 'idle_c', 'idle_old', 'idle_d'] as const;

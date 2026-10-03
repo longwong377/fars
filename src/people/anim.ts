@@ -10,7 +10,7 @@
 // The work cycles of the activities performed since D-142 (hoeing, reaping, weaving, …) are in workAnims.ts: they are
 // authored from hand and foot targets (poseKit.ts IK) and return prop hints (tip, at, show, ip) for the carried props.
 import { workPose, WORK_ANIMS, type WorkAnim } from './workAnims';
-import { gaitPose, loopAt, pickOf, devAt, blendInto, CLIPS, IDLES, TALKS, IDLES_W, TALKS_W, type GaitStyle } from './mocap';
+import { gaitPose, loopAt, pickOf, devAt, blendInto, CLIPS, IDLES, TALKS, IDLES_W, TALKS_W, IDLES_O, type GaitStyle } from './mocap';
 const TALK_DAMP = ['l_upper', 'l_fore', 'l_hand', 'r_upper', 'r_fore', 'r_hand'] as const;
 
 /** pose channels (the Phase 3 rig's bones); RETARGET in humanRig.ts maps each onto the 59-bone skeleton */
@@ -122,7 +122,7 @@ export function pose(id: AnimId, t: number, ph: number, k: number, g: Gait = GAI
   switch (id) {
     case 'idle': case 'inspect': {
       // standing (D-333): a motion-capture idle, one of five per person (weight shifts, the head turning, the hands at rest)
-      { const I = g.style === 'woman' ? IDLES_W : IDLES; p = loopAt(I[pickOf(k, I.length, 5)], t, k, 0.9 + 0.2 * fr(k * 0.37)); r = p.rot; } // (s18 C14: a woman's own stance)
+      { const I = g.style === 'woman' ? IDLES_W : g.style === 'old' ? IDLES_O : IDLES; p = loopAt(I[pickOf(k, I.length, 5)], t, k, 0.9 + 0.2 * fr(k * 0.37)); r = p.rot; } // (s18 C14: a woman's own stance)
       if (id === 'inspect') { r.l_upper = [0.25, 0, 0.12]; r.r_upper = [0.25, 0, -0.12]; r.l_fore = [-0.9, 0, -0.5]; r.r_fore = [-0.9, 0, 0.5]; } // hands clasped behind
       break;
     }

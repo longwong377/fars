@@ -14,11 +14,12 @@ const R1 = (ax: string, a: number): M3 => { const c = Math.cos(a * D), s = Math.
 
 /** the ASF names retarget.ts reads, from the BVH joint names (ACCAD and 100STYLE use the same Mixamo-like set) */
 const ASF: Record<string, string[]> = {
-  lowerback: ['ToSpine', 'Spine'], upperback: ['Spine', 'Spine1'], thorax: ['Spine1', 'Spine2', 'Chest'], upperneck: ['Neck'], head: ['Head'],
-  lclavicle: ['LeftShoulder'], lhumerus: ['LeftArm'], lradius: ['LeftForeArm'], lwrist: ['LeftForeArm'], lhand: ['LeftHand'],
-  rclavicle: ['RightShoulder'], rhumerus: ['RightArm'], rradius: ['RightForeArm'], rwrist: ['RightForeArm'], rhand: ['RightHand'],
-  lfemur: ['LeftUpLeg'], ltibia: ['LeftLeg'], lfoot: ['LeftFoot'], ltoes: ['LeftToeBase', 'LeftToe'],
-  rfemur: ['RightUpLeg'], rtibia: ['RightLeg'], rfoot: ['RightFoot'], rtoes: ['RightToeBase', 'RightToe'],
+  // (first found wins: ACCAD's names first, then 100STYLE's, whose LeftShoulder is the upper arm and LeftCollar the clavicle)
+  lowerback: ['ToSpine', 'Chest'], upperback: ['Spine', 'Chest2'], thorax: ['Spine1', 'Spine2', 'Chest4', 'Chest3'], upperneck: ['Neck'], head: ['Head'],
+  lclavicle: ['LeftCollar', 'LeftShoulder'], lhumerus: ['LeftArm', 'LeftShoulder'], lradius: ['LeftForeArm', 'LeftElbow'], lwrist: ['LeftForeArm', 'LeftElbow'], lhand: ['LeftHand', 'LeftWrist'],
+  rclavicle: ['RightCollar', 'RightShoulder'], rhumerus: ['RightArm', 'RightShoulder'], rradius: ['RightForeArm', 'RightElbow'], rwrist: ['RightForeArm', 'RightElbow'], rhand: ['RightHand', 'RightWrist'],
+  lfemur: ['LeftUpLeg', 'LeftHip'], ltibia: ['LeftLeg', 'LeftKnee'], lfoot: ['LeftFoot', 'LeftAnkle'], ltoes: ['LeftToeBase', 'LeftToe'],
+  rfemur: ['RightUpLeg', 'RightHip'], rtibia: ['RightLeg', 'RightKnee'], rfoot: ['RightFoot', 'RightAnkle'], rtoes: ['RightToeBase', 'RightToe'],
 };
 
 export interface BVHTake { sk: Skeleton; frames: Frame[]; fps: number }
