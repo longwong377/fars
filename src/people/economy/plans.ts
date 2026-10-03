@@ -17,6 +17,7 @@
 // Tier C throughout: the places are the town's own (the exchange lane of the town, the officials' building, the royal
 // store: town.json facilities), the hours and durations reasoned.
 import { segAt, coldWear, dustWear, wetSpells, type Population, type Seg, type Where } from '../population';
+import { relabelCuts } from '../deeds/engine';
 import { nobodyWith } from '../wardrobe/washing';
 import { checkPlan } from '../planCheck';
 import type { ActivityId } from '../activities';
@@ -97,7 +98,7 @@ export class EconPlans {
     this.inFit.add(pid);
     try { for (const st of this.steps(day).get(pid) ?? []) {
       let r = this.fit(segs, st), why = r ? '' : 'no time in the day';
-      if (r) { r = this.dress(this.feed(segs, r, st), day); baseIss ??= this.issues(pid, day, base); why = this.breaks(pid, day, segs, r, baseIss); if (why) r = null; }
+      if (r) { r = relabelCuts(segs, this.dress(this.feed(segs, r, st), day)); baseIss ??= this.issues(pid, day, base); why = this.breaks(pid, day, segs, r, baseIss); if (why) r = null; }
       out.push({ step: st, ok: !!r, why: why || undefined }); if (r) segs = r; } } finally { this.inFit.delete(pid); }
     this.cache.set(k, segs); this.laid.set(k, out); if (this.cache.size > 40000) this.cache.clear(); return segs;
   }
