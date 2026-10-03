@@ -63,13 +63,15 @@ function houseWords(L: LifeRecord, n = 4): string {
   const plural = (r: string) => /^(wife|husband|mother|father)$/.test(r) ? r : r === 'child' ? 'children' : /(man|woman)$/.test(r) ? r.replace(/man$/, 'men') : `${r}s`;
   const and = (xs: string[]) => xs.length < 2 ? xs.join('') : `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}`;
   const parts = [...by].slice(0, n).map(([rel, ns]) => /^old /.test(rel) ? `${and(ns)}, the ${rel}` : `my ${ns.length > 1 ? plural(rel) : rel} ${and(ns)}`);
-  const kins = L.household.filter(k => /^kins/.test(k.rel)).length;
-  if (kins) parts.push(kins > 1 ? `${kins > 4 ? 'many' : 'some'} of my kin` : 'a kinsman');
+  const kins = L.household.filter(k => /^kins/.test(k.rel) && k.name !== 'unnamed').map(k => k.name);
+  if (kins.length) parts.push(kins.length > 3 ? `${kins.slice(0, 2).join(', ')} and others of the house` : kins.length > 1 ? `${and(kins)}, of my kin` : `${kins[0]}, of my kin`);
   if (unnamed) parts.push(unnamed > 1 ? 'the little ones' : 'the baby');
   return and(parts);
 }
 const jobShort = (L: LifeRecord) => cut(L.job.replace(/^keeper of the household: /, 'I keep the house: '), 14);
-const nowWords = (L: LifeRecord) => cut(L.today.now.replace(/^[a-z_ ]+: /, ''), 12);
+/** a plan reason as the person says it: their own (his, her, the mother: mine), the first clause (", then home out of the heat" goes) */
+const ownWords = (w: string, n = 12) => cut(w.replace(/^[a-z_ ]+: /, '').replace(/,? then .*$/, '').replace(/\b(his|her)\b/g, 'my').replace(/\bthe (mother|father|husband|wife|children|baby|household)\b/g, 'my $1'), n);
+const nowWords = (L: LifeRecord) => ownWords(L.today.now);
 /** "just now I am going home" / "just now it is the midday meal" (the plan's reason is a doing or a thing) */
 const nowSay = (L: LifeRecord) => { const n = nowWords(L); return /^[a-z]+ing\b/.test(n) ? `just now I am ${n}` : /^(at|in|on|with|away)\b/.test(n) ? `just now I am ${n}` : `just now it is ${n}`; };
 const iAm = (L: LifeRecord) => /^I keep/.test(jobShort(L)) ? jobShort(L) : `I am ${jobShort(L)}`;
@@ -103,7 +105,7 @@ function lifeAnswer(L: LifeRecord, said: string, M: Manner): string[] {
     return [L.group ? `I live with the others of ${L.group}` : 'I have no house of my own here', L.kinHouses[0] ? `my kin keep ${cut(L.kinHouses[0], 4)}` : L.past.find(x => /died|widowed|lost/.test(x)) ? firstPerson(L.past.find(x => /died|widowed|lost/.test(x))!) : ''];
   }
   if (has(/\b(work|job|paid|pay|hard|labou?r|trade|craft|do you do)\b/) && M.child && /child/.test(L.job)) return [L.age < 7 ? 'I am too little for work' : `I help ${L.household.some(k => k.rel === 'mother') ? 'my mother' : 'at home'}${L.zone === 'plain' ? ' and mind the goats' : ''}`, nowSay(L)];
-  if (has(/\b(work|job|paid|pay|hard|labou?r|trade|craft|do you do)\b/)) return [iAm(L) + (L.group ? `, with ${L.group}` : ''), L.rank ? `I am ${L.rank}` : '', nowSay(L)];
+  if (has(/\b(work|job|paid|pay|hard|labou?r|trade|craft|do you do)\b/)) return [iAm(L) + (L.group && !L.job.includes(L.group.split(' ').slice(-2).join(' ')) ? `, with ${L.group}` : ''), L.rank ? `I am ${L.rank}` : '', nowSay(L)];
   if (has(/\byesterday\b/)) return L.yesterday?.length ? L.yesterday.slice(0, 2).map(yesterdaySay) : ['Yesterday was a day like this one', nowSay(L)];
   if (has(/\b(doing|today|eat|eaten|evening|tonight|morning|now|later|busy)\b/)) return [nowSay(L), L.today.next ? `after this, ${cut(L.today.next, 10)}` : ''];
   if (has(/\b(happened|harvest|quarrel|lately|quarter|year|new)\b/)) {
@@ -118,12 +120,13 @@ function lifeAnswer(L: LifeRecord, said: string, M: Manner): string[] {
   return [nowSay(L), kin && !M.terse ? `at home are ${kin}` : ''];
 }
 /** a reason of yesterday's plan said as a memory: "yesterday I was helping kin with their harvest", "yesterday: a night turn of water" */
-const yesterdaySay = (y: string) => { const t = firstPerson(cut(y, 12)); return /^[a-z]+ing\b|^(at|in|on|with)\b/.test(t) ? `yesterday I was ${t}` : `yesterday there was ${t}`; };
+const yesterdaySay = (y: string) => { const t = firstPerson(ownWords(y.replace(/^[^:]*: /, ''))); return /^[a-z]+ing\b|^(at|in|on|with)\b/.test(t) ? `yesterday I was ${t}` : `yesterday, ${t}`; };
 const ageNum = (a: number) => ['nothing', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'][a] ?? 'big';
 
 /** the reply to one turn: the words and the tag (the model's [refuse:why] when the person says no) */
 const GREET = /^\s*(hello|hail|hi|greetings|good (morning|day|evening|health)|peace( be)?|well met|be well)\b/i, BYE = /^\s*(good ?bye|farewell|go well|i must go|i will go|until (we meet|later)|stay well)\b/i;
-export function ownReply(L: LifeRecord, said: string, o: AskOpts = {}, knows: Knows = 'none'): { text: string; intent: Intent | null } {
+export function ownReply(L: LifeRecord, said: string, o: AskOpts = {}, knows: Knows = 'none', /** the flourishes already said in this talk (once each: an oath, a question back, a proverb) */ used: Set<string> = new Set()): { text: string; intent: Intent | null } {
+  const once = (k: string, p: boolean) => { if (!p || used.has(k)) return false; used.add(k); return true; };
   const M = mannerOf(L), note = o.note ?? '', before = o.before ?? '', u = o.userText ?? '';
   const lines: string[] = []; let intent: Intent | null = null;
   // the picked memory (turn.ts: a question about earlier meetings) and the retelling of a refusal
@@ -155,10 +158,10 @@ export function ownReply(L: LifeRecord, said: string, o: AskOpts = {}, knows: Kn
   let ls = lines.map(x => x.trim()).filter(Boolean); if (wary || M.terse) ls = ls.slice(0, wary ? 1 : 2);
   if (!ls.length) ls = ['…'];
   ls[0] = cap(ls[0]); for (let i = 1; i < ls.length; i++) ls[i] = cap(ls[i]);
-  if (!wary && M.pious && M.oath && !intent && draw(L, said, 10) < 0.35) ls.push(`${cap(M.oath)}, it is so`);
-  if (!wary && M.curious && !M.child && draw(L, said, 11) < 0.45) ls.push(pick(L, said, 12, ['And you, where are you from?', 'And what brings you here?', 'Have you news from the road?']));
-  if (!wary && M.old && draw(L, said, 13) < 0.3) ls.push(pick(L, said, 14, ['It was different under the king’s father', 'So it goes', 'The gods know the rest']));
-  if (!wary && M.warm && !intent && draw(L, said, 15) < 0.3 && !M.child) ls.unshift(pick(L, said, 16, [`Ah, ${M.addr}`, `Well now, ${M.addr}`, `Listen, ${M.addr}`]));
+  if (once('oath', !wary && M.pious && !!M.oath && !intent && draw(L, said, 10) < 0.5)) ls.push(`${cap(M.oath!)}, it is so`);
+  if (once('ask', !wary && M.curious && !M.child && draw(L, said, 11) < 0.6)) ls.push(pick(L, said, 12, ['And you, where are you from?', 'And what brings you here?', 'Have you news from the road?']));
+  if (once('old', !wary && M.old && draw(L, said, 13) < 0.5)) ls.push(pick(L, said, 14, ['It was different under the king’s father', 'So it goes', 'The gods know the rest']));
+  if (once('warm', !wary && M.warm && !intent && draw(L, said, 15) < 0.5 && !M.child)) ls.unshift(pick(L, said, 16, [`Ah, ${M.addr}`, `Well now, ${M.addr}`, `Listen, ${M.addr}`]));
   // the fence: a sentence with a word they cannot know is left out (the life's words are the simulation's; this guards the joins)
   const said1 = ls.map(x => end(x.replace(/\s+,/g, ',').replace(/\s{2,}/g, ' '))).filter(x => !fenceHits(x).length);
   return { text: spoken(said1.join(' ') || '…'), intent };
@@ -166,9 +169,10 @@ export function ownReply(L: LifeRecord, said: string, o: AskOpts = {}, knows: Kn
 
 /** the person's mind without the model: the same interface as mind.ts Mind for talkTurn (answer, judge) */
 export class OwnMind {
-  readonly engine = null; readonly model = 'own lines'; answers = 0;
+  readonly engine = null; readonly model = 'own lines'; answers = 0; private used = new Map<number, { t: number; s: Set<string> }>();
   async answer(L: LifeRecord, _knows: Knows, _history: Turn[], said: string, _prose?: string | null, _max = 64, opts: AskOpts = {}): Promise<Answer> {
-    this.answers++; const r = ownReply(L, said, opts, _knows); const hits = fenceHits(r.text);
+    this.answers++; const k = L.pid, u = this.used.get(k); const used = u && L.day * 24 + L.hour - u.t < 1 ? u.s : new Set<string>(); this.used.set(k, { t: L.day * 24 + L.hour, s: used }); if (this.used.size > 200) this.used.delete(this.used.keys().next().value!);
+    const r = ownReply(L, said, opts, _knows, used); const hits = fenceHits(r.text);
     return { intent: r.intent, heard: hearAsPerson(said).text, text: r.text, raw: r.text, ok: !hits.length && r.text.length > 1, hits, tries: 1, ttftMs: 0, totalMs: 0, primeMs: 0, tokens: 0, prefillTps: 0, decodeTps: 0 };
   }
   /** no judge without the model: the words and the tag decide (turn.ts falls back to wordsRefuse) */

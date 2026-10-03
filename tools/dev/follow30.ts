@@ -39,7 +39,7 @@ function kindOf(sim: PeopleSim, pid: number, day: number): Kind | null {
   return 'town';
 }
 const STOP = new Set('about after again their there these those which while where would could should other being house household stranger little before every under years first today still the and with from that this have your what when them they into over some more than just been were will only like make made such each also even most'.split(' '));
-const words = (s: string) => new Set((s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').match(/[a-zšθčçžāīū’]{5,}/g) ?? []).filter(w => !STOP.has(w)));
+const words = (s: string) => new Set((s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').match(/[a-zšθčçžāīū’]{4,}/g) ?? []).filter(w => !STOP.has(w)));
 const names = (L: LifeRecord) => [...L.household.map(k => k.name), ...L.kinHouses.map(k => k.replace(/’s house.*/, '')), ...L.friends.map(f => f.name)].filter(n => n && n !== 'unnamed');
 /** the facts a grounded reply to each question draws on (any one shared content word, or a name, counts) */
 function sources(L: LifeRecord, key: string): string[] {
@@ -47,7 +47,7 @@ function sources(L: LifeRecord, key: string): string[] {
     case 'who': return [L.name, L.origin, L.job, L.byname ?? ''];
     case 'family': return [...names(L), ...L.household.map(k => k.rel), L.group ?? ''];
     case 'work': return [L.job, L.group ?? '', L.today.now];
-    case 'year': return [...L.year, ...L.past, ...L.quarrels, ...L.today.events.slice(0, 2)];
+    case 'year': return [...L.year, ...L.past, ...L.quarrels, ...(L.lately ?? []), ...(L.yesterday ?? []), ...L.today.events.slice(0, 2)];
     default: return [...L.worries, ...L.hopes, ...L.needs, ...L.quarrels, ...L.debts];
   }
 }
