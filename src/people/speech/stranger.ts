@@ -100,6 +100,10 @@ export type SAct =
   | { a: 'stay'; day: number; hh: string }
   | { a: 'leave_stay'; day: number }
   | { a: 'give'; day: number; hh: string; grain?: number; cash?: number }
+  /** D-720 (D-358's port, s14-simtalk): silver lent to a house that is short of it, owed back in two months (the economy repays it as
+   *  any debt: Economy.due); and the stranger asking a house for help (two days' bread from its own stores) */
+  | { a: 'lend'; day: number; hh: string; cash: number }
+  | { a: 'ask_help'; day: number; hh: string }
   | { a: 'join'; day: number; kind: GroupKind; q?: string; hh?: string }
   | { a: 'leave_group'; day: number }
   | { a: 'buy' | 'sell'; day: number; /** a household, or MARKET (the stalls of the market ground) */ hh: string; good: 'grain' | 'fuel' | 'goods'; qty: number }
@@ -189,6 +193,12 @@ export class Stranger {
       case 'stay': return this.stayCheck(s.hh, s.day);
       case 'join': return this.joinCheck(s, s.day);
       case 'petition': return this.petitionCheck(s);
+      case 'lend': { const H = this.H(s.hh); if (!H) return { ok: false, why: 'no such house' }; if (s.cash > this.purse.cash + 1e-9) return { ok: false, why: 'the stranger has not got it' };
+        if (this.trust(s.hh) < 0.35) return { ok: false, why: 'they will not take silver from a man they do not trust' };
+        return H.cash < 1 || H.debts.some(d => d.amt > 0.05 && d.due <= s.day + 30) ? { ok: true, why: 'the house is short of silver' } : { ok: false, why: 'the house has no need of a loan' }; }
+      case 'ask_help': { const H = this.H(s.hh); if (!H) return { ok: false, why: 'no such house' };
+        if (this.trust(s.hh) < 0.3) return { ok: false, why: 'they do not know you, and will not give to a stranger they do not trust' };
+        return H.grain > H.eaters * GRAIN_EAT * 30 + 2 * GRAIN_EAT ? { ok: true, why: 'they have bread to spare' } : { ok: false, why: 'they have no bread to spare: their own is running short' }; }
       case 'give': { const g = s.grain ?? 0, c = s.cash ?? 0; return g > this.purse.grain + 1e-9 || c > this.purse.cash + 1e-9 ? { ok: false, why: 'the stranger has not got it' } : { ok: true, why: 'a gift' }; }
       case 'claim': return { ok: true, why: 'said' };
       case 'buy': case 'sell': return this.deal(s, false);
@@ -229,6 +239,12 @@ export class Stranger {
         this.stay = { host: s.hh, from: day, nights: 0, owed: 0, ev: e }; void H; return { ok: true, why: v.why, ev: [e] }; }
       case 'leave_stay': this.endStay(day); return { ok: true, why: 'left' };
       case 'give': return this.give(s.hh, s.grain ?? 0, s.cash ?? 0, day);
+      case 'lend': { const v = this.judge(s); if (!v.ok) return v; const H = this.H(s.hh)!; this.purse.cash -= s.cash; H.cash += s.cash;
+        const e = this.ev('lent_by_stranger', [H.cause.cash], PLAYER, s.hh, s.cash); this.E.owe(s.hh, PLAYER, s.cash, day + 60, e); return { ok: true, why: 'lent; owed back in two months', ev: [e] }; }
+      case 'ask_help': { const v = this.judge(s); if (!v.ok) return v; const H = this.H(s.hh)!, g = 2 * GRAIN_EAT; H.grain -= g; this.purse.grain += g; this.hungry = 0;
+        // (the help is from the stranger's own earlier dealings with the house when there are any: a gift returned, work remembered)
+        let prior: number | undefined; for (let i = this.E.events.length - 1, n = 0; i >= 0 && n < 4000; i--, n++) { const x = this.E.events[i]; if (!x) continue; if (x.day < day - 30) break; if ((x.actor === PLAYER && x.other === s.hh) || (x.actor === s.hh && x.other === PLAYER)) { prior = x.id; break; } }
+        const e = this.ev('helped_stranger', [prior], s.hh, PLAYER, g); return { ok: true, why: 'they gave him bread', ev: [e] }; }
       case 'join': { const v = this.joinCheck(s, day); if (!v.ok) { this.bump('join_refused'); return v; }
         this.leaveGroup(day); return this.joinGroup(s, day, v.why); }
       case 'leave_group': this.leaveGroup(day); return { ok: true, why: 'left' };

@@ -36,7 +36,7 @@ export function firstPerson(s: string): string {
   t = t.replace(/^born in /, 'I was born in ').replace(/^the (father|mother|husband|wife)\b/, 'my $1')
     .replace(/^a (brother|sister|son|daughter|kinsman) (was born|did not come back)/, 'a $1 of mine $2')
     .replace(/^(the death of|the rising|the risings|the army|the king)/, 'I remember $1')
-    .replace(/^is to be married/, 'I am to be married').replace(/^is sick/, 'I am sick').replace(/^is owed/, 'we are owed').replace(/^owes /, 'we owe ')
+    .replace(/^eats /, 'I eat ').replace(/^is to be married/, 'I am to be married').replace(/^is sick/, 'I am sick').replace(/^is owed/, 'we are owed').replace(/^owes /, 'we owe ')
     .replace(/^(came|lost|married|was|marched|lived|began|had|moved|must|could not|borrowed|paid|worked|went|fell|broke)\b/, 'I $1')
     .replace(/^is (asleep|busy|sick|ill|hurt|away|working|on |at |in |too |not |minding|watching|with )/, 'I am $1').replace(/^has /, 'I have ').replace(/^(asleep|busy|sick|ill|hurt|away|on watch|on duty|at work|too young|too old|too tired|in mourning|minding|watching)\b/, 'I am $1')
     .replace(/^the house\b(?! of)/, 'our house').replace(/^the group’s\b/, 'our group’s').replace(/^one of the house\b/, 'one of our house')
@@ -94,6 +94,9 @@ function lifeAnswer(L: LifeRecord, said: string, M: Manner): string[] {
   if (has(/\b(can i help|need (any|some)thing|what do you need|need help|help you|anything i can do)\b/)) return L.needs.length ? [`My house needs ${cut(L.needs[0].split(';')[0], 10)}`, /would ask even a stranger, offering (.*)$/.exec(L.needs[0]) ? `we would give ${/offering (.*)$/.exec(L.needs[0])![1]} for it` : ''] : [`We want for nothing just now, ${M.pious ? 'thanks be to the gods' : 'thank you'}`];
   if (has(/\b(neighbou?rs?|friends?)\b/) && (L.lately?.length || L.friends.length)) return [...(L.lately ?? []).slice(0, 1), L.friends[0] ? `${L.friends[0].name} is ${/^kin/.test(L.friends[0].how) ? 'kin of mine' : /same group/.test(L.friends[0].how) ? 'one I work with' : 'a neighbour'}${L.friends[0].feeling === 'close' ? ', and close to me' : /bad terms/.test(L.friends[0].feeling) ? ', and we do not speak since a quarrel' : ''}` : ''];
   if (has(/\b(rumou?rs?|gossip|what have you heard|heard anything|talk of the|what do people say|news)\b/)) return L.news.length ? L.news.slice(0, 2).map(x => `I ${x.replace(/\s*\(not sure it is true\)/, ', if it is true')}`) : ['I have heard nothing worth telling'];
+  // (D-720, D-358's port: what the house lives on, from the economy; a debt pressing is said with it)
+  if (has(/\b(poor|rich|enough (food|barley|bread|to eat)|stores?|barley|grain|hungry|hunger|prices?|cost|dear|cheap|how do you (live|manage|get by)|means|afford)\b/) && L.means?.length)
+    return [firstPerson(L.means[0]), ...(has(/\b(prices?|cost|dear|cheap|barley|grain|afford)\b/) && L.means[1] ? [L.means[1]] : L.debts.slice(0, 1).map(firstPerson))];
   if (has(/\b(debts?|owe|owed|owes|silver|loan|lend|borrow|money|poor|rich)\b/)) return L.debts.length ? L.debts.slice(0, 2).map(firstPerson) : ['We owe no one, and no one owes us'];
   if (has(/\b(who are you|your name|yourself|how old)\b/)) {
     const by = L.byname && L.name !== `the ${L.byname}` ? `, ${L.byname}` : '';
