@@ -4,7 +4,7 @@
  {"id":"lane-n","e":-484.18,"n":413.75,"eye":1.6,"az":125.2,"pitch":2.1,"day":25,"hour":10,"w":"clear","why":"a lane in the N town (cov-097)","owner":"C2"},
  {"id":"market-q_s1","e":-444.3,"n":-990.7,"eye":1.6,"az":279,"pitch":-6,"day":25,"hour":10,"w":"clear","why":"a q_s1 market square","owner":"C2"},
  {"id":"town-court","e":-535.43,"n":401.14,"eye":1.6,"az":29.5,"pitch":-3.8,"day":25,"hour":10,"w":"clear","why":"a house court (cov-037)","owner":"C2"},
- {"id":"house-interior","e":-503.4,"n":-1028.7,"eye":1.6,"az":69,"pitch":-12,"day":25,"hour":10,"w":"clear","why":"a living room seen from its court (C7-1 view)","owner":"C2"},
+ {"id":"house-interior","e":-532.06,"n":410.4,"eye":1.6,"az":119.4,"pitch":2,"day":25,"hour":10,"w":"clear","why":"inside a town room (cov-204, town:rooms)","owner":"C2"},
  {"id":"field-500m","e":-800,"n":200,"eye":1.6,"az":251,"pitch":-6,"day":25,"hour":10,"w":"clear","why":"a spring field on the plain 0.8 km W (small-spring-field)","owner":"C3"},
  {"id":"plain-1.5km","e":-1500,"n":100,"eye":1.6,"az":251,"pitch":-2,"day":25,"hour":10,"w":"clear","why":"the open plain 1.5 km W, looking away from the Terrace","owner":"C3"},
  {"id":"river-pulvar","e":859.1,"n":3775.1,"eye":1.6,"az":334.7,"pitch":-7,"day":25,"hour":10,"w":"clear","why":"the Pulvar at the ford","owner":"C3"},
