@@ -1968,7 +1968,19 @@ export class Population {
   /** D-459 (UD-32): the deeds of the minds and the stranger laid over the plans (people/deeds/engine.ts DeedWorld; the sim sets it):
    *  a friend visited, work shared, a wound kept at home. Over the relations' meetings, under the stranger's talk */
   deeds: { touches(pid: number, day: number): boolean; overlay(pid: number, day: number, base: Seg[]): Seg[] } | null = null;
-  plan(pid: number, day: number): Seg[] { let b = this.basePlan(pid, day); const e = this.econ?.touches(pid, day); if (this.wash?.touches(pid, day)) b = this.wash.overlay(pid, day, b); if (e) b = this.econ!.overlay(pid, day, b); if (this.bonds?.touches(pid, day)) b = this.bonds.overlay(pid, day, b); b = this.mindAfter(pid, day, b); if (this.deeds?.touches(pid, day)) b = this.deeds.overlay(pid, day, b); if (this.talk?.touches(pid, day)) b = this.talk.overlay(pid, day, b); b = this.outOfDoors(pid, day, b); b = this.keepFood(pid, day, b); return b === this.basePlan(pid, day) ? b : this.keepDress(day, b); }
+  plan(pid: number, day: number): Seg[] { let b = this.basePlan(pid, day); const e = this.econ?.touches(pid, day); if (this.wash?.touches(pid, day)) b = this.wash.overlay(pid, day, b); if (e) b = this.econ!.overlay(pid, day, b); if (this.bonds?.touches(pid, day)) b = this.bonds.overlay(pid, day, b); b = this.mindAfter(pid, day, b); if (this.deeds?.touches(pid, day)) b = this.deeds.overlay(pid, day, b); if (this.talk?.touches(pid, day)) b = this.talk.overlay(pid, day, b); b = this.keepRites(pid, day, b); b = this.outOfDoors(pid, day, b); b = this.keepFood(pid, day, b); return b === this.basePlan(pid, day) ? b : this.keepDress(day, b); }
+  /** D-651: a funeral is not given up for an overlay's errand (a deed's work laid over the hours: the bearer was "cleaning with"
+   *  a neighbour while the dead was carried out, religion.test): the base day's funeral, from the walk out to the walk home,
+   *  is laid back over whatever an overlay put there */
+  private keepRites(pid: number, d: number, segs: Seg[]): Seg[] {
+    const base = this.basePlan(pid, d); if (base === segs) return segs;
+    const i0 = base.findIndex(x => x.act === 'carry_bier' || /^(carrying the dead|following the dead)/.test(x.why)); if (i0 < 0) return segs;
+    let i1 = i0; for (let i = i0; i < base.length; i++) { if (['carry_bier', 'bury', 'mourn'].includes(base[i].act) || /the dead|returning home/.test(base[i].why)) i1 = i; else if (i > i0 + 1 && base[i].where !== 'road') break; }
+    const A = base[i0].t0, B = base[i1].t1; if (segs.every((x, i) => x === base[i]) || (segs.some(x => x.act === 'carry_bier') && segs.filter(x => x.t0 < B && x.t1 > A).every(x => base.includes(x)))) return segs;
+    const out: Seg[] = [];
+    for (const x of segs) { if (x.t1 <= A || x.t0 >= B) { out.push(x); continue; } if (x.t0 < A) out.push({ ...x, t1: A }); if (x.t1 > B) out.push({ ...x, t0: B }); }
+    out.push(...base.slice(i0, i1 + 1)); return out.sort((a, b) => a.t0 - b.t0);
+  }
   /** D-651 (the out-of-doors day; s18 C12's pagecheck: a town lane at 13:48 with all 144 people at home, 111 of them in walled
    *  courts, and nobody walking): the life of the lanes. A grown-up of the town or a village (14-65, not minding little ones,
    *  nursing, ill or in mourning, nor someone a child of the house is with) goes out three to five times a day from a stretch at
