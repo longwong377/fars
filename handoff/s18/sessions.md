@@ -24,3 +24,4 @@ Ownership added after C12's audit (04:35): C2 + src/world/settlement/surfaces.ts
 | C15 beyond the Terrace (Naqsh-e Rustam, estates, villages) | src/world/plain/(naqsh,villagehouses,villages,villagesite).ts (from C3), src/world/settlement/compounds.ts + plan.ts:274-358 (estates/pavilion/halls block) | cloud-s18-c15-beyond | session_01U22hbmA1DxZZUchN136wkU |
 
 12:55 UTC lead 4 (user: close sessions as they finish, consolidate into one): archived C2 C3 C4 C5 C8 C10 C11 C12 C14 C15, s17 eyes, s17 CI, Fars 16, __warming__. Open: lead 4, C1 (funeral), C9 (deploy check ab009bc8), C13 (robe), C6 (cycle 2 renders), C7 (CI run); each archived on its final report.
+13:00 UTC lead 4: archived C13, C9 (DEPLOY OK ab009bc8, D-813), C7 (full CI not run on the freeze head), C1 (interrupted 50 min past its freeze deadline mid-debug of the funeral/carry_bier red; its branch keeps whatever it pushed, not merged). Open: lead 4, C6 (cycle 2 frames ~13:45, the last review).
