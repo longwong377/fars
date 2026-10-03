@@ -89,7 +89,12 @@ function mixCue(cue: Cue) {
     report.push(`${p.id.padEnd(14)} ${p.inst}/${p.art} peak ${(20 * Math.log10(pk + 1e-9)).toFixed(1)} dB`);
     if (pk < 1e-4) throw new Error(`${cue.id}/${p.id}: the stem is silent`);
   });
-  const [ia, ib, ic, id] = [11, 23, 37, 41].map(s => hallIR(s));
+  // a recorded hall when Vagon has fetched one (tools/score/fetch_vagon.mjs), else the modelled one
+  const rec = join(import.meta.dirname, 'ext/ir/hall.wav');
+  let ia: Float32Array, ib: Float32Array, ic: Float32Array, id: Float32Array;
+  if (existsSync(rec)) { const a = readWav(rec), l = a.ch[0], r = a.ch[1] ?? a.ch[0], norm = (x: Float32Array) => { let e = 0; for (const v of x) e += v * v; const g = 1 / Math.sqrt(e || 1); return x.map(v => v * g); };
+    ia = norm(l); ib = norm(r); ic = norm(r); id = norm(l); }
+  else [ia, ib, ic, id] = [11, 23, 37, 41].map(s => hallIR(s));
   const wl = convolve(sendL, ia), wr = convolve(sendR, ib), xl = convolve(sendR, ic), xr = convolve(sendL, id), wet = 0.55;
   let L: Float32Array = new Float32Array(len), R: Float32Array = new Float32Array(len);
   for (let k = 0; k < len; k++) { L[k] = dryL[k] + wet * (wl[k] + 0.45 * xl[k]); R[k] = dryR[k] + wet * (wr[k] + 0.45 * xr[k]); }
