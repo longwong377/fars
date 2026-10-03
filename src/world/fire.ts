@@ -514,7 +514,9 @@ export const PORT_RHO = 0.8, PORT_AREA = 4.0, PORT_CUT = 9, PORT_R = 30, PORT_OU
 export const PORT_FIRE_R = 6, PORT_NIGHT = 0.8;
 /** D-530: how many of the nearest fire lights cast shadows at high/ultra, their cube maps' reach (m), the soft filter's
  *  radius (texels; a flame a few decimetres across), and how often (frames) each is redrawn while it keeps its fire */
-export const FIRE_SHADOW_LIGHTS = 2, FIRE_SHADOW_FAR = 30, FIRE_SHADOW_RADIUS = 6, FIRE_SHADOW_REFRESH = 24;
+// s17 D-490 (V2, the lead's switch): 0 by default: each fire's shadow cube added a sampler to every lit material, and the T4's
+// 16 samplers per fragment stage (not the 32 textures TEX_LIMIT checks) failed the Terrace, palace and dove pipelines (17/18 > 16)
+export const FIRE_SHADOW_LIGHTS = 0, FIRE_SHADOW_FAR = 30, FIRE_SHADOW_RADIUS = 6, FIRE_SHADOW_REFRESH = 24;
 /** the adapter's sampled-texture limit per shader stage (read once at load; 0 until known or without WebGPU): the fire
  *  shadows' cube maps need room beyond the scanned surfaces (B24) */
 export const TEX_LIMIT = { n: 0 };

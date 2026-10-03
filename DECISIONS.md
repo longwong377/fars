@@ -9836,3 +9836,6 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   new parameters stay in relief_atlas.ts: the atlas test reads "not current", as it already did since D-510's polychromy
   change. To finish: `RELIEF_WORK=T:/fars-blender/reliefs node C:/Users/Administrator/fars/tools/dev/gpu_slot.mjs v4 -- npx tsx
   tools/blender/relief_atlas.ts --jobs=5 --reuse` (~8 min bake + pack), then commit the two KTX2 files and the index.
+- Fire shadow cubes off by default (the lead's allowed switch, s17 02:30): FIRE_SHADOW_LIGHTS 2 -> 0 in fire.ts (?fireshadows=K opts
+  in). Each cube added a sampler to every lit material; the built site still logged samplers 17/18 > 16 (pipelines 217, 228,
+  356) and their cascades (merlon, dove) after the surface cut to 5. TEX_LIMIT checks 32 textures, but the limit is 16 samplers.
