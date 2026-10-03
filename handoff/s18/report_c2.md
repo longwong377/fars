@@ -53,8 +53,8 @@ frames (the plaster, D-668/669; the life objects, D-670) are rendering; they are
 - **Dawn view census** (D-672): at C6's intro-town camera no ray reaches a room's floor: every room roofed; the dark holes are the courts' inner faces (washed full now, D-668).
 - **Walls** (D-673, D-674): the footing's ledge toned so it no longer floats; the plaster's grain a lime-plaster scan (ambientCG Plaster001, CC0).
 - **The town to the Terrace's foot** (D-675): q_b8 under the Terrace's west foot, q_b9 west of it, q_b10 along the road to
-  the Gate; q_b1 removed (it stood on the stair forecourt's approach); the house being built is q_b10-0027 (-342.2, 136.4);
-  2,164 plots, capacity 10,638 <= 11,000; 0 houses shut. tests/settlement.test.ts keeps houses out of the Terrace and the
+  the Gate; q_b1 removed (it stood on the stair forecourt's approach); the house being built is q_b10-0020 (-311.2, 121.3); q_b9 split (q_b11) and q_b6, q_b8, q_b10 moved off the baggage trains' tracks;
+  2,083 plots, capacity 10,033 <= 11,000; 0 houses shut. tests/settlement.test.ts keeps houses out of the Terrace and the
   stair forecourt only (the nav grid takes the town's colliders, C5's D-694). Desire lines pointing at the stair are no
   longer drawn (C7's radial red: 1 -> 0). Town props take a bottom face on request (Prop.bottom, C15's estates use it).
 - **Budgets:** settlement_build 5/5 (meshes 45, was 51 at the start; 1.04 M triangles ≤ 1.2 M), houses 9/9 (far level

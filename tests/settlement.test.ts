@@ -19,7 +19,7 @@ function plotCells(s: Site, idx: number, stride = 1): P2[] { const out: P2[] = [
 // s18 C2 (D-675, lead 2's call): what must stay clear of plots now that build_nav takes the town's colliders (C5, D-694)
 // and the lower town reaches the Terrace's foot: the Terrace platform and the Grand Stair's forecourt (the old rule kept the
 // whole nav grid's box, e −620…262, n −245…185, empty); the roads' widths are the onRoad check below
-const CLEAR = [{ e0: -65, e1: 262, n0: -245, n1: 240 }, { e0: -250, e1: -60, n0: 40, n1: 200 }];
+const CLEAR = [{ e0: -65, e1: 262, n0: -245, n1: 240 }, { e0: -250, e1: -60, n0: 0, n1: 200 }];
 
 describe('settlement layout (Phase 6)', () => {
   it('every plot lies inside its zone polygon or within the stated uncertainty of its point feature', () => {
