@@ -5,6 +5,11 @@
   pictures are crude SwiftShader/WebGL frames from the house probe (tools/dev/house_lab ?fill&webgl, SWIFT=1): a lane with the
   tethered donkey, a leaned tool, fuel and a sack. Four town views are asked in handoff/s17/asks_vagon.md (lane + tether, market
   at 8 h, reed-mat awning, litter). Everything below is measured by node censuses, not judged by eye.
+- **First cloud frame (cloud eyes, ask-c1-1, 01:36, SwiftShader WebGL2 Q=test):** the lane, tethered donkey, washing line
+  and leaned firewood read, but of the ~10 fill things the plan puts within 10 m of that camera (bolts, dung cakes, broom,
+  litter, fodder, hoe, sack) only the firewood bundles show. Cause unknown: not drawn in that page, or sunk at terrain height
+  where the nav calls the wall foot unwalkable (world.ts groundAt falls back to terrain.heightAt). The "floating pale strip" at
+  the left wall foot is most likely the stone footing's top ledge over its face in shade, not a detached mesh (unverified).
 - **B580 open: two houses nobody can enter**, q_s4-0074 and q_s4-0161 (pre-existing plan geometry: lane frontages pinched at
   both jambs). Three of five were reopened (clear-jamb doors, corners cut back to the lane, a door through the cut corner);
   measurements and the next steps in BLOCKERS.md.
