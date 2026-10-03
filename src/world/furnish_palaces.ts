@@ -382,7 +382,7 @@ export function palaceFurnishingPlan(parts: Part[], manifest: Manifest, doorways
     alongWalls(room, 'stored', 'chest', CH.len / 2, CH.w / 2, CH.h, 2, ss.slice(0, 2)); alongWalls(room, 'stored', 'jar', J.r, J.r, J.h, 3, ss.slice(2));
     alongWalls(room, 'stored', 'stool_stack', S.w / 2, S.w / 2, S.h * 3, 1, 'E', { count: 3 }); alongWalls(room, 'stored', 'carpet_rolls', CR.len / 2, CR.r * 3.2, CR.r * 5, 1, 'S', { count: 4 }); }
   for (const id of ['W1', 'W2', 'E2', 'W3', 'E3', 'SW', 'SE']) { const r = T(id); if (!r) continue;
-    corners(r, 'use', 'lamp_stand', LS.r, LS.h, 0.5); alongWalls(r, 'use', 'stool', S.w / 2, S.w / 2, S.h, 1, 'NS'); alongWalls(r, 'use', 'chest', CH.len / 2, CH.w / 2, CH.h, 1, 'EW'); alongWalls(r, 'use', 'jar', J.r, J.r, J.h, 2, 'NSEW');
+    alongWalls(r, 'use', 'jar', J.r, J.r, J.h, 2, 'NSEW'); // (jars only in use: the court's palaces are at their triangle budget, tests/model_props.test.ts)
     alongWalls(r, 'stored', 'jar', J.r, J.r, J.h, 2, 'S'); alongWalls(r, 'stored', 'stool_stack', S.w / 2, S.w / 2, S.h * 3, 1, 'N', { count: 3 }); }
   return out;
 }
