@@ -155,7 +155,8 @@ export class PopulationVoices {
   private slots = new Map<string, Slot>(); private groups = new Map<string, Group>();
   private bedNext: number[] = []; private recentAll = new Map<string, number>();
   /** who speaks now (context time): the crowd moves their jaw from `from` to `to` (world.ts) */
-  readonly speaking = new Map<string, { from: number; to: number }>();
+  /** who is speaking now (audio clock), and D-720 (C14's visemes, D-790): the words being said (their IPA and transliteration) */
+  readonly speaking = new Map<string, { from: number; to: number; ipa?: string; text?: string }>();
   /** the talkers voiced this update (individually or by the bed): the crowd lets only the voice move their jaw */
   readonly claimed = new Set<string>();
   /** when set, every utterance and grain started is appended (the offline measurement) */
@@ -257,7 +258,7 @@ export class PopulationVoices {
     g.connect(pan); e.route(pan, 'voices', t0 + dur); src.start(t0); src.stop(t0 + dur + 0.01);
     s.n++; for (const id of [tune.id, ...tune.parts]) s.recent.set(id, now); this.recentAll.set(`${lang}|${tune.id}`, now);
     if (s.recent.size > 64) for (const [k, t] of s.recent) if (t < now - 61) s.recent.delete(k);
-    this.speaking.set(s.key, { from: t0, to: t0 + dur }); s.busyUntil = t0 + dur; s.spoke = t0 + dur; this.stats.utterances++;
+    this.speaking.set(s.key, { from: t0, to: t0 + dur, ipa: tune.ipa, text: tune.translit || tune.gloss }); s.busyUntil = t0 + dur; s.spoke = t0 + dur; this.stats.utterances++;
     const L: SpokenLang = tune.kind === 'wordless' ? 'wordless' : lang ?? (tune.id.startsWith('tg:') ? `tg:${tune.id.split(':')[1]}` : 'wordless'); this.log?.push({ key: s.key, kind, t0, t1: t0 + dur, unit: tune.id, lang: L, src, pan, buf, voice: s.voice });
     if (this.onCaption && d <= this.captionR) this.onCaption({ key: s.key, unit: tune.id, lang: L.startsWith('tg:') ? 'wordless' : L as LangId | 'wordless', ...(L.startsWith('tg:') ? { tongue: L.slice(3) } : {}), translit: tune.translit, gloss: tune.gloss, tier: tune.tier, t0, t1: t0 + dur });
     return t0 + dur;

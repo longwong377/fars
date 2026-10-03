@@ -161,10 +161,10 @@ export function mountConverse(c: Ctx) {
       const faOk = !!fa && !fa.hits.length, key = near.agent !== null ? `a${near.agent}` : `p${near.pid}`, at = { x: near.e, y: c.camera.position.y - 0.1, z: -near.n };
       const tH = performance.now();
       const h = nv?.stats.ready ? await heardReplyNeural(nv, sim.pop, near.pid, day, a.text, c.seed, { hearIn: layer === 'fa' && !faOk ? 'en' : layer, farsi: faOk ? fa!.fa : null, agent,
-        onChunk: (pcm, rate) => { if (c.world.sayPcm) c.world.sayPcm(key, pcm, rate, at); else play(pcm, rate); } }) : null;
+        onChunk: (pcm, rate) => { if (c.world.sayPcm) c.world.sayPcm(key, pcm, rate, at, layer === "en" ? { text: a.text } : undefined); else play(pcm, rate); } }) : null;
       if (h) heard = { lang: h.lang, layer: h.layer, units: h.units.map(u => u.translit || u.gloss), text: h.text, seconds: h.seconds, backend: 'kokoro', firstMs: h.firstMs, totalMs: performance.now() - tH, fa: fa ? { route: fa.route, ms: fa.ms, hits: fa.hits } : null };
       // (D-720: every voice at the speaker, through the world's mixer: volume, reverb and place; the bare context only without a world)
-      else { const f = heardReply(sim.pop, near.pid, day, a.text, c.seed, 24000, agent); heard = { lang: f.lang, layer: 'own', units: f.units.map(u => u.translit || u.gloss), seconds: f.seconds, backend: 'formant' }; if (c.world.sayPcm) c.world.sayPcm(key, f.data, f.rate, at); else play(f.data, f.rate); }
+      else { const f = heardReply(sim.pop, near.pid, day, a.text, c.seed, 24000, agent); heard = { lang: f.lang, layer: 'own', units: f.units.map(u => u.translit || u.gloss), seconds: f.seconds, backend: 'formant' }; if (c.world.sayPcm) c.world.sayPcm(key, f.data, f.rate, at, { ipa: f.units.map(u => u.ipa).join(' '), text: f.units.map(u => u.translit || u.gloss).join(' ') }); else play(f.data, f.rate); } // (D-720: the words, for the face's visemes: C14 D-790)
       if (c.englishVoice || P.has('english')) { en ??= new EnglishVoice(); en.load().then(() => en!.say(a.text)).then(r => { if (c.world.sayPcm) c.world.sayPcm(key, r.data, r.rate, at); else play(r.data, r.rate); }).catch(() => {}); } }
     // (D-370: what the sandbox step did, out of world, under the words: taken on, taken in, heard, refused and why)
     const sbDev = T.sandbox ? ` <br><i>(${T.sandbox.done?.ok ? SANDBOX_DONE[T.sandbox.act.a] ?? 'done' : T.sandbox.verdict.ok ? 'they would not' : T.sandbox.verdict.why})</i>` : '';
