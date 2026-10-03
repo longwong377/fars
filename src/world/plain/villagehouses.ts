@@ -341,7 +341,8 @@ export class VillageHouses {
       return { g, ranges }; };
     const Sg = build(STRUCT); yield; const Tg = build(THINGS); yield;
     for (const [m, x] of [[this.structMesh, Sg], [this.thingsMesh, Tg]] as const) {
-      m.geometry.dispose(); if (!x) { m.geometry = emptyGeometry(); m.visible = false; continue; }
+      this.retire.push({ g: m.geometry, frames: 4 }); // (disposed a few frames later: the shadow pass may still hold the old buffers bound, the T4 black screen's class of fault)
+      if (!x) { m.geometry = emptyGeometry(); m.visible = false; continue; }
       m.geometry = x.g; m.visible = true; const ranges = x.ranges;
       m.userData = { ...m.userData, describe: (hit: any) => { const f = hit?.faceIndex ?? -1; let lo = 0, hi2 = ranges.length - 1; while (lo < hi2) { const mid = (lo + hi2 + 1) >> 1; if (ranges[mid].f0 <= f) lo = mid; else hi2 = mid - 1; } const r = ranges[lo]; return r && f >= r.f0 && f < r.f1 ? partDesc(r.desc, r.owner[f - r.f0], false) : null; } }; }
     const stt = VILLAGE_NEAR_STATE.image.data as Uint8Array; for (const t of this.shownSet) stt[(t + 1) * 4] = 0; this.shownKey = new Set(parts.map(q => q.t)); this.shownSet = new Set(parts.map(q => q.t >> 1)); for (const t of this.shownSet) stt[(t + 1) * 4] = 255; VILLAGE_NEAR_STATE.needsUpdate = true;
@@ -364,7 +365,10 @@ export class VillageHouses {
       else if (d > 300 && col.live) { for (const k of col.live) this.phys.world.removeCollider(k, false); this.info.liveColliders -= col.live.length; col.live = null; } }
   }
   /** the frame: a step of building the nearest village in reach, the colliders, the near tiles, the gates */
+  /** merged near geometries swapped out, disposed once the renderer has drawn a few frames without them */
+  private retire: { g: THREE.BufferGeometry; frames: number }[] = [];
   update(dt: number, cam: THREE.Vector3, player: THREE.Vector3, day: number, sunAlt: number) {
+    if (this.retire.length) this.retire = this.retire.filter(r => (--r.frames > 0 ? true : (r.g.dispose(), false)));
     const reach = this.inReach(player, cam); for (const q of reach) if (!this.st[q.vi].hs) { this.buildStep(q.vi); break; }
     this.streamColliders(player, cam, 1500);
     if (seasonOf(day) !== seasonOf(this.nearDay)) this.resetNear(); this.nearDay = day;
