@@ -37,7 +37,7 @@ for (const v of work) {
       await p.evaluate(() => window.__parsa.tick()); }
     // an open view (v.open; the lead, holes.md row 22): keep the heading if the first hit at eye level on it is >= 8 m away,
     // else turn to the bearing of 16 with the farthest first hit (pickW: the world's meshes through the screen centre)
-    if (v.open) { const probe = async az => { await p.evaluate(q => { const A = window.__parsa; A.view(...q); A.renderer?.xr; const c = A.world?.root?.parent?.children?.find?.(o => o.isCamera); }, [a[0], a[1], a[2], az, 0, a[5], a[6]]); await p.evaluate(() => window.__parsa.tick()); // the camera's matrices update in the frame, not in view()
+    if (v.open) { const probe = async az => { await p.evaluate(q => window.__parsa.view(...q), [a[0], a[1], a[2], az, 0, a[5], a[6]]); await p.evaluate(() => window.__parsa.tick()); // the camera's matrices update in the frame, not in view()
         const h = await p.evaluate(() => window.__parsa.pickW(0, 0)).catch(() => null); return h ? h.d : 1e4; };
       const d0 = await probe(v.az); if (d0 < 8) { let best = [v.az, d0];
         for (let i = 0; i < 16; i++) { const az = (v.az + i * 22.5) % 360, d = await probe(az); if (d > best[1]) best = [az, d]; }
