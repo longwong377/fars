@@ -25,14 +25,14 @@ export function liftNode(p: any) { const d = length(p.xz.sub(cameraPosition.xz))
 
 interface Section { x: number; y: number; tx: number; ty: number; bank: number; s: number; ring: 'mid' | 'far' }
 /** centreline sections: within 12 km of the Apadana every R/4 m along the bends (R the local radius, D-670: 8-20 m, so a
- *  tight meander stays round and a straight reach costs no more than before), 30 m beyond; tangents smoothed over +-60 m */
+ *  tight meander stays round and a straight reach costs no more than before), R/3 beyond (12-45 m; was 30); tangents smoothed over +-60 m */
 function sections(r: RiverProfile): Section[] {
   const out: Section[] = []; const n = r.x.length; let s = 0, acc = 0;
   const radiusAt = (i: number) => { const a = Math.max(0, i - 2), b = Math.min(n - 1, i + 2), c = Math.min(n - 1, i + 1), d0 = Math.max(0, i - 1);
     let dth = Math.atan2(r.y[b] - r.y[c], r.x[b] - r.x[c]) - Math.atan2(r.y[d0] - r.y[a], r.x[d0] - r.x[a]); if (dth > Math.PI) dth -= 2 * Math.PI; if (dth < -Math.PI) dth += 2 * Math.PI;
     return Math.abs(dth) > 1e-4 ? Math.hypot(r.x[b] - r.x[a], r.y[b] - r.y[a]) * 0.75 / Math.abs(dth) : 1e9; };
   for (let i = 0; i < n - 1; i++) {
-    const near = Math.hypot(r.x[i], r.y[i]) < 12000, step = near ? Math.min(20, Math.max(8, Math.min(radiusAt(i), radiusAt(i + 1)) / 4)) : 30;
+    const near = Math.hypot(r.x[i], r.y[i]) < 12000, Rb = Math.min(radiusAt(i), radiusAt(i + 1)), step = near ? Math.min(20, Math.max(8, Rb / 4)) : Math.min(45, Math.max(12, Rb / 3));
     const seg = Math.hypot(r.x[i + 1] - r.x[i], r.y[i + 1] - r.y[i]);
     for (; acc < seg; acc += step) {
       const t = acc / seg, x = r.x[i] + (r.x[i + 1] - r.x[i]) * t, y = r.y[i] + (r.y[i + 1] - r.y[i]) * t;

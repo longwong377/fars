@@ -18,7 +18,8 @@ import { landUseAt, plotAt, hash2, unit, cellU, type ZoneMap } from './fields';
 import { cropState, YEAR, type CropRow } from './seasonal';
 import { vergeZone } from './verge';
 
-export const FIELD_R = { near: 130, far: 260, lod1: 45, move: 8, step: 18 } as const;
+/** D-670: villageFar: the villages' floors, straw stacks, grain heaps and folds stand in the far views too (their lod2) */
+export const FIELD_R = { near: 130, far: 260, lod1: 45, move: 8, step: 18, villageFar: 2200 } as const;
 /** the cereals' harvest day (seasonal.ts winterCereal's `harvest`) */
 export const HARVEST: Partial<Record<CropRow, number>> = { barley: 150, wheat: 178, emmer_spelt: 178 };
 /** the threshing season on the floors (doy) and the straw stacks' (to the next March) */
@@ -30,12 +31,14 @@ const PART: Record<string, [string, RGB]> = {
   grain: ['mud', [0.76, 0.62, 0.38]], chaff: ['reed', [0.82, 0.74, 0.55]], wood: ['wood', [0.47, 0.37, 0.27]], wood_d: ['wood', [0.38, 0.3, 0.22]],
   cord: ['reed', [0.58, 0.5, 0.36]], iron: ['wood', [0.3, 0.29, 0.28]], // (the cord and the share's iron under the reed's and wood's grain: 3 kinds, 3 scans in the one material)
   thorn: ['wood', [0.42, 0.36, 0.28]], thorn_d: ['wood', [0.33, 0.28, 0.22]],
+  // D-670: the field shelters and the herders' pens
+  reed: ['reed', [0.72, 0.62, 0.42]], mud: ['mud', [0.6, 0.48, 0.36]], wattle: ['wood', [0.5, 0.42, 0.31]], mud_roof: ['mud', [0.55, 0.46, 0.35]], pot: ['mud', [0.64, 0.46, 0.33]], mud_wet: ['mud', [0.46, 0.38, 0.29]],
 };
-const MODELS = ['wo_sheaves', 'wo_stooks', 'wo_threshing_floor', 'wo_grain_heap', 'wo_fodder', 'wo_sledge', 'wo_ard', 'wo_fold'] as const;
+const MODELS = ['wo_sheaves', 'wo_stooks', 'wo_threshing_floor', 'wo_grain_heap', 'wo_fodder', 'wo_sledge', 'wo_ard', 'wo_fold', 'fill_stall_reed', 'wo_hurdles'] as const;
 type M = typeof MODELS[number];
 /** the most instances per model (and per part and level) */
-const CAP: Record<M, number> = { wo_sheaves: 700, wo_stooks: 500, wo_threshing_floor: 8, wo_grain_heap: 24, wo_fodder: 60, wo_sledge: 8, wo_ard: 16, wo_fold: 8 };
-const BIG = new Set<M>(['wo_threshing_floor', 'wo_fold', 'wo_fodder', 'wo_grain_heap', 'wo_sledge', 'wo_ard']);
+const CAP: Record<M, number> = { wo_sheaves: 700, wo_stooks: 500, wo_threshing_floor: 8, wo_grain_heap: 24, wo_fodder: 60, wo_sledge: 8, wo_ard: 16, wo_fold: 8, fill_stall_reed: 120, wo_hurdles: 40 };
+const BIG = new Set<M>(['wo_threshing_floor', 'wo_fold', 'wo_fodder', 'wo_grain_heap', 'wo_sledge', 'wo_ard', 'fill_stall_reed', 'wo_hurdles']);
 
 export interface FieldItem { m: M; e: number; n: number; rot: number; s: [number, number, number]; shade: number }
 export interface FieldVillage { id: string; x: number; y: number; r: number; floor: [number, number] }
@@ -103,6 +106,28 @@ export function villageItems(villages: FieldVillage[], doy: number, ground?: (e:
   return out;
 }
 
+/** D-670: what stands out on the land all year, far into the views (the "little standing on it at 0.3-2 km"): a crop guard's
+ *  reed shelter at the edge of an irrigated plot (about 3 a square kilometre: the summer crops and orchards were watched
+ *  against birds, beasts and thieves, C), and on the rain-fed fallow a herder's wattle pen with its hut (about one a square
+ *  kilometre, C). A hash of 120 m / 220 m cells; none on a road or track (verge.ts) nor in a village (open()). Pure */
+export const LAND = { shelterCell: 120, shelterKeep: 0.15, penCell: 220, penKeep: 0.12 } as const;
+export function landItems(zm: ZoneMap, e: number, n: number, R: number, open?: (e: number, n: number) => boolean): FieldItem[] {
+  const out: FieldItem[] = [];
+  const scan = (C: number, salt: number, keep: number, f: (x: number, y: number, a: number, b: number) => void) => {
+    for (let i = Math.floor((e - R) / C); i <= Math.floor((e + R) / C); i++) for (let j = Math.floor((n - R) / C); j <= Math.floor((n + R) / C); j++) {
+      const a = cellU(i), b = cellU(j); if (unit(hash2(a, b, salt)) > keep) continue;
+      const x = (i + 0.15 + 0.7 * unit(hash2(a, b, salt + 1))) * C, y = (j + 0.15 + 0.7 * unit(hash2(a, b, salt + 2))) * C;
+      if (Math.hypot(x - e, y - n) > R || vergeZone(x, y)) continue; f(x, y, a, b); } };
+  scan(LAND.shelterCell, 301, LAND.shelterKeep, (x, y, a, b) => { const u = landUseAt(zm, x, -y); if (u.use !== 'irrigated' && u.use !== 'orchard') return;
+    const p = u.plot; if (p.edge > 5) return; // at the plot's edge, along it
+    const ang = p.angle + (unit(hash2(a, b, 304)) < 0.5 ? 0 : Math.PI);
+    out.push({ m: 'fill_stall_reed', e: x, n: y, rot: ang, s: [0.9 + 0.3 * unit(hash2(a, b, 305)), 0.95 + 0.15 * unit(hash2(a, b, 306)), 1], shade: 0.85 + 0.2 * unit(hash2(a, b, 307)) }); });
+  scan(LAND.penCell, 311, LAND.penKeep, (x, y, a, b) => { const u = landUseAt(zm, x, -y); if (u.use !== 'rainfed' || u.row !== 'fallow') return;
+    if (open && !open(x, y)) return;
+    out.push({ m: 'wo_hurdles', e: x, n: y, rot: unit(hash2(a, b, 314)) * 6.283, s: [0.8 + 0.3 * unit(hash2(a, b, 315)), 1, 0.8 + 0.3 * unit(hash2(a, b, 316))], shade: 0.9 + 0.15 * unit(hash2(a, b, 317)) }); });
+  return out;
+}
+
 /** the material kinds the parts are made of, in one material (materials.ts propMaterialMulti: aKind picks the kind's scan) */
 const KINDS = [...new Set(Object.values(PART).map(p => p[0]))];
 /** the levels drawn: the model's lod1 within FIELD_R.lod1, its lod2 beyond (lod0's detail is lost under the straw at 1.6 m) */
@@ -113,9 +138,9 @@ export class FieldFill {
    *  and level with the parts merged, and only the season's drawn (spring: the folds alone) */
   readonly group = new THREE.Group();
   private slots = new Map<M, Slot[]>();
-  private last: [number, number] = [1e9, 1e9]; private lastDoy = -1; private vItems: FieldItem[] = []; private vDoy = -1;
+  private last: [number, number] = [1e9, 1e9]; private lastDoy = -1; private landAt: [number, number] = [1e9, 1e9]; private lItems: FieldItem[] = []; private vItems: FieldItem[] = []; private vDoy = -1;
   private m4 = new THREE.Matrix4(); private q = new THREE.Quaternion(); private up = new THREE.Vector3(0, 1, 0); private p = new THREE.Vector3(); private sc = new THREE.Vector3(); private c = new THREE.Color();
-  readonly missing: string[] = []; drawn = 0; private plotCache = new Map<number, FieldItem[]>();
+  readonly missing: string[] = []; drawn = 0; /** D-670: of them, the land's shelters and pens */ landDrawn = 0; private plotCache = new Map<number, FieldItem[]>();
   constructor(private zm: ZoneMap, private villages: FieldVillage[], private ground: (e: number, n: number) => number, private open?: (e: number, n: number) => boolean) {
     this.group.name = 'plain-field-fill';
     this.group.userData = { tier: 'C', src: 'RECON', note: 'the farm year near the walker (D-560): sheaves and stooks on the cut cereal plots, the threshing floors\' season (sledge, grain heaps, straw), the straw stacks to spring, an ard at a plot being ploughed, the villages\' thorn folds; all C, modelled (tools/blender/model_props.py)' };
@@ -144,20 +169,22 @@ export class FieldFill {
     if (!force && doy === this.lastDoy && Math.hypot(viewer[0] - this.last[0], viewer[1] - this.last[1]) < FIELD_R.move) return false;
     this.last = [viewer[0], viewer[1]]; this.lastDoy = doy;
     if (doy !== this.vDoy) { this.vDoy = doy; this.vItems = villageItems(this.villages, doy, this.open); this.plotCache.clear(); } if (this.plotCache.size > 4000) this.plotCache.clear();
-    const items = [...fieldItems(this.zm, viewer[0], viewer[1], doy, FIELD_R.near, this.plotCache), ...this.vItems.filter(it => Math.hypot(it.e - viewer[0], it.n - viewer[1]) < FIELD_R.far)];
+    if (Math.hypot(viewer[0] - this.landAt[0], viewer[1] - this.landAt[1]) > 300) { this.landAt = [viewer[0], viewer[1]]; this.lItems = landItems(this.zm, viewer[0], viewer[1], FIELD_R.villageFar + 320, this.open); }
+    const items = [...fieldItems(this.zm, viewer[0], viewer[1], doy, FIELD_R.near, this.plotCache), ...this.vItems.filter(it => Math.hypot(it.e - viewer[0], it.n - viewer[1]) < FIELD_R.villageFar), ...this.lItems];
     items.sort((a, b) => Math.hypot(a.e - viewer[0], a.n - viewer[1]) - Math.hypot(b.e - viewer[0], b.n - viewer[1])); // (the nearest first when a cap is reached)
     for (const L of this.slots.values()) for (const s of L) s.n = 0;
-    let drawn = 0;
+    let drawn = 0, landN = 0;
     for (const it of items) {
       const L = this.slots.get(it.m); if (!L) continue;
-      const d = Math.hypot(it.e - viewer[0], it.n - viewer[1]); if (d > (BIG.has(it.m) ? FIELD_R.far : FIELD_R.near)) continue;
+      const d = Math.hypot(it.e - viewer[0], it.n - viewer[1]), vil = it.m === 'wo_threshing_floor' || it.m === 'wo_fold' || it.m === 'wo_fodder' || it.m === 'wo_grain_heap' || it.m === 'wo_sledge' || it.m === 'fill_stall_reed' || it.m === 'wo_hurdles';
+      if (d > (vil ? FIELD_R.villageFar : BIG.has(it.m) ? FIELD_R.far : FIELD_R.near)) continue;
       const y = this.ground(it.e, it.n); if (!Number.isFinite(y)) continue;
       const s = L[d < FIELD_R.lod1 ? 0 : 1]; if (s.n >= CAP[it.m]) continue;
       this.q.setFromAxisAngle(this.up, it.rot); this.m4.compose(this.p.set(it.e, y - 0.02, -it.n), this.q, this.sc.set(it.s[0], it.s[1], it.s[2]));
-      s.mesh.setMatrixAt(s.n, this.m4); this.c.setRGB(it.shade, it.shade, it.shade); s.mesh.setColorAt(s.n, this.c); s.n++; drawn++;
+      s.mesh.setMatrixAt(s.n, this.m4); this.c.setRGB(it.shade, it.shade, it.shade); s.mesh.setColorAt(s.n, this.c); s.n++; drawn++; if (it.m === 'fill_stall_reed' || it.m === 'wo_hurdles') landN++;
     }
     for (const L of this.slots.values()) for (const s of L) { s.mesh.count = s.n; s.mesh.visible = s.n > 0; if (s.n) { s.mesh.instanceMatrix.needsUpdate = true; s.mesh.instanceColor!.needsUpdate = true; } }
-    this.drawn = drawn; return true;
+    this.drawn = drawn; this.landDrawn = landN; return true;
   }
   stats() { return { drawn: this.drawn, missing: this.missing }; }
 }

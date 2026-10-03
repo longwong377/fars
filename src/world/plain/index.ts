@@ -52,6 +52,8 @@ export const PLAIN_QUALITY: Record<Quality, { r3: number; maxNear: number; cropR
 };
 /** trees that cast shadows: the nearest SHADOW_N within SHADOW_R m of the camera; at most MAX_LOD0 at full detail */
 const SHADOW_N = 400, SHADOW_R = 120, MAX_LOD0 = 300;
+/** D-670: the field-edge trees and the fallow scrub within this distance of the Apadana are placed once (the static far set) */
+export const FIELD_FAR_R = 8000;
 /** species the player pushes through (no trunk collider) */
 const SHRUBS = new Set(['tamarisk', 'almond', 'pomegranate', 'vine']);
 /** Phase 6 owns the four settlement.json roads (D-040): the plain draws them only if this is switched on at merge */
@@ -126,7 +128,10 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   const kit = TreeKit.get({ deferBake: true, impostorPx: impostorPx(opts.quality) }); registerShadowLight(scene); kit.lod0R.value = Q.lod0R; kit.configure(opts.quality);
   const nearC = uniform(new THREE.Vector3(1e9, 0, 1e9)), nearR = uniform(0); // the 3-D set: centre and radius
   const midC = ground.paintC, midR = ground.treeR; // the mid ring: centre and radius (the terrain paints woodland beyond it)
-  const lineTrees = [...riparianTrees(rivers.rivers, opts.seed).map(t => ({ t, where: 'riparian woodland (river_*.riparian)' })), ...canalTrees(canals, opts.seed).map(t => ({ t, where: 'canal tree line' }))];
+  // D-670: the field-edge trees and the fallow's scrub within FIELD_FAR_R of the Apadana stand in the static far set too, so
+  // they reach the far views (0.3-2 km and beyond; they were drawn only inside the mid ring); beyond it the mid ring keeps them
+  const fieldFar = fieldTrees(zones, 0, 0, FIELD_FAR_R).map(t => ({ t, where: 'field-edge tree or fallow scrub (D-560, D-670, C)' }));
+  const lineTrees = [...riparianTrees(rivers.rivers, opts.seed).map(t => ({ t, where: 'riparian woodland (river_*.riparian)' })), ...canalTrees(canals, opts.seed).map(t => ({ t, where: 'canal tree line' })), ...fieldFar];
   const far = new ImpostorSet(kit, lineTrees.length, { c: nearC, r: nearR }, 20000, 'plain-trees-far'); group.add(far.mesh);
   far.set(lineTrees.map(q => instOf(q.t, terrain, q.where)));
   const plots = baked.plots ?? orchardPlots(zones, villages);
@@ -172,7 +177,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     for (const q of lineTrees) { const t = q.t; if (Math.abs(t.x - cx) < R && Math.abs(t.y - cy) < R) { const d = Math.hypot(t.x - cx, t.y - cy); if (d < R) list.push({ t, d, where: q.where }); } }
     for (const p of plots) if (Math.hypot(p.sx - cam.x, p.sz - cam.z) < R + 150) for (const t of treesOfPlot(p)) { const d = Math.hypot(t.x - cx, t.y - cy); if (d < R) list.push({ t, d, where: 'orchard (orchards_gardens)' }); }
     for (const t of woodlandTrees(zones, cam.x, cam.z, R)) list.push({ t, d: Math.hypot(t.x - cx, t.y - cy), where: 'woodland (woodland rule)' });
-    for (const t of fieldTrees(zones, cam.x, cam.z, R)) list.push({ t, d: Math.hypot(t.x - cx, t.y - cy), where: 'field-edge tree (D-560, C)' });
+    for (const t of fieldTrees(zones, cam.x, cam.z, R)) if (Math.hypot(t.x, t.y) > FIELD_FAR_R) list.push({ t, d: Math.hypot(t.x - cx, t.y - cy), where: 'field-edge tree (D-560, C)' }); // (nearer: in lineTrees)
     list.sort((a, b) => a.d - b.d);
     const cap = MAX_LOD0 + SHADOW_N + Q.maxNear, kept = list.slice(0, cap);
     const a: TreeInst[] = [], b: TreeInst[] = [], c: TreeInst[] = [];
@@ -210,7 +215,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     const R = Q.rMid, recs: TreeInst[] = [];
     for (const p of plots) if (Math.hypot(p.sx - cam.x, p.sz - cam.z) < R) for (const t of treesOfPlot(p)) recs.push(instOf(t, terrain, 'orchard (orchards_gardens)'));
     for (const t of woodlandTrees(zones, cam.x, cam.z, R)) recs.push(instOf(t, terrain, 'woodland (woodland rule)'));
-    for (const t of fieldTrees(zones, cam.x, cam.z, R)) recs.push(instOf(t, terrain, 'field-edge tree (D-560, C)'));
+    for (const t of fieldTrees(zones, cam.x, cam.z, R)) if (Math.hypot(t.x, t.y) > FIELD_FAR_R) recs.push(instOf(t, terrain, 'field-edge tree (D-560, C)'));
     midCount = mid.set(recs); midC.value.set(cam.x, 0, cam.z);
   };
   const syncTrunks = (p: { x: number; y: number; z: number }) => {
@@ -262,7 +267,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     for (const q of lineTrees) add(q.t);
     for (const p of plots) if (Math.hypot(p.sx - e, p.sz + n) < R + 150) for (const t of treesOfPlot(p)) add(t);
     for (const t of woodlandTrees(zones, e, -n, R)) add(t);
-    for (const t of fieldTrees(zones, e, -n, R)) add(t);
+    for (const t of fieldTrees(zones, e, -n, R)) if (Math.hypot(t.x, t.y) > FIELD_FAR_R) add(t);
     return out;
   };
   return { group, data: { rivers, canals, villages, zones, fords: fords.detail }, update, villageHouses: vb, stats, treesAround, nearTrees: () => ({ placed: [placed.a, placed.b, placed.c], sets: [lod0, lod1s, lod1n], models: kit.models }),

@@ -155,12 +155,21 @@ export function woodlandTrees(zm: ZoneMap, cx: number, cz: number, R: number): T
  *  plane, by the rain-fed almond, wild pistachio and tamarisk (C: the trees a farmer leaves or plants on a field's edge for
  *  fodder leaves, fruit, shade and timber); none on the roads and tracks (verge.ts). About 35 a square kilometre of fields,
  *  evaluated round the camera like the woodland (index.ts: the near set and the mid ring); copies turned (variety.ts) */
-export const FIELD_TREE = { cell: 40, edge: 2.5, keep: 0.26 } as const;
+export const FIELD_TREE = { cell: 40, edge: 3.5, keep: 0.45, scrub: 0.16 } as const;
 function fieldTreeCell(zm: ZoneMap, i: number, j: number): (Tree & { e: number; n: number })[] {
   const C = FIELD_TREE.cell, a = cellU(i), b = cellU(j), x = (i + 0.1 + 0.8 * unit(hash2(a, b, 61))) * C, z = (j + 0.1 + 0.8 * unit(hash2(a, b, 62))) * C;
-  if (unit(hash2(a, b, 63)) > FIELD_TREE.keep) return [];
-  const u = landUseAt(zm, x, z); if ((u.use !== 'irrigated' && u.use !== 'rainfed') || u.plot.edge > FIELD_TREE.edge) return [];
+  const keepU = unit(hash2(a, b, 63)); if (keepU > Math.max(FIELD_TREE.keep, FIELD_TREE.scrub)) return [];
+  const u = landUseAt(zm, x, z); if (u.use !== 'irrigated' && u.use !== 'rainfed') return [];
   if (vergeZone(x, -z)) return [];
+  // D-670: the rain-fed fallow and grazing plots carry scattered shrubs anywhere in them, not only on the bunds (C: wild
+  // almond, Atlantic pistachio and tamarisk of the Marv Dasht steppe, browsed low; thinned within 2 km of the Terrace for fuel)
+  if (u.use === 'rainfed' && u.row === 'fallow' && u.plot.edge > FIELD_TREE.edge) {
+    if (keepU > FIELD_TREE.scrub * Math.min(1, Math.max(0.35, (Math.hypot(x - 110, z) - 1200) / 1500))) return [];
+    const su = unit(hash2(a, b, 68)), sp = su < 0.45 ? 'almond' : su < 0.75 ? 'tamarisk' : 'pistachio';
+    const { h, w } = speciesSize(sp, unit(hash2(a, b, 65)) * 0.6, unit(hash2(a, b, 66)));
+    return [{ x, y: -z, sp, h, w, seed: hash2(a, b, 67) & 0x3fffffff, e: x, n: -z }];
+  }
+  if (keepU > FIELD_TREE.keep || u.plot.edge > FIELD_TREE.edge) return [];
   const su = unit(hash2(a, b, 64)), sp = u.use === 'irrigated' ? (su < 0.4 ? 'mulberry' : su < 0.65 ? 'poplar' : su < 0.82 ? 'willow' : 'plane') : (su < 0.45 ? 'almond' : su < 0.8 ? 'pistachio' : 'tamarisk');
   const { h, w } = speciesSize(sp, unit(hash2(a, b, 65)) * (sp === 'plane' ? 0.6 : 1), unit(hash2(a, b, 66)));
   return [{ x, y: -z, sp, h, w, seed: hash2(a, b, 67) & 0x3fffffff, e: x, n: -z }];
