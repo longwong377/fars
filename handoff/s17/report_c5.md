@@ -19,4 +19,4 @@ reload 38 s, zero console or page errors.
 src/people/converse/ui.ts (note, assigned); tests/intro.test.ts; tests/language.test.ts (one line); tools/dev/shell_probe.*,
 skyline_gen.ts, first_minutes.mjs.
 
-**Tests.** intro 11/11; lint:lang 26/26; guards 25/25; tsc clean in touched files.
+**Tests.** intro 11/11; guards 25/25; tsc clean in touched files. lint:lang 25/26 after the last merge: V2's new public/textures/dirt_floor/arm.jpg (a23bfea8, D-490) is not registered in the image list (not C5's; to V2).
