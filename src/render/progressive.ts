@@ -25,7 +25,10 @@ export function installProgressiveCompile(renderer: THREE.WebGPURenderer, budget
   if (budgetMs > 0) {
     const direct = R._renderObjectDirect;
     R._renderObjectDirect = function (object: any, material: any, scene: any, camera: any, lightsNode: any, group: any, clip: any, passId: any) {
-      if (performance.now() > end) {
+      // D-680 (s18, the live page's black frames): the post pipeline's full-screen quads (the composite, the meter, every pass)
+      // are drawn last, after the world has spent the frame's build budget; deferred, they were deferred EVERY frame while the
+      // world streamed in, and the player saw black (and the meter read an unwritten target). A quad is never deferred.
+      if (performance.now() > end && !object.isQuadMesh) {
         const ro = this._objects.get(object, material, scene, camera, lightsNode, this._currentRenderContext, clip, passId);
         if (ro._nodeBuilderState === null) { deferred++; return; }
       }
