@@ -10494,3 +10494,14 @@ touched; the budget baseline is not re-accepted from such a head.
 ## D-801 The roads of the plain in use: wells, halts, carts, field shrines, the road's dung (s18 cloud C15, lead 3's round 2)
 - src/world/plain/wayside.ts, drawn in Naqsh-e Rustam's nr-life mesh (no new draw): along the first 9 km of every road present in 467 (settlement.json; the Naqsh-e Rustam road its whole length), a well every ~2.2 km (fieldstone kerb, posts and beam, a stone trough), a halt every ~2.6 km (a mud-brick shelter open to the road, a bench, jars, a tethering post and dung, an ox-cart stood by it with solid wheels, shafts and sacks), a field shrine every ~3.1 km on the far side (a small stepped altar of the Naqsh reliefs' form, its ash heap and stacked wood; the fire is the people's action, not drawn), nothing in a settlement zone or on steep ground. Measured: 4 roads, 10 wells, 10 halts and carts, 9 shrines (a stop with another of its kind within 500 m not doubled where roads share their stretch out of the town), 5.7 k triangles (the road's droppings are roadLitter.ts's, session 10: not repeated). Way-stations and travel rations B (the Fortification texts); the spacing and the forms C. To pay for it inside the plain's 2.0 M: the threshing floors' kerbs 12 larger stones (were 26), the roof stacks three faces.
 | D-811 | s18 lead 3 | Deployed s17-int e8e271e8 to s14-int (Pages): C9's live path (a) WebGL low lit, 0 faults; the live site was black (c3bde8ab). The user: the lead is the director and deploys without asking. |
+## D-697 After a jump nobody stays where the old state put them; the walks traced (s18 cloud C5)
+- popview.ts collect: a state more than STALE_H (0.05 h) out of date (not yet re-evaluated after a jump, over the plan budget)
+  is not drawn (C12's T1: 489 people stood at the court's places for seconds after a jump from day 40 to day 200; now 0 at
+  the first update). The catch-up after a jump runs longer (CATCH_UP 60 ms, then 8 ms for 90 updates): three seconds after
+  a jump the view places >= 80 % of a settle (tests/people_drawn.test.ts); a second after, cov-266 had 25 of 45 (the earlier
+  "104 of 116" counted stale states from before the jump).
+- tools/dev/walktrace.ts: the plans' walks at a moment against the view. At cov-142 (d88 13:48) the errands' walks are lost to
+  routes: TownWalk finds no route out of most of q_w3 eastward (261 of 537 lane cells; 58 of 67 homes without a route out),
+  sent to C2 with a repro. At q_s1 (d0 10:00) 53 of 75 people on the move walk; the walks are short (3-5 min), and only 6 of
+  303 drawn within 60 m walk: more and longer trips are the plans' (C1).
+- The doorstep shares a little higher (spin 50 %, play 65 %, talk 55 %, rest 40 %, craft 35 %, clean 45 %, eat 20 %).
