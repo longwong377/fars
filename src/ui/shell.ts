@@ -117,7 +117,7 @@ export class Shell {
     this.loadingCard = el('div', { className: 'foot' }, this.loadingMsg);
     screen.append(el('div', { className: 'vignette' }), el('div', { className: 'grain' }),
       el('div', { className: 'brand' }, el('div', { className: 'op-mark' }, OP_PARSA), el('h1', { className: 'wordmark' }, 'PĀRSA'), el('div', { className: 'dedic' }, DEDICATION)),
-      el('div', { className: 'advice' }, el('b', {}, 'Before you enter'), 'Sound is half of this place: headphones, if you have them. Nothing in the world will point the way. Walk, listen, and ask the people.'),
+      el('div', { className: 'advice' }, el('b', {}, 'Before you enter'), 'Sound is half of this place: headphones, if you have them. Nothing in the world will point the way. Walk, listen, and ask the people: E speaks to whoever you face.'),
       this.loadingCard);
     root().replaceChildren(screen);
   }
@@ -151,14 +151,26 @@ export class Shell {
       el('span', {}, cap(k.forward), cap(k.left), cap(k.back), cap(k.right), ' walk'),
       el('span', {}, 'Mouse  look'),
       el('span', {}, cap(k.run), ' walk faster'),
-      el('span', {}, cap(k.interact), ' a door, a person'),
+      el('span', {}, cap(k.interact), ' speak · a door'),
+      el('span', {}, cap('KeyT'), ' type to them'),
       el('span', {}, cap('Escape'), ' menu'),
       el('span', {}, 'Headphones recommended'),
     ];
   }
   // the aiming dot is out-of-world UI: shown only with the translation layer on (whose inscription picks use it), never in
   // ?test captures (brief §1.1, §6: no in-world HUD; session 4)
-  playing() { this.mode = 'playing'; this.back = null; const dot = this.settings.translation && !TEST(); root().replaceChildren(...(dot ? [el('div', { className: 'crosshair' })] : [])); }
+  playing() { this.mode = 'playing'; this.back = null; const dot = this.settings.translation && !TEST(); root().replaceChildren(...(dot ? [el('div', { className: 'crosshair' })] : [])); this.firstSteps(); }
+  /** the controls, once, at the first steps of the first visit (out of world; after the opening, fading away by itself) */
+  private firstSteps() {
+    if (TEST()) return; try { if (localStorage.getItem('parsa.firstSteps.v1')) return; localStorage.setItem('parsa.firstSteps.v1', '1'); } catch { return; }
+    const k = this.settings.keys, cap = (c: string) => el('span', { className: 'keycap' }, keyName(c));
+    const card = el('div', { className: 'first-steps' },
+      el('span', {}, cap(k.forward), cap(k.left), cap(k.back), cap(k.right), ' walk'), el('span', {}, 'Mouse  look'), el('span', {}, cap(k.run), ' faster'),
+      el('span', {}, cap(k.interact), ' speak to whoever you face · open a door'), el('span', {}, cap('KeyT'), ' type · hold ', cap('KeyV'), ' speak aloud'), el('span', {}, cap('Escape'), ' menu'));
+    const show = () => { if (document.body.classList.contains('intro')) { setTimeout(show, 500); return; } document.body.append(card); requestAnimationFrame(() => card.classList.add('on'));
+      setTimeout(() => card.classList.remove('on'), 11_000); setTimeout(() => card.remove(), 13_000); };
+    setTimeout(show, 1500);
+  }
   /** an out-of-world notice about saving or loading (English; T-H3s, T-H3v: a failed save or an unreadable save is never
    *  silent), shown for 12 s at the foot of the screen; not in ?test captures (the test reads __parsa.notices) */
   notice(text: string) {
@@ -195,6 +207,8 @@ export class Shell {
     const k = this.settings.keys;
     const rows = Object.keys(DEFAULT_KEYS).map(a => el('div', { className: 'row' }, el('label', {}, ACTION_NAMES[a] ?? a), el('div', { className: 'ctl' }, el('span', { className: 'keycap' }, keyName(k[a] ?? DEFAULT_KEYS[a])))));
     rows.splice(4, 0, el('div', { className: 'row' }, el('label', {}, 'Look'), el('div', { className: 'ctl' }, el('span', { className: 'keycap' }, 'Mouse'))));
+    rows.push(el('div', { className: 'row' }, el('label', {}, 'Type what you say (in a conversation)'), el('div', { className: 'ctl' }, el('span', { className: 'keycap' }, 'T'))),
+      el('div', { className: 'row' }, el('label', {}, 'Speak aloud (hold; a microphone)'), el('div', { className: 'ctl' }, el('span', { className: 'keycap' }, 'V'))));
     this.sheet('Controls', null, el('div', { className: 'grid' }, ...rows,
       el('p', { className: 'small' }, 'Nothing in the world points the way: find it by the mountain, the sun and the sound of the town. If you want them, a map and a chronicle come with the translation layer (Settings › Language). Any key can be changed in Settings › Keys.')), back);
   }
@@ -264,7 +278,7 @@ export class Shell {
     const language = () => grid(
       check('Translation layer', s.translation, v => { s.translation = v; }, 'Subtitles, the readings of inscriptions, the map (M) and the chronicle (J). Outside the world; off by default.'),
       range('Subtitle size', s.subtitleSize, 0.75, 2, 0.05, v => { s.subtitleSize = v; }, v => `${Math.round(v * 100)} %`),
-      check('Talk with the people', s.talk, v => { s.talk = v; }, 'T to type, hold V to speak. Downloads about 1 GB once, after the world appears. Takes effect when the page reloads.'),
+      check('Talk with the people', s.talk, v => { s.talk = v; }, 'E speaks to whoever you face; then T to type, or hold V to speak aloud. Downloads about 1 GB once, after the world appears. Takes effect when the page reloads.'),
       // D-336 (UD-22): out of world; off by default (the heard world stays period)
       sel('Hear the people you speak with in', s.hearIn, [['own', 'Their own language (default)'], ['fa', 'Farsi, in character, in their own voice'], ['en', 'English, in character, in their own voice']], v => { s.hearIn = v as any; }),
     );
