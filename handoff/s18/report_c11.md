@@ -7,8 +7,9 @@
 - **The hall is synthetic** (a modelled scoring-stage response, RT60 3.1 s low / 2.5 mid / 1.5 high): no recorded hall IR is
   reachable from the cloud. Sample library: Sonatina Symphonic Orchestra is good but not a top commercial library; the
   sample legato is SSO's, not a scripted true legato. Both are the ceiling of what the cloud can reach.
-- **The film in the repo is the cloud's draft**: 640x268, rendered at 8 frames a second and motion-interpolated to 24, 14
-  samples. The full-quality pass (1920x804, every frame, 64 spp) is a T4 job: tools/film/T4_JOB.md (through the lead).
+- **The film in the repo is the cloud's draft**: 640x268, 146 s, rendered at 2-8 frames a second per shot (the volume
+  shots sparsest) and motion-interpolated to 24, 10-14 samples: the interpolation can smear the braziers' flames and the
+  embers. The full-quality pass (1920x804, every frame, 64 spp) is a T4 job: tools/film/T4_JOB.md (through the lead).
 - **The game's bull and capital meshes look faceted in close-up** (their detail lives in KTX2 normal maps Blender's importer
   cannot read): the film shows them only as silhouettes, in haze and firelight; the Gate-bull close-up was cut.
 - **The in-engine opening's 'stars' shot was cut** after C6's frame (the engine's night sky reads as an even dot field, Kuh-e
@@ -43,7 +44,8 @@
 ## Sizes
 - public/audio/score: 21 cues in Opus/WebM 80 kbps (+ First Light in AAC), 44 MB, catalogue manifest.json (~10 KB). Nothing
   loads before the walk except the opening's cue (~2.8 MB, streamed) and the film.
-- public/film: see the final commit (filled in when the render lands).
+- public/film: parsa_title.webm (AV1 + Opus) 3.80 MB, parsa_title.mp4 (H.264 + AAC) 4.75 MB, poster 0.01 MB: 8.6 MB of the
+  12 MB budget agreed with C9; preload=metadata until the player's key.
 
 ## Tests
 tests/score.test.ts (director rules, the catalogue on disk, an hour of music, the opening cut on bars), tests/intro.test.ts
