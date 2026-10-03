@@ -22,6 +22,7 @@ export const TARGETS = {
   hanging: { cloth: [2400, 800], band: [1600, 500], rod: [700, 250] },
   canopy: { gilt: [1200, 400], cloth: [2400, 800], band: [4000, 1400] },
   mat: { matting: [2600, 900, 60] }, roll: { textile: [2152, 752, 64] }, rug_folded: { textile: [400, 150, 24] }, lamp: { clay: [308, 106, 40] },
+  wo_litter: { wood: [600, 200], gilt: [500, 180], blue: [120, 60], red: [1600, 500] }, // D-780
   gift_amphora: { metal: [2400, 800] }, gift_armlets: { gold: [900, 300] }, gift_tusk: { ivory: [400, 140] }, gift_daggers: { leather: [500, 180], metal: [500, 180] }, gift_bows: { wood: [600, 200] }, gift_cloth: { cloth: [700, 240], band: [200, 80] }, // D-780: the delegations' gifts
   jar_store: { clay: [1472, 514, 90] }, jar_water: { clay: [1272, 444, 90] }, jar_neck: { clay: [884, 308, 80] }, bowl: { clay: [960, 336, 60] }, cookpot: { clay: [992, 346, 90] },
   manger: { straw: [300, 120, 50], mud: [600, 250, 80] }, cradle: { wood: [796, 278, 110], cloth: [1256, 438, 70] }, hung_cloth: { cloth: [2104, 736, 50] }, peg: { wood: [38, 12, 12] },
@@ -33,7 +34,7 @@ export const TARGETS = {
   tool_distaff: { wool: [120, 60] }, tool_brick: { mud: [80, 40] }, tool_rag: { cloth: [60, 30] }, tool_awl: { bone: [60, 30] }, tool_cloth: { cloth: [120, 60] },
   tool_parasol: { cloth: [160, 60], band: [80, 40] }, tool_mould: { wood: [300, 120] }, tool_balance: { bronze: [260, 120] },
   // the work objects (one instanced draw per kind in view: a few thousand triangles each at most)
-  wo_fold: { thorn: [2400, 800], thorn_d: [2400, 800] }, wo_grass_bed: { grass: [800, 300], meat_boiled: [600, 200] }, wo_dung_cakes: { dung: [800, 300] }, wo_bellows: { skin: [1200, 400] },
+  wo_fold: { thorn: [2400, 800], thorn_d: [2400, 800] }, wo_shaduf: { mud: [600, 250], wood_d: [400, 160] }, wo_pontoon: { wood: [1600, 600], wood_d: [1200, 400] }, wo_grass_bed: { grass: [800, 300], meat_boiled: [600, 200] }, wo_dung_cakes: { dung: [800, 300] }, wo_bellows: { skin: [1200, 400] },
   wo_drum_rough: { lime: [1200, 400], chips: [600, 200] }, wo_bier: { linen: [1200, 400] }, wo_hide_frames: { wood_d: [1200, 400] }, wo_drying_rack: { linen: [600, 250], red: [600, 250] },
   wo_stooks: { ears: [900, 300], straw: [900, 300], straw_d: [600, 200] }, wo_hurdles: { wattle: [3000, 1000], wood_d: [2000, 700] }, wo_grapes: { grape: [900, 300] }, wo_nuts: { nut: [900, 300] }, wo_bellows_stand: { skin: [700, 250] },
   quern: { stone: [1200, 400] }, beads: { beads: [900, 300] }, bale: { cloth: [1200, 400] },

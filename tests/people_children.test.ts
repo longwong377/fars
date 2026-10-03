@@ -178,13 +178,14 @@ describe('ornaments by rank, the wicker shield, the gilded spear butts, eye pain
   it('the shares by dress follow the table (JEWELS); working men and children wear none; kohl for the court', () => {
     const res: Record<string, Record<string, number>> = {};
     const roles: [Dress, string, 'm' | 'f'][] = [['persian', 'official', 'm'], ['guard', 'guard', 'm'], ['median', 'guard', 'm'], ['median', 'scribe', 'm'], ['woman', 'grinder', 'f'], ['worker', 'mason', 'm'], ['child', 'child', 'm'], ['king', 'king', 'm'], ['court_woman', 'musician', 'f']];
-    for (const [dress, role, sex] of roles) { const c = { ear: 0, brace: 0, shield: 0, kohl: 0 }, N = 400;
+    for (const [dress, role, sex] of roles) { const c = { ear: 0, brace: 0, shield: 0, kohl: 0 }, N = 400, want = { ear: 0, brace: 0, shield: 0, kohl: 0 };
       for (let s = 0; s < N; s++) { const L = lookFor(A, { id: s, sex, role, dress, seed: 20000 + s * 7 }, 1);
         if (L.pieces.some(x => x.startsWith('earrings'))) c.ear++; if (L.pieces.some(x => x.startsWith('bracelets'))) c.brace++; if (L.pieces.includes('shield')) c.shield++; if (unpackLookBits(L.pattern).kohl) c.kohl++;
-        for (const id of COSTUMES[dress].opt) expect(((L.mask >> pieceBit(dress, id)) & 1) === 1, `${dress} ${id}`).toBe(L.pieces.includes(id));
+        // (D-780: two in three guards not of Persian birth are drawn in the guards' robe: the dress drawn is checked)
+        for (const id of COSTUMES[L.dress].opt) expect(((L.mask >> pieceBit(L.dress, id)) & 1) === 1, `${L.dress} ${id}`).toBe(L.pieces.includes(id));
+        { const J = JEWELS[L.dress], w = J ? (L.dress === 'median' && role === 'guard' ? J.guard! : J.base) : { ear: 0, brace: 0, shield: 0, kohl: 0 }; want.ear += w.ear / N; want.brace += w.brace / N; want.shield += (w.shield ?? 0) / N; want.kohl += (w.kohl ?? 0) / N; }
         if (L.pieces.includes('shield')) { expect(L.pieces).toContain('bow'); expect(L.pieces).toContain('quiver'); } } // (Herodotus 7.61: wicker shields with the quivers and bows)
       res[`${dress}/${role}`] = Object.fromEntries(Object.entries(c).map(([k, v]) => [k, v / N]));
-      const J = JEWELS[dress], want = J ? (dress === 'median' && role === 'guard' ? J.guard! : J.base) : { ear: 0, brace: 0, shield: 0, kohl: 0 };
       expect(Math.abs(c.ear / N - want.ear), `${dress} earrings`).toBeLessThan(0.08); expect(Math.abs(c.brace / N - want.brace), `${dress} bracelets`).toBeLessThan(0.08);
       expect(Math.abs(c.shield / N - (want.shield ?? 0)), `${dress} shield`).toBeLessThan(0.08); expect(Math.abs(c.kohl / N - (want.kohl ?? 0)), `${dress} kohl`).toBeLessThan(0.08); }
     note('ranks', res);

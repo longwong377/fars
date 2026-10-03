@@ -1,0 +1,13 @@
+diff --git a/src/people/economy/plans.ts b/src/people/economy/plans.ts
+index d0965e4d..8d6cd15e 100644
+--- a/src/people/economy/plans.ts
++++ b/src/people/economy/plans.ts
+@@ -277,7 +277,7 @@ export class EconPlans {
+   pick(hid: number, day: number, role: Role, key: number, market = false): number | null {
+     const P = this.pop; if (!P.households[hid]) return null;
+     // (a rich house's own business, the pledges and the suits, may go by its servants and stewards: D-340, C)
+-    const mem = P.membersOn(hid, day).filter(x => P.present(x, day) && P.persons[x].agent < 0 && (!SUPERVISED.has(P.persons[x].job) || (role === 'house' && /^(servant|steward)$/.test(P.persons[x].job))) && !P.sick(x, day));
++    const mem = P.membersOn(hid, day).filter(x => P.present(x, day) && P.persons[x].agent < 0 && !P.court?.owns(x) && (!SUPERVISED.has(P.persons[x].job) || (role === 'house' && /^(servant|steward)$/.test(P.persons[x].job))) && !P.sick(x, day));
+     const age = (x: number) => P.ageOn(x, day), m = (x: number) => P.persons[x].sex === 'm';
+     let pool: number[];
+     if (role === 'man' || role === 'house') pool = mem.filter(x => m(x) && age(x) >= 18 && age(x) <= 70);

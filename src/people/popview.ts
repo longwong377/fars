@@ -23,6 +23,7 @@ import { PopGeo, routeAt, headingOf, type Spot, type Route } from './popgeo';
 import { buildTerrace } from '../arch/terrace';
 import type { Doorway } from '../arch/parts';
 import { toLocal, type Site } from '../world/settlement/site';
+import { openCode } from '../world/settlement/walk';
 import { FACING_ACTS } from './court';
 import { sunTimes } from './calendar';
 import { h32, salt } from './hash';
@@ -107,7 +108,7 @@ interface PS {
 const shown = (sp: Spot) => sp.out || !!sp.inside;
 const ACTS = Object.keys(ACTIVITIES) as ActivityId[]; const ACT_IX = new Map(ACTS.map((a, i) => [a, i]));
 const WHERE = ['terrace', 'town', 'plain', 'road', 'away'] as const; const W_IX = new Map<string, number>(WHERE.map((w, i) => [w, i])); const ROAD = 3, AWAY = 4;
-const S = { pace: salt('popview-pace'), sep: salt('popview-sep'), impair: salt('popview-impair') };
+const S = { pace: salt('popview-pace'), sep: salt('popview-sep'), impair: salt('popview-impair'), step: salt('popview-doorstep') };
 /** D-215: children under this age (years) walking with someone walk hand in hand with them (C); a child walker is taken
  *  to the carer's side when within HAND_SNAP m of them (their plans walk them together), at handReach's distance; a child
  *  of the house leads a blind elder walking within GUIDE_SNAP m (C) */
@@ -138,6 +139,10 @@ export const SPREAD_R = { inside: 5, out: 12 } as const;
 /** D-690: people standing make way for the stranger within YIELD_R m (YIELD_DOOR_R by a doorway: doorways first), by up to
  *  YIELD_STEP m, turned toward the stranger (C: a step aside, a glance) */
 export const YIELD_R = 2.4, YIELD_DOOR_R = 3.2, YIELD_STEP = 0.85;
+/** D-692: the plan budget after a jump in time: the first update's ms, then that many updates at the last ms */
+export const CATCH_UP = [60, 30, 10] as const;
+/** D-692: the share of people at each light work in their own court by day who do it in the lane by their street door (C) */
+const DOORSTEP: Partial<Record<ActivityId, number>> = { spin: 0.45, play: 0.6, talk: 0.5, rest: 0.35, craft: 0.3, clean: 0.4, eat: 0.15 };
 /** D-690: acts a group stands at facing its own middle (a talk, a rest, a game, a meal), not all one way */
 const SOCIAL = new Set<ActivityId>(['talk', 'rest', 'gamble', 'eat', 'shelter', 'mourn', 'play']);
 /** slowest walk shown (m/s); below it the person walks at their own pace and leaves late (C) */
@@ -182,7 +187,7 @@ export class PopView {
   /** route searches per update (ms): beyond it, people farther than `nearR` wait at the place they are leaving (they
    *  then walk faster to arrive on time); nearer people always get their route */
   routeBudgetMs = 3; nearR = 150;
-  readonly stats = { doorKept: 0, yielding: 0, yieldSteps: 0, candidates: 0, planned: 0, planMs: 0, pending: 0, visible: 0, walking: 0, hurried: 0, lateLeaves: 0, steps: 0, hidden: 0, unresolved: 0, routeWait: 0, agentsOff: 0, evalMs: 0, updates: 0, carried: 0, nanTimes: 0, spread: 0, crowded: 0, warmed: 0, warmMs: 0, noRoom: 0, stepsIn: 0, inside: 0 };
+  readonly stats = { doorstep: 0, doorKept: 0, yielding: 0, yieldSteps: 0, candidates: 0, planned: 0, planMs: 0, pending: 0, visible: 0, walking: 0, hurried: 0, lateLeaves: 0, steps: 0, hidden: 0, unresolved: 0, routeWait: 0, agentsOff: 0, evalMs: 0, updates: 0, carried: 0, nanTimes: 0, spread: 0, crowded: 0, warmed: 0, warmMs: 0, noRoom: 0, stepsIn: 0, inside: 0 };
   private out: ViewPerson[] = []; private nOut = 0;
   private anchorsBuilt = false; private homes: Float64Array | null = null;
   /** opts.warm false (D-392): the court's routes are in the geo's core cache already (the baked world's, searched for this
@@ -195,14 +200,20 @@ export class PopView {
   /** each person's home and work anchor (grid), for choosing who can be near */
   private buildAnchors() {
     const P = this.pop, n = P.persons.length, A = new Float64Array(n * 4).fill(NaN); const TER: P2 = [80, -10];
-    const homeOf = new Map<number, P2>();
+    const homeOf = new Map<number, P2>(), workAt = new Map<string, P2 | null>();
     for (const H of P.households) { let xy: P2 | null = null;
       if (H.zone === 'town') xy = H.xy; else if (H.zone === 'plain') { const m = this.geo.villageOf(H.id); xy = m ? (() => { const v = (this.geo as any).villages[m.vi]; return [v.x, v.y] as P2; })() : null; }
       else if (H.zone === 'terrace') xy = H.home === 'court_camp' || H.home.startsWith('rcamp:') ? H.xy : TER; /* D-199: the court's camps */ else xy = H.home === 'station' ? [-1450, 395] : H.home.startsWith('hinterland:') ? [80, 30] /* D-640: the road folk, on the roads into Pārsa */ : [-3000, 0];
       if (xy) homeOf.set(H.id, xy); }
     for (const p of P.persons) { const h = homeOf.get(p.hh) ?? homeOf.get(p.hh2); if (h) { A[p.id * 4] = h[0]; A[p.id * 4 + 1] = h[1]; }
       const terraceWork = p.zone === 'terrace' || ['builder', 'porter', 'camp', 'caretaker', 'guard'].includes(p.job) || p.work === 'treasury_inside' || p.work === 'treasury_store' || p.work === 'treasury_desk';
-      if (terraceWork) { A[p.id * 4 + 2] = TER[0]; A[p.id * 4 + 3] = TER[1]; } }
+      if (terraceWork) { A[p.id * 4 + 2] = TER[0]; A[p.id * 4 + 3] = TER[1]; }
+      // (D-692: a work place of its own, a town workshop 'ws:3', 'ws_textile' and the like: where the geo puts it, once per
+      // place. Anchored only by their homes, the Treasury's workshop hands of q_s1 living up to 1.6 km off were planned
+      // last, after thousands: a second after a jump the view lacked 28 of the 117 people near cov-266)
+      else if (typeof p.work === 'string' && p.work) { let w = workAt.get(p.work);
+        if (w === undefined) { const sp = this.geo.spot(p.id, p.work, 'craft', 0, 10, false); w = sp.ok ? [sp.e, sp.n] : null; workAt.set(p.work, w); }
+        if (w) { A[p.id * 4 + 2] = w[0]; A[p.id * 4 + 3] = w[1]; } } }
     this.homes = A; this.anchorsBuilt = true;
   }
   /** keep the people who can be within `radius` of the centre (home or work place within radius + margin) */
@@ -262,6 +273,7 @@ export class PopView {
     const key = (((P.day * 4194304 + P.place[i]) * 2 + (indoor ? 1 : 0)) * 2 + (this.pop.court && FACING_ACTS.test(act) ? 1 : 0)) * 2 + (act === 'smith' ? 1 : 0); let sp = s.spots.get(key); // (D-255: and whether at the forge, popgeo forgeSpot)
     if (!sp) { sp = this.geo.spot(s.pid, place, act, P.day, h, indoor);
       if (indoor && sp.ok && sp.out && !sp.roof) sp = { ...sp, out: false, inside: false, noRoom: true, what: `${sp.what}: indoors by the plan, no room built there (not drawn: D-244)` };
+      else if (!indoor && sp.ok && sp.out && sp.net === 'town' && sp.plot) sp = this.doorstep(s.pid, act, P.day, h, P.place[i], sp);
       if (s.spots.size >= 64) s.spots.clear(); s.spots.set(key, sp); }
     return sp;
   }
@@ -357,7 +369,12 @@ export class PopView {
     { const de = centre[0] - this.eye[0], dn = centre[1] - this.eye[1], L = Math.hypot(de, dn); // D-690: the stranger's way
       if (L > 5) { this.eyeDir[0] = 0; this.eyeDir[1] = 0; } else if (L > 1e-3) { const k = Math.min(1, L / 0.6); this.eyeDir[0] += (de / L - this.eyeDir[0]) * k; this.eyeDir[1] += (dn / L - this.eyeDir[1]) * k; }
       this.eye[0] = centre[0]; this.eye[1] = centre[1]; }
-    this.budgetLeft = this.planBudgetMs; this.tPlan = performance.now(); this.navLeft = this.navBudget; this.routeT = 0;
+    // (D-692: after a jump in time the near people are planned at once: the first update spends CATCH_UP[0] ms, the next
+    // CATCH_UP[1] updates CATCH_UP[2] ms each, nearest first; a second after a jump the view placed 31 of the 53 a settle
+    // places in view at cov-266 on the default 3 ms)
+    if (jumped || this.lastT < 0 || this.stats.updates === 1) this.catchUp = CATCH_UP[1] + 1; // (and the first update of a page: nothing is planned yet)
+    const boost = this.catchUp > 0 ? (this.catchUp-- > CATCH_UP[1] ? CATCH_UP[0] : CATCH_UP[2]) : 0;
+    this.budgetLeft = Math.max(this.planBudgetMs, boost); this.tPlan = performance.now(); this.navLeft = this.navBudget * (boost ? 4 : 1); this.routeT = 0;
     const d = Math.floor(t / 24), h = t - d * 24; this.stats.pending = 0;
     // plan the nearest first (the list is sorted by distance); tomorrow's plans in the last hour of the day
     this.talkChanged();
@@ -431,6 +448,27 @@ export class PopView {
     if (s.occ >= 0) { const L = this.occ.get(s.occ); if (L) { const i = L.indexOf(s.pid); if (i >= 0) L.splice(i, 1); if (!L.length) this.occ.delete(s.occ); } }
     s.occ = -1; s.sepFor = null;
   }
+  /** D-692: a share of the people at light work in their own court by day do it in the lane outside their street door (a
+   *  woman spinning on the doorstep, men talking by the door, children playing in the lane; C: the vernacular towns of the
+   *  plateau keep their life in the lanes as much as in the courts): beside the door along the wall, 0.6-0.9 m out from it,
+   *  never in the opening or its apron (DOOR_CLEAR), on a lane or square cell; facing across the lane. Counted: stats.doorstep */
+  private doorstep(pid: number, act: ActivityId, day: number, h: number, place: number, sp: Spot): Spot {
+    const share = DOORSTEP[act]; if (!share || h < 6.5 || h > 18.5) return sp;
+    if (h32(this.seed, S.step, pid * 977 + day * 31 + place) / 4294967296 >= share) return sp;
+    const t = this.geo.town; if (!t) return sp; const l = t.locate(sp.e, sp.n); if (!l) return sp;
+    const S0 = t.boxes[l.si].s, c = S0.cell[l.k], P = c >= 0 ? S0.plots[c] : null; if (!P?.door || P.kind === 'garden') return sp;
+    const d = S0.doorPoints(P); if (!d) return sp;
+    { const dm = S0.grid(d.mid[0], d.mid[1]); if (Math.hypot(dm[0] - sp.e, dm[1] - sp.n) > 25) return sp; } // (a house's own door: not across a great compound)
+    const nu = d.out[0] - d.inside[0], nv = d.out[1] - d.inside[1], L = Math.hypot(nu, nv) || 1, ux = nu / L, uy = nv / L, tx = -uy, ty = ux;
+    const r = h32(this.seed, S.step, pid) / 4294967296, sides = r < 0.5 ? [1, -1] : [-1, 1], along = 1.7 + r * 0.9, off = 0.6 + r * 0.3;
+    for (const sd of sides) { const u = d.mid[0] + ux * off + tx * along * sd, v = d.mid[1] + uy * off + ty * along * sd, g = S0.grid(u, v), m = t.locate(g[0], g[1]);
+      if (!m || !openCode(t.boxes[m.si].s.cell[m.k])) continue;
+      const q: Spot = { ...sp, e: g[0], n: g[1], plot: 0, wall: 0, inside: false, roof: false, fixed: false, what: `${sp.what}: in the lane by the house's street door (D-692, C)` };
+      if (this.inDoor(q, g[0], g[1])) continue;
+      const fx = S0.grid(u + ux, v + uy); q.heading = headingOf(fx[0] - g[0], fx[1] - g[1]) + (r - 0.5) * 70; this.stats.doorstep++; return q; }
+    return sp;
+  }
+  private catchUp = 0;
   /** the eye (the stranger: the camera's ground point) and the way it has been going (a unit vector, 0 when standing) */
   private eye: P2 = [1e9, 1e9]; private eyeDir: P2 = [0, 0];
   /** D-690: a person standing near the stranger makes way: within YIELD_R (YIELD_DOOR_R by a doorway) they step up to
@@ -688,7 +726,7 @@ export class PopView {
       ...(cl ? { delegation: cl.delegation, pieces: cl.pieces, beardless: cl.beardless, stature: cl.stature } : {}) }; // (D-199: the court setting's delegations, king and attendants)
   }
   /** a child's standing height by age (m; C: a modern growth-chart median, the body is the child variant scaled) */
-  childStature(pid: number): number | null { const age = this.pop.ageOn(pid, Math.floor(this.sim.t / 24)); if (age >= 12) return null; return CHILD_H[Math.max(0, Math.min(11, age))]; }
+  childStature(pid: number): number | null { const age = this.pop.ageOn(pid, Math.floor(this.sim.t / 24)); if (age >= 12) return null; return CHILD_H[Math.max(0, Math.min(11, age))] * (1 + 0.06 * (h32(this.seed, salt('child-h'), pid) / 4294967296 - 0.5)); } // (s18 C14 D-790: +-3 % per child: no two of an age alike)
   /** D-244: the view's state of a person (the renderless trace, tools/dev/people_trace.ts): 0 not drawn, 1 at a spot, 2
    *  walking; the spot (on a walk, where it goes) and its description; null when the person is not a candidate */
   stateOf(pid: number): { mode: 0 | 1 | 2 | 3 | 4; spot: Spot | null; what: string } | null { const s = this.ps.get(pid); return s ? { mode: s.mode, spot: s.spot, what: s.what } : null; }

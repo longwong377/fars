@@ -1564,6 +1564,26 @@ def a_wo_chariot():
     hubs = [xform(lathe([(0.0, -0.16), (0.075, -0.1), (0.075, 0.1), (0.0, 0.16)], 10, 'h'), (x, 0, R), (0, math.pi / 2, 0)) for x in (-0.7, 0.7)]
     return dict(wood_d=join(wd, 'wood_d'), wood=join(w, 'wood'), leather=join(box_ + rail, 'leather'), gilt=join(hubs, 'gilt'))
 @woW
+def a_wo_litter():
+    """a royal woman's curtained litter, carried on the shoulders of four bearers (the closed carriages of the Persian women:
+    Plutarch Them. 26, HDT 7.83, claims, B; C form; D-780): two carrying poles 3.4 m long at the bearers' shoulders (1.45 m,
+    0.30 m either side of the middle: C14's bier crew), a cabin sitting on them (floor 1.35 m, roof 2.5 m) with four gilded
+    posts, a cloth roof under a gilded band and dyed curtains from the roof down over the poles' join"""
+    poles = [log((x, 1.45, -1.7), (x, 1.45, 1.7), 0.035, 0.032, 7, 'pole', seed=370 + i, bark=0.001) for i, x in enumerate((-0.30, 0.30))]
+    floor = boxG(0.72, 0.06, 1.2, 0, 1.33, 0, bevel=0.01)
+    posts = [pathG([(x, 1.39, z), (x, 2.5, z)], 0.022, 6, 'post') for x in (-0.34, 0.34) for z in (-0.58, 0.58)]
+    roof = boxG(0.8, 0.06, 1.28, 0, 2.5, 0, bevel=0.01); band = boxG(0.84, 0.08, 1.32, 0, 2.44, 0, bevel=0.01)
+    cur = []
+    for (w, d, x, z) in ((0.02, 1.18, -0.36, 0), (0.02, 1.18, 0.36, 0), (0.7, 0.02, 0, -0.6), (0.7, 0.02, 0, 0.6)):
+        c = boxG(w, 1.22, d, x, 1.28, z); subdiv(c, 2)
+        for v in c.data.vertices:  # soft folds hanging from the roof
+            k = (v.co.z - 1.28) / 1.22
+            if w < 0.1: v.co.x += 0.008 * math.sin(v.co.y * 40) * (1 - k)
+            else: v.co.y += 0.008 * math.sin(v.co.x * 40) * (1 - k)
+        cur.append(c)
+    return dict(wood=join(poles + [floor], 'wood'), gilt=join(posts + [band], 'gilt'), blue=roof, red=join(cur, 'red'))
+
+@woW
 def a_wo_wagon():
     """a covered four-wheeled wagon (harmamaxa) for the royal women (HDT 7.83: a claim; C form): a box on solid wheels under
     an arched cloth cover on hoops, a pole to the yoke; court setting only"""
@@ -1783,6 +1803,62 @@ def a_wo_fold():
         (th if math.sin(i * 12.9) > 0 else th2).append(xform(c, G((x, 0, z)), (0, 0, -a)))
     straw = [heap(0.45, 0.25, -1.5 + 1.5 * i, 1.2 * math.sin(i * 7), seed=540 + i, lump=0.5, name='s') for i in range(3)]
     return dict(thorn=join(th, 'thorn'), thorn_d=join(th2, 'thorn_d'), straw_d=join(straw, 'straw_d'))
+
+@woW
+def a_wo_shaduf():
+    """D-670: a shaduf (well sweep) at a river or canal bank: two mud-brick pillars ~1.9 m with a cross-beam, a long sweep
+    pole pivoting on it, a lump of clay and stones as the counterweight on the short end, a rope from the long end to a
+    leather bucket (the Assyrian reliefs and Egyptian tombs: B analogy for the device; its use on the Pulvar C). The water
+    is toward +Z (forward); the bucket hangs over it"""
+    pil = [boxG(0.5, 1.9, 0.5, x, 0, -0.3, bevel=0.04) for x in (-0.65, 0.65)]
+    for i, b in enumerate(pil): displace(b, 0.02, 0.15, seed=600 + i)
+    bar = [log((-0.85, 1.95, -0.3), (0.85, 1.95, -0.3), 0.07, 0.07, 8, 'bar', seed=603)]
+    pole = [log((0, 2.55, -2.2), (0, 1.25, 3.6), 0.07, 0.04, 8, 'pole', seed=604)]
+    cw = heap(0.32, 0.5, 0, 0, seed=605, lump=0.4, name='cw'); xform(cw, (0, 0, 0)); q = G((0, 2.35, -2.25)); xform(cw, (q.x, q.y, q.z))
+    rope = [pathG([(0, 1.25, 3.6), (0, 0.25, 3.62)], 0.012, 4, 'rope')]
+    bucket = lathe([(0.0, 0.0), (0.16, 0.02), (0.2, 0.18), (0.19, 0.3)], 12, 'bucket'); q = G((0, -0.05, 3.62)); xform(bucket, (q.x, q.y, q.z))
+    return dict(mud=join(pil, 'mud'), wood=join(bar, 'wood'), wood_d=join(pole, 'wood_d'), clay=cw, cord=join(rope, 'cord'), hide=bucket)
+
+@woW
+def a_wo_pontoon():
+    """D-670: one bay of a boat bridge (6 m along the crossing, +Z): a plank-built boat moored across the bridge line (along x,
+    its length with the current), a deck of planks on two stringers over it, low side rails, the mooring ropes (Herodotus
+    7.36, the Hellespont bridges of boats, and Xenophon's Tigris crossing: B analogy for the form; a Kur crossing of boats C).
+    Origin: the water surface under the bay's centre; the hull sits ~0.45 m deep"""
+    hull = pathG([(-2.6, -0.1, 0), (-2.0, -0.35, 0), (0, -0.45, 0), (2.0, -0.35, 0), (2.6, -0.1, 0)], [0.25, 0.62, 0.72, 0.62, 0.25], 10, 'hull', scale=(1.0, 0.7))
+    rim = [pathG([(-2.55, 0.12, z), (0, 0.18, z * 1.05), (2.55, 0.12, z)], 0.04, 5, 'gun') for z in (-0.68, 0.68)]
+    string = [boxG(0.18, 0.2, 6.0, x, 0.2, 0, bevel=0.01) for x in (-1.1, 1.1)]
+    deck = [boxG(3.0, 0.06, 0.28, 0, 0.4, -2.85 + i * 0.3, bevel=0.008, yaw=0.01 * math.sin(i * 3.1)) for i in range(20)]
+    rails = [boxG(0.08, 0.08, 6.0, x, 0.95, 0) for x in (-1.45, 1.45)] + [boxG(0.1, 0.55, 0.1, x, 0.42, z) for x in (-1.45, 1.45) for z in (-2.8, 0, 2.8)]
+    ropes = [pathG([(x, 0.2, 0), (x * 1.6, -0.2, 0)], 0.015, 4, 'moor') for x in (-2.4, 2.4)]
+    return dict(wood_d=join([hull] + rim, 'wood_d'), wood=join(string + deck + rails, 'wood'), cord=join(ropes, 'cord'))
+
+@woW
+def a_wo_skiff():
+    """D-670: a small plank boat of the rivers, 4.4 m, drawn up on the bank, its punting pole and paddle laid in it (the river
+    boats of the reliefs and of Herodotus 1.194's Armenian craft: B analogy; C form)"""
+    hull = pathG([(0, 0.18, -2.2), (0, 0.08, -1.6), (0, 0.02, 0), (0, 0.08, 1.6), (0, 0.22, 2.2)], [0.08, 0.5, 0.62, 0.5, 0.08], 10, 'hull', scale=(1.0, 0.55))
+    rim = [pathG([(x * 0.05, 0.36, -2.15), (x * 0.6, 0.4, 0), (x * 0.05, 0.38, 2.15)], 0.03, 5, 'gun') for x in (-1, 1)]
+    thw = [boxG(1.1, 0.04, 0.22, 0, 0.3, z, bevel=0.006) for z in (-0.8, 0.7)]
+    pole = [log((0.2, 0.36, -1.9), (-0.15, 0.4, 2.6), 0.025, 0.02, 6, 'pole', seed=611, bark=0.002)]
+    pad = [boxG(0.14, 0.02, 0.5, -0.25, 0.34, 1.1, bevel=0.004), pathG([(-0.25, 0.35, 0.85), (-0.2, 0.36, -0.3)], 0.018, 5, 'shaft')]
+    return dict(wood_d=join([hull] + rim, 'wood_d'), wood=join(thw + pole + pad, 'wood'))
+
+@woW
+def a_wo_net_poles():
+    """D-670: a fishing net hung to dry on three poles at the water's edge, floats along its top (C)"""
+    poles = [log((x, 0, 0), (x, 1.9, 0), 0.04, 0.03, 6, 'pole', seed=620 + i, bark=0.003) for i, x in enumerate((-1.6, 0, 1.6))]
+    net = []
+    for i in range(2):
+        x0, x1 = -1.6 + 1.6 * i, 1.6 * i
+        for k in range(9):
+            y = 1.8 - 0.18 * k - 0.12 * math.sin(math.pi * 0.5) * (k / 8)
+            net.append(pathG([(x0, y, 0), ((x0 + x1) / 2, y - 0.25, 0.04), (x1, y, 0)], 0.006, 3, 'n'))
+        for j in range(7):
+            x = x0 + (x1 - x0) * j / 6; sag = 0.25 * math.sin(math.pi * j / 6)
+            net.append(pathG([(x, 1.8 - sag, 0.02), (x, 0.25 - sag * 0.4, 0.02)], 0.006, 3, 'v'))
+    floats = [xform(lathe([(0.0, -0.05), (0.05, -0.03), (0.05, 0.03), (0.0, 0.05)], 8, 'f'), G((-1.5 + 0.4 * i, 1.82, 0))) for i in range(8)]
+    return dict(wood_d=join(poles, 'wood_d'), cord=join(net, 'cord'), wood=join(floats, 'wood'))
 
 def sledge_parts():
     runners = [pathG([(x, 0.1, -1.55), (x, 0.1, 1.2), (x, 0.14, 1.45), (x, 0.24, 1.58)], 0.1, 4, 'runner') for x in (-0.6, 0.6)]

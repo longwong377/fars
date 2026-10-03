@@ -10838,6 +10838,728 @@
     0.3022218495607376
    ],
    "tex": 0
+  },
+  "m_wo_shaduf": {
+   "file": "models/props/m_wo_shaduf.glb",
+   "of": "wo_shaduf",
+   "role": "model",
+   "parts": [
+    "mud",
+    "wood",
+    "wood_d",
+    "clay",
+    "cord",
+    "hide"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/model_props.py (D-325)",
+   "bytes": 80716,
+   "sha256": "92ccf3beb98c40a104f4d8bfa0af4c88c7e134c408bf25d116114467f902353a",
+   "tris": {
+    "lod0": 1636,
+    "lod1": 804,
+    "lod2": 804
+   },
+   "partTris": {
+    "lod0__mud": 216,
+    "lod0__wood": 352,
+    "lod0__wood_d": 352,
+    "lod0__clay": 644,
+    "lod0__cord": 12,
+    "lod0__hide": 60,
+    "lod1__mud": 216,
+    "lod1__wood": 140,
+    "lod1__wood_d": 160,
+    "lod1__clay": 256,
+    "lod1__cord": 8,
+    "lod1__hide": 24,
+    "lod2__mud": 216,
+    "lod2__wood": 140,
+    "lod2__wood_d": 160,
+    "lod2__clay": 256,
+    "lod2__cord": 8,
+    "lod2__hide": 24
+   },
+   "box": [
+    [
+     -0.9025433659553528,
+     -0.05000000074505806,
+     -2.569999933242798
+    ],
+    [
+     0.9058977365493774,
+     2.8499999046325684,
+     3.819999933242798
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    1.8084411025047302,
+    2.8999999053776264,
+    6.389999866485596
+   ],
+   "tex": 0
+  },
+  "m_wo_pontoon": {
+   "file": "models/props/m_wo_pontoon.glb",
+   "of": "wo_pontoon",
+   "role": "model",
+   "parts": [
+    "wood_d",
+    "wood",
+    "cord"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/model_props.py (D-325)",
+   "bytes": 85392,
+   "sha256": "52b83f7a9aab89bfa8e5d30e47f9d9f889462171140c7a46679f31e26c904318",
+   "tris": {
+    "lod0": 1770,
+    "lod1": 756,
+    "lod2": 336
+   },
+   "partTris": {
+    "lod0__wood_d": 148,
+    "lod0__wood": 1598,
+    "lod0__cord": 24,
+    "lod1__wood_d": 148,
+    "lod1__wood": 600,
+    "lod1__cord": 8,
+    "lod2__wood_d": 148,
+    "lod2__wood": 180,
+    "lod2__cord": 8
+   },
+   "box": [
+    [
+     -3.8440146446228027,
+     -0.9293324947357178,
+     -3
+    ],
+    [
+     3.8440146446228027,
+     1.0299999713897705,
+     3.0005974769592285
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    7.6880292892456055,
+    1.9593324661254883,
+    6.0005974769592285
+   ],
+   "tex": 0
+  },
+  "m_wo_litter": {
+   "file": "models/props/m_wo_litter.glb",
+   "of": "wo_litter",
+   "role": "model",
+   "parts": [
+    "wood",
+    "gilt",
+    "blue",
+    "red"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/model_props.py (D-325)",
+   "bytes": 90120,
+   "sha256": "f1ce053f1d77c3d20d31d034b87bd7ff8eda5e5b32e081094ffd0173f22b7a81",
+   "tris": {
+    "lod0": 1664,
+    "lod1": 940,
+    "lod2": 590
+   },
+   "partTris": {
+    "lod0__wood": 600,
+    "lod0__gilt": 188,
+    "lod0__blue": 108,
+    "lod0__red": 768,
+    "lod1__wood": 200,
+    "lod1__gilt": 180,
+    "lod1__blue": 60,
+    "lod1__red": 500,
+    "lod2__wood": 200,
+    "lod2__gilt": 180,
+    "lod2__blue": 60,
+    "lod2__red": 150
+   },
+   "box": [
+    [
+     -0.41999998688697815,
+     1.3300000429153442,
+     -1.659773349761963
+    ],
+    [
+     0.41999998688697815,
+     2.559999942779541,
+     1.658070683479309
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    0.8399999737739563,
+    1.2299998998641968,
+    3.317844033241272
+   ],
+   "tex": 0
+  },
+  "searsia_burchellii": {
+   "file": "models/props/searsia_burchellii.glb",
+   "of": "searsia_burchellii",
+   "role": "shrub",
+   "licence": "CC0 1.0",
+   "source": "https://polyhaven.com/a/searsia_burchellii",
+   "bytes": 1669264,
+   "sha256": "3d2158d87b4da6b121c0ca44208f004ebd0e9c1668bdb72b2bbb41ee92c56d55",
+   "srcTris": 616336,
+   "tris": {
+    "lod0": 22436,
+    "lod1": 22436
+   },
+   "size_m": [
+    8.35636568069458,
+    3.2469784803688526,
+    5.048532009124756
+   ],
+   "tex": 1024
+  },
+  "searsia_lucida_v1": {
+   "file": "models/props/searsia_lucida_v1.glb",
+   "of": "searsia_lucida",
+   "role": "shrub",
+   "licence": "CC0 1.0",
+   "source": "https://polyhaven.com/a/searsia_lucida",
+   "bytes": 1578468,
+   "sha256": "1efd4bab32d28371f6530922563ae02292355fd6fa75bc4a2739ffe446cea3cb",
+   "srcTris": 286055,
+   "tris": {
+    "lod0": 2499,
+    "lod1": 1899
+   },
+   "size_m": [
+    3.2168232202529907,
+    2.338919585570693,
+    2.8379558324813843
+   ],
+   "tex": 1024
+  },
+  "wild_rooibos_bush_v1": {
+   "file": "models/props/wild_rooibos_bush_v1.glb",
+   "of": "wild_rooibos_bush",
+   "role": "shrub",
+   "licence": "CC0 1.0",
+   "source": "https://polyhaven.com/a/wild_rooibos_bush",
+   "bytes": 1144096,
+   "sha256": "fcb16a1f92fd55bb939417399ff55341239343fa764b5da73452d94dda248f45",
+   "srcTris": 19438,
+   "tris": {
+    "lod0": 2000,
+    "lod1": 400
+   },
+   "size_m": [
+    1.1814873218536377,
+    0.5412663070019335,
+    0.8434299230575562
+   ],
+   "tex": 1024
+  },
+  "didelta_spinosa_v1": {
+   "file": "models/props/didelta_spinosa_v1.glb",
+   "of": "didelta_spinosa",
+   "role": "camelthorn",
+   "licence": "CC0 1.0",
+   "source": "https://polyhaven.com/a/didelta_spinosa",
+   "bytes": 385652,
+   "sha256": "d72ad5a67e2137bffd27c3d057bcc04d8bbb3b9709c3c2f33219e26cf0bc0ef0",
+   "srcTris": 233988,
+   "tris": {
+    "lod0": 7023,
+    "lod1": 7023
+   },
+   "size_m": [
+    2.1229358911514282,
+    2.072291448712349,
+    1.8602091073989868
+   ],
+   "tex": 1024
+  },
+  "didelta_spinosa_v2": {
+   "file": "models/props/didelta_spinosa_v2.glb",
+   "of": "didelta_spinosa",
+   "role": "camelthorn",
+   "licence": "CC0 1.0",
+   "source": "https://polyhaven.com/a/didelta_spinosa",
+   "bytes": 334956,
+   "sha256": "823483267bf197be9804184d9e68089e6c81a2040d0a280221c5f691bb0122d4",
+   "srcTris": 143401,
+   "tris": {
+    "lod0": 4418,
+    "lod1": 4418
+   },
+   "size_m": [
+    1.2740023136138916,
+    1.3010175004601479,
+    1.57205069065094
+   ],
+   "tex": 1024
+  },
+  "grass_medium_01_v1": {
+   "file": "models/props/grass_medium_01_v1.glb",
+   "of": "grass_medium_01",
+   "role": "grass",
+   "licence": "CC0 1.0",
+   "source": "https://polyhaven.com/a/grass_medium_01",
+   "bytes": 369816,
+   "sha256": "9f9214d3e3b13b9e50b7b5e7bdb35656c43d978bcbe39b0ee665decb20d20130",
+   "srcTris": 6422,
+   "tris": {
+    "lod0": 900,
+    "lod1": 180
+   },
+   "size_m": [
+    0.31700897216796875,
+    0.1466887895949185,
+    0.32655881345272064
+   ],
+   "tex": 512
+  },
+  "grass_medium_01_v2": {
+   "file": "models/props/grass_medium_01_v2.glb",
+   "of": "grass_medium_01",
+   "role": "grass",
+   "licence": "CC0 1.0",
+   "source": "https://polyhaven.com/a/grass_medium_01",
+   "bytes": 367920,
+   "sha256": "5218e23e03b5f51c1c972e52e1b1ebc52bca8866db98c155bd03fb8ea9b1447b",
+   "srcTris": 4626,
+   "tris": {
+    "lod0": 900,
+    "lod1": 180
+   },
+   "size_m": [
+    0.2840975522994995,
+    0.16926261968910694,
+    0.2757398784160614
+   ],
+   "tex": 512
+  },
+  "grass_medium_01_v3": {
+   "file": "models/props/grass_medium_01_v3.glb",
+   "of": "grass_medium_01",
+   "role": "grass",
+   "licence": "CC0 1.0",
+   "source": "https://polyhaven.com/a/grass_medium_01",
+   "bytes": 367788,
+   "sha256": "0d3d5eda614e65065cb1becf378c27ec822c02ee604b99308891a04f19f82204",
+   "srcTris": 5945,
+   "tris": {
+    "lod0": 900,
+    "lod1": 179
+   },
+   "size_m": [
+    0.27879106998443604,
+    0.1423474159091711,
+    0.25506988167762756
+   ],
+   "tex": 512
+  },
+  "grass_medium_01_v4": {
+   "file": "models/props/grass_medium_01_v4.glb",
+   "of": "grass_medium_01",
+   "role": "grass",
+   "licence": "CC0 1.0",
+   "source": "https://polyhaven.com/a/grass_medium_01",
+   "bytes": 365424,
+   "sha256": "b2ab38bc95768abb74a2907a2d66372d89d28dc1c0b10ca0eecc4cdcc3e92ccf",
+   "srcTris": 2287,
+   "tris": {
+    "lod0": 900,
+    "lod1": 180
+   },
+   "size_m": [
+    0.21561527252197266,
+    0.21774429827928543,
+    0.2213778793811798
+   ],
+   "tex": 512
+  },
+  "grass_medium_02_v1": {
+   "file": "models/props/grass_medium_02_v1.glb",
+   "of": "grass_medium_02",
+   "role": "grass",
+   "licence": "CC0 1.0",
+   "source": "https://polyhaven.com/a/grass_medium_02",
+   "bytes": 130116,
+   "sha256": "a2bc669019310aa49210272423df30ffecd67db62c0dc63e9d6c369e0d7ef3a2",
+   "srcTris": 714,
+   "tris": {
+    "lod0": 714,
+    "lod1": 180
+   },
+   "size_m": [
+    0.11912186071276665,
+    0.15693037677556276,
+    0.11976241320371628
+   ],
+   "tex": 512
+  },
+  "grass_medium_02_v2": {
+   "file": "models/props/grass_medium_02_v2.glb",
+   "of": "grass_medium_02",
+   "role": "grass",
+   "licence": "CC0 1.0",
+   "source": "https://polyhaven.com/a/grass_medium_02",
+   "bytes": 134408,
+   "sha256": "3f6189eec26ba238debde6d07ba66c459aa4c0c210826e1a09b156074f804d53",
+   "srcTris": 1760,
+   "tris": {
+    "lod0": 899,
+    "lod1": 180
+   },
+   "size_m": [
+    0.1791270226240158,
+    0.17956401547417045,
+    0.1992683783173561
+   ],
+   "tex": 512
+  },
+  "grass_medium_02_v3": {
+   "file": "models/props/grass_medium_02_v3.glb",
+   "of": "grass_medium_02",
+   "role": "grass",
+   "licence": "CC0 1.0",
+   "source": "https://polyhaven.com/a/grass_medium_02",
+   "bytes": 139352,
+   "sha256": "ac76489c9e562456cb21b96c72e81f2211b41347202393069f1999abc89c5d29",
+   "srcTris": 5368,
+   "tris": {
+    "lod0": 900,
+    "lod1": 179
+   },
+   "size_m": [
+    0.9056657552719116,
+    0.4053142322227359,
+    0.43324655294418335
+   ],
+   "tex": 512
+  },
+  "grass_bermuda_01_v1": {
+   "file": "models/props/grass_bermuda_01_v1.glb",
+   "of": "grass_bermuda_01",
+   "role": "grass",
+   "licence": "CC0 1.0",
+   "source": "https://polyhaven.com/a/grass_bermuda_01",
+   "bytes": 94504,
+   "sha256": "d596151fd410998bbebc27a680bad0e5579acf3e3b9b10ea38febe01102d315a",
+   "srcTris": 12,
+   "tris": {
+    "lod0": 12,
+    "lod1": 12
+   },
+   "size_m": [
+    0.06773799657821655,
+    0.02474112994968891,
+    0.0843101479113102
+   ],
+   "tex": 512
+  },
+  "grass_bermuda_01_v2": {
+   "file": "models/props/grass_bermuda_01_v2.glb",
+   "of": "grass_bermuda_01",
+   "role": "grass",
+   "licence": "CC0 1.0",
+   "source": "https://polyhaven.com/a/grass_bermuda_01",
+   "bytes": 94496,
+   "sha256": "16e338efcf5ac5f7e554c776a9576c2d601ff62a31128972f4816e7779804ccf",
+   "srcTris": 12,
+   "tris": {
+    "lod0": 12,
+    "lod1": 12
+   },
+   "size_m": [
+    0.07010030746459961,
+    0.0433435644954443,
+    0.05502614378929138
+   ],
+   "tex": 512
+  },
+  "grass_bermuda_01_v3": {
+   "file": "models/props/grass_bermuda_01_v3.glb",
+   "of": "grass_bermuda_01",
+   "role": "grass",
+   "licence": "CC0 1.0",
+   "source": "https://polyhaven.com/a/grass_bermuda_01",
+   "bytes": 94628,
+   "sha256": "56189a86fd182e93aec2baba771d202b345ead8d14391cfee96e39cb20140f48",
+   "srcTris": 19,
+   "tris": {
+    "lod0": 19,
+    "lod1": 19
+   },
+   "size_m": [
+    0.0439380407333374,
+    0.04363375518005341,
+    0.06925326446071267
+   ],
+   "tex": 512
+  },
+  "dandelion_01_v1": {
+   "file": "models/props/dandelion_01_v1.glb",
+   "of": "dandelion_01",
+   "role": "flower",
+   "licence": "CC0 1.0",
+   "source": "https://polyhaven.com/a/dandelion_01",
+   "bytes": 355560,
+   "sha256": "d91dd9441595f71b25796be07258b14451167c8ef56e2a1560843c25f54a137b",
+   "srcTris": 23542,
+   "tris": {
+    "lod0": 800,
+    "lod1": 168
+   },
+   "size_m": [
+    0.22034727036952972,
+    0.16423179861158133,
+    0.25765838474035263
+   ],
+   "tex": 512
+  },
+  "dandelion_01_v2": {
+   "file": "models/props/dandelion_01_v2.glb",
+   "of": "dandelion_01",
+   "role": "flower",
+   "licence": "CC0 1.0",
+   "source": "https://polyhaven.com/a/dandelion_01",
+   "bytes": 355812,
+   "sha256": "5929f5c9e2c222f46c243d6aeb7cfa3b2959906298c44c55f170de3dc349f616",
+   "srcTris": 23358,
+   "tris": {
+    "lod0": 799,
+    "lod1": 163
+   },
+   "size_m": [
+    0.201798677444458,
+    0.11386952036991715,
+    0.21796159446239471
+   ],
+   "tex": 512
+  },
+  "celandine_01_v1": {
+   "file": "models/props/celandine_01_v1.glb",
+   "of": "celandine_01",
+   "role": "flower",
+   "licence": "CC0 1.0",
+   "source": "https://polyhaven.com/a/celandine_01",
+   "bytes": 314820,
+   "sha256": "f05e004022856b041093c8fccb5020170e0c85764828f9e49899114e759e300e",
+   "srcTris": 622,
+   "tris": {
+    "lod0": 622,
+    "lod1": 159
+   },
+   "size_m": [
+    0.2757267951965332,
+    0.18585162702947855,
+    0.22823577374219894
+   ],
+   "tex": 512
+  },
+  "celandine_01_v2": {
+   "file": "models/props/celandine_01_v2.glb",
+   "of": "celandine_01",
+   "role": "flower",
+   "licence": "CC0 1.0",
+   "source": "https://polyhaven.com/a/celandine_01",
+   "bytes": 314652,
+   "sha256": "df8a02ce16550655d8759b126d8049d2348166177993ac6da126db48f09e517e",
+   "srcTris": 599,
+   "tris": {
+    "lod0": 599,
+    "lod1": 160
+   },
+   "size_m": [
+    0.2517130374908447,
+    0.14452832657843828,
+    0.3066580146551132
+   ],
+   "tex": 512
+  },
+  "dead_tree_trunk": {
+   "file": "models/props/dead_tree_trunk.glb",
+   "of": "dead_tree_trunk",
+   "role": "deadwood",
+   "licence": "CC0 1.0",
+   "source": "https://polyhaven.com/a/dead_tree_trunk",
+   "bytes": 510856,
+   "sha256": "c10f27438fa111304c8e86ba9b3e99d5c6a5e46002298dbcf540f83d9a8c36ae",
+   "srcTris": 101802,
+   "tris": {
+    "lod0": 2499,
+    "lod1": 500
+   },
+   "size_m": [
+    3.051015019416809,
+    0.29043155536055565,
+    0.27752751111984253
+   ],
+   "tex": 1024
+  },
+  "dead_tree_trunk_02": {
+   "file": "models/props/dead_tree_trunk_02.glb",
+   "of": "dead_tree_trunk_02",
+   "role": "deadwood",
+   "licence": "CC0 1.0",
+   "source": "https://polyhaven.com/a/dead_tree_trunk_02",
+   "bytes": 632236,
+   "sha256": "77f5a5796b36f4401bd36579d46ed4b09ae44f2d6e0ce98a6b9b0f97f87602cd",
+   "srcTris": 83128,
+   "tris": {
+    "lod0": 2500,
+    "lod1": 500
+   },
+   "size_m": [
+    4.051363587379456,
+    1.0550733506679535,
+    1.0561286807060242
+   ],
+   "tex": 1024
+  },
+  "tree_stump_01": {
+   "file": "models/props/tree_stump_01.glb",
+   "of": "tree_stump_01",
+   "role": "deadwood",
+   "licence": "CC0 1.0",
+   "source": "https://polyhaven.com/a/tree_stump_01",
+   "bytes": 675120,
+   "sha256": "f5a631c3911cac82b84a43581f4dbe9d150f5cce1085bb72a3bba13af1a34733",
+   "srcTris": 41046,
+   "tris": {
+    "lod0": 1500,
+    "lod1": 300
+   },
+   "size_m": [
+    1.4255504608154297,
+    0.5726675391197205,
+    1.5903143286705017
+   ],
+   "tex": 1024
+  },
+  "root_cluster_01": {
+   "file": "models/props/root_cluster_01.glb",
+   "of": "root_cluster_01",
+   "role": "deadwood",
+   "licence": "CC0 1.0",
+   "source": "https://polyhaven.com/a/root_cluster_01",
+   "bytes": 646700,
+   "sha256": "87119fa36c7f1948c78c86cf91de95e7a07001b5c16eb05bcf138d66a8880ca3",
+   "srcTris": 225261,
+   "tris": {
+    "lod0": 1500,
+    "lod1": 300
+   },
+   "size_m": [
+    4.122708559036255,
+    1.5092801377177238,
+    2.682776689529419
+   ],
+   "tex": 1024
+  },
+  "m_wo_skiff": {
+   "file": "models/props/m_wo_skiff.glb",
+   "of": "wo_skiff",
+   "role": "model",
+   "parts": [
+    "wood_d",
+    "wood"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/model_props.py (D-325)",
+   "bytes": 34204,
+   "sha256": "968e102b1806984cba5d0f557d1183f9c0c493de40e6edd4e4ccd60c939f11b9",
+   "tris": {
+    "lod0": 752,
+    "lod1": 298,
+    "lod2": 298
+   },
+   "partTris": {
+    "lod0__wood_d": 148,
+    "lod0__wood": 604,
+    "lod1__wood_d": 58,
+    "lod1__wood": 240,
+    "lod2__wood_d": 58,
+    "lod2__wood": 240
+   },
+   "box": [
+    [
+     -0.6242914795875549,
+     -0.30431026220321655,
+     -2.2068796157836914
+    ],
+    [
+     0.6299999952316284,
+     0.4285424053668976,
+     2.5383198261260986
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    1.2542914748191833,
+    0.7328526675701141,
+    4.74519944190979
+   ],
+   "tex": 0
+  },
+  "m_wo_net_poles": {
+   "file": "models/props/m_wo_net_poles.glb",
+   "of": "wo_net_poles",
+   "role": "model",
+   "parts": [
+    "wood_d",
+    "cord",
+    "wood"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/model_props.py (D-325)",
+   "bytes": 64572,
+   "sha256": "8ad727b6f5879bc17a056a7cb7a662922022dda0eae818ba97a28499a5ae704f",
+   "tris": {
+    "lod0": 1404,
+    "lod1": 547,
+    "lod2": 331
+   },
+   "partTris": {
+    "lod0__wood_d": 792,
+    "lod0__cord": 356,
+    "lod0__wood": 256,
+    "lod1__wood_d": 316,
+    "lod1__cord": 129,
+    "lod1__wood": 102,
+    "lod2__wood_d": 100,
+    "lod2__cord": 129,
+    "lod2__wood": 102
+   },
+   "box": [
+    [
+     -1.6404850482940674,
+     -0.015196152031421661,
+     -0.05000000074505806
+    ],
+    [
+     1.6295229196548462,
+     1.8749762773513794,
+     0.05000000074505806
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    3.2700079679489136,
+    1.890172429382801,
+    0.10000000149011612
+   ],
+   "tex": 0
   }
  }
 }

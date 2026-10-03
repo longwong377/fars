@@ -12,6 +12,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { paintGeometry as paint, rodGeometry as rod, propGeometry, paintAs } from './props';
 import { nearCascadesOnly } from './humanGPU';
 import { scanShape, modelShape, modelParts, modelFit, mergedModel, model } from '../render/scanProps';
+import { RECLINE } from './workAnims';
 
 export type WorkKind = 'drum_sledge' | 'brick_stack' | 'mud_heap' | 'brick_field' | 'jar' | 'mortar_tub' | 'brick_course' | 'beam' | 'loom' | 'dung_cakes' | 'vat' | 'fodder'
   | 'fleece' | 'butchery' | 'hides' | 'basket_meat' | 'threshing_floor' | 'stooks' | 'sheaves' | 'sheaf' | 'grain_heap' | 'spoil' | 'basket_fruit' | 'press' | 'brushwood'
@@ -20,6 +21,8 @@ export type WorkKind = 'drum_sledge' | 'brick_stack' | 'mud_heap' | 'brick_field
   | 'cart' | 'chariot' | 'wagon' | 'hurdles'
   // session 9 (G77): an ox cart with roof beams; s17 V3 (C3's ask): an ox cart with a rough-cut block from the quarry
   | 'cart_timber' | 'cart_stone'
+  // D-780 (holes u1): a royal woman's curtained litter; the couch a diner of the top ranks reclines on at the king's banquet
+  | 'litter' | 'feast_couch'
   // D-215: children's play (gap audit item 26)
   | 'knucklebones' | 'toy_wheeled'
   // D-209: the lan set out before the fire, and the boiled meat of a sacrifice laid on soft grass
@@ -99,6 +102,7 @@ export const WORK_NOTES: Record<WorkKind, { tier: 'A' | 'B' | 'C'; note: string 
   cart_stone: { tier: 'C', note: 'an ox cart carrying one rough-cut limestone block from the quarry (about 1.2 × 0.6 × 0.9 m, ~1.7 t: a heavy load for one yoke at a slow walk), chocked with timbers, for the door and window frames (s17 V3, C3’s ask; the stone from Majdabad: construction.ts E-61, B; carts and loads C)' },
   cart_timber: { tier: 'C', note: 'an ox cart carrying five roof beams of ~6 m, lashed on and overhanging behind (session 9: roof timber for the building works, the Susa charter\'s timbers from far: A for Susa, B analogy; load C)' },
   chariot: { tier: 'B', note: 'a two-wheeled chariot with spoked wheels, a box for the driver and a pole to the yoke of two horses (chariots on the Apadana reliefs and the royal chariot of HDT 7.40-41: B; form, size and the eight spokes C); court setting only' },
+  litter: { tier: 'C', note: 'a curtained litter of a royal woman: a cabin on two carrying poles borne on four bearers’ shoulders, gilded posts, a cloth roof and dyed curtains (the closed carriages of the Persian women: Plutarch Them. 26, HDT 7.83, claims, B; the form C: D-780)' },
   wagon: { tier: 'C', note: 'a covered four-wheeled wagon (harmamaxa) for the royal women on the road (HDT 7.83, a claim; RECOLLECTION, NOT SEEN): a box on solid wheels under an arched cloth cover, a pole to the yoke (form and size C); court setting only' },
   hurdles: { tier: 'C', note: 'the state poultry yard: a ring of wattle hurdles and a low mud-brick coop (poultry and their fodder: PF 2034, IR-PET, B; where and how kept C)' },
   knucklebones: { tier: 'B', note: 'five knucklebones (astragali of sheep or goats) in the dust, thrown and gathered by children: astragali are common finds of the period (B object; the children’s game C)' },
@@ -130,6 +134,7 @@ export const WORK_NOTES: Record<WorkKind, { tier: 'A' | 'B' | 'C'; note: string 
   hives: { tier: 'C', note: 'clay-pipe hives, a dozen long cylinders laid in rows in a low mud wall, their ends stopped with mud and a flight hole in each (the pipe hive of Iran and the Near East, RECOLLECTION NOT SEEN; C: D-256)' },
   basket_nuts: { tier: 'C', note: 'a basket of wild pistachios and almonds in their husks (C: D-256)' },
   throne: { tier: 'B', note: 'the king’s throne and footstool at an audience (court setting, D-199): a high-backed chair on turned legs with lion’s-paw feet, and a footstool, as the Treasury audience relief carves them (TREAS-AUD, B); gilded wood and the sizes C: the seat 0.525 m and the footstool 0.105 m high, fitted to the enthroned pose measured on the rig (anim ENTHRONED); where it stood in the Apadana is not known (C)' },
+  feast_couch: { tier: 'C', note: 'a couch at the king’s banquet for the Persians of rank nearest the throne, gilded, with a mattress and a bolster (Herodotus 9.80, 9.82: gilded and silver-plated couches in the king’s establishment, B claim; dining reclined on a couch: the Assurbanipal garden relief and the Greek banquet of the period, analogy; who reclines C: D-780). The furnishings’ couch model (m_couch), fitted to the reclining pose measured on the rig (workAnims RECLINE)' },
 };
 
 // ------------------------------------------------------------------------------------------------ D-325: the modelled work objects
@@ -160,7 +165,7 @@ const WORK_OVERRIDE: Partial<Record<WorkKind, Record<string, [RGB, number, numbe
 export const MODELLED_WORK: WorkKind[] = ['drum_sledge', 'brick_stack', 'mud_heap', 'brick_field', 'mortar_tub', 'brick_course', 'beam', 'loom', 'dung_cakes', 'fodder', 'fleece', 'butchery', 'hides',
   'threshing_floor', 'stooks', 'sheaves', 'sheaf', 'grain_heap', 'spoil', 'press', 'brushwood', 'pigment_slab', 'bier', 'wash_stone', 'drying_rack', 'target', 'ard', 'chariot', 'wagon', 'hurdles',
   'knucklebones', 'toy_wheeled', 'offering_set', 'grass_bed', 'anvil', 'bellows_stand', 'bellows', 'stake', 'weigh_table', 'seal_bench', 'tan_beam', 'tan_vat', 'hide_frames', 'fold', 'drum_haul',
-  'sledge', 'drum_rough', 'fish_trap', 'snare', 'hives', 'cart_timber'];
+  'sledge', 'drum_rough', 'fish_trap', 'snare', 'hives', 'cart_timber', 'litter'];
 /** a work model's parts painted (null when not loaded) */
 function woParts(id: string, kind: WorkKind | '', M?: THREE.Matrix4): THREE.BufferGeometry[] | null {
   const p = modelParts(id, 0, M); if (!p) return null;
@@ -181,6 +186,9 @@ function composite(kind: WorkKind): THREE.BufferGeometry | null {
       const id = { basket_meat: 'wo_meat', basket_fruit: 'wo_grapes', basket_nuts: 'wo_nuts', basket_fish: 'wo_fish' }[kind], c = woParts(id, kind); if (!c) return null;
       const r = kind === 'basket_fish' ? 0.22 : 0.2, h = kind === 'basket_meat' ? 0.18 : 0.2;
       return merge([P(SB(kind === 'basket_meat' || kind === 'basket_fish' ? 0 : 1, r, h, () => new THREE.CylinderGeometry(r, r * 0.75, h, 10, 1, true).translate(0, h / 2, 0)), [0.6, 0.52, 0.32]), ...c]); }
+    case 'feast_couch': { // (D-780: the furnishings' couch model, lod1, moved into the recliner's frame: workAnims RECLINE)
+      const c = modelParts('couch', 1, new THREE.Matrix4().makeTranslation(RECLINE.couchX, 0, 0)); if (!c) return null;
+      return merge([paint(c.metal, [0.72, 0.56, 0.3], 0.8, 0.4), paint(c.mattress, [0.46, 0.11, 0.09], 0, 0.95), paint(c.bolster, [0.2, 0.24, 0.42], 0, 0.95)]); }
     case 'hearth_pot': { const c = woParts('wo_hearth_pot', kind), pot = vesselAt('cookpot', [0.34, 0.25, 0.34], [0, 0.11, 0], [0.3, 0.22, 0.17], 0.8); if (!c || !pot) return null; return merge([...c, pot]); }
     case 'milk_pot': { const pot = vesselAt('milkpot', [0.28, 0.29, 0.28], [0, 0, 0], POT), m = woParts('wo_milk', kind, new THREE.Matrix4().makeTranslation(0, 0.25, 0)); if (!pot || !m) return null; return merge([pot, ...m]); }
     case 'basin': { const b = vesselAt('basin', [0.46, 0.105, 0.46], [0, 0, 0], POT), j = vesselAt('jug', [0.15, 0.17, 0.15], [0.3, 0, 0.05], POT); if (!b || !j) return null;
@@ -270,6 +278,12 @@ export function workGeometry(kind: WorkKind): THREE.BufferGeometry {
       g.push(P(box(0.5, 0.02, 1.8, 0, y - 0.01, 0), WOOD));
       g.push(P(new THREE.CapsuleGeometry(0.16, 1.35, 3, 7).rotateX(Math.PI / 2).scale(1.05, 0.7, 1).translate(0, y + 0.12, 0), LINEN, 1));
       return merge(g); }
+    case 'feast_couch': { // origin under the recliner's root: the couch along x, its head end and bolster at the left (+x) (workAnims RECLINE)
+      const GILT: RGB = [0.72, 0.56, 0.3], RED: RGB = [0.46, 0.11, 0.09], BLUE: RGB = [0.2, 0.24, 0.42];
+      const L = RECLINE.x1 - RECLINE.x0, cx = (RECLINE.x0 + RECLINE.x1) / 2, g = [paint(box(L, 0.1, RECLINE.w, cx, RECLINE.top - 0.22, 0), GILT, 0.8, 0.4), paint(box(L - 0.04, 0.12, RECLINE.w - 0.04, cx, RECLINE.top - 0.12, 0), RED, 0, 0.95),
+        paint(box(0.2, 0.18, RECLINE.w - 0.06, RECLINE.x1 - 0.16, RECLINE.top, 0), BLUE, 0, 0.95)];
+      for (const x of [RECLINE.x0 + 0.06, RECLINE.x1 - 0.06]) for (const z of [-0.35, 0.35]) g.push(paint(rod([x, 0, z], [x, RECLINE.top - 0.22, z], 0.035, 0.03, 6), GILT, 0.8, 0.4));
+      return merge(g); }
     case 'throne': { // origin under the seated king's root: the seat behind (z −0.22 … 0.22), the footstool in front (C)
       const GILT: RGB = [0.72, 0.56, 0.3], seatY = 0.525, g: THREE.BufferGeometry[] = [];
       // D-325: the modelled throne and footstool (lion's paws on drums, turned legs, stretchers, finials; the footstool on bull's
@@ -334,6 +348,15 @@ export function workGeometry(kind: WorkKind): THREE.BufferGeometry {
       for (const x of [-0.5, 0.5]) g.push(P(box(0.04, 0.6, 0.72, x, R + 0.07, -0.05), [0.5, 0.2, 0.12], 0.8));
       g.push(P(rod([0, R + 0.05, 0.36], [0, 1.02, 1.6], 0.04, 0.035, 6), WOOD)); g.push(P(rod([0, 1.02, 1.6], [0, 1.22, 2.9], 0.035, 0.03, 6), WOOD));
       g.push(P(rod([-0.62, 1.24, 2.9], [0.62, 1.24, 2.9], 0.04, 0.04, 6), WOOD));
+      return merge(g); }
+    case 'litter': { const g: THREE.BufferGeometry[] = [], GILT: RGB = [0.62, 0.48, 0.28], CUR: RGB = [0.5, 0.12, 0.1], ROOF: RGB = [0.24, 0.26, 0.42];
+      // carried on the shoulders of four bearers (C14's bier crew: the poles at 1.45 m, 0.30 m either side), the cabin on the poles
+      for (const x of [-0.3, 0.3]) g.push(P(rod([x, 1.45, -1.7], [x, 1.45, 1.7], 0.035, 0.035, 6), WOOD));
+      g.push(P(box(0.72, 0.06, 1.2, 0, 1.33, 0), WOOD));
+      for (const x of [-0.34, 0.34]) for (const z of [-0.58, 0.58]) g.push(P(rod([x, 1.39, z], [x, 2.5, z], 0.022, 0.022, 5), GILT, 0.6, 0.35));
+      g.push(P(box(0.8, 0.06, 1.28, 0, 2.5, 0), ROOF, 0.9)); g.push(P(box(0.84, 0.08, 1.32, 0, 2.44, 0), GILT, 0.6, 0.35));
+      for (const x of [-0.36, 0.36]) g.push(P(box(0.02, 1.22, 1.18, x, 1.28, 0), CUR, 0.95));
+      for (const z of [-0.6, 0.6]) g.push(P(box(0.7, 1.22, 0.02, 0, 1.28, z), CUR, 0.95));
       return merge(g); }
     case 'wagon': { const g: THREE.BufferGeometry[] = [], R = 0.42;
       for (const z of [-0.95, 0.95]) for (const x of [-0.82, 0.82]) g.push(P(new THREE.CylinderGeometry(R, R, 0.09, 12).rotateZ(Math.PI / 2).translate(x, R, z), WOOD_D));
@@ -469,27 +492,60 @@ export function workGeometry(kind: WorkKind): THREE.BufferGeometry {
 }
 
 /** the work objects: one instanced mesh per kind, filled every frame by the crowd (begin / push / end) */
+/** s18 C14 (D-790): the vehicles' wheels, drawn apart from the body so they turn: radius, axles (x, z of each wheel's
+ *  centre; y = R), the half-width of a wheel's slab about its x (hub included) */
+export const WHEELS: Partial<Record<WorkKind, { R: number; axles: [number, number][]; half: number }>> = {
+  cart: { R: 0.46, axles: [[0.82, 0], [-0.82, 0]], half: 0.085 }, cart_stone: { R: 0.46, axles: [[0.82, 0], [-0.82, 0]], half: 0.085 },
+  cart_timber: { R: 0.46, axles: [[0.82, 0], [-0.82, 0]], half: 0.085 }, chariot: { R: 0.5, axles: [[0.7, 0], [-0.7, 0]], half: 0.15 },
+  wagon: { R: 0.42, axles: [[0.82, 0.95], [-0.82, 0.95], [0.82, -0.95], [-0.82, -0.95]], half: 0.06 },
+};
+/** s18 C14: a vehicle's geometry split: the body without its wheels, and one wheel (the +x first axle's triangles) centred on
+ *  its own axle (the wheels are alike and mirror-symmetric) */
+export function splitWheels(g: THREE.BufferGeometry, W: { R: number; axles: [number, number][]; half: number }): { body: THREE.BufferGeometry; wheel: THREE.BufferGeometry } {
+  const src = g.index ? g.toNonIndexed() : g, pos = src.getAttribute('position'), n = pos.count / 3, keepB: number[] = [], keepW: number[] = [];
+  for (let t = 0; t < n; t++) { let cx = 0, cy = 0, cz = 0; for (let v = 0; v < 3; v++) { cx += pos.getX(t * 3 + v) / 3; cy += pos.getY(t * 3 + v) / 3; cz += pos.getZ(t * 3 + v) / 3; }
+    let wi = -1; W.axles.forEach(([x, z], i) => { if (wi < 0 && Math.abs(cx - x) < W.half && Math.hypot(cy - W.R, cz - z) < W.R + 0.03) wi = i; });
+    if (wi < 0) keepB.push(t); else if (wi === 0) keepW.push(t); }
+  const pick = (tris: number[], shift: [number, number, number]) => { const out = new THREE.BufferGeometry();
+    for (const name of Object.keys(src.attributes)) { const a = src.getAttribute(name), k = a.itemSize, arr = new Float32Array(tris.length * 3 * k);
+      tris.forEach((t, i) => { for (let v = 0; v < 3; v++) for (let c = 0; c < k; c++) arr[(i * 3 + v) * k + c] = a.getComponent(t * 3 + v, c) - (name === 'position' ? shift[c] : 0); });
+      out.setAttribute(name, new THREE.BufferAttribute(arr, k, a.normalized)); }
+    return out; };
+  const [x0, z0] = W.axles[0];
+  return { body: pick(keepB, [0, 0, 0]), wheel: pick(keepW, [x0, W.R, z0]) };
+}
+const _wm = new THREE.Matrix4(), _wr = new THREE.Matrix4();
 export class WorkObjects {
   readonly group = new THREE.Group();
-  private meshes = new Map<WorkKind, { mesh: THREE.InstancedMesh; n: number; radius: number; box: THREE.Box3 }>();
+  private meshes = new Map<WorkKind, { mesh: THREE.InstancedMesh; n: number; radius: number; box: THREE.Box3; wheel?: { mesh: THREE.InstancedMesh; n: number } }>();
   /** objects not drawn this frame because their kind's instance cap was full (reported by stats: never silent) */
   dropped = 0;
   constructor(private material: THREE.Material, private cap = 256) { this.group.name = 'work:objects-dynamic'; }
   private mesh(kind: WorkKind) {
     let m = this.meshes.get(kind); if (m) return m;
-    const g = workGeometry(kind); g.computeBoundingSphere();
+    let g = workGeometry(kind); const W = WHEELS[kind]; let wheel: { mesh: THREE.InstancedMesh; n: number } | undefined;
+    if (W) { const sp = splitWheels(g, W); if (sp.wheel.getAttribute('position').count) { g = sp.body; const wm = new THREE.InstancedMesh(sp.wheel, this.material, this.cap * W.axles.length);
+      wm.count = 0; wm.visible = false; wm.castShadow = wm.receiveShadow = true; wm.instanceMatrix.setUsage(THREE.DynamicDrawUsage); wm.name = `work:${kind}:wheels`; wm.userData = { tier: WORK_NOTES[kind].tier, src: 'RECON', note: WORK_NOTES[kind].note + ' (its wheels, turning)' }; wm.raycast = () => {};
+      wm.frustumCulled = false; nearCascadesOnly(wm); this.group.add(wm); wheel = { mesh: wm, n: 0 }; } }
+    g.computeBoundingSphere();
     const mesh = new THREE.InstancedMesh(g, this.material, this.cap); mesh.count = 0; mesh.visible = false; mesh.castShadow = mesh.receiveShadow = true;
     mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); mesh.name = `work:${kind}`; mesh.userData = { tier: WORK_NOTES[kind].tier, src: 'RECON', note: WORK_NOTES[kind].note }; mesh.raycast = () => {};
     mesh.frustumCulled = true; mesh.boundingSphere = new THREE.Sphere(); nearCascadesOnly(mesh);
-    this.group.add(mesh); m = { mesh, n: 0, radius: g.boundingSphere!.radius, box: new THREE.Box3() }; this.meshes.set(kind, m); return m;
+    this.group.add(mesh); m = { mesh, n: 0, radius: g.boundingSphere!.radius, box: new THREE.Box3(), wheel }; this.meshes.set(kind, m); return m;
   }
-  begin() { this.dropped = 0; for (const m of this.meshes.values()) { m.n = 0; m.box.makeEmpty(); } }
-  push(kind: WorkKind, M: THREE.Matrix4) {
+  begin() { this.dropped = 0; for (const m of this.meshes.values()) { m.n = 0; m.box.makeEmpty(); if (m.wheel) m.wheel.n = 0; } }
+  /** `roll` (rad): how far a vehicle's wheels have turned (its distance travelled / R; s18 C14) */
+  push(kind: WorkKind, M: THREE.Matrix4, roll = 0) {
     const m = this.mesh(kind); if (m.n >= this.cap) { this.dropped++; return; }
     m.mesh.setMatrixAt(m.n++, M); m.box.expandByPoint(_p.setFromMatrixPosition(M));
+    const W = WHEELS[kind], w = m.wheel; if (W && w) W.axles.forEach(([x, z], i) => { const mir = x * W.axles[0][0] < 0;
+      _wr.makeRotationX(mir ? -roll : roll); if (mir) _wr.premultiply(_wm.makeRotationY(Math.PI)); _wr.setPosition(x, W.R, z);
+      w.mesh.setMatrixAt(w.n++, _wm.multiplyMatrices(M, _wr)); void i; });
   }
   end() {
-    for (const m of this.meshes.values()) { const im = m.mesh; im.count = m.n; im.visible = m.n > 0; if (!m.n) continue;
+    for (const m of this.meshes.values()) { const im = m.mesh; im.count = m.n; im.visible = m.n > 0;
+      if (m.wheel) { const wm = m.wheel.mesh; wm.count = m.wheel.n; wm.visible = m.wheel.n > 0; if (m.wheel.n) { wm.instanceMatrix.needsUpdate = true; wm.instanceMatrix.clearUpdateRanges(); wm.instanceMatrix.addUpdateRange(0, m.wheel.n * 16); } }
+      if (!m.n) continue;
       im.instanceMatrix.needsUpdate = true; im.instanceMatrix.clearUpdateRanges(); im.instanceMatrix.addUpdateRange(0, m.n * 16);
       m.box.getBoundingSphere(im.boundingSphere!); im.boundingSphere!.radius += m.radius; }
   }

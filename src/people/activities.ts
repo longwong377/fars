@@ -65,7 +65,9 @@ export interface WorkSpec { kind: WorkKind; at: [number, number, number]; follow
  *  butcher, a sheep on a lead */
 export interface AnimalSpec { kind: 'flock' | 'drive' | 'team' | 'circle' | 'beside' | 'lying' | 'tethered' | 'lead' | 'string' | 'mount' | 'draught'
   /** D-256: penned in a fold (the fold's centre FOLD_AT ahead; `pace` 1 = night, most lying) */
-  | 'fold'; species: Species[]; n?: number;
+  | 'fold'
+  /** s18 C14 (D-790): the royal chariot's four horses abreast at the yoke ahead of the car (the work object 'chariot') */
+  | 'chariot'; species: Species[]; n?: number;
   /** D-210: a flock's dogs; a string's, a mount's or a draught pair's walking pace (m/s; 0 standing), the lead rope between
    *  the animals of a string (m), the first animal's distance behind the driver (m) and its side offset (m) */
   dogs?: number; pace?: number; gap?: number; lead?: number; side?: number }
@@ -104,8 +106,8 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
     variants: [
       // D-780 (s18 C13): the court's programme (people/ceremony.ts, court.ts): riding with the king, to the hunt and at exercise;
       // grooms leading the king's horses; a delegate leading his people's gift animals up the Apadana's stair (the reliefs, B)
-      { when: /in the royal chariot/, anim: 'ride', sound: undefined, animals: { kind: 'mount', species: ['horse_saddle'], pace: 1.8 },
-        note: 'the king driving out in the royal chariot (the reliefs, B): drawn mounted until the chariot and its pair are drawn under him (C14, the animals: C: D-780)' },
+      { when: /in the royal chariot/, anim: 'charioteer', sound: undefined, animals: { kind: 'chariot', species: ['horse', 'horse', 'horse', 'horse'], pace: 2.2 }, work: [{ kind: 'chariot', at: [0, 0, 0.05], follow: true }],
+        note: 'the king driving out in the royal chariot (the reliefs, B), four horses abreast (C14 D-790: the four-horse team C; its wheels turn; the reins in his hands)' },
       { when: /on horseback/, anim: 'ride', sound: undefined, animals: { kind: 'mount', species: ['horse_saddle'], pace: 1.8 },
         note: 'riding with the king, to the hunt or at exercise, on a saddle cloth, no stirrups (blocklist; Cyr. 8.3, 1.4: claims, B; the pace C: D-780)' },
       { when: /leading the king’s horses|leading the horses back/, animals: { kind: 'string', species: ['horse_saddle', 'horse_saddle', 'horse_saddle'], n: 3, pace: 1.0 }, note: 'a groom leading the king’s saddled horses on a string (C: D-780)' },
@@ -171,7 +173,8 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
     variants: [{ when: /in Aramaic/, prop: 'leather', prop2: 'pen', note: 'writing Aramaic with a reed pen and ink on a sheet of leather on the left palm (Aramaic ink epigraphs on Persepolis tablets: B; leather documents in the chancery: B by analogy; posture C; the writing on the sheet is not drawn: D-221)' }] },
   eat: { anim: 'eat', sound: 'murmur', tier: 'C', note: 'sitting and eating bread (rations: B)',
     // D-359: the bread brought along on an errand or a summons (economy/plans.ts feed)
-    variants: [{ when: /at the king’s banquet/, anim: 'sit', prop: 'bowl', note: 'seated at a low table at the king’s banquet, eating and drinking (Heracleides in Athenaeus 4.145: a claim, B; C: D-780)' },
+    variants: [{ when: /reclining on a couch at the king’s banquet/, anim: 'recline', prop: 'bowl', work: [{ kind: 'feast_couch', at: [0, 0, 0] }], note: 'reclining on a gilded couch at the king’s banquet, nearest the throne, propped on the left elbow on the bolster, the cup in hand (Herodotus 9.80-82: the couches, B claim; reclining: the Assurbanipal garden relief and the Greek banquet of the period, analogy; C: D-780)' },
+      { when: /at the king’s banquet/, anim: 'sit', prop: 'bowl', note: 'seated at a low table at the king’s banquet, eating and drinking (Heracleides in Athenaeus 4.145: a claim, B; C: D-780)' },
       { when: /^bread and water brought along/, prop: 'bread', note: 'eating a flat loaf brought along from home, wrapped in a cloth, where the day’s business holds them (C: D-359)' }] },
   sleep: { anim: 'sleep', tier: 'C', note: 'lying asleep on a mat (C)',
     variants: [
@@ -369,7 +372,11 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
       { when: /mending clothes/, prop: 'awl', prop2: 'cloth', note: 'mending clothes on the doorstep, a needle of bone or bronze (C)' }] },
   carry_bier: { anim: 'bier_r', moving: true, sound: 'footsteps', tier: 'C', work: [{ kind: 'bier', at: [-0.46, 0, 0], shared: 'group', follow: true }],
     note: 'carrying the dead out of the settlement on a bier, four bearers (E-71; HDT 1.140 for burial in the earth: B claim). Exposure is never shown',
-    variants: [{ when: 0.5, anim: 'bier_l', work: [{ kind: 'bier', at: [0.46, 0, 0], shared: 'group', follow: true }], note: 'a bearer with the bier’s pole on the left shoulder (C)' }] },
+    variants: [
+      // s18 C14 (D-790): the royal women's curtained litter, carried as the bier is (four bearers, the poles on the shoulders)
+      { when: /curtained litter.*left shoulder/, anim: 'bier_l', work: [{ kind: 'litter', at: [0.46, 0, 0], shared: 'group', follow: true }], note: 'a bearer of a royal woman’s curtained litter, the pole on his left shoulder (claims, B; C)' },
+      { when: /curtained litter/, work: [{ kind: 'litter', at: [-0.46, 0, 0], shared: 'group', follow: true }], note: 'a bearer of a royal woman’s curtained litter (Plutarch Them. 26, HDT 7.83: claims, B; C)' },
+      { when: 0.5, anim: 'bier_l', work: [{ kind: 'bier', at: [0.46, 0, 0], shared: 'group', follow: true }], note: 'a bearer with the bier’s pole on the left shoulder (C)' }] },
   wash: { anim: 'wash', prop: 'cloth', sound: 'wash', tier: 'C', work: [{ kind: 'wash_stone', at: [0, 0, 0.55] }, { kind: 'drying_rack', at: [1.7, 0, -0.6] }],
     note: 'washing clothes and wool at the water: rinsed, beaten on a stone, wrung, hung to dry (C)',
     // D-292 (gap hunter C, C-D46): a Persian or a guard does it on the bank from a jar, never in the stream

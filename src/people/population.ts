@@ -43,7 +43,10 @@ export const LAND_FAR: Record<string, number> = { meadow: 900, bank: 1200, edge:
  *  scattered plots of a household: the village fields of the region in every period, C). Shared with popgeo.ts, so the
  *  plan's walk out is as long as the walk the view draws */
 export function fieldOffset(seed: number, hh: number, plot: number): [number, number] {
-  const a = u01(seed, salt('field-bearing'), hh, plot) * Math.PI * 2, d = 200 + 1600 * u01(seed, salt('field-dist'), hh, plot);
+  // (D-651: out to 3.2 km, evenly by area (the square root): the land between the villages is worked too. It was 200-1,800 m, so
+  // the irrigated land 1-4.5 km from any village (most of the plain the player crosses) was never worked: s18 C12's census, plain
+  // fields empty 88 % of spring and autumn mornings. An hour's walk out at most, as the region's villages' fields lie, C)
+  const a = u01(seed, salt('field-bearing'), hh, plot) * Math.PI * 2, d = Math.sqrt(250 ** 2 + (3200 ** 2 - 250 ** 2) * u01(seed, salt('field-dist'), hh, plot));
   return [Math.cos(a) * d, Math.sin(a) * d];
 }
 /** D-640: the brushwood and the dung of the hill: Kuh-e Rahmat's lower slopes E and S of the Terrace, where the town's
@@ -158,6 +161,7 @@ const TERRACE_XY: [number, number] = [-52, 118.5];
  *  carries his work to the royal stores on this share of days (C) */
 const TANNERS_GROUP = 7, OIL_EVERY = 25, SMITH_DELIVER = 0.15;
 const S_PLAY = salt('playmates'); // (D-371)
+const S_OUT = salt('out-of-doors'); // (D-651)
 const S = { plan: salt('plan'), sick: salt('sick'), sickd: salt('sickd'), death: salt('death'), birth: salt('birth'), marry: salt('marry'), bday: salt('bday'), disp: salt('disp'),
   dispo: salt('dispo'), econLife: salt('econ-life'), assign: salt('assign'), shear: salt('shear'), carer: salt('carer'), gen: salt('gen'), mourn: salt('mourn'), dbl: salt('dbl'), fam: salt('fam'), draft: salt('draft'), name: salt('name'), nurse: salt('nurse'), kid: salt('kid'), band: salt('band'), sac: salt('sacrifice'), fun: salt('funeral'), birthNext: salt('birth-next'), care: salt('body-care') };
 const AGE: [number, number, number][] = L.age_structure.v;
@@ -197,6 +201,8 @@ export const DEPOT_EARLY_H = 1;
  *  posts; not a house, a workshop, a store, a hall or a tent */
 export const OPEN_PLACE = /^(lane:|well:|market:|field:|canal:|pasture:|meadow:|bank:|edge:|slope:|outside|threshing:|garden:|orchard:|vineyard:|estate:|stockyard|crown_fields|river|clay_pit|worksite|h100_|hall100_site|stair_foot|querns|oven|work_hearth|water|forecourt|brickyard|terrace_round|post_|training:|flock:|route:|road:|scrub:|naqsh:(?:tomb|watch|flock))/; // (D-640: the hill's scrub, the ground below the tombs)
 /** at the house but out of doors: on the roof, in the courtyard, at the wall where the dung cakes dry, on the doorstep */
+/** D-651: the stand-in day the deeds' overlay is laid on in segLight (an hour outside what the deeds laid reads the common lot) */
+const LIGHT_BASE: Seg[] = [{ t0: 0, t1: 24, place: '@light', act: 'rest', why: '', where: 'town' }];
 /** D-461: the day's work of a trade, as the town's own minds guess it when no plan is built (Population.segLight; C) */
 const LIGHT_WORK: Partial<Record<string, ActivityId>> = { farmer: 'field_work', gardener: 'garden_work', builder: 'lay_brick', porter: 'carry_sack', camp: 'bake', weaver: 'weave', craftsman: 'craft', scribe: 'write_tablet',
   treasury: 'polish_metal', official: 'inspect', storekeeper: 'weigh', miller: 'grind', brewer: 'brew', groom: 'tend_animals', shepherd: 'herd', herder: 'herd', servant: 'clean', steward: 'inspect', homemaker: 'spin', caretaker: 'clean', messenger: 'walk' };
@@ -1060,6 +1066,8 @@ export class Population {
   /** the day's field task of a farming household (E-40 ... E-50): harvest and threshing, the vintage and the fruit take the
    *  whole household; ploughing, the canal, the water turn and hoeing are the men's. The hours follow the heat (the hotter
    *  the day, the earlier the reapers stop) and the size of the holding (2-4 plots) (C) */
+  // (D-651: the field work begins half an hour earlier than before, from first light: s18 C12's pagecheck found the fields
+  // empty at dawn; the heat of the day is worked round, as in the region's villages, C)
   ptask(h: number, d: number, C: DayCtx): PTask | null {
     const agri = C.agri, u = (k: number) => u01(this.seed, S.assign, 7700 + h, d, k), q = this.households[h].q;
     const plots = 2 + Math.floor(u01(this.seed, S.assign, 9000 + h) * 3); const field = `field:${h}:${Math.floor((d + h) / 3) % plots}`;
@@ -1086,18 +1094,18 @@ export class Population {
     // shadow review r8: 81 % of the winnowing in the calm morning, and on hot days the afternoon's session dropped although
     // the modelled afternoon wind was the stronger on every threshing day)
     if (thresh) { const h1 = end(10.5, 12.5), pmW = windy(C.wx.windPM), a = h1 + 0.8 + lerp(1, 4.5, hot), wa = Math.max(h1 + 1.5, Math.min(a, 16)), we = C.sun.set - 0.5;
-      return { kind: 'thresh', act: 'thresh', place: `threshing:${q}`, why: windy(C.wx.windAM) ? 'threshing and winnowing on the village floor (E-43)' : 'threshing: driving the animals round over the sheaves on the village floor (E-43)', h0: rise + 0.4 + lag / 2, h1, all: true, sheaves: false, late,
+      return { kind: 'thresh', act: 'thresh', place: `threshing:${q}`, why: windy(C.wx.windAM) ? 'threshing and winnowing on the village floor (E-43)' : 'threshing: driving the animals round over the sheaves on the village floor (E-43)', h0: rise - 0.1 + lag / 2, h1, all: true, sheaves: false, late,
         pm: pmW ? (we - wa >= 0.75 ? [wa, we] : null) : pmOf(h1), eveningWind: pmW, pmWhy: pmW ? 'winnowing in the afternoon and evening wind (E-43)' : 'turning the threshed straw; the air is too still to winnow (E-43)' }; }
     if (agri.has('E-50') && (h + C.dom) % 3 === 0) return { kind: 'canal', act: 'dig_canal', place: `canal:${q}`, why: 'clearing the village canal (E-50)', h0: 8, h1: 15, all: false, sheaves: false, late };
-    if (agri.has('E-45') && h % 5 < 2 && u(1) < 0.85) { const h1 = end(11, 13); return { kind: 'vintage', act: 'pick_fruit', place: `vineyard:${q}`, why: 'the vintage: picking grapes (E-45)', h0: rise + 0.5 + lag / 2, h1, all: true, sheaves: false, late, pm: pmOf(h1), pmWhy: 'treading the picked grapes in the press (E-45)' }; }
-    if ((agri.has('E-40') || agri.has('E-44')) && !(C.wx.wet && rainHours(C.wx, C.sun.rise + 0.5, C.sun.rise + 5) > 0) && u(3) < 0.8) return { kind: 'plough', act: 'plough', place: field, why: agri.has('E-44') ? 'sowing the summer crops (E-44)' : 'ploughing and sowing barley and wheat (E-40)', h0: rise + 0.6 + lag, h1: Math.min(16, C.sun.set - 1.2 - 0.3 * u(9)), all: false, sheaves: false, late };
-    if (agri.has('E-46') && h % 2 === 0 && u(2) < 0.7) { const h1 = end(10.5, 12), pm = pmOf(h1); return { kind: 'fruit', act: 'pick_fruit', place: `orchard:${q}`, why: 'picking figs and fruit (E-46)', h0: rise + 0.5 + lag / 2, h1, all: true, sheaves: false, late,
+    if (agri.has('E-45') && h % 5 < 2 && u(1) < 0.85) { const h1 = end(11, 13); return { kind: 'vintage', act: 'pick_fruit', place: `vineyard:${q}`, why: 'the vintage: picking grapes (E-45)', h0: rise + 0.0 + lag / 2, h1, all: true, sheaves: false, late, pm: pmOf(h1), pmWhy: 'treading the picked grapes in the press (E-45)' }; }
+    if ((agri.has('E-40') || agri.has('E-44')) && !(C.wx.wet && rainHours(C.wx, C.sun.rise + 0.5, C.sun.rise + 5) > 0) && u(3) < 0.8) return { kind: 'plough', act: 'plough', place: field, why: agri.has('E-44') ? 'sowing the summer crops (E-44)' : 'ploughing and sowing barley and wheat (E-40)', h0: rise + 0.1 + lag, h1: Math.min(16, C.sun.set - 1.2 - 0.3 * u(9)), all: false, sheaves: false, late };
+    if (agri.has('E-46') && h % 2 === 0 && u(2) < 0.7) { const h1 = end(10.5, 12), pm = pmOf(h1); return { kind: 'fruit', act: 'pick_fruit', place: `orchard:${q}`, why: 'picking figs and fruit (E-46)', h0: rise + 0.0 + lag / 2, h1, all: true, sheaves: false, late,
       pm: pm ? [Math.max(pm[0], late - 1.3), late] : null, pmWhy: 'picking the figs that ripened through the day (E-46)' }; }
-    if ((h + d) % 6 === 0 && [1, 2, 3, 4, 5, 6, 7].includes(C.month)) return { kind: 'turn', act: 'irrigate', place: `canal:${q}`, why: 'the household’s turn of water from the canal (CE-19)', h0: rise + 0.4 + lag, h1: rise + 3.4 + lag + 0.4 * u(9), all: false, sheaves: false, late };
+    if ((h + d) % 6 === 0 && [1, 2, 3, 4, 5, 6, 7].includes(C.month)) return { kind: 'turn', act: 'irrigate', place: `canal:${q}`, why: 'the household’s turn of water from the canal (CE-19)', h0: rise - 0.1 + lag, h1: rise + 3.4 + lag + 0.4 * u(9), all: false, sheaves: false, late };
     // the men's share of the field days (population.json field_fraction_by_sex, S1 of shadow review r4): P5.6's fraction
     // counts the women, who keep the house's work on these days; used as the men's chance it left them idle at home
     const frac = POPD.zones.find((z: any) => z.id === 'plain').field_fraction_by_sex.men[C.season];
-    if (u(5) < frac) return { kind: 'field', act: 'field_work', place: field, why: this.fieldWhy(C, u(10)), h0: rise + 0.8 + lag, h1: end(11.5, 14) - 0.4 * u(9), all: false, sheaves: false, late };
+    if (u(5) < frac) return { kind: 'field', act: 'field_work', place: field, why: this.fieldWhy(C, u(10)), h0: rise + 0.3 + lag, h1: end(11.5, 14) - 0.4 * u(9), all: false, sheaves: false, late };
     // no field today: the season's other men's work (lives.json farm_men_other_work, C); in winter often a day at home
     const OW = L.farm_men_other_work, w: Record<string, number> = { ...OW.by_month[String(C.month)] };
     const toHarvest = this.harvestIn(d); if (!(toHarvest >= 1 && toHarvest <= OW.opts.floor.before_harvest_d)) w.floor = 0;
@@ -1957,19 +1965,113 @@ export class Population {
   /** D-459 (UD-32): the deeds of the minds and the stranger laid over the plans (people/deeds/engine.ts DeedWorld; the sim sets it):
    *  a friend visited, work shared, a wound kept at home. Over the relations' meetings, under the stranger's talk */
   deeds: { touches(pid: number, day: number): boolean; overlay(pid: number, day: number, base: Seg[]): Seg[] } | null = null;
-  plan(pid: number, day: number): Seg[] { let b = this.basePlan(pid, day); const e = this.econ?.touches(pid, day); if (this.wash?.touches(pid, day)) b = this.wash.overlay(pid, day, b); if (e) b = this.econ!.overlay(pid, day, b); if (this.bonds?.touches(pid, day)) b = this.bonds.overlay(pid, day, b); b = this.mindAfter(pid, day, b); if (this.deeds?.touches(pid, day)) b = this.deeds.overlay(pid, day, b); return this.talk?.touches(pid, day) ? this.talk.overlay(pid, day, b) : b; }
+  plan(pid: number, day: number): Seg[] { let b = this.basePlan(pid, day); const e = this.econ?.touches(pid, day); if (this.wash?.touches(pid, day)) b = this.wash.overlay(pid, day, b); if (e) b = this.econ!.overlay(pid, day, b); if (this.bonds?.touches(pid, day)) b = this.bonds.overlay(pid, day, b); b = this.mindAfter(pid, day, b); if (this.deeds?.touches(pid, day)) b = this.deeds.overlay(pid, day, b); if (this.talk?.touches(pid, day)) b = this.talk.overlay(pid, day, b); b = this.outOfDoors(pid, day, b); b = this.keepFood(pid, day, b); return b === this.basePlan(pid, day) ? b : this.keepDress(day, b); }
+  /** D-651 (the out-of-doors day; s18 C12's pagecheck: a town lane at 13:48 with all 144 people at home, 111 of them in walled
+   *  courts, and nobody walking): the life of the lanes. A grown-up of the town or a village (14-65, not minding little ones,
+   *  nursing, ill or in mourning, nor someone a child of the house is with) goes out two to four times a day from a stretch at
+   *  home (resting, at a craft, spinning, talking): to the well for a word with the women there, the quarter's market ground, or
+   *  a neighbour's door to talk, with the walks there and back (walkH). The children of 5-13 play in the lane before their own
+   *  door, not in the court; and half the houses sit out at their door of an evening. Not in the rain; all C */
+  private outOfDoors(pid: number, d: number, segs: Seg[]): Seg[] {
+    const p = this.persons[pid], hid = this.home(pid, d), H = this.households[hid]; if (!H || (H.zone !== 'town' && H.zone !== 'plain') || p.zone === 'transient' || p.agent >= 0) return segs;
+    if (segs.some(x => x.act === 'offmap' || x.act === 'lie_ill') || this.mourning(pid, d)) return segs;
+    const age = this.ageOn(pid, d), home = H.home, W: Where = H.zone === 'plain' ? 'plain' : 'town', wx = this.cal.ctx(d).wx, u = (k: number) => u01(this.seed, S_OUT, pid, d, k);
+    const dry = (a: number, b: number) => rainHours(wx, a - 0.3, b + 0.3) === 0 && !(wx.stormH && a < wx.stormH[1] + 0.5 && b > wx.stormH[0] - 0.5);
+    let out = segs; const own = () => { if (out === segs) out = segs.slice(); };
+    const lane = `lane:${H.q}:${hid}`, step = 0.02;
+    // the others of the house who are "with" this one in their own day (a child with its mother): she does not leave them
+    // (and the house's own "with the household" hours: the household is together then, planCheck's label)
+    const withMe: [number, number][] = []; for (const m of this.membersOn(hid, d)) if (m !== pid) for (const x of this.basePlan(m, d)) if (x.with === pid || /with the household/.test(x.why)) withMe.push([x.t0, x.t1]);
+    for (const x of segs) if (/with the household/.test(x.why)) withMe.push([x.t0, x.t1]);
+    const free = (a: number, b: number) => !withMe.some(([x, y]) => x < b && y > a);
+    const swap = (x: Seg, parts: Seg[]) => { own(); const i = out.indexOf(x); if (i >= 0) out.splice(i, 1, ...parts.filter(y => y.t1 - y.t0 > 1e-6)); };
+    if (age >= 14 && age <= 65 && !this.nurslings(pid, d).length && !segs.some(x => MIND_WHY.test(x.why))) {
+      const n = 2 + Math.floor(u(1) * 3);
+      for (let k = 0; k < n; k++) { const t = 7.5 + u(10 + k) * 10.5, x = segAt(out, t);
+        if (x.place !== home || x.where === 'road' || x.with !== undefined || !['rest', 'craft', 'spin', 'talk'].includes(x.act) || /nurs|asleep|siesta|heat|household/.test(x.why)) continue;
+        const v = u(20 + k), nb = H.kin.find(o => this.households[o]?.q === H.q) ?? -1;
+        // (the well: a word with the women there; the house's own water is the planner's, counted jar by jar: planCheck's water)
+        const [place, act, stay, why, back]: [string, ActivityId, number, string, string | undefined] = v < 0.4 ? [`well:${H.q}:${hid}`, 'talk', 0.2 + 0.15 * u(30 + k), 'talking with the neighbours at the well', undefined]
+          : v < 0.65 ? [`market:${H.q}`, 'exchange', 0.3 + 0.4 * u(30 + k), 'at the market ground, buying and selling a little', 'basket']
+          : [nb >= 0 ? `lane:${H.q}:${nb}` : lane, 'talk', 0.3 + 0.5 * u(30 + k), nb >= 0 ? 'talking with kin at their door' : 'talking with the neighbours in the lane', undefined];
+        const w = Math.min(0.4, Math.max(0.04, this.walkH(home, place, d, W, W))), len = 2 * w + stay; if (x.t1 - x.t0 < len + 0.2) continue;
+        const a = Math.min(Math.max(t, x.t0 + 0.05), x.t1 - len - 0.05); if (!dry(a, a + len) || !free(a, a + len)) continue;
+        swap(x, [{ ...x, t1: a }, { t0: a, t1: a + w, place: `road:${W}`, act: 'walk', why: why.endsWith('at the well') ? 'going down to the well' : why.startsWith('at the market') ? 'going to the market ground' : 'going to see a neighbour', where: 'road' },
+          { t0: a + w, t1: a + w + stay, place, act, why, where: W }, { t0: a + w + stay, t1: a + len, place: `road:${W}`, act: 'walk', why: 'walking home', where: 'road', ...(back ? { carry: back } : {}) }, { ...x, t0: a + len }]); } }
+    // the children's play out in the lane before their door (by day, dry, nobody's charge)
+    // (the play of a house's court goes out as one, the playmates of other houses with it: the draw is the house's and the
+    // day's, so whoever plays there that day is in the lane; never with a little one, or a child someone small is with)
+    const kid = (x: number) => { const a = this.ageOn(x, d); return a >= 5 && a <= 13; };
+    if (age >= 5 && age <= 13) for (const x of [...out]) { const ph = x.place.startsWith('h:') ? +x.place.slice(2) : -1, PH = this.households[ph];
+      if (!PH || x.act !== 'play' || /minding|little|baby/.test(x.why) || (x.with !== undefined && !kid(x.with)) || x.t0 < 7 || x.t1 > 19 || x.t1 - x.t0 < 0.5 || !dry(x.t0, x.t1) || u01(this.seed, S_OUT, ph, d, 40) >= 0.8) continue;
+      if (this.membersOn(ph, d).some(m => !kid(m) && m !== pid && this.basePlan(m, d).some(y => y.with === pid && y.t0 < x.t1 && y.t1 > x.t0))) continue;
+      swap(x, [{ t0: x.t0, t1: x.t0 + step, place: `road:${W}`, act: 'walk', why: 'out to the lane', where: 'road' }, { ...x, t0: x.t0 + step, t1: x.t1 - step, place: `lane:${PH.q}:${ph}`, why: 'playing in the lane with the other children' }, { t0: x.t1 - step, t1: x.t1, place: `road:${W}`, act: 'walk', why: 'back in', where: 'road' }]); }
+    // the evening at the door (half the houses: the household's own draw)
+    if (age >= 14 && u01(this.seed, S_OUT, hid, d, 50) < 0.5) for (const x of [...out]) { const a = Math.max(x.t0, 17.5), b = Math.min(x.t1, 20.5);
+      if (x.place !== home || !['rest', 'talk'].includes(x.act) || x.with !== undefined || /asleep|nurs/.test(x.why) || b - a < 0.6 || !dry(a, b) || !free(a, b)) continue;
+      swap(x, [{ ...x, t1: a }, { t0: a, t1: a + step, place: `road:${W}`, act: 'walk', why: 'out to the door', where: 'road' }, { ...x, t0: a + step, t1: b - step, place: lane, act: 'talk', why: 'sitting at the door in the evening with the neighbours' }, { t0: b - step, t1: b, place: `road:${W}`, act: 'walk', why: 'back in', where: 'road' }, { ...x, t0: b }]); }
+    return out;
+  }
+  /** D-651: the overlays' stretches dressed as the planner's are: the economy's hired day in the cold or the dust (planCheck's
+   *  dress: "working for ... (taken on, paid by the day)" undressed in the cold) is dressed again by the planner's own rules
+   *  (dustWear, coldWear) over the whole day, on copies (the base day's stretches are shared) */
+  private keepDress(d: number, segs: Seg[]): Seg[] {
+    const wx = this.cal.ctx(d).wx, tq = wx.tempQ; if (!wx.dustH && !(tq?.length && Math.min(...tq) < COLD_C)) return segs;
+    const out = segs.map(x => ({ ...x })); dustWear(out, wx); coldWear(out, wx);
+    // (the same things worn keep their words as they were: only a change of dress is written)
+    const set = (w?: string) => (w ?? '').split(/, and |, /).filter(Boolean).sort().join('|'), was = new Map(segs.map(x => [`${x.t0}|${x.t1}`, x.wear]));
+    for (const x of out) { const w = was.get(`${x.t0}|${x.t1}`); if (w !== undefined && set(w) === set(x.wear)) x.wear = w; }
+    return out;
+  }
+  /** D-651: the overlays (the economy's steps, the washing, the relations, the minds' deeds, the talk) lay their stretches over
+   *  the planner's day; where one took a meal or a baby's feed, the day keeps one: a short meal of the bread brought along
+   *  (or at home) where the day goes more than 7.5 h without food or first eats over 4.3 h after waking, and a feed wherever a
+   *  baby would wait longer by day than the planner's own rule (planCheck's meals and feed). Unchanged days come back as they are */
+  private keepFood(pid: number, d: number, segs0: Seg[]): Seg[] {
+    let segs = segs0; const age = this.ageOn(pid, d), home = `h:${this.home(pid, d)}`;
+    const spliceAt = (t: number, len: number, act: ActivityId, why: (x: Seg) => string, ok: (x: Seg) => boolean): boolean => {
+      const tries = Array.from({ length: 25 }, (_, i) => t + (i % 2 ? 1 : -1) * Math.ceil(i / 2) * 0.15);
+      for (const u of tries) { if (u < 0.1 || u > 23.5) continue; const x = segAt(segs, u); if (!ok(x) || x.where === 'road' || x.t1 - x.t0 < len + 0.1) continue;
+        const a = Math.min(Math.max(u, x.t0 + 0.05), x.t1 - len - 0.05), i = segs.indexOf(x); if (i < 0) continue; if (segs === segs0) segs = segs0.slice();
+        segs.splice(segs.indexOf(x), 1, ...[{ ...x, t1: a }, { ...x, t0: a, t1: a + len, act, why: why(x) }, { ...x, t0: a + len }].filter(y => y.t1 - y.t0 > 1e-6)); return true; }
+      return false; };
+    const busy = (x: Seg) => !['sleep', 'lie_ill', 'offmap', 'eat', 'walk'].includes(x.act) && !/nurs/.test(x.why);
+    if (age >= 14) for (let k = 0; k < 3; k++) {
+      const awake = segs.filter(x => x.act !== 'sleep' && x.act !== 'lie_ill' && !NIGHT_FEED.test(x.why)); if (!awake.length || segs.some(x => x.act === 'offmap')) break;
+      const wake = awake[0].t0, bed = awake[awake.length - 1].t1; if (bed - wake < 10) break;
+      const eats = segs.filter(x => x.act === 'eat'); let at = -1;
+      if (!eats.length) at = (wake + bed) / 2; else if (wake >= 3 && eats[0].t0 - wake > 4.3) at = wake + 3.2;
+      else for (let i = 1; i < eats.length; i++) if (eats[i].t0 - eats[i - 1].t1 > 7.5) { at = (eats[i].t0 + eats[i - 1].t1) / 2; break; }
+      if (at < 0 && eats.length === 1 && bed - wake >= 10) at = eats[0].t0 - wake > bed - eats[0].t1 ? (wake + eats[0].t0) / 2 : (eats[0].t1 + bed) / 2;
+      if (at < 0 || !spliceAt(at, 0.3, 'eat', x => x.place === home ? 'a bite of bread and onions at home' : 'eating the bread brought along', busy)) break;
+    }
+    const babies = this.nurslings(pid, d).filter(c => this.ageOn(c, d) === 0 && this.persons[c].born !== d);
+    if (babies.length) { const cap = (L.infant_care as any).day_feed_every_h[1] + 0.4;
+      // (the day as planCheck reads it: from the first waking after 2 h, to the last waking stretch before midnight; each gap tried)
+      const wake = segs.find(x => x.t0 > 2 && x.act !== 'sleep')?.t0 ?? 6, bed = [...segs].reverse().find(x => x.act !== 'sleep' && x.t1 < 24)?.t1 ?? 21;
+      for (let k = 0; k < 6; k++) { const fs = segs.filter(x => /nurs/.test(x.why)).map(x => [x.t0, x.t1] as [number, number]); let done = false;
+        for (let i = 1; i < fs.length && !done; i++) { const a = fs[i - 1][1], b = fs[i][0], m = (a + b) / 2; if (m < wake || m > bed || b - a <= cap) continue;
+          done = spliceAt(m, 0.2, 'rest', x => ['talk', 'rest', 'queue', 'gamble', 'exchange', 'play'].includes(x.act) ? 'nursing the baby' : 'stopping to nurse the baby', x => !['sleep', 'offmap', 'eat', 'draw_water', 'knead', 'bake'].includes(x.act) && !/nurs/.test(x.why) && x.t0 >= a - 1e-6 && x.t1 <= b + 1e-6 || (x.t0 < b && x.t1 > a && !['sleep', 'offmap', 'eat', 'draw_water', 'knead', 'bake'].includes(x.act) && !/nurs/.test(x.why))); }
+        if (!done) break; } }
+    return segs;
+  }
   /** the base day with the house's washing laid in (D-347): what the relations' meetings are fitted to, since plan() lays
    *  them over it (D-350: fitted to the base alone, a meeting was reported laid and then refused by the washing under it) */
   washedPlan(pid: number, day: number): Seg[] { const b = this.basePlan(pid, day); return this.wash?.touches(pid, day) ? this.wash.overlay(pid, day, b) : b; }
   /** D-461: the plan as the town's own minds read it when they judge a deed among themselves: the base day (cached) and the
    *  deeds' overlay only (the full overlays cost ~10 ms a person on a fresh day; the stranger's deeds keep the full plan) */
   planLight(pid: number, day: number): Seg[] { const b = this.basePlan(pid, day); return this.deeds?.touches(pid, day) ? this.deeds.overlay(pid, day, b) : b; }
-  /** D-461: the light plan only if the planner has built the base day already (no build: ~1.5 ms each), else null */
-  planIfBuilt(pid: number, day: number): Seg[] | null { const b = this.planCache.get(day)?.get(pid); if (!b) return null; return this.deeds?.touches(pid, day) ? this.deeds.overlay(pid, day, b) : b; }
+  /** D-461: the light plan only if the planner has built the base day already (no build: ~1.5 ms each), else null.
+   *  D-651: always null now. Whether a plan happened to be cached depended on the history of the caches (what the camera had
+   *  looked at, a load, a jump made in slices, the 20,000-plan clear), so the town's own minds decided differently in two runs of
+   *  one seed, and a loaded world went its own way within a day (the save/load round trip). Kept for its callers */
+  planIfBuilt(_pid: number, _day: number): Seg[] | null { return null; }
   /** D-461: what a person is doing at an hour as the town's own minds judge it: the built plan, else the hour's common lot
    *  by their age and trade (asleep at night, at home of an evening, by day a working man or woman at their work, a child at
-   *  play, the old at rest; the festival a day off: C). No plan is built (a fresh house's plans are 1.5 to 70 ms) */
-  segLight(pid: number, day: number, hour: number): Seg { const b = this.planIfBuilt(pid, day); if (b) return segAt(b, hour);
+   *  play, the old at rest; the festival a day off: C). No plan is built (a fresh house's plans are 1.5 to 70 ms).
+   *  D-651: never the cached plan (planIfBuilt), always the common lot, with what the deeds have laid into the day on top */
+  segLight(pid: number, day: number, hour: number): Seg {
+    if (this.deeds?.touches(pid, day)) { const s = segAt(this.deeds.overlay(pid, day, LIGHT_BASE), hour); if (s.place !== LIGHT_BASE[0].place) return s; }
     const h = this.home(pid, day), z = this.households[h]?.zone, where: Where = z === 'plain' ? 'plain' : z === 'terrace' ? 'terrace' : 'town', at = `h:${h}`;
     const s = (act: ActivityId, why: string): Seg => ({ t0: hour, t1: hour, place: at, act, why, where });
     if (hour < 5.5 || hour >= 21.5) return s('sleep', 'asleep'); if (hour >= 17 || hour < 7) return s('rest', 'at home');
@@ -2174,7 +2276,13 @@ export const ALL_NAMES: any[] = [...(namesData as any).names, ...(namesRecalled 
 /** D-452: the men of Darius' Bisitun inscription whose names may go to ordinary men (see NAME_POOLS) */
 export const DB_MEN = ['Vidarna', 'Vaumisa', 'Dādarši', 'Taxmaspāda', 'Artavardiya', 'Vivāna', 'Vindafarnā', 'Utāna', 'Θuxra', 'Bagabuxša', 'Gaubaruva',
   'Dātuvahya', 'Ardumaniš', 'Vahuka', 'Bagābigna', 'Upadarma', 'Vahyasparuva', 'Cincaxri', 'Aspacanā'];
-const NAME_POOLS = (() => { const m = new Map<string, string[]>(); for (const n of ALL_NAMES) { if (n.notable || n.reading_uncertain) continue; const k = `${n.sex}:${n.origin_guess}`; (m.get(k) ?? m.set(k, []).get(k)!).push(n.name); }
+/** D-651 (s18 C12, W1): Darius' six helpers against Gaumāta (DB 4.80-86: Vindafarnā, Utāna, Gaubaruva, Vidarna, Bagabuxša,
+ *  Ardumaniš) founded the great houses: their names are not dealt to the town's ordinary men (the court's nobles keep them) */
+export const THE_SIX = ['Vindafarnā', 'Utāna', 'Gaubaruva', 'Vidarna', 'Bagabuxša', 'Ardumaniš'];
+/** D-651 (W2): a composed woman's name (D-236, *) that is no name: the element doubled (*Čiθračiθrā), or the royal xšaθra-
+ *  ("kingship") on the women of the lanes */
+const MECHANICAL = (n: string) => /^\*Xšaθra/.test(n) || (() => { const b = n.replace(/^\*/, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); for (const k of [4, 5, 6]) if (b.length >= 2 * k && b.slice(0, k) === b.slice(k, 2 * k)) return true; return false; })();
+const NAME_POOLS = (() => { const m = new Map<string, string[]>(); for (const n of ALL_NAMES) { if (n.notable || n.reading_uncertain || THE_SIX.includes(n.name) || (n.sex === 'f' && MECHANICAL(n.name))) continue; const k = `${n.sex}:${n.origin_guess}`; (m.get(k) ?? m.set(k, []).get(k)!).push(n.name); }
   // attested outside names.json, in the project's research: Herdkama "the Egyptian", chief of a team of 100 labourers in a
   // Treasury text (research/PEOPLE.md, PT-WAGE: SX, C; the name looks Iranian, the label is Egyptian: kept as given)
   (m.get('m:Egyptian') ?? m.set('m:Egyptian', []).get('m:Egyptian')!).push('Herdkama');
@@ -2183,7 +2291,7 @@ const NAME_POOLS = (() => { const m = new Map<string, string[]>(); for (const n 
   // (Vištāspa, Aršāma, ...) nor the nine "liars" whose names the king cursed (Gaumāta, Āçina, Nidintabaira, Martiya, Fravartiš,
   // Ciçantaxma, Vahyazdāta, Araxa, Frāda) nor Imaniš, Aθamaita and Skunxa; Marduniya is left out as the pool's Mardunuya.
   // Their use for ordinary men of 467 is C: names recur in the tablets as in any town
-  m.get('m:Iranian')!.push(...DB_MEN);
+  m.get('m:Iranian')!.push(...DB_MEN.filter(n => !THE_SIX.includes(n)));
   // D-452: the CDLI PF names whose language tools/names_licensed.py could not tell (65 men, A as names) belong to no one origin:
   // in the Fortification texts Iranian and Elamite names stand side by side among the same people (C), so Persian and Elamite
   // men both draw on them, and Elamite men on the Iranian names too (the three names read as Elamite were 12.8 % each of them)
@@ -2194,8 +2302,8 @@ const NAME_POOLS = (() => { const m = new Map<string, string[]>(); for (const n 
   m.set('f:Elamite', [...(m.get('f:Elamite') ?? []), ...(m.get('f:Iranian') ?? [])]);
   return m; })();
 /** every attested name of each sex (not the notable, not the uncertain readings), of whatever origin */
-const NAME_ALL: Record<string, string[]> = { m: [], f: [] }; for (const n of ALL_NAMES) if (!n.notable && !n.reading_uncertain && NAME_ALL[n.sex]) NAME_ALL[n.sex].push(n.name);
-NAME_ALL.m.push(...DB_MEN);
+const NAME_ALL: Record<string, string[]> = { m: [], f: [] }; for (const n of ALL_NAMES) if (!n.notable && !n.reading_uncertain && NAME_ALL[n.sex] && !THE_SIX.includes(n.name) && !(n.sex === 'f' && MECHANICAL(n.name))) NAME_ALL[n.sex].push(n.name);
+NAME_ALL.m.push(...DB_MEN.filter(n => !THE_SIX.includes(n)));
 // (D-202: Bactrians and Sogdians speak Iranian languages; Ionians draw on the Greek names, Carians, Lydians and Lycians on their
 // own; Thracians and Cappadocians, with no names recalled, on all the names of their sex, as foreign workers in the tablets do)
 const ORIGIN_POOL: Record<string, string> = { Persian: 'Iranian', Median: 'Iranian', Bactrian: 'Iranian', Sogdian: 'Iranian', Elamite: 'Elamite', Babylonian: 'Babylonian', Syrian: 'West Semitic', Egyptian: 'Egyptian', Indian: 'Indian',

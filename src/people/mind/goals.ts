@@ -123,7 +123,9 @@ export class Goals {
     return null; }
   /** a master's or employer's work and its place, read once a month */
   private bossAt = new Map<number, { act: ActivityId; place: string; day: number }>();
-  private bossWork(pid: number, day: number) { const c = this.bossAt.get(pid); if (c && day - c.day < 30) return c; const s = this.workOf(pid, day), v = { act: s?.act ?? 'carry_sack', place: s?.place ?? `h:${this.hid(pid, day)}`, day };
+  // (D-651: read on the first day of the person's own 30-day window, not on the day first asked: a loaded world asked first on
+  // another day and its people helped at other work, the save/load round trip)
+  private bossWork(pid: number, day: number) { const d0 = Math.max(0, day - (day + pid) % 30), c = this.bossAt.get(pid); if (c && c.day === d0) return c; const s = this.workOf(pid, d0), v = { act: s?.act ?? 'carry_sack', place: s?.place ?? `h:${this.hid(pid, d0)}`, day: d0 };
     if (this.bossAt.size > 5000) this.bossAt.clear(); this.bossAt.set(pid, v); return v; }
 
   // ------------------------------------------------------------------ forming: a person's state gives rise to a goal

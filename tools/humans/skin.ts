@@ -8,6 +8,8 @@
 //   hair.png   R = beard density (men), G = scalp hair density, B = cavity occlusion (1 = open)
 // The same region functions give per-vertex masks (beard, scalp) used by the runtime to build hair shells.
 import { rasterTri } from './raster';
+import { existsSync, readFileSync } from 'node:fs';
+import { decodePNG } from './png';
 
 export interface SkinBakeInput {
   W: number; H: number; pos: Float64Array; orig: number[]; uv: number[]; tris: number[]; part: Uint8Array;
@@ -274,6 +276,8 @@ export function bakeSkin(inp: SkinBakeInput) {
     each(hw, hh, 0.5, (x, y, pp, nn, ao) => { const m = faceMasks(F, pp, nn, pt === 0, pt === 1); const k = y * hw + x;
       hair[k * 4] = Math.max(hair[k * 4], Math.round(m.beard * 255)); hair[k * 4 + 1] = Math.max(hair[k * 4 + 1], Math.round(m.scalp * 255)); hair[k * 4 + 2] = Math.round(ao * 255); hair[k * 4 + 3] = 255; });
   }
+  // s18 C14 (D-790): the scanned face's relief over the procedural creases
+  if (existsSync(FACE_RELIEF.file)) applyFaceRelief(det, W, 0, W, H, decodePNG(readFileSync(FACE_RELIEF.file)));
   // dilate into empty texels (mip/bilinear bleeding at UV seams); the detail half the same way
   for (let pass = 0; pass < 6; pass++) {
     const src = img.slice(), srcD = det.slice();
@@ -384,4 +388,20 @@ function handRelief(inp: SkinBakeInput, W: number, H: number, nrm: Float64Array,
       out[k] += (0.35 * (1 - smooth(R0 - 0.0015, R0, dd)) - 0.8 * groove(dd - R0, 0.0005)) * smooth(0.25, 0.55, back) * DETAIL_SCALE.crease; } }
   console.log(`[skin] hand relief (creases, nails; the displacement measured only): ${n} texels, mean |d| ${(sum / Math.max(1, n) * 1000).toFixed(3)} mm, max ${(mx * 1000).toFixed(2)} mm`);
   return out;
+}
+
+/** s18 C14 (D-790): the scanned face's relief (tools/blender/face_scan.py, from the Lee Perry-Smith head scan by
+ *  Infinite-Realities, CC BY 3.0, fitted to the reference head; tools/humans/data/face_relief.png: R = 0.5 + h / (2 range),
+ *  A = the scan's coverage) blended into the crease channel where the scan covers the head and neck: the scan's height
+ *  over the coverage, the procedural creases kept at `keep` (they sit exactly on the reference's lids and lips). The
+ *  detail buffer `det` is the crease/oil/age/translucency half (row stride `stride` texels, starting at column x0). */
+export const FACE_RELIEF = { file: 'tools/humans/data/face_relief.png', range: 0.0006, keep: 0.4 };
+export function applyFaceRelief(det: Uint8Array, stride: number, x0: number, W: number, H: number, rel: { width: number; height: number; data: Uint8Array }) {
+  if (rel.width !== W || rel.height !== H) throw new Error(`face relief ${rel.width}x${rel.height}, expected ${W}x${H}`);
+  const lin = (c: number) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4), srgb = (c: number) => (c <= 0.0031308 ? c * 12.92 : 1.055 * c ** (1 / 2.4) - 0.055);
+  const S = DETAIL_SCALE.crease; let n = 0;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const r = (y * W + x) * 4, a = rel.data[r + 3] / 255; if (a <= 0) continue;
+    const k = (y * stride + x0 + x) * 4, cur = (lin(det[k] / 255) - 0.5) * 2 * S, scan = (rel.data[r] / 255 - 0.5) * 2 * FACE_RELIEF.range;
+    const v = cur * (1 - (1 - FACE_RELIEF.keep) * a) + scan * a; det[k] = Math.round(255 * srgb(Math.max(0, Math.min(1, 0.5 + v / (2 * S))))); n++; }
+  return n;
 }

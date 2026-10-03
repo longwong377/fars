@@ -439,7 +439,7 @@ export class DeedWorld {
   private old = new Map<number, DeedRec>();
   load(s: ReturnType<DeedWorld['save']> | undefined) { if (!s) return; this.mine = s.mine; this.minds.load(s.minds); this.injuries.clear(); for (const [k, v] of s.inj) this.injuries.set(k, v);
     this.law.load((s as any).law ?? { cases: (s as any).cases }); this.promises.splice(0, this.promises.length, ...s.promises); this.skills.clear(); for (const [k, v] of s.skills) this.skills.set(k, v);
-    this.lays = new Map(s.lays); this.dayDone = s.dayDone; this.evSeen = 0;
+    this.lays = new Map(s.lays); this.dayDone = s.dayDone; this.evSeen = (s as any).ev ?? 0;
     this.log.splice(0); this.base = (s as any).next ?? s.n ?? 0; this.old.clear();
     for (const [id, t10, verb, actor, target, third, ok, act] of ((s as any).recent ?? []) as any[][]) { const t = t10 / 10;
       this.old.set(id, { id, day: Math.floor(t / 24), t, deed: { verb, actor, ...(target !== -1 ? { target } : {}), ...(third !== -1 ? { third } : {}), ...(act ? { act } : {}) } as Deed, out: { ok: !!ok, why: '', effects: [] } }); } this.joint.load(s.joint); this.agency.load(s.agency); }

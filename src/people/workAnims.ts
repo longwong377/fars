@@ -9,7 +9,7 @@
 // in props.ts with their tiers. PLACEHOLDER quality in the sense of anim.ts: hand-authored cycles, not motion capture.
 import type { Pose, E3, Gait } from './anim';
 import { devAt, pickOf, CLIPS, IDLES } from './mocap';
-import { trunk, gripIK, legIK, stance, kneeOf, hip, headOf, ANKLE_Y, NOM, HS, v3, app, type Trunk } from './poseKit';
+import { trunk, gripIK, legIK, stance, kneeOf, hip, headOf, ANKLE_Y, NOM, HS, v3, app, IK_STATS, type Trunk } from './poseKit';
 import { HARP_V, LYRE, DOUBLE_PIPE, MOUTH, harpVString, harpHString, lyreString } from './instrumentForms';
 
 type V3 = [number, number, number];
@@ -30,11 +30,13 @@ export const WORK_ANIMS = ['hoe', 'irrigate', 'reap', 'bind', 'winnow', 'drive',
   // D-292 (GC27): the herd boy's sling
   'sling',
   // D-780: the bow before the king, the right hand raised before the mouth (the Treasury relief)
-  'proskynesis'] as const;
+  'proskynesis',
+  // D-780: reclining on a couch at the king's banquet (the top ranks)
+  'recline'] as const;
 export type WorkAnim = typeof WORK_ANIMS[number];
 /** how each cycle meets the ground (humanRig: planted feet, or the body resting on the ground) and whether it moves the
  *  performer's root along a path of its own (the ploughman along the furrow, the thresher turning with his team) */
-export const WORK_META: Record<WorkAnim, { ground: 'feet' | 'seat'; path?: boolean; aside?: boolean; /** D-215: a walking or running cycle (its feet step, they are not planted) */ gait?: boolean }> = {
+export const WORK_META: Record<WorkAnim, { ground: 'feet' | 'seat' | 'couch'; path?: boolean; aside?: boolean; /** D-215: a walking or running cycle (its feet step, they are not planted) */ gait?: boolean }> = {
   hoe: { ground: 'feet' }, irrigate: { ground: 'feet' }, reap: { ground: 'feet' }, bind: { ground: 'feet' }, winnow: { ground: 'feet' },
   drive: { ground: 'feet', path: true }, plough: { ground: 'feet', path: true }, herd: { ground: 'feet' }, groom: { ground: 'feet' }, fodder: { ground: 'feet' },
   shear: { ground: 'seat', aside: true }, butcher: { ground: 'seat', aside: true }, hold: { ground: 'feet' }, hold_sack: { ground: 'feet' }, hold_lead: { ground: 'feet' },
@@ -50,7 +52,7 @@ export const WORK_META: Record<WorkAnim, { ground: 'feet' | 'seat'; path?: boole
   smith: { ground: 'feet' }, bellows: { ground: 'feet', aside: true }, chasing: { ground: 'seat', aside: true }, weigh: { ground: 'feet' }, seal: { ground: 'seat', aside: true },
   seal_jar: { ground: 'feet' }, drill: { ground: 'seat', aside: true }, scrape: { ground: 'feet' }, pound: { ground: 'feet' },
   wash_face: { ground: 'seat', aside: true }, delouse: { ground: 'seat', aside: true }, shave: { ground: 'seat', aside: true },
-  sling: { ground: 'feet' }, proskynesis: { ground: 'feet' },
+  sling: { ground: 'feet' }, proskynesis: { ground: 'feet' }, recline: { ground: 'couch' },
 };
 /** D-215: the children's paths (C): running round after one another on a circle of 2.2 m at 2 m/s; walking round pulling
  *  a toy on a circle of 1.5 m at 0.5 m/s. Both start at the view's spot and come back to it */
@@ -739,6 +741,26 @@ function proskynesis(t: number, k: number): Pose {
   grip(p, T, 'r', [-0.035, 1.36 - 0.06 * deep, 0.22 + 0.1 * deep], [-0.6, -1, 0.1], 0.6); grip(p, T, 'l', [0.12, 0.98, 0.12], [0.8, -1, -0.2], -0.9);
   look(p, T, [0, 0.3, 2.4], 0.2); p.grip = [0.2, 0.4]; return p;
 }
+/** D-780: reclining at the king's banquet on a couch (workObjects 'feast_couch', built to this frame: RECLINE), as the
+ *  Assurbanipal garden relief's king and the Greek banquet scenes of the period show the diner (analogy; C): propped on the left
+ *  elbow on the bolster at the couch's left end, the legs along the couch to the right, the right knee a little drawn up, the
+ *  chest turned to the table ahead; the left hand holds the cup, the right rests on the knee and now and then lifts the cup to
+ *  drink. Not planted and not seated on the ground (ground 'couch': the pose sets the pelvis on the mattress itself) */
+/** the couch in the recliner's frame (x left, z ahead): the furnishings' couch model (m_couch, its head end and bolster at +x,
+ *  the mattress's top 0.55 m) moved `couchX` along x; the pelvis's offset; measured on the rig (tests/court_ceremony.test.ts) */
+export const RECLINE = { top: 0.55, couchX: -0.3, x0: -1.31, x1: 0.76, w: 0.82, pelvis: [0.12, -0.18] as [number, number] } as const;
+function recline(t: number, k: number): Pose {
+  const P = 14, q = fr(t / P + k * 0.23), sip = win(q, 0.55, 0.75, 0.08), [px, pz] = RECLINE.pelvis, y = RECLINE.top;
+  const p = blank(), T = body(p, { hp: -0.9, hy: -1.05, hr: -1.1, sp: 0.1, sy: 0.6, ch: 0.05, cy: 0.4, drop: y + 0.105 - NOM.pelvis[1], side: px, back: pz }, t, k);
+  // the legs along the couch as far as they reach (the right nearly straight, the left knee drawn up): a target beyond the leg's
+  // length is pulled back toward the hip by the shortfall, so the ankle lands on it
+  const leg = (side: 'l' | 'r', tg: V3, pole: V3, yaw: number) => { const was = IK_STATS.leg, e = legIK(p, T, side, tg, pole, yaw, 0.3); IK_STATS.leg = was; if (e <= 0) return;
+    const H = hip(T, side), v = v3.sub(tg, H), L = Math.hypot(v[0], v[1], v[2]), k = (L - e - 0.002) / L; legIK(p, T, side, [H[0] + v[0] * k, H[1] + v[1] * k, H[2] + v[2] * k], pole, yaw, 0.3); };
+  leg('r', [px - 1.1, y + 0.13, pz + 0.22], [0, 0.3, 1], -0.2); leg('l', [px - 0.6, y + 0.13, pz + 0.38], [0, 1, 0.3], 0);
+  grip(p, T, 'l', [px + 0.24, y + 0.3 + 0.2 * sip, pz + 0.32], [0.5, -1, -0.3], -0.6);
+  grip(p, T, 'r', [px - 0.32, y + 0.36, pz + 0.38], [-0.8, -0.6, -0.2], 0.6);
+  look(p, T, [0.3 * wob(t * 0.05, k), y + 0.2, 2.2]); p.grip = [0.4, 0.8]; return p;
+}
 /** D-209: standing in mourning at a grave: the head bowed, the hands joined low (C: no wailing or tearing is staged) */
 function mourn(t: number, k: number): Pose {
   const p = blank(), T = body(p, { hp: 0.04, sp: 0.1, ch: 0.08, drop: -0.01, hy: 0.02 * wob(t * 0.1, k) }, t, k);
@@ -934,7 +956,7 @@ function sling(t: number, k: number): Pose {
 }
 export function workPose(id: WorkAnim, t: number, ph: number, k: number, g: Gait = { v: 1.2, style: 'man' }): Pose {
   const m = WORK_META[id]; LAYER.on = !m.gait;
-  if (LAYER.on) { const seat = m.ground === 'seat', clip = seat ? 'sit_a' : id === 'sweep' ? (pickOf(k, 2, 5) ? 'sweep_a' : 'sweep_b') : IDLES[pickOf(k, IDLES.length, 5)]; // (s17 V3: a sweeper's body from the sweeping captures)
+  if (LAYER.on) { const seat = m.ground !== 'feet', clip = seat ? 'sit_a' : id === 'sweep' ? (pickOf(k, 2, 5) ? 'sweep_a' : 'sweep_b') : IDLES[pickOf(k, IDLES.length, 5)]; // (s17 V3: a sweeper's body from the sweeping captures)
     const d = devAt(LAYER.d, clip, (t * (0.9 + 0.2 * fr(k * 0.37))) / CLIPS[clip].dur + fr(k * 0.618034)); LAYER.w = LAYER_W[id] ?? (seat ? 0.35 : 0.7);
     // (bounded: the layer is the small motion of a body at rest; a cycle's hands must still reach their marks)
     for (let c = 0; c < 15; c++) d[c] = cl(d[c], -0.08, 0.08); for (let c = 51; c < 54; c++) d[c] = cl(d[c], -0.03, 0.03); }
@@ -994,6 +1016,7 @@ function workCycle(id: WorkAnim, t: number, ph: number, k: number, g: Gait): Pos
     case 'barsom': return barsomPose(t, k);
     case 'feed_fire': return feedFire(t, k);
     case 'mourn': return mourn(t, k);
+    case 'recline': return recline(t, k);
     case 'smith': return smith(t, k);
     case 'bellows': return bellows(t, k);
     case 'chasing': return chasing(t, k);

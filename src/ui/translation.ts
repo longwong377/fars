@@ -20,9 +20,23 @@ import translations from '../data/translations.json';
 import { FOOTPRINTS, present } from '../arch/spec';
 import { INSCRIPTION_PICK_LAYER } from '../arch/decor';
 import { LANG_NAMES, type LangId } from '../lang/lexicon';
+import { babylonianDate, OP_MONTH, START_JDN } from '../core/calendar';
 import { LINE_BY_ID } from '../people/speech_lines';
 import { WRITING } from '../world/writing';
 
+/** a day of the regnal year as a person of the place would say it: 'the 12th of Garmapada' (the Old Persian month name where
+ *  one is attested, else the Babylonian; out of world, English) */
+export function dayName(dayIndex: number): string {
+  const b = babylonianDate(START_JDN + Math.max(0, Math.floor(dayIndex)));
+  if (!b) return 'a day of the year';
+  const n = b.day, th = n % 100 >= 11 && n % 100 <= 13 ? 'th' : ({ 1: 'st', 2: 'nd', 3: 'rd' } as Record<number, string>)[n % 10] ?? 'th';
+  return `the ${n}${th} of ${OP_MONTH[b.month.monthNo] ?? b.month.name}`;
+}
+/** the time of day in words (no clock existed: out of world, but in the place's terms) */
+export function timeWord(hour: number): string {
+  const h = ((hour % 24) + 24) % 24;
+  return h < 4.5 ? 'night' : h < 6.5 ? 'dawn' : h < 11 ? 'morning' : h < 14 ? 'midday' : h < 17.5 ? 'afternoon' : h < 20 ? 'evening' : 'night';
+}
 export interface SubtitleLike { lang: string; translit: string; gloss: string; tier: string; speakerId?: number; lineId?: string }
 export interface ChronicleEvent { t: number; kind: string; text: string; place: string; tier?: string }
 export interface TranslationContext {
@@ -167,19 +181,19 @@ export function writingReading(objectId: string): { title: string; lines: string
     lines.push(`Old Persian (normalised transliteration): ${T.op_translit}${en(tid, 'op')}`);
     if (T.el_atf) lines.push(`Elamite (ATF): ${T.el_atf}${en(tid, 'el')}`);
     if (T.bab_atf) lines.push(`Babylonian (ATF): ${T.bab_atf}${en(tid, 'bab')}`);
-    lines.push(`${PROJECT_TRANSLATION_LABEL} (tier C).`); };
+    lines.push(`${PROJECT_TRANSLATION_LABEL}.`); };
   const reconLines = (rid: string) => { const R = WRITING.recon_texts[rid];
     lines.push(`A reconstructed text. No tablet of this kind can be read today, so this memorandum is composed in the wording of the real Treasury tablets (silver paid to named groups of workers), using only words and names from surviving Persepolis texts.`);
     lines.push(`Date: ${R.date.king} year ${R.date.regnal_year}${R.date.months ? `, month${R.date.months.length > 1 ? 's' : ''} ${R.date.months.join(' and ')}` : ''} (${R.date.bce}); ${R.date.written}.`);
     R.lines_atf.forEach((l, i) => lines.push(`Line ${i + 1} (Elamite, ATF): ${l}`));
-    lines.push(`Words: ${R.words.map(w => `${w.w} = ${w.kind === 'numeral' ? 'numeral' : w.gloss.split(/[;:(]/)[0].trim()} [${w.tier.split(' ')[0]}]`).join('; ')}.`);
+    lines.push(`Words: ${R.words.map(w => `${w.w} = ${w.kind === 'numeral' ? 'a number' : w.gloss.split(/[;:(]/)[0].trim()}`).join('; ')}.`);
     lines.push(`English (${R.english_label}): “${R.english}”`);
     for (const n of R.notes) lines.push(n); };
   if (O.placeholder) lines.push('The text of this object has not been reconstructed yet.');
   else if (O.recon) reconLines(O.recon);
   else if (O.text) textLines(O.text);
   else if (O.why_no_text) lines.push('No writing can be seen on it.');
-  if (O.seal) { const S = WRITING.seals[O.seal]; lines.push(`Sealed with ${O.seal} (tier ${S.tier}). ${S.attested}. Wording: ${S.wording}. Design: ${S.design}.`); if (S.text !== O.text) textLines(S.text); }
+  if (O.seal) { const S = WRITING.seals[O.seal]; lines.push(`Sealed. ${S.attested}. Wording: ${S.wording}. Design: ${S.design}.`); if (S.text !== O.text) textLines(S.text); }
   lines.push(`How certain: ${({ A: 'attested', B: 'inferred from the evidence', C: 'reconstructed' } as Record<string, string>)[String(O.tier)[0]] ?? 'reconstructed'}. Sources: ${O.src.join(', ')}.`);
   if (!O.recon) lines.push(TRANSLATION_STATUS);
   return { title: O.what, lines };
@@ -217,7 +231,7 @@ export class TranslationLayer {
     this.sub.hidden = !show;
     const subSig = show && sb ? `${sb.lineId ?? ''}|${sb.translit}|${sb.gloss}|${ctx.subtitleAt}` : '';
     if (show && sb && subSig !== this.subSig) { const src = sb.lineId ? LINE_BY_ID.get(sb.lineId)?.def.src : undefined;
-      this.sub.replaceChildren(el('div', 'tl-orig', sb.translit), el('div', 'tl-gloss', `“${sb.gloss}”`), el('div', 'tl-meta', `${LANG_NAMES[sb.lang as LangId] ?? sb.lang} · tier ${sb.tier}${src ? ` · ${src}` : ''}`)); }
+      this.sub.replaceChildren(el('div', 'tl-orig', sb.translit), el('div', 'tl-gloss', `“${sb.gloss}”`), el('div', 'tl-meta', `${LANG_NAMES[sb.lang as LangId] ?? sb.lang}${src ? ` · ${src}` : ''}`)); }
     this.subSig = subSig; // (rebuilt only when the line changes: its fade-in plays once)
     // inscriptions under the crosshair
     if (ctx.now - this.lastPick > 0.25 && ctx.inscriptions) {
@@ -250,14 +264,13 @@ export class TranslationLayer {
         const list = el('div', 'tl-chron'); let day = -1;
         for (const ev of evs.slice(-60).reverse()) {
           const d = Math.floor(ev.t / 24);
-          if (d !== day) { day = d; list.append(el('div', 'chron-day', `Day ${d + 1}`)); }
-          const lab = ctx.timeLabel(ev.t), time = lab.includes(', ') ? lab.split(', ').pop()! : lab;
+          if (d !== day) { day = d; list.append(el('div', 'chron-day', dayName(d).replace(/^t/, 'T'))); }
+          const time = timeWord(ev.t - d * 24);
           const row = el('div', 'chron-ev'), body = el('div', 'x', ev.text), meta = el('span', 'm');
-          if (ev.kind) meta.append(el('span', 'kind', ev.kind.replace(/[_-]/g, ' ')));
-          meta.append([ctx.places[ev.place] ? placeLabel(ev.place) : '', ev.tier ? `tier ${ev.tier}` : ''].filter(Boolean).join(' · '));
+          meta.append(ctx.places[ev.place] ? placeLabel(ev.place) : '');
           body.append(meta); row.append(el('div', 't', time), body); list.append(row);
         }
-        const head = el('div', 'chron-head'); head.append(el('h2', '', 'Chronicle'), el('div', 'small', 'What the people of this world did and what befell them, as the simulation records it. Translation layer · J closes.'));
+        const head = el('div', 'chron-head'); head.append(el('h2', '', 'Chronicle'), el('div', 'small', 'What the people of this world did and what befell them. J closes.'));
         this.panel.replaceChildren(head, list.childElementCount ? list : el('p', 'small', 'Nothing noted yet.'));
       }
     } else this.chronSig = '';
@@ -268,10 +281,10 @@ export class TranslationLayer {
     const r = inscriptionReading(id, version); if (!r) return [el('div', '', id)];
     const inter = el('div', 'tl-inter');
     for (const w of r.words) { const cell = el('span', 'tl-w'); cell.append(el('span', 'tl-wo', w.w), el('span', 'tl-wg', w.gloss ? (w.how === 'stem' ? `${w.gloss} (stem)` : w.gloss) : '·')); inter.append(cell); }
-    const E = r.english, english = E ? [el('div', 'tl-en-label', `English of the ${r.versionName} version — ${E.label} (tier ${E.tier})`), el('div', 'tl-en', `“${E.en}”`),
+    const E = r.english, english = E ? [el('div', 'tl-en-label', `English of the ${r.versionName} version — ${E.label}`), el('div', 'tl-en', `“${E.en}”`),
       el('div', 'small', `Marks: ${MARKS}.${E.edition_restored_words.length ? ` Words with signs restored or lost in the edition: ${E.edition_restored_words.join(', ')}.` : ''}`), ...E.notes.map(n => el('div', 'small', n))] : [];
     return [el('div', 'tl-title', `${r.title} · ${r.versionName} version`), el('div', 'small', `${r.where}. Carved: ${r.carved}.`), ...english, el('div', 'small', r.translitSource), inter,
-      el('div', 'small', r.words.length ? `Word glosses from the project lexicon (research/LEXICON/${LEX_FILE[r.version]}) for ${r.covered} of ${r.words.length} words; “·” = not in the lexicon; “(stem)” = the stem's gloss for an inflected form. Sources of these glosses: ${r.sources.join(', ') || 'none'} (src/data/sources.json).` : ''),
+      el('div', 'small', r.words.length ? `Word meanings for ${r.covered} of ${r.words.length} words; “·” = a word not yet glossed; “(stem)” = the meaning of its stem.` : ''),
       ...r.notes.map(n => el('div', 'small', n)), el('div', 'small', r.translation)];
   }
 

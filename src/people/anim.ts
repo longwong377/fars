@@ -22,7 +22,9 @@ export type AnimId = 'idle' | 'walk' | 'carry_shoulder' | 'carry_head' | 'carry_
   | 'bake' | 'draw_water' | 'write' | 'eat' | 'sleep' | 'talk' | 'sit' | 'dice' | 'inspect' | 'play' | 'enthroned' | 'ride'
   /** s18 C14 (D-790): the court's service: pouring from a jug, carrying and setting down a dish, a fly-whisk over the king
    *  (the bow is workAnims' proskynesis) */
-  | 'pour' | 'serve' | 'fan' | WorkAnim;
+  | 'pour' | 'serve' | 'fan'
+  /** s18 C14: standing in the chariot's car, the reins in both hands, riding its motion */
+  | 'charioteer' | WorkAnim;
 export type E3 = [number, number, number];
 export interface Pose { rot: Partial<Record<BoneName, E3>>; hips: E3; /** strike/impact event this frame (for tool sounds) */ hit?: boolean;
   /** D-255: the sound of this frame's strike when it is not the performance's own (the smith's bellows and the hiss of the
@@ -80,7 +82,7 @@ export interface Gait { v: number; style: GaitStyle;
    *  heel kicked up behind does not come out through the back of the skirt */
   skirt?: boolean;
   /** s18 C14 (D-790): a toddler's walk, 0 none .. 1 a child of one or two (the crowd sets it from the age: ledger u4) */
-  toddler?: number }
+  toddler?: number; /** s18 C14: the toddler is held in place for a plop (the crowd holds its root: crowd.ts) */ plop?: boolean }
 /** s18 C14: the toddler's walk (C, from the common picture of early walking: a wide base, the arms held up and out for
  *  balance ("high guard"), short quick flat-footed steps, the trunk swaying side to side, now and then a plop down to sit
  *  and up again) */
@@ -92,9 +94,12 @@ export const GAIT0: Gait = { v: 1.2, style: 'man' };
  *  hand-authored (PLACEHOLDER; the dev overlay's flag) */
 export const MOCAP_ANIMS = new Set<string>(['idle', 'inspect', 'walk', 'carry_shoulder', 'carry_head', 'carry_front', 'guard', 'guard_walk', 'talk', 'sit', 'play']);
 /** s18 C14 (D-790): a walk made a toddler's (w 0..1): the legs wider and the steps shorter, the arms up and out, the trunk
- *  rocking over each step, leaning a little forward; every 35-80 s (by the seed) a plop down onto the bottom for ~2.4 s and
- *  up again (the carer's picking up is the crowd's: ledger u4) */
-export function toddle(p: Pose, t: number, ph: number, k: number, w: number) {
+ *  rocking over each step, leaning a little forward; with `plop` (a toddler standing or held in place: a walker's root keeps
+ *  moving, and would slide it along seated) every 35-80 s (by the seed) a plop down onto the bottom for ~2.4 s and up again */
+/** s18 C14 (D-790): the seconds since the toddler's last plop began (the plop lasts TODDLER.fallS): the pose and the crowd's
+ *  hold in place share it */
+export function plopPhase(t: number, k: number) { const T = TODDLER, P = T.fallEvery[0] + (T.fallEvery[1] - T.fallEvery[0]) * fr(k * 3.17); return ((t + fr(k * 7.1) * P) % P + P) % P; }
+export function toddle(p: Pose, t: number, ph: number, k: number, w: number, plop = false) {
   const r = p.rot, T = TODDLER, mix3 = (a: [number, number, number] | undefined, b: [number, number, number]): [number, number, number] => { const q = a ?? [0, 0, 0]; return [q[0] + (b[0] - q[0]) * w, q[1] + (b[1] - q[1]) * w, q[2] + (b[2] - q[2]) * w]; };
   for (const [key, sd] of [['l_thigh', 1], ['r_thigh', -1]] as const) { const q = r[key] ?? [0, 0, 0]; r[key] = [q[0] * (1 - (1 - T.stepK) * w), q[1], q[2] + sd * T.abduct * w]; }
   for (const key of ['l_shin', 'r_shin'] as const) { const q = r[key] ?? [0, 0, 0]; r[key] = [q[0] * (1 - 0.4 * w), q[1], q[2]]; }
@@ -103,8 +108,8 @@ export function toddle(p: Pose, t: number, ph: number, k: number, w: number) {
   const hp = r.hips ?? [0, 0, 0]; r.hips = [hp[0], hp[1], hp[2] + T.sway * w * Math.sin(ph)];
   const sp = r.spine ?? [0, 0, 0]; r.spine = [sp[0] + T.lean * w, sp[1], sp[2] - 0.5 * T.sway * w * Math.sin(ph)];
   // the plop: down onto the bottom, a moment sitting, up again
-  const P = T.fallEvery[0] + (T.fallEvery[1] - T.fallEvery[0]) * fr(k * 3.17), u = (t + fr(k * 7.1) * P) % P;
-  if (u < T.fallS) { const a = Math.sin(Math.PI * Math.min(1, u / T.fallS)) ** 0.5 * w;
+  const u = plopPhase(t, k);
+  if (plop && u < T.fallS) { const a = Math.sin(Math.PI * Math.min(1, u / T.fallS)) ** 0.5 * w;
     p.hips = [p.hips[0], p.hips[1] - 0.22 * a, p.hips[2]];
     for (const key of ['l_thigh', 'r_thigh'] as const) { const q = r[key]!; r[key] = [q[0] + (-1.3 - q[0]) * a, q[1], q[2]]; }
     for (const key of ['l_shin', 'r_shin'] as const) { const q = r[key]!; r[key] = [q[0] + (0.4 - q[0]) * a, q[1], q[2]]; } }
@@ -126,7 +131,7 @@ export function pose(id: AnimId, t: number, ph: number, k: number, g: Gait = GAI
       // captures); the arms that hold a load are set over them below
       p = gaitPose(id === 'carry_front' ? 'carry' : g.style, ph, k, g.v); r = p.rot;
       if (g.skirt) for (const sh of [r.l_shin, r.r_shin]) if (sh && sh[0] > SKIRT_KNEE.from) sh[0] = SKIRT_KNEE.from + (sh[0] - SKIRT_KNEE.from) * SKIRT_KNEE.keep;
-      if (g.toddler && id === 'walk') toddle(p, t, ph, k, g.toddler);
+      if (g.toddler && id === 'walk') toddle(p, t, ph, k, g.toddler, !!g.plop);
       // the right arm raised out to the side and over the load (D-217: searched with tools/dev/jar_search.ts so the shoulder
       // jar's neck lies in the hand and the arm and head stay clear of it; was [-2.7, 0, -0.35] / -1.1: the hand over the
       // crown, the jar through the forearm; C)
@@ -237,10 +242,16 @@ export function pose(id: AnimId, t: number, ph: number, k: number, g: Gait = GAI
       p = loopAt(IDLES[pickOf(k, IDLES.length, 5)], t, k, 0.9); r = p.rot; const q = fr(t / (7 + 2 * fr(k * 2.3)) + k), down = q > 0.45 && q < 0.75 ? Math.sin(Math.PI * (q - 0.45) / 0.3) : 0;
       r.l_upper = [-0.6 + 0.25 * down, 0, 0.12]; r.r_upper = [-0.6 + 0.25 * down, 0, -0.12]; r.l_fore = [-1.1 + 0.5 * down, 0, -0.35]; r.r_fore = [-1.1 + 0.5 * down, 0, 0.35];
       r.spine = [0.05 + 0.45 * down, 0, 0]; r.chest = [0.1 * down, 0, 0]; r.head = [0.15 + 0.1 * down, 0, 0]; const h = p.hips; p.hips = [h[0], h[1] - 0.05 * down, h[2]]; p.grip = [0.5, 0.5]; break; }
-    case 'fan': { // a fly-whisk swept over the king's head and shoulders from behind the throne, a towel over the other arm (the Treasury audience relief: B; the rhythm C)
-      p = loopAt(IDLES[pickOf(k, IDLES.length, 5)], t, k, 0.8); r = p.rot; const w = Math.sin(t * 2.6 + k * 6);
-      r.r_upper = [-1.9, 0.25 * w, -0.25 + 0.15 * w]; r.r_fore = [-0.7, 0, 0.15 * w]; r.r_hand = [0.2 * w, 0, 0.4 * w]; r.l_upper = [-0.35, 0, 0.12]; r.l_fore = [-1.35, 0, -0.5];
-      r.head = [0.1, 0.1 * w, 0]; p.grip = [0.3, 1]; break; }
+    case 'fan': { // a fly-whisk swept over the king's head and shoulders from behind the throne, the towel in the other hand at the side (the Treasury audience relief: B; the rhythm C)
+      p = loopAt(['idle_a', 'idle_c'][pickOf(k, 2, 6)], t, k, 0.8); r = p.rot; const w = Math.sin(t * 2.6 + k * 6);
+      r.r_upper = [-1.45, 0.2 * w, -0.25 + 0.12 * w]; r.r_fore = [-0.9, 0, 0.12 * w]; r.r_hand = [0, 0, 0]; r.l_hand = [0, 0, 0]; r.l_upper = [0.04, 0, 0.1]; r.l_fore = [-0.35, 0, 0];
+      r.head = [0.1, 0.1 * w, 0]; p.grip = [0.5, 1]; break; }
+    case 'charioteer': { // standing braced in the car, knees soft, both hands forward at the reins, riding the car's jolts (C)
+      p = loopAt(['idle_a', 'idle_c'][pickOf(k, 2, 6)], t, k, 0.8); r = p.rot; const j = 0.5 * S(t * 7.1 + k) + 0.5 * S(t * 4.3 + 2 * k);
+      p.hips = [p.hips[0], p.hips[1] - 0.03 - 0.008 * j, p.hips[2]]; for (const key of ['l_thigh', 'r_thigh'] as const) { const q = r[key] ?? [0, 0, 0]; r[key] = [q[0] - 0.12, q[1], q[2]]; }
+      for (const key of ['l_shin', 'r_shin'] as const) { const q = r[key] ?? [0, 0, 0]; r[key] = [q[0] + 0.22, q[1], q[2]]; }
+      r.l_upper = [-0.55, 0, 0.12]; r.r_upper = [-0.55, 0, -0.12]; r.l_fore = [-0.9 + 0.04 * j, 0, -0.25]; r.r_fore = [-0.9 + 0.04 * j, 0, 0.25]; r.l_hand = [0, 0, 0]; r.r_hand = [0, 0, 0];
+      r.spine = [0.06 + 0.01 * j, 0, 0]; p.grip = [0.8, 0.8]; break; }
     case 'play': { // running about in place (children; D-333: a running capture)
       p = gaitPose('run', t * 7 + k, k, 2.8); break;
     }
@@ -255,7 +266,7 @@ export function pose(id: AnimId, t: number, ph: number, k: number, g: Gait = GAI
 }
 const DEV = new Float32Array(54);
 /** the layer's weight per authored cycle (the king on his throne keeps nearly still: the relief's stillness, C) */
-const LAYERED: Partial<Record<AnimId, number>> = { chisel: 0.6, draw_water: 0.6, grind: 0.35, knead: 0.35, bake: 0.35, write: 0.4, eat: 0.5, dice: 0.5, enthroned: 0.2, ride: 0.4, inspect: 0, pour: 0, serve: 0, fan: 0 };
+const LAYERED: Partial<Record<AnimId, number>> = { chisel: 0.6, draw_water: 0.6, grind: 0.35, knead: 0.35, bake: 0.35, write: 0.4, eat: 0.5, dice: 0.5, enthroned: 0.2, ride: 0.4, inspect: 0, pour: 0, serve: 0, fan: 0, charioteer: 0 };
 const SEATED_L = new Set<AnimId>(['write', 'eat', 'dice']);
 const WORK = new Set<string>(WORK_ANIMS);
-export const ANIMS: AnimId[] = ['idle', 'walk', 'carry_shoulder', 'carry_head', 'carry_front', 'guard', 'guard_walk', 'chisel', 'grind', 'knead', 'bake', 'draw_water', 'write', 'eat', 'sleep', 'talk', 'sit', 'dice', 'inspect', 'play', 'enthroned', 'ride', 'pour', 'serve', 'fan', ...WORK_ANIMS];
+export const ANIMS: AnimId[] = ['idle', 'walk', 'carry_shoulder', 'carry_head', 'carry_front', 'guard', 'guard_walk', 'chisel', 'grind', 'knead', 'bake', 'draw_water', 'write', 'eat', 'sleep', 'talk', 'sit', 'dice', 'inspect', 'play', 'enthroned', 'ride', 'pour', 'serve', 'fan', 'charioteer', ...WORK_ANIMS];

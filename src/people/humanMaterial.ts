@@ -567,11 +567,13 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     const cellX = mix(hx.div(rowSz), U.x.mul(BEARD.around), massC).add(mod(ri, 2).mul(0.5)), ci = floor(cellX);
     const hsh = (a: number, b: number, c: number) => fract(sin(ri.mul(a).add(ci.mul(b))).mul(c));
     const h1 = hsh(12.9898, 78.233, 43758.5453), h2 = hsh(39.3468, 11.135, 24634.6345);
-    const cu = fract(cellX).sub(0.5).add(h1.sub(0.5).mul(0.3)), cv = fract(rowC).sub(0.5).add(h2.sub(0.5).mul(0.3));
+    const cu = fract(cellX).sub(0.5).add(h1.sub(0.5).mul(0.45)), cv = fract(rowC).sub(0.5).add(h2.sub(0.5).mul(0.45)); // (s18 C14: 0.3 -> 0.45, the rows less regular)
     const rr = length(vec2(cu, cv)).mul(h1.mul(0.3).add(1.7)), th = atan(cv, cu).add(h2.mul(TAU));
     // a spiral groove in each curl (beards: BEARD.turns turns, a deeper groove)
     const tuft = clamp(float(1).sub(rr.mul(rr)), 0, 1).mul(sin(th.add(rr.mul(mix(8, TAU * BEARD.turns, isBeard)))).mul(mix(0.25, 0.35, isBeard)).add(mix(0.75, 0.65, isBeard)));
-    const court: any = mix(natural, tuft.mul(u1.mul(0.4).add(0.6)), mix(0.6, 0.75, massC));
+    // (s18 C14 D-790: on the scalp and cheeks the snail cells at 0.35, not 0.6: at conversation distance their regular lattice
+    // read as bubble wrap; the long beard's carved rows keep 0.75)
+    const court: any = mix(natural, tuft.mul(u1.mul(0.4).add(0.6)), mix(0.35, 0.75, massC));
     const straight = u1.mul(0.6).add(u2.mul(0.4));
     const curls = mix(mix(natural, court, kCourt), straight, kStraight);
     const hairAlb = vColor.mul(curls.mul(0.75).add(0.42)).mul(u3.mul(0.2).add(0.9));

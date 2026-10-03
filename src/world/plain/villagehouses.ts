@@ -66,8 +66,7 @@ function farTone(id: string, L: { standing: number; sincePlaster: number }, c: R
   return W ? mixc(m, W.c, W.k * 0.62 * (0.55 + 0.45 * Math.max(0, 1 - L.sincePlaster / 30))) : m;
 }
 /** s18 C15 (D-800): the cloths a household lays to dry over its range's eave (dyes of the period: madder red, woad blue, weld
- *  yellow, undyed and brown wool: C), and the dung cakes slapped on the lane face of the yard wall to dry for fuel (the region's
- *  fuel by analogy, C); sRGB */
+ *  yellow, undyed and brown wool: C); sRGB */
 const CLOTH: RGB[] = [[0.62, 0.2, 0.16], [0.25, 0.32, 0.5], [0.8, 0.68, 0.3], [0.85, 0.8, 0.7], [0.45, 0.33, 0.24], [0.7, 0.3, 0.2], [0.3, 0.4, 0.3]];
 interface ColBox { x: number; y: number; z: number; hx: number; hy: number; hz: number; rot: number }
 interface VNear { hs: SiteHouses; vi: number; geo: Partial<Record<keyof HB, { g: THREE.BufferGeometry; owner: Int32Array }>>; tris: number; desc: Desc[] }
@@ -214,15 +213,17 @@ export class VillageHouses {
       box(wu0, wv0, wu1, v1, roof, roofC, ownR);
       const west = u0 <= -W + 1e-6;
       eave(false, west ? u1 : u0, wv0 + 0.3, v1, west ? 1 : -1); }
-    // s18 C15 (D-800): a cloth or two laid to dry over the main range's eave (38 % of households), the dung cakes on the S wall's
-    // lane face (30 %): each a thin box / quads in the far batch (C)
+    // s18 C15 (D-800): a cloth or two laid to dry over the main range's eave (38 % of households), its two faces in the far batch (C;
+    // the dung cakes on the lane walls were cut again for the plain's triangle budget)
     if (id && hi(c.seed, 11) < 0.38) { const nC = 1 + (hi(c.seed, 12) < 0.35 ? 1 : 0);
       for (let k = 0; k < nC; k++) { const w = 0.9 + 0.9 * hi(c.seed, 13 + k), uc = -W + 1.5 + (2 * W - 3) * hi(c.seed, 15 + k), cc = lin(CLOTH[Math.floor(hi(c.seed, 17 + k) * CLOTH.length)]), drop = 0.6 + 0.5 * hi(c.seed, 19 + k);
-        b.set('y0', -1000).set('ytop', 1e4); const p = L(uc, rv0 - 0.36, 0); b.box(p[0], -p[2], c.angle, w / 2, 0.015, roof - drop, roof + 0.03, sh(cc, 0.85), cc, pd * 32 + 5); } }
-    if (id && hi(c.seed, 21) < 0.3) { const dk = lin([0.3, 0.25, 0.19]), n0 = 4 + Math.floor(hi(c.seed, 22) * 6), us = penW ? g1 + 0.6 : -W + 0.6;
-      b.set('y0', -1000).set('ytop', 1e4);
-      for (let r = 0; r < 3; r++) for (let k = 0; k < n0; k++) { const u = us + k * 0.36 + (r % 2) * 0.18, y = base + 0.6 + r * 0.38; if (u > (penW ? W - 0.4 : g0 - 0.4)) continue;
-        b.quad(L(u, -D - t / 2 - 0.012, y), L(u + 0.27, -D - t / 2 - 0.012, y), L(u + 0.27, -D - t / 2 - 0.012, y + 0.27), L(u, -D - t / 2 - 0.012, y + 0.27), N(0, -1), dk, dk, sh(dk, 1.1), sh(dk, 1.1), own); } }
+        b.set('y0', -1000).set('ytop', 1e4); const p = L(uc, rv0 - 0.36, 0); b.box(p[0], -p[2], c.angle, w / 2, 0.015, roof - drop, roof + 0.03, sh(cc, 0.85), cc, pd * 32 + 5, false, 8 | 16); } } // (its two broad faces only: the plain's triangle budget)
+    // s18 C15 (D-800): the roofs in use: a stack of straw and fodder on the main range (45 %), brushwood for the oven on the
+    // wing (30 %), as the region's flat roofs are used (C)
+    if (id && hi(c.seed, 31) < 0.45) { const st = lin([0.78, 0.68, 0.45]), w = 1.2 + 0.8 * hi(c.seed, 32), uc = -W + 1.5 + w / 2 + (2 * W - 3 - w) * hi(c.seed, 33), vc = (rv0 + D) / 2;
+      b.set('y0', -1000).set('ytop', 1e4); const p = L(uc, vc, 0); b.box(p[0], -p[2], c.angle, w / 2, 0.6, roof, roof + 0.55 + 0.4 * hi(c.seed, 34), sh(st, 0.8), st, ownR, false, 31); }
+    if (id && wing.length && hi(c.seed, 35) < 0.3) { const bw = lin([0.42, 0.36, 0.26]), r0 = wing[0], p = L((r0.u0 + r0.u1) / 2, (r0.v0 + r0.v1) / 2, 0);
+      b.set('y0', -1000).set('ytop', 1e4); b.box(p[0], -p[2], c.angle + 0.3, 0.7, 0.5, roof, roof + 0.45, sh(bw, 0.8), bw, ownR, false, 31); }
     // the gateway: dark behind the opening (the leaf, when shut, stands in front of it)
     { const dk = sh(col, 0.1), y1 = base + 2.0; b.set('ao', 0.15); b.quad(L(g0, -D + t / 2 + 0.14, base - 0.3), L(g1, -D + t / 2 + 0.14, base - 0.3), L(g1, -D + t / 2 + 0.14, y1), L(g0, -D + t / 2 + 0.14, y1), N(0, -1), dk, dk, dk, dk, own); b.set('ao', 1); }
   }
@@ -341,7 +342,8 @@ export class VillageHouses {
       return { g, ranges }; };
     const Sg = build(STRUCT); yield; const Tg = build(THINGS); yield;
     for (const [m, x] of [[this.structMesh, Sg], [this.thingsMesh, Tg]] as const) {
-      m.geometry.dispose(); if (!x) { m.geometry = emptyGeometry(); m.visible = false; continue; }
+      this.retire.push({ g: m.geometry, frames: 4 }); // (disposed a few frames later: the shadow pass may still hold the old buffers bound, the T4 black screen's class of fault)
+      if (!x) { m.geometry = emptyGeometry(); m.visible = false; continue; }
       m.geometry = x.g; m.visible = true; const ranges = x.ranges;
       m.userData = { ...m.userData, describe: (hit: any) => { const f = hit?.faceIndex ?? -1; let lo = 0, hi2 = ranges.length - 1; while (lo < hi2) { const mid = (lo + hi2 + 1) >> 1; if (ranges[mid].f0 <= f) lo = mid; else hi2 = mid - 1; } const r = ranges[lo]; return r && f >= r.f0 && f < r.f1 ? partDesc(r.desc, r.owner[f - r.f0], false) : null; } }; }
     const stt = VILLAGE_NEAR_STATE.image.data as Uint8Array; for (const t of this.shownSet) stt[(t + 1) * 4] = 0; this.shownKey = new Set(parts.map(q => q.t)); this.shownSet = new Set(parts.map(q => q.t >> 1)); for (const t of this.shownSet) stt[(t + 1) * 4] = 255; VILLAGE_NEAR_STATE.needsUpdate = true;
@@ -364,7 +366,10 @@ export class VillageHouses {
       else if (d > 300 && col.live) { for (const k of col.live) this.phys.world.removeCollider(k, false); this.info.liveColliders -= col.live.length; col.live = null; } }
   }
   /** the frame: a step of building the nearest village in reach, the colliders, the near tiles, the gates */
+  /** merged near geometries swapped out, disposed once the renderer has drawn a few frames without them */
+  private retire: { g: THREE.BufferGeometry; frames: number }[] = [];
   update(dt: number, cam: THREE.Vector3, player: THREE.Vector3, day: number, sunAlt: number) {
+    if (this.retire.length) this.retire = this.retire.filter(r => (--r.frames > 0 ? true : (r.g.dispose(), false)));
     const reach = this.inReach(player, cam); for (const q of reach) if (!this.st[q.vi].hs) { this.buildStep(q.vi); break; }
     this.streamColliders(player, cam, 1500);
     if (seasonOf(day) !== seasonOf(this.nearDay)) this.resetNear(); this.nearDay = day;
