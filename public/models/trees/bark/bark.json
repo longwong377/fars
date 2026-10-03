@@ -1,0 +1,22 @@
+{
+ "about": "D-740: the bark layers as one KTX2 array (tools/bake_world/ktx_bark.ts); src/world/trees/assets.ts loads it when scans is its BARK_SCANS",
+ "size": 768,
+ "scans": [
+  "japanese_sycamore",
+  "bark_willow_02",
+  "bark_brown_02",
+  "metasequoia_bark",
+  "japanese_zelkova_bark",
+  "chinese_hackberry_bark",
+  "bark_platanus",
+  "pine_bark",
+  "bark_willow",
+  "jolcham_oak_bark_01",
+  "sakura_bark",
+  "japanese_camphor_bark",
+  "japanese_cedar_bark",
+  "tree_bark_03",
+  "chinese_cedar_bark"
+ ],
+ "bytes": 10816771
+}

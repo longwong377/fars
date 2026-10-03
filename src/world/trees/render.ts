@@ -88,7 +88,7 @@ export class TreeKit {
   /** the Blender-built branch meshes (D-327: assets.ts, per level: corners in a data texture) and the bark scans, or null
    *  (the procedural tubes: a stand-in, PLACEHOLDER in the dev overlay) */
   readonly wood: [WoodLevel, WoodLevel] | null; readonly woodTex: [THREE.DataTexture, THREE.DataTexture] | null;
-  readonly bark: { tex: THREE.DataArrayTexture; layer: Record<string, number> } | null;
+  readonly bark: { tex: THREE.DataArrayTexture | THREE.CompressedArrayTexture; layer: Record<string, number> } | null;
   readonly segTex: THREE.DataTexture; readonly cardTex: THREE.DataTexture; readonly spTex: THREE.DataTexture;
   readonly foliage = new FoliageState();
   readonly wind: any = uniform(2);
