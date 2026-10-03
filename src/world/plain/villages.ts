@@ -7,8 +7,8 @@
 // D-254: the compounds are planned here (villageCompounds), rasterised once for the people and the drawn world alike
 // (villagesite.ts) and built as houses by the town's house generator (villagehouses.ts; settlement/houses.ts).
 import type { Terrain } from '../../terrain/heightfield';
-import { feature, pointInPolygon, settlementZones, PointIndex, RiverProfile } from './data';
-import type { Canal } from './canals';
+import { feature, pointInPolygon, settlementZones, PointIndex, RiverProfile, baseCourse, priorTerrain } from './data';
+import { BASE_CANALS, type Canal } from './canals';
 import { Rng } from '../../core/rng';
 import { SURFACES } from '../../render/materials';
 import { h32, salt } from '../../people/hash';
@@ -32,11 +32,13 @@ export interface Compound { x: number; y: number; w: number; d: number; angle: n
 /** a household's fitting (compound-local centre; `rot` the direction it faces, radians CCW from local +u; in the yard or the pen) */
 export interface CFitting { kind: 'oven' | 'hearth' | 'bin' | 'jar' | 'manger'; u: number; v: number; rot: number; size: number; pen: boolean; note: string }
 
-export function placeVillages(terrain: Terrain, rivers: RiverProfile[], canals: Canal[], seed = 1): Village[] {
+export function placeVillages(terrain: Terrain, live: RiverProfile[], canals: Canal[], seed = 1): Village[] {
+  const rivers = live.map(baseCourse); // D-670: placed on the pre-meander course, as before (the meanders keep clear of them)
+  canals = BASE_CANALS.get(canals) ?? canals;
   const zones = settlementZones();
   const water = new PointIndex(500); for (const r of rivers) water.addPolyline(r, 40, 0); for (const c of canals) water.addPolyline(c.pts, 40, 1);
   const riverOnly = new PointIndex(400); for (const r of rivers) riverOnly.addPolyline(r, 20);
-  const asl = (x: number, y: number) => terrain.aslAt(x, -y);
+  const ground = priorTerrain(terrain, live[0]?.prior), asl = (x: number, y: number) => ground.aslAt(x, -y); // D-670: the ground as before the meanders
   const slopeAt = (x: number, y: number) => Math.hypot(asl(x + 40, y) - asl(x - 40, y), asl(x, y + 40) - asl(x, y - 40)) / 80;
   const density = feature('villages_unlocated').layout.persons_per_ha as number;
   const radiusFor = (pop: number) => Math.sqrt((pop / density) * 1e4 / Math.PI);
