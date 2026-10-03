@@ -76,7 +76,7 @@ New people: the chiliarch (in Median dress with kandys, gold at the ears and wri
 - Most working men and many women go barefoot.
 - Labourers strip to the waist above 30 °C (the bare-chested wrap's mesh). This only shows once popview passes `tempC` in
   lookInput (C5).
-- Fixed: one line comment of mine, placed mid-line, cut off a working man's headgear draw and its `break` (in at 2df…, out
+- Fixed: one line comment of mine, placed mid-line, cut off a working man's headgear draw and its `break` (in at eeb45211, out
   at 8592fe19). For those commits the worker case fell into the women's.
 
 ## Halls (furnish_palaces.ts)
