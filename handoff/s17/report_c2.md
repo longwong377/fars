@@ -33,6 +33,8 @@
 - A worn quarrymen's path from the Majdabad quarry to a village track (4.1 km, routed round the slopes; C6's ask).
 - Load (C4's boot profile): the orchard plots and town ground baked with the zones (~2.7 s on a cache hit), the leaf atlas
   assembled in a worker (~2 s off the main thread).
+- Sown plots carry the weeds of an unweeded ancient field (0-3 grass and herb clumps a 2 m cell by a patch noise, larger
+  than the young crop): Vagon's tip1 frame (cov-000) read the young wheat as a lawn; changed after that frame, unseen.
 - Lone trees on the field bunds (~35/km2, by irrigation) break the crop sheet at mid distance.
 - The farm year: sheaves in the rows and stooks on every cut cereal plot in its own harvest weeks (late May-July), threshing
   floors in use doy 150-250 (trodden sheaves, sledge, grain heaps growing), straw stacks to March, an ard at plots being
