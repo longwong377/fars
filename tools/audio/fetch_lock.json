@@ -580,7 +580,23 @@
     "speechiness": 2.137
    }
   ],
-  "worksite": [],
+  "worksite": [
+   {
+    "key": "worksite",
+    "section": "beds",
+    "src": "freesound",
+    "id": "274763",
+    "title": "Stone_Mason Work_Shop-001.wav",
+    "licence": "CC BY",
+    "author": "Janaund",
+    "page": "https://freesound.org/people/Janaund/sounds/274763/",
+    "audio": "https://cdn.freesound.org/previews/274/274763_4848899-hq.ogg",
+    "sha256": "0720828a8130601f87d28499636d15bd7f5a0d080a4a6c5d7a7bfaccb0e56fce",
+    "dur": 188.13,
+    "q": "stonemason",
+    "speechiness": 3.503
+   }
+  ],
   "rain_light": [
    {
     "key": "rain_light",
@@ -700,7 +716,50 @@
     "speechiness": 0.633
    }
   ],
-  "chisel": [],
+  "chisel": [
+   {
+    "key": "chisel",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "200803",
+    "title": "Cincel1WAV.wav",
+    "licence": "CC0",
+    "author": "acostadelgado",
+    "page": "https://freesound.org/people/acostadelgado/sounds/200803/",
+    "audio": "https://cdn.freesound.org/previews/200/200803_3732729-hq.ogg",
+    "sha256": "85463b31817f8e92fd4270e9b7b66e5409e8cf661d570148a537620ea149d0a5",
+    "dur": 57.66,
+    "q": "chiseling"
+   },
+   {
+    "key": "chisel",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "461441",
+    "title": "Chisel.wav",
+    "licence": "CC0",
+    "author": "15HPanskaSuchopar_Jakub",
+    "page": "https://freesound.org/people/15HPanskaSuchopar_Jakub/sounds/461441/",
+    "audio": "https://cdn.freesound.org/previews/461/461441_9669261-hq.ogg",
+    "sha256": "57d76074a432c71ed92dd50bf788322a55aaedfeacac19f44f00227179504f9b",
+    "dur": 11.99,
+    "q": "chiseling"
+   },
+   {
+    "key": "chisel",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "419182",
+    "title": "14GNechvatalovaJ-chisel.wav",
+    "licence": "CC0",
+    "author": "14GPanskaNechvatalova_Jana",
+    "page": "https://freesound.org/people/14GPanskaNechvatalova_Jana/sounds/419182/",
+    "audio": "https://cdn.freesound.org/previews/419/419182_8358298-hq.ogg",
+    "sha256": "3c4ceeb7cdf52ba77b170ddb5922bb96ac207db313a60ec9a41ffe74264e2d83",
+    "dur": 28.99,
+    "q": "chiseling"
+   }
+  ],
   "quern": [
    {
     "key": "quern",
@@ -863,8 +922,94 @@
     "q": "cutting grass sickle"
    }
   ],
-  "loom": [],
-  "trowel": [],
+  "loom": [
+   {
+    "key": "loom",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "510266",
+    "title": "navette de métier à tisser.wav",
+    "licence": "CC0",
+    "author": "Naïma",
+    "page": "https://freesound.org/people/Na%C3%AFma/sounds/510266/",
+    "audio": "https://cdn.freesound.org/previews/510/510266_8371354-hq.ogg",
+    "sha256": "95eb8c7e1f94f8cde5e48f816a8041ad003e76cc1909f476c8283a1930cc380a",
+    "dur": 58.03,
+    "q": "navette"
+   },
+   {
+    "key": "loom",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "582994",
+    "title": "Wooden hand Loom .mp3",
+    "licence": "CC0",
+    "author": "snapcam",
+    "page": "https://freesound.org/people/snapcam/sounds/582994/",
+    "audio": "https://cdn.freesound.org/previews/582/582994_8373484-hq.ogg",
+    "sha256": "6507e4ceed79a4b03e9a1522ccca899ab0f36ec04c190b877b4d9b020bac3f66",
+    "dur": 21.5,
+    "q": "hand loom"
+   },
+   {
+    "key": "loom",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "164117",
+    "title": "MRWeef.mp3",
+    "licence": "CC BY",
+    "author": "mar1o",
+    "page": "https://freesound.org/people/mar1o/sounds/164117/",
+    "audio": "https://cdn.freesound.org/previews/164/164117_1331224-hq.ogg",
+    "sha256": "03a6c1ed595a22ca9531cfe2fa4030f8a339d77a062f3104a165b73da4ea9061",
+    "dur": 7.53,
+    "q": "loom"
+   }
+  ],
+  "trowel": [
+   {
+    "key": "trowel",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "707743",
+    "title": "trowel blades",
+    "licence": "CC0",
+    "author": "lauderson",
+    "page": "https://freesound.org/people/lauderson/sounds/707743/",
+    "audio": "https://cdn.freesound.org/previews/707/707743_9745622-hq.ogg",
+    "sha256": "647d6e9132505b08a7c74151cb3b7e288ae83217ea581a7728b30f91b5e92648",
+    "dur": 3.58,
+    "q": "trowel"
+   },
+   {
+    "key": "trowel",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "831386",
+    "title": "Metal Scraping with Trowel",
+    "licence": "CC0",
+    "author": "Sheyvan",
+    "page": "https://freesound.org/people/Sheyvan/sounds/831386/",
+    "audio": "https://cdn.freesound.org/previews/831/831386_3248005-hq.ogg",
+    "sha256": "1ac5fa94772661d5f0a75009a8b8724a1598d0cf50cb6861c9ec855b1f2a99c0",
+    "dur": 19.87,
+    "q": "trowel"
+   },
+   {
+    "key": "trowel",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "554086",
+    "title": "Drawing Garden Trowel Down Workbench 5.wav",
+    "licence": "CC BY",
+    "author": "F.M.Audio",
+    "page": "https://freesound.org/people/F.M.Audio/sounds/554086/",
+    "audio": "https://cdn.freesound.org/previews/554/554086_7805242-hq.ogg",
+    "sha256": "3932f9374582a4fac3bb245a95906718b25ee7fa1d440964f30da4938d033faf",
+    "dur": 0.79,
+    "q": "trowel"
+   }
+  ],
   "adze": [
    {
     "key": "adze",
@@ -1673,7 +1818,50 @@
     "q": "metal clink small"
    }
   ],
-  "drill": [],
+  "drill": [
+   {
+    "key": "drill",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "523271",
+    "title": "Foley_HandDrill_Grab.wav",
+    "licence": "CC0",
+    "author": "MrFossy",
+    "page": "https://freesound.org/people/MrFossy/sounds/523271/",
+    "audio": "https://cdn.freesound.org/previews/523/523271_129727-hq.ogg",
+    "sha256": "fdc91f50c8b0d567c653237a58deaa7211aea4cdd06af538bbc28c90bd14465e",
+    "dur": 46.8,
+    "q": "hand drill"
+   },
+   {
+    "key": "drill",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "523270",
+    "title": "Foley_HandDrill_PalmHit.wav",
+    "licence": "CC0",
+    "author": "MrFossy",
+    "page": "https://freesound.org/people/MrFossy/sounds/523270/",
+    "audio": "https://cdn.freesound.org/previews/523/523270_129727-hq.ogg",
+    "sha256": "f5fe08f91466217c31a7c26c719074c4091d4d5c789048e4919ca802d74314bc",
+    "dur": 9.48,
+    "q": "hand drill"
+   },
+   {
+    "key": "drill",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "58497",
+    "title": "Hand Powered  Pillar Drill.wav",
+    "licence": "CC BY",
+    "author": "Benboncan",
+    "page": "https://freesound.org/people/Benboncan/sounds/58497/",
+    "audio": "https://cdn.freesound.org/previews/58/58497_634166-hq.ogg",
+    "sha256": "afac8548c678544e9cf4c6a8e4e5ea2f343c0d89300b2453671a03e767d68a06",
+    "dur": 11.15,
+    "q": "hand drill"
+   }
+  ],
   "scrape": [
    {
     "key": "scrape",
@@ -2197,7 +2385,50 @@
     "q": "partridge call"
    }
   ],
-  "chukar": [],
+  "chukar": [
+   {
+    "key": "chukar",
+    "section": "oneshots",
+    "src": "commons",
+    "id": "File:Snow Partridge.ogg",
+    "title": "Snow Partridge.ogg",
+    "licence": "CC0",
+    "author": "hi user somesh tripathi",
+    "page": "https://commons.wikimedia.org/wiki/File:Snow_Partridge.ogg",
+    "audio": "https://upload.wikimedia.org/wikipedia/commons/7/76/Snow_Partridge.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "sha256": "5a25ecf80ca88bb18da2b67148ed882719fc76fdb7b02644ffd993a8cc262022",
+    "dur": 55.09,
+    "q": "partridge"
+   },
+   {
+    "key": "chukar",
+    "section": "oneshots",
+    "src": "freesound",
+    "id": "27809",
+    "title": "20061224.partridges.flac",
+    "licence": "CC BY",
+    "author": "dobroide",
+    "page": "https://freesound.org/people/dobroide/sounds/27809/",
+    "audio": "https://cdn.freesound.org/previews/27/27809_8043-hq.ogg",
+    "sha256": "e205fc1362680fb8f8a8144ab8e154ea740e29445190759fcf73705a61e4d2f7",
+    "dur": 30.22,
+    "q": "partridge"
+   },
+   {
+    "key": "chukar",
+    "section": "oneshots",
+    "src": "commons",
+    "id": "File:White-cheeked partridge.ogg",
+    "title": "White-cheeked partridge.ogg",
+    "licence": "CC BY",
+    "author": "hi user somesh tripathi",
+    "page": "https://commons.wikimedia.org/wiki/File:White-cheeked_partridge.ogg",
+    "audio": "https://upload.wikimedia.org/wikipedia/commons/f/f4/White-cheeked_partridge.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "sha256": "f036c3bf6ef906df69b5b6551cf490be7291c7f02f40b8ac7eac7f7f23f5e66f",
+    "dur": 12.14,
+    "q": "partridge"
+   }
+  ],
   "hoopoe": [
    {
     "key": "hoopoe",

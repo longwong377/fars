@@ -13,7 +13,7 @@
 //  3. Washing lines across the narrow lanes between two houses' walls (washing: PF wool and linen; the line C).
 //  4. The Terrace: the masons' yard's waste (chips, quarry blocks, rubble), the goods set down at the stair foot, the
 //     garrison's water jars and fuel, the Treasury store's sacks and jars, standards at the gates and stairs (C).
-import { LANE, SQUARE, OUT, toLocal, type Site, type Plot, type Craft } from './settlement/site';
+import { LANE, SQUARE, OUT, COURT, toLocal, type Site, type Plot, type Craft } from './settlement/site';
 import placesJson from '../data/people_places.json';
 
 export type RGB = [number, number, number];
@@ -139,6 +139,16 @@ export function siteFill(s: Site, seed: number, items: FillItem[], st: FillStats
   const W = s.W, H = s.H, sid = strHash(s.id) ^ seed, th = s.frame.theta, C = Math.cos(th), S = Math.sin(th), first = items.length;
   const toG = (u: number, v: number) => s.grid(u, v), dirG = (du: number, dv: number): [number, number] => [du * C - dv * S, du * S + dv * C];
   const doorEdge = (i: number, j: number, di: number, dj: number) => s.doors.has(dj === 1 ? s.eh(i, j) : dj === -1 ? s.eh(i, j - 1) : di === 1 ? s.ev(i, j) : s.ev(i - 1, j));
+  // s18 C2 (D-663, C12 W11): the household's washing on a line across its own court, wall to wall over a straight run of 2-7
+  // court cells, for six houses in ten (C: washing dried in the court and on the roof, not across the public lane)
+  if (!outside) { const done = new Set<number>();
+    for (let j = 1; j < H - 1; j++) for (let i = 1; i < W - 1; i++) { const k = s.k(i, j), pl = s.cell[k]; if (pl < 0 || done.has(pl) || s.sub[k] !== COURT) continue; const P = s.plots[pl];
+      if (!['house', 'house_large', 'workshop'].includes(P.kind) || P.height < 2.4) { done.add(pl); continue; } done.add(pl); if (u01(sid, pl, 31) > 0.6) continue;
+      for (const [di, dj] of [[1, 0], [0, 1]] as const) { if (s.at(i - di, j - dj) !== pl || s.sub[s.k(i - di, j - dj)] === COURT) continue; // the run starts at a wall of its own house
+        let n = 0; while (n < 8 && s.inb(i + di * n, j + dj * n) && s.cell[s.k(i + di * n, j + dj * n)] === pl && s.sub[s.k(i + di * n, j + dj * n)] === COURT) n++;
+        if (n < 2 || n > 7 || !s.inb(i + di * n, j + dj * n) || s.cell[s.k(i + di * n, j + dj * n)] !== pl) continue;
+        const off = 0.3 + 0.4 * u01(sid, pl, 32), mu = s.u0 + i + (di ? n / 2 : off), mv = s.v0 + j + (dj ? n / 2 : off), [e, nn] = toG(mu, mv), [de, dn] = dirG(di, dj);
+        items.push({ m: 'fill_line', e, n: nn, dy: Math.min(0, P.height - 2.7), rot: Math.atan2(dn, de), s: [(n + 0.1) / 3, 1, 1], col: { cloth_a: cloth(u01(sid, pl, 33)), cloth_b: cloth(u01(sid, pl, 34)) }, day: true, at: 'line' }); st.line++; break; } } }
   // the cells taken by the site's own fittings and fixtures (wells, troughs, firewood, drains ...): kept 1.2 m clear
   const taken: [number, number][] = [...s.fittings.map(f => [f.u, f.v] as [number, number]), ...(s.fixtures ?? []).filter(f => f.u || f.v).map(f => [f.u, f.v] as [number, number])];
   const bucket = (pts: [number, number][]) => { const m = new Map<number, [number, number][]>(); for (const p of pts) { const kk = (Math.floor(p[0] / 4) + 512) * 4096 + Math.floor(p[1] / 4) + 512; (m.get(kk) ?? m.set(kk, []).get(kk)!).push(p); } return m; };
@@ -245,7 +255,7 @@ export function siteFill(s: Site, seed: number, items: FillItem[], st: FillStats
         doorThings(i, j, di, dj, w, P, key);
         continue; }
       // a washing line to the facing wall
-      if (w >= 2 && w <= 4 && s.at(i - di * w, j - dj * w) >= 0 && u01(...key, 7) < 0.05 && P.height >= 2.6) {
+      if (u01(...key, 7) < 0 && w >= 2 && w <= 4 && s.at(i - di * w, j - dj * w) >= 0 && u01(...key, 7) < 0.05 && P.height >= 2.6) { // (s18 C2, D-663: no washing across the public lanes, C12 W11: it hangs in the courts, courtLines below, and on the roofs)
         const mu = wu - di * w / 2, mv = wv - dj * w / 2;
         if (!lines.some(([a, b]) => Math.hypot(a - mu, b - mv) < 7)) { lines.push([mu, mv]);
           const [e, n] = toG(mu, mv), [de, dn] = dirG(-di, -dj);

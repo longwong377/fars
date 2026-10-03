@@ -66,7 +66,7 @@ export class Initiative implements GoalHost {
     const done = (rec: DeedRec, src: string) => { const v = rec.deed.verb; st.deeds[v] = (st.deeds[v] ?? 0) + 1; if (rec.out.ok) st.done[v] = (st.done[v] ?? 0) + 1; st.src[src] = (st.src[src] ?? 0) + 1;
       const g = rec.deed.goal !== undefined ? this.goals.depth.get(rec.deed.goal) : undefined; if (g && g > 1) this.deedDepth.set(rec.id, g); };
     // 1. feelings and needs
-    const own: Deed[] = []; for (const _ of W.minds.deedParts(day, own, 300, (a, b) => this.goals.holds(a, b))) { slice('feeling'); yield; resume(); }
+    const own: Deed[] = []; for (const _ of W.minds.deedParts(day, own, W.minds.daily.max, (a, b) => this.goals.holds(a, b))) { slice('feeling'); yield; resume(); }
     for (const d of own) { done(W.own(d, day, k++), 'feeling'); if (k % 4 === 0) { slice('feeling'); yield; resume(); } }
     // 2. the day's life: a new child's mother brought food by kin; the houses of the dead in grief
     if (day > 0) { const L = P.lifeOn(day - 1);
@@ -124,7 +124,7 @@ export class Initiative implements GoalHost {
   /** what the person is set on and how they feel, for the talk's brief (out of world) */
   briefOf(pid: number, day: number): string[] { const out: string[] = [], G = this.goals;
     const mine = G.of(pid); if (mine.length) out.push(`You are set on ${mine.map(g => G.phrase(g, day)).join(', and ')}.`);
-    const pl = G.places.get(pid); if (pl) out.push(`You work for ${G.name(pl.master)} two days a week, paid by the day.`);
+    const pl = G.places.get(pid); if (pl) out.push(`You work for ${G.name(pl.master)} two days in each ten, paid by the day.`);
     for (const g of G.active.values()) if (g.who === pid && (g.kind === 'spouse' || g.kind === 'revenge' || g.kind === 'work' || g.kind === 'patron')) { out.push(g.kind === 'spouse' ? `${G.name(g.pid)}'s family has come to speak of a match with you.` : g.kind === 'revenge' ? `${G.name(g.pid)} bears you a grudge.` : g.kind === 'work' ? `${G.name(g.pid)} wants you to take him on.` : `${G.name(g.pid)} is trying to win your favour.`); break; }
     const m = this.moodOf(pid, day); if (Math.abs(m.v) > 0.25 && m.word) out.push(`You are ${m.word}.`);
     return out;

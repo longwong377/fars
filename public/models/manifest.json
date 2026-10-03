@@ -58,7 +58,7 @@
   },
   "capital_volute": {
    "file": "models/capital_volute.glb",
-   "inHash": "4815d1dbb5b49e4d9d25a46fd120be7f4e576e915b6548d8d987ddb7acaec902",
+   "inHash": "380d9af2fdc952e0724a81345221b23bb5d6d16feb73984e02d21caf98baeb78",
    "outHash": "7761fa78af09a9262b6dbb820e5cef6f2917df50c06d1c9a82996797dc57217b",
    "bytes": 920916,
    "gpuBytes": 1690851,
@@ -118,7 +118,7 @@
   },
   "colossus_bull": {
    "file": "models/colossus_bull.glb",
-   "inHash": "094e75f0a777ac94df7e707fbdef36bda3e8dae94ebac4a4e6194af187059858",
+   "inHash": "0f06c8b14aee8dd07e4836d16452f1221a9899539e536487a7d756c89141c027",
    "outHash": "961823bc3d9b98e859df2c71c6586602bb2f430470efdd9acd5d8b531bdc4a51",
    "bytes": 2655880,
    "gpuBytes": 9244487,
@@ -233,7 +233,7 @@
   },
   "column_base_bell": {
    "file": "models/column_base_bell.glb",
-   "inHash": "fca1d087b7055318f25bb067fbe27ae3bc1e0694ed2fdad48a9538523fd885a0",
+   "inHash": "daee10705fa4158db82f3937aae5061dabe514398347449ef27b8178d8ea7f53",
    "outHash": "f0599deed009da445b104835a4b8a1745cc44d89034ce7cfb1b238f8f0d26fd5",
    "bytes": 1861176,
    "gpuBytes": 5959003,
@@ -293,7 +293,7 @@
   },
   "column_base_plain": {
    "file": "models/column_base_plain.glb",
-   "inHash": "bf7b0f76b2168e5856f9d653bc574ba933e5b9440ef3a7b1d406c7df8bc2ac71",
+   "inHash": "bebf499e295b2787e2505d8654973024d4065b1b4abed35aae4be6a276d0a1d1",
    "outHash": "fd20eae0f999e9ef9337e8c168783245b849b635f244f23486d6d26ef6470bc9",
    "bytes": 570168,
    "gpuBytes": 1558235,
@@ -353,7 +353,7 @@
   },
   "column_base_square2": {
    "file": "models/column_base_square2.glb",
-   "inHash": "4c2729480036933e5694171e820474e64f40d84ef487f0fb6dc0db872287736c",
+   "inHash": "98785e3cfb7add708d9990e62b07964e40f7b882470efc529fd3aad8022b4915",
    "outHash": "8eb1294809daf100a2b33052d04fc982fc0b9942db53e0a5cc29eb006d99f6b2",
    "bytes": 599752,
    "gpuBytes": 1542155,
@@ -413,7 +413,7 @@
   },
   "column_bells": {
    "file": "models/column_bells.glb",
-   "inHash": "00dba0f236aa891c98c8f63cf37e0c1daf57a87bc81cebc4bea20f4af2ffd77b",
+   "inHash": "9a580e64facfe7bca40f11f3f692075e831dc255c2c3ebc4721ea375b0165def",
    "outHash": "7434a44790272c63297f06f414e5513364334eb3c4ff21672c35b1a01f193553",
    "bytes": 892648,
    "gpuBytes": 1610699,
@@ -473,7 +473,7 @@
   },
   "column_capital_plain": {
    "file": "models/column_capital_plain.glb",
-   "inHash": "334a949107de41697f2142d5a3fec2985a35d75156ff57695f73bf8d459d69d0",
+   "inHash": "456be354e8c20f54ad2c7edbf9e00a958804a8d980a315f416ffb694e33408a2",
    "outHash": "59841129c70efc5f3a6975e3157c76075d77d2a1421e348ab3da9bafc14c993d",
    "bytes": 191428,
    "gpuBytes": 360171,
@@ -533,7 +533,7 @@
   },
   "column_collar": {
    "file": "models/column_collar.glb",
-   "inHash": "c8b17c404864bd7c82a05a774e44c9d82ae867ae385b1fb4f0a97b1024a702e4",
+   "inHash": "44038e1256825517217cf1594b8059a3ae1b8674362e9870a572b22b31b11578",
    "outHash": "299ffe29ff5fa10b59c2df95684343c2b0ec991e58603fb75c19d8192dc573d9",
    "bytes": 124212,
    "gpuBytes": 382059,
@@ -593,7 +593,7 @@
   },
   "column_shaft_drums": {
    "file": "models/column_shaft_drums.glb",
-   "inHash": "7cfaaa8ee4d9896568cfb8f37863cc8b90c32713bc9512acecf3add8123fd537",
+   "inHash": "3d2bb32c69cbcf7bfbd86104a6b2c939494e4fbec43200dcb702893f353b75a8",
    "outHash": "62b19110faf224937d7707282bd379ffa2164a940af6f8f4e5d1fb4d794d62f5",
    "bytes": 1011160,
    "gpuBytes": 1429163,
@@ -653,7 +653,7 @@
   },
   "column_shaft_f40": {
    "file": "models/column_shaft_f40.glb",
-   "inHash": "e183c6a0d2e4a773cefccb61bc73f80ee3e1b7b8f816a42edfb02f008170d591",
+   "inHash": "4d67ef8429dc0c0bd8cf6ef857e0952efe3cf8b6396474470cfcca92cbf06bb3",
    "outHash": "5ffa6672642d6f090de760654bf66f6805e7ed26d1d276870f00034995a3a15c",
    "bytes": 2622120,
    "gpuBytes": 5709163,
@@ -713,7 +713,7 @@
   },
   "column_shaft_f48": {
    "file": "models/column_shaft_f48.glb",
-   "inHash": "5b6c3213f272780c90134ad3e0cc2eb38faf35fb41eb7708b821f30bd4a54744",
+   "inHash": "2ef8a048242d5193f1eb114514817debcc8d709afccd0fe1d96d7ccc72bbabee",
    "outHash": "ffe4bd2a6bcbc1da7fafb5bfb54f6482032f95b126e94d5979b287326d930fd6",
    "bytes": 2494156,
    "gpuBytes": 5714923,
@@ -773,7 +773,7 @@
   },
   "column_shaft_plaster": {
    "file": "models/column_shaft_plaster.glb",
-   "inHash": "94e2f275b40709f2865355002cc5f40c9fc904eaa5fbf21f8b11355e3d6210c1",
+   "inHash": "293aa53815708b881f730d10f2b0e33929e96abaa436d430114fdadad95581a9",
    "outHash": "44507dee96079feea3599cad82bee18f8ec3b61d6c37889a76c8bcf5c0f736ae",
    "bytes": 273604,
    "gpuBytes": 1429163,

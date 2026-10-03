@@ -31,6 +31,8 @@ const VIS: Record<string, V> = {
 };
 /** a letter of a transliteration (Old Persian, Elamite, Aramaic as written in Latin letters) → its phone class */
 export function phoneOf(ch: string): string {
+  // (IPA as the voices carry it (audio/voices.ts speaking.ipa): its vowels and consonants folded onto the same classes)
+  const ipa = IPA[ch]; if (ipa) return ipa;
   const c = ch.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   if (!c || /\s|[.,;:!?…—–-]/.test(c)) return '_';
   if ('a'.includes(c)) return 'a'; if ('e'.includes(c)) return 'e'; if ('iyj'.includes(c)) return c === 'i' ? 'i' : c === 'y' ? 'i' : 't';
@@ -39,12 +41,17 @@ export function phoneOf(ch: string): string {
   if (c === 'r') return 'r'; if ('hʔ'.includes(c)) return 'h';
   return 't';
 }
+const IPA: Record<string, string> = { 'ɑ': 'a', 'æ': 'a', 'ɐ': 'a', 'ə': 'e', 'ɛ': 'e', 'ɪ': 'i', 'ɨ': 'i', 'ɔ': 'o', 'ʊ': 'u', 'β': 'f', 'ɸ': 'f', 'θ': 's', 'ð': 't',
+  'ʃ': 's', 'ʒ': 's', 'ʂ': 's', 'ç': 's', 'x': 'k', 'χ': 'k', 'ɣ': 'k', 'ɡ': 'k', 'ŋ': 'k', 'ɾ': 'r', 'ʁ': 'r', 'ħ': 'h', 'ʕ': 'h', 'ʔ': 'h', 'ɲ': 't', 'ʎ': 't', 'ʧ': 's', 'ʤ': 's' };
 /** a phone stream: classes and their start times (s from the line's start); stress marks the first vowel of every second
  *  syllable and of each phrase */
 export interface Phones { cls: string[]; t: Float32Array; stress: Uint8Array; dur: number }
 export function phonesOf(text: string, seconds?: number): Phones {
   const cls: string[] = []; let prev = '';
-  for (const ch of text) { const p = phoneOf(ch); if (p === '_' && prev === '_') continue; cls.push(p); prev = p; }
+  for (const ch of text) {
+    if (ch === 'ˈ' || ch === 'ˌ') continue; // (IPA stress marks)
+    if (ch === 'ː') { if (prev && prev !== '_') cls.push(prev); continue; } // (a long sound held: its class again)
+    const p = phoneOf(ch); if (p === '_' && prev === '_') continue; cls.push(p); prev = p; }
   if (!cls.length) cls.push('_');
   const w = cls.map(c => (c === '_' ? 2.4 : 'aeiou'.includes(c) ? 1.25 : 0.85)), sum = w.reduce((a, b) => a + b, 0);
   const dur = seconds ?? sum * PHONE_S, k = dur / sum, t = new Float32Array(cls.length), stress = new Uint8Array(cls.length);
@@ -84,6 +91,14 @@ export function visemeAt(ph: Phones | null, seed: number, t: number, out: FaceSh
   // a pressed or tucked consonant closes the jaw over the vowel's opening (the lips need it); rounding narrows the opening
   out.jaw *= 1 - 0.7 * Math.max(out.press, out.tuck);
   return out;
+}
+
+/** the breath taken in a pause between phrases at time t of a phone stream: 0..1 (a 0.3 s swell in each pause) */
+export function pauseAt(ph: Phones, t: number): number {
+  let i = 0; for (let lo = 0, hi = ph.t.length - 1; lo <= hi;) { const m = (lo + hi) >> 1; if (ph.t[m] <= t) { i = m; lo = m + 1; } else hi = m - 1; }
+  if (ph.cls[i] !== '_' && t >= 0) return 0;
+  const a = t < 0 ? -0.3 : ph.t[i], b = t < 0 ? 0 : (ph.t[i + 1] ?? ph.dur), u = (t - a) / Math.max(0.05, b - a);
+  return Math.sin(Math.PI * Math.min(1, Math.max(0, u)));
 }
 
 /** the speaking person's stress beat at time t: 0..1, peaking ~60 ms after a stressed vowel starts (the brows and the

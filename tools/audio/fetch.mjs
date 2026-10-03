@@ -52,7 +52,9 @@ const norm = s => ' ' + String(s ?? '').toLowerCase().replace(/<[^>]*>/g, ' ').r
 export function rejectedBy(text, words) { const t = norm(text); return words.filter(w => t.includes(norm(w))); }
 
 // ------------------------------------------------------------------------------------------------ http
+let fsLast = 0; // s18: freesound's API allows 60 requests a minute; unthrottled, a wide item's later searches came back empty
 async function get(url, as = 'text', tries = 3) {
+  if (url.includes('freesound.org/apiv2')) { const w = fsLast + 1100 - Date.now(); if (w > 0) await new Promise(z => setTimeout(z, w)); fsLast = Date.now(); tries = Math.max(tries, 5); }
   for (let k = 0; k < tries; k++) {
     try { const r = await fetch(url, { headers: { 'User-Agent': UA } }); if (r.status === 429 || r.status >= 500) throw new Error(`HTTP ${r.status}`); if (!r.ok) return null;
       return as === 'json' ? await r.json() : as === 'buf' ? Buffer.from(await r.arrayBuffer()) : await r.text(); }

@@ -35,6 +35,8 @@ interface HH extends HHSeed {
 /** a member bound to work off a debt (D-340): who, for whom, from the event, until the day (Economy.boundOn) */
 export interface Bondage { hh: string; to: string; from: number; until: number; ev: number }
 /** a debt owed (n: its number, so a saved deferred step finds it again, D-347) */
+/** D-720 (W17): interest on a silver loan, a year (B: ~20 % in the Neo-Babylonian contracts; C for Pārsa) */
+export const LOAN_RATE = 0.2;
 export interface Debt { to: string; amt: number; due: number; ev: number; n: number }
 /** a deferred step (D-347: data, not a closure, so the economy's state is saved and restored as it stands) */
 type Task =
@@ -661,7 +663,8 @@ export class Economy implements EconWorld {
   }
   private borrow(h: HH, L: HH, amt: number, day: number, cause: number | undefined): number {
     L.cash -= amt; h.cash += amt; const e = this.ev(day, h.id, 'loan', [cause], L.id, amt);
-    h.debts.push(this.debt(L.id, amt * 1.1, day + 60 + (h32(this.seed, S.act, day, amt | 0) % 60), e)); h.cause.cash = e; return e;
+    // (D-720, W17: the interest of the header's ~20 % a year (B, Neo-Babylonian silver loans), for the months the loan runs)
+    const term = 60 + (h32(this.seed, S.act, day, amt | 0) % 60); h.debts.push(this.debt(L.id, amt * (1 + LOAN_RATE * term / 360), day + term, e)); h.cause.cash = e; return e;
   }
 
   private decide(h: HH, day: number, k: number) {

@@ -96,8 +96,10 @@ export async function talkTurn(mind: TalkMind, sim: PeopleSim, pid: number, said
   const sFacts = E0 && E0.hasStranger ? E0.stranger().factsFor(hh0, day) : [];
   const dBrief = sim.deeds.briefOf(pid, day);
   const came = o.approached ? `(You came up to the stranger yourself: you ${o.approached.replace(/^comes up to you and /, '').replace(/\basks\b/, 'want to ask')}. Say so in your own words.)` : '';
+  // (D-720, W15: struck coins were rare in Persis (darics and sigloi from c. 500): silver is weighed; the person says so)
+  const coin = /\bcoins?\b|\bdarics?\b|\bsigl(oi|os)\b/i.test(said) ? '(The stranger speaks of coins: struck pieces of silver you seldom see here; silver is weighed on the scales. Say so, puzzled.)' : '';
   const wary = trust0 < 0.4 ? '(You do not trust this stranger: be short with him and give nothing away.)' : '';
-  const before = [came, wary, dBrief.length ? `(${dBrief.join(' ')})` : '', sFacts.length ? `(${sFacts.map(f => f.charAt(0).toUpperCase() + f.slice(1)).join('. ')}.)` : '', near && memory.length ? `(You remember: ${memory.join(' ')} If the stranger asks about it, tell him what you remember, in your own words.)` : '',
+  const before = [came, coin, wary, dBrief.length ? `(${dBrief.join(' ')})` : '', sFacts.length ? `(${sFacts.map(f => f.charAt(0).toUpperCase() + f.slice(1)).join('. ')}.)` : '', near && memory.length ? `(You remember: ${memory.join(' ')} If the stranger asks about it, tell him what you remember, in your own words.)` : '',
     near && pre && !pre.ok && !pre.noop ? `(Whatever he asks, you must say no: ${pre.reason}.)` : ''].filter(Boolean).join('\n') || undefined;
   // (after run 3: asked about earlier meetings, the simulation picks the ONE remembered fact and the model only says it in
   // its own words; otherwise the one life fact most relevant to the words goes next to them: ground.ts)

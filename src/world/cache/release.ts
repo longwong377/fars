@@ -21,6 +21,13 @@ function release(t: THREE.Texture) {
 export function releaseUploadedTextures(renderer: THREE.WebGPURenderer) {
   const tx = (renderer as any)._textures; if (!tx?.updateTexture || tx.__release) return; tx.__release = true;
   const up = tx.updateTexture.bind(tx);
-  tx.updateTexture = (t: THREE.Texture, o?: any) => { const r = up(t, o); try { const d = tx.get(t);
+  tx.updateTexture = (t: THREE.Texture, o?: any) => {
+    // D-740 (s18, the black screen): a texture whose page copy was released and is flagged for upload again has nothing to
+    // upload; three would pass null to writeTexture, which throws and aborts the whole frame. Skip it (the GPU keeps the
+    // last upload) and say so once.
+    if ((t.userData as any)?.released && (((t as any).isCompressedTexture && ((t as any).mipmaps ?? []).some((m: any) => !m?.data)) || (!(t as any).isCompressedTexture && (t as any).image && (t as any).image.data == null))) {
+      if (!(t.userData as any).warnedNoData) { (t.userData as any).warnedNoData = true; console.warn(`[release] ${t.name || t.uuid}: flagged for upload after its data was released; skipped (the GPU copy stays)`); }
+      try { const d = tx.get(t); if (d) d.version = t.version; } catch { /* */ } return; }
+    const r = up(t, o); try { const d = tx.get(t);
     if (t.version > 0 && d?.isDefaultTexture === false && (t as any).source?.dataReady !== false) release(t); } catch { /* keep it */ } return r; };
 }

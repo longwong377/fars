@@ -16,14 +16,19 @@ import { heardReply, heardReplyNeural, replyVoice, type HearIn } from './voice';
 import { unitsFor, voiceLang, WORDLESS } from '../../audio/voices';
 import { toFarsi, FarsiTranslator, type FarsiRoute } from './farsi';
 import type { Turn } from './prompt';
-import { bakedProse, bakedWho } from './bake';
 import { talkTurn } from './turn';
 import { TALK_MODEL } from './models';
 import { Approaches } from './approach';
 import { earshot, ambientFor, rmsDbOf, noteOverheard, EARSHOT, type Listener, type Heard } from './earshot';
 
 /** D-370: the sandbox step as the translation layer notes it (out of world) */
-const SANDBOX_DONE: Record<string, string> = { seek_work: 'taken on as a hand', stay: 'taken in as a guest', join: 'taken in', petition: 'the petition will be heard', give: 'given', claim: 'they heard who you say you are', leave_stay: 'you leave the house', quit: 'you leave the work', leave_group: 'you leave them', hear: 'they say it slowly for you', buy: 'bought, after haggling', sell: 'sold, after haggling', daywork: 'taken on for the day: carry loads at the market till evening' };
+// D-720 (C12 4-8): what the player reads under the words: a short line of what happened, in the translation layer's plain English
+// (no verb names, no rule reasons, no debug); the dev overlay (F3, ?debug) keeps the raw verdicts
+const SANDBOX_DONE: Record<string, string> = { seek_work: 'They take you on as a hand.', meal: 'You eat with them.', stay: 'They take you in for the night.', join: 'They take you in.', petition: 'Your petition will be heard.', give: 'Your gift is taken.', claim: 'They take you at your word.', leave_stay: 'You take your leave of the house.', quit: 'You leave the work.', leave_group: 'You leave them.', hear: 'They say it again, slowly, for you.', buy: 'A price is agreed, and the goods change hands.', sell: 'A price is agreed, and the goods change hands.', daywork: 'You are taken on for the day: loads to carry at the market until evening.', daypaid: 'You are paid for the day in barley.' };
+const DEED_DONE: Record<string, string> = { help: 'You work beside them a while.', join: 'You join them.', teach: 'They show you how it is done.', learn: 'You show them what you know.', hire: 'They agree to work for you.', give: 'They take what you give.', lend: 'They take the loan.', borrow: 'They lend it to you.', ask_for: 'They give it to you.', return: 'They take it back.', share_food: 'You eat together.',
+  steal: 'You take it.', insult: 'The words strike home.', mock: 'They do not laugh.', curse: 'They go pale at the curse.', threaten: 'They step back from you.', attack: 'You strike them.', push: 'You shove them.', praise: 'They are pleased.', thank: 'They nod at your thanks.', apologize: 'They hear your apology.', comfort: 'They take some comfort from you.',
+  bless: 'They are glad of the blessing.', forgive: 'Your forgiveness is taken.', warn: 'They take the warning.', tell: 'They hear what you tell them.', lie: 'They believe you.', promise: 'They hold you to your word.', court: 'They do not turn you away.', flirt: 'They smile.', embrace: 'They let you embrace them.',
+  heal: 'You tend them.', carry: 'You carry it for them.', fetch: 'They go to fetch them.', repair: 'You set to the mending together.', build: 'You build together.', guard: 'You keep watch for them.', come_with: 'They come along with you.', visit: 'They make you welcome.', meet: 'They agree to meet you.', pray: 'You pray together.', offer: 'You make the offering together.' };
 // D-376 (UD-31): the default is the small model of the talk bundle (models.ts TALK_MODEL, ~285 MB); gemma-2-2b (D-296's choice on
 // the T4, ~1.9 GB) stays one ?model= away for the lab's comparisons
 export const DEFAULT_MODEL = TALK_MODEL;
@@ -74,9 +79,9 @@ export function mountConverse(c: Ctx) {
   const state = { approach: null as any, status: gpu ? 'idle' : 'no WebGPU: the people answer in their own lines', progress: 0, loaded: false, busy: false, last: null as any, history: new Map<number, Turn[]>(), log: [] as any[], /** D-315: the conversation in progress (person, its id) */ talking: null as null | { pid: number; conv: number; r: number }, /** D-379: the last words as the world heard them (who heard, the one spoken to, who turned to look; the render side reads it) */ heard: null as null | (Heard & { t: number; words: string }) };
   /** D-315: the conversation ends (the stranger walks off or closes the talk): the person goes back to the day */
   const endTalk = () => { const k = state.talking; if (!k) return; state.talking = null; c.world.people?.sim?.talk.release(k.pid, c.world.people.sim.t); };
-  // the baked prose layer (D-296): only for the world it was baked for (seed 1: src/data/lives_baked_s1.json)
-  let baked = new Map<number, any>(); if (c.seed === 1) import('../../data/lives_baked_s1.json').then(m => { baked = new Map(((m as any).default ?? m).rows.map((r: any) => [r.pid, r])); }).catch(() => {});
-  const prose = (pid: number) => { const b = baked.get(pid), p = c.world.people?.sim?.pop?.persons[pid]; return bakedProse(b && p && b.who === bakedWho(p) ? b : null); }; // (D-348: only while the pid is still the person it was baked for)
+  // (D-720, W22: the baked prose of seed 1 (D-296) is gone: it was junk under D-348's gate (a two-year-old remembering brickmaking,
+  // a married seven-year-old); the life record is the simulation's own. A new bake (tools/dev/bake_lives.mjs) can come back here)
+  const prose = (_pid: number): string | null => null;
   // D-336: the opt-in layer (settings.hearIn; ?hear=fa|en for tests) and the route of its Farsi (?farsi=llm|nllb; D-336 measured)
   const hearIn = (): HearIn => (P.get('hear') as HearIn | null) ?? c.settings?.hearIn ?? 'own';
   const faRoute = (): FarsiRoute => (P.get('farsi') as FarsiRoute | null) ?? FARSI_ROUTE; const nllb = new FarsiTranslator();
@@ -156,16 +161,18 @@ export function mountConverse(c: Ctx) {
       const faOk = !!fa && !fa.hits.length, key = near.agent !== null ? `a${near.agent}` : `p${near.pid}`, at = { x: near.e, y: c.camera.position.y - 0.1, z: -near.n };
       const tH = performance.now();
       const h = nv?.stats.ready ? await heardReplyNeural(nv, sim.pop, near.pid, day, a.text, c.seed, { hearIn: layer === 'fa' && !faOk ? 'en' : layer, farsi: faOk ? fa!.fa : null, agent,
-        onChunk: (pcm, rate) => { if (c.world.sayPcm) c.world.sayPcm(key, pcm, rate, at); else play(pcm, rate); } }) : null;
+        onChunk: (pcm, rate) => { if (c.world.sayPcm) c.world.sayPcm(key, pcm, rate, at, layer === "en" ? { text: a.text } : undefined); else play(pcm, rate); } }) : null;
       if (h) heard = { lang: h.lang, layer: h.layer, units: h.units.map(u => u.translit || u.gloss), text: h.text, seconds: h.seconds, backend: 'kokoro', firstMs: h.firstMs, totalMs: performance.now() - tH, fa: fa ? { route: fa.route, ms: fa.ms, hits: fa.hits } : null };
       // (D-720: every voice at the speaker, through the world's mixer: volume, reverb and place; the bare context only without a world)
-      else { const f = heardReply(sim.pop, near.pid, day, a.text, c.seed, 24000, agent); heard = { lang: f.lang, layer: 'own', units: f.units.map(u => u.translit || u.gloss), seconds: f.seconds, backend: 'formant' }; if (c.world.sayPcm) c.world.sayPcm(key, f.data, f.rate, at); else play(f.data, f.rate); }
+      else { const f = heardReply(sim.pop, near.pid, day, a.text, c.seed, 24000, agent); heard = { lang: f.lang, layer: 'own', units: f.units.map(u => u.translit || u.gloss), seconds: f.seconds, backend: 'formant' }; if (c.world.sayPcm) c.world.sayPcm(key, f.data, f.rate, at, { ipa: f.units.map(u => u.ipa).join(' '), text: f.units.map(u => u.translit || u.gloss).join(' ') }); else play(f.data, f.rate); } // (D-720: the words, for the face's visemes: C14 D-790)
       if (c.englishVoice || P.has('english')) { en ??= new EnglishVoice(); en.load().then(() => en!.say(a.text)).then(r => { if (c.world.sayPcm) c.world.sayPcm(key, r.data, r.rate, at); else play(r.data, r.rate); }).catch(() => {}); } }
     // (D-370: what the sandbox step did, out of world, under the words: taken on, taken in, heard, refused and why)
-    const sb = T.sandbox ? ` <br><i>(${T.sandbox.done?.ok ? SANDBOX_DONE[T.sandbox.act.a] ?? 'done' : T.sandbox.verdict.ok ? 'they would not' : T.sandbox.verdict.why})</i>` : '';
-    // D-459: an open deed's outcome, out of world (what was done, or why not)
-    const dd = T.deed ? ` <br><i>(${T.deed.done?.out.ok ? `${T.deed.deed.verb.replace(/_/g, ' ')}${T.deed.deed.act ? `: ${T.deed.deed.act.replace(/_/g, ' ')}` : ''}: done` : T.deed.out.ok ? 'they would not' : T.deed.out.why})</i>` : '';
-    show((a.ok ? `<b>${L.name}</b>: ${a.text}` : `<b>${L.name}</b> <i>shrugs and turns back to the work.</i>`) + sb + dd, `translation layer (English, out of world)${own ? ownNote() : ''}; heard: ${heard ? (heard.layer === 'own' ? `${heard.lang} “${heard.units.join(' … ')}” (the person's own words, tier C: not a rendering of this English)` : `${heard.layer === 'fa' ? 'Farsi' : 'English'} (opt-in, in their own voice): “${heard.text}”`) : 'nothing'}; ${((performance.now() - t0 + heardMs) / 1000).toFixed(1)} s${T.decision ? `; ${T.decision.kind}: ${T.decision.ok ? (T.decision.noop ? 'nothing to change' : 'done') : 'refused'} (${T.decision.reason})` : ''}`);
+    const sbDev = T.sandbox ? ` <br><i>(${T.sandbox.done?.ok ? SANDBOX_DONE[T.sandbox.act.a] ?? 'done' : T.sandbox.verdict.ok ? 'they would not' : T.sandbox.verdict.why})</i>` : '';
+    const ddDev = T.deed ? ` <br><i>(${T.deed.done?.out.ok ? `${T.deed.deed.verb.replace(/_/g, ' ')}${T.deed.deed.act ? `: ${T.deed.deed.act.replace(/_/g, ' ')}` : ''}: done` : T.deed.out.ok ? 'they would not' : T.deed.out.why})</i>` : '';
+    // (D-720: the player's line: what happened, never why the rules said so; a refusal is the person's own words above)
+    const sb = dev() ? sbDev : T.sandbox?.done?.ok ? ` <br><i>${SANDBOX_DONE[T.sandbox.act.a] ?? ''}</i>` : '';
+    const dd = dev() ? ddDev : T.deed?.done?.out.ok ? ` <br><i>${DEED_DONE[T.deed.deed.verb] ?? ''}</i>` : '';
+    show((a.ok ? `<b>${L.name}</b>: ${a.text}` : `<b>${L.name}</b> <i>${T.refused === 'distrust' ? 'turns away and will not speak with you.' : 'shrugs and turns back to the work.'}</i>`) + sb + dd, `translation layer (English, out of world)${own ? ownNote() : ''}; heard: ${heard ? (heard.layer === 'own' ? `${heard.lang} “${heard.units.join(' … ')}” (the person's own words, tier C: not a rendering of this English)` : `${heard.layer === 'fa' ? 'Farsi' : 'English'} (opt-in, in their own voice): “${heard.text}”`) : 'nothing'}; ${((performance.now() - t0 + heardMs) / 1000).toFixed(1)} s${T.decision ? `; ${T.decision.kind}: ${T.decision.ok ? (T.decision.noop ? 'nothing to change' : 'done') : 'refused'} (${T.decision.reason})` : ''}`);
     const row = { pid: near.pid, name: L.name, d: +near.d.toFixed(2), said: text, reply: a.text, ok: a.ok, hits: a.hits, ms: performance.now() - t0 + heardMs, ttft: a.ttftMs, heard, key, ask: T.ask, tag: T.tag, decision: T.decision ? { kind: T.decision.kind, ok: T.decision.ok, reason: T.decision.reason, noop: !!T.decision.noop } : null, memory: T.memory, ...(own ? { own: true } : {}) };
     state.last = row; state.log.push(row); return row;
   }
@@ -187,7 +194,7 @@ export function mountConverse(c: Ctx) {
       if (state.talking?.pid !== n.pid && !state.busy) void say('Greetings.');
       panel.style.display = 'block'; input.style.display = 'block'; input.focus(); return; } }
     if (e.code === 'KeyT' && !e.repeat) { panel.style.display = 'block'; input.style.display = 'block'; input.focus(); e.preventDefault(); e.stopPropagation(); }
-    if (e.code === 'KeyV' && !e.repeat && !recording && gpu) { recording = true; show('<i>(listening)</i>'); mic.start().catch(err => { recording = false; show(`<i>no microphone: ${err}</i>`); }); }
+    if (e.code === 'KeyV' && !e.repeat && !recording && gpu) { recording = true; show('<i>(listening)</i>'); mic.start().catch(err => { recording = false; show(dev() ? `<i>no microphone: ${err}</i>` : '<i>(no microphone)</i>'); }); }
   }, true);
   addEventListener('keyup', async e => {
     if (e.code !== 'KeyV' || !recording) return; recording = false;

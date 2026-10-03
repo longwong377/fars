@@ -34,7 +34,7 @@ import { toLocal, toGrid, ROOM, type Frame, type P2 } from './settlement/site';
 import type { Place } from '../audio/soundscape';
 import townData from '../data/town.json';
 import faunaData from '../data/fauna.json';
-import { beastRanges, beastsAt, keepAway, callsNow, BEAST_CALLS, type BeastRanges } from './beasts';
+import { beastRanges, beastsAt, callsNow, BEAST_CALLS, BeastFlight, type BeastRanges } from './beasts';
 
 const fr = (x: number) => x - Math.floor(x);
 /** a stable hash in [0, 1) of (seed, a, b) */
@@ -339,7 +339,8 @@ export class Fauna {
     // steppe, the lions in their reeds); their calls carry kilometres
     if (this.beasts) { const B = this.beasts, month = c.month;
       const wt = c.worldT ?? c.t, all = beastsAt(B, this.seed, wt, c.hour, c.sun, month);
-      for (const b0 of all) { const b = keepAway(b0, c.player); if (Math.hypot(b.e - cam[0], b.n - cam[1]) > 1200) continue;
+      // (s18 C14 D-790: the herds bolt from the player and come back, beasts.ts BeastFlight; their alarms and hooves heard)
+      for (const b of this.flight.apply(all, c.player ? [c.player] : [], wt, (k, e, n) => { if (Math.hypot(e - cam[0], n - cam[1]) < 1500) sound(k, e, n, 1.0); })) { if (Math.hypot(b.e - cam[0], b.n - cam[1]) > 1200) continue;
         Object.assign(o, { sp: b.sp as Species, e: b.e, n: b.n, x: 0, z: 0, yaw: b.yaw, phase: (2 * Math.PI * c.t) / 1.2 * (b.gait ? 1.9 : 1), walk: b.walk, graze: b.graze, lie: b.lie, coat: b.coat, gait: b.gait }); push(); }
       const wolf = all.find(x => x.sp === 'wolf');
       const at: Record<string, P2 | null> = { howl: wolf ? [wolf.e, wolf.n] : null,
@@ -350,6 +351,8 @@ export class Fauna {
     A.end();
   }
   private lastCallSecond = -1;
+  /** s18 C14 (D-790): the wild herds' flight from the player (beasts.ts) */
+  private flight = new BeastFlight();
   /** D-227: the tether lines at the stair foot (terraceFoot.ts): drawn with this rig */
   foot: TerraceFoot | null = null;
   /** the wild animals of the land beyond the town (session 9, beasts.ts): their ranges, built once the plain's land use is known */

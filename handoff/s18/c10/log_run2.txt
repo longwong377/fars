@@ -1,0 +1,12 @@
+stairfoot before toggled=74 797s {"dc":560,"tri":11826910}
+stairfoot after toggled=74 344s {"dc":599,"tri":12476030}
+approach700 before toggled=74 329s {"dc":538,"tri":7796634}
+approach700 after toggled=74 309s {"dc":565,"tri":8145286}
+plain930 before toggled=74 375s {"dc":623,"tri":11093545}
+plain930 after toggled=74 379s {"dc":650,"tri":11367185}
+terracetop before toggled=74 562s {"dc":680,"tri":14883634}
+terracetop after toggled=74 539s {"dc":721,"tri":15695650}
+town before toggled=74 428s {"dc":713,"tri":9273682}
+town after toggled=74 393s {"dc":740,"tri":9593492}
+rahmat before toggled=74 426s {"dc":668,"tri":14990975}
+rahmat after toggled=74 422s {"dc":698,"tri":15398191}
