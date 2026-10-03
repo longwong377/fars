@@ -30,7 +30,7 @@ export const DEFAULT_MODEL = TALK_MODEL;
 export const NEAR_M = 3;
 /** D-336: the Farsi of the opt-in layer by default: the conversation model's own Persian of its reply (measured against NLLB-600M: DECISIONS D-336) */
 export const FARSI_ROUTE: FarsiRoute = 'llm';
-interface Ctx { world: any; camera: THREE.Camera; clock: { dayIndex: number; localHour: number; t: number }; seed: number; englishVoice?: boolean; /** D-336: settings.hearIn (the opt-in layer) */ settings?: { hearIn?: HearIn } }
+interface Ctx { world: any; camera: THREE.Camera; clock: { dayIndex: number; localHour: number; t: number }; seed: number; englishVoice?: boolean; /** D-336: settings.hearIn (the opt-in layer) */ settings?: { hearIn?: HearIn; keys?: Record<string, string> } }
 export interface Near { pid: number; agent: number | null; name: string; d: number; e: number; n: number }
 
 /** D-370 (UD-25 (10)): everyone within r m of the eye (the people a stranger addressing a group is heard by) */
@@ -65,7 +65,12 @@ export function mountConverse(c: Ctx) {
   input.style.cssText = 'width:100%;box-sizing:border-box;margin-top:6px;background:rgba(0,0,0,.35);color:inherit;border:1px solid #6b5a42;padding:5px;font:inherit;display:none';
   const small = document.createElement('div'); small.style.cssText = 'font:11px system-ui,sans-serif;opacity:.7;margin-top:4px';
   panel.append(line, input, small); document.body.append(panel);
-  const show = (html: string, note = '') => { panel.style.display = 'block'; line.innerHTML = html; small.textContent = note; };
+  // D-720 (the holes audit #9): the player sees the words and the keys only; the out-of-world notes (what was heard, the ask's
+  // verdict, timings, why the people answer in their own lines) are the dev overlay's (?debug, or F3 on)
+  let devOn = P.has('debug'); addEventListener('keydown', e => { if (e.code === (c.settings?.keys?.overlay ?? 'F3')) devOn = !devOn; });
+  const dev = () => devOn;
+  const KEYS = 'E speak with whoever you face · T type · hold V say it aloud · Esc walk on';
+  const show = (html: string, note = '') => { panel.style.display = 'block'; line.innerHTML = html; small.textContent = dev() ? note : KEYS; };
   const state = { approach: null as any, status: gpu ? 'idle' : 'no WebGPU: the people answer in their own lines', progress: 0, loaded: false, busy: false, last: null as any, history: new Map<number, Turn[]>(), log: [] as any[], /** D-315: the conversation in progress (person, its id) */ talking: null as null | { pid: number; conv: number; r: number }, /** D-379: the last words as the world heard them (who heard, the one spoken to, who turned to look; the render side reads it) */ heard: null as null | (Heard & { t: number; words: string }) };
   /** D-315: the conversation ends (the stranger walks off or closes the talk): the person goes back to the day */
   const endTalk = () => { const k = state.talking; if (!k) return; state.talking = null; c.world.people?.sim?.talk.release(k.pid, c.world.people.sim.t); };
@@ -78,6 +83,11 @@ export function mountConverse(c: Ctx) {
   let audio: AudioContext | null = null;
   const play = (data: Float32Array, rate: number) => { audio ??= new AudioContext(); const b = audio.createBuffer(1, data.length, rate); b.getChannelData(0).set(data); const s = audio.createBufferSource(); s.buffer = b; s.connect(audio.destination); s.start(); };
   const eye = () => ({ e: c.camera.position.x, n: -c.camera.position.z });
+  /** D-720: the person the stranger faces within reach (in front, within about 45°), if any */
+  const facing = (): Near | null => { const E = eye(), y = yaw() * Math.PI / 180; let best: Near | null = null;
+    for (const pid of within(c.world, E, NEAR_M)) { const L = listeners(c.world, E, NEAR_M).find(l => l.pid === pid); if (!L) continue; const de = L.e - E.e, dn = L.n - E.n, d = Math.hypot(de, dn);
+      if (d > 0.2 && (de * Math.sin(y) + dn * Math.cos(y)) / d < 0.7) continue; if (!best || d < best.d) best = { pid, agent: L.agent, name: c.world.people.sim.pop.nameOf(pid)?.replace(/^\*/, '') ?? '', d, e: L.e, n: L.n }; }
+    return best; };
   /** the way the stranger faces (compass degrees: 0 = north, +n) */
   const yaw = () => { const v = new THREE.Vector3(); c.camera.getWorldDirection(v); return ((Math.atan2(v.x, -v.z) * 180 / Math.PI) + 360) % 360; };
   /** D-379 (UD-25): the words carry by loudness and distance: who hears, the one spoken to (named, faced, else nearest who
@@ -148,8 +158,9 @@ export function mountConverse(c: Ctx) {
       const h = nv?.stats.ready ? await heardReplyNeural(nv, sim.pop, near.pid, day, a.text, c.seed, { hearIn: layer === 'fa' && !faOk ? 'en' : layer, farsi: faOk ? fa!.fa : null, agent,
         onChunk: (pcm, rate) => { if (c.world.sayPcm) c.world.sayPcm(key, pcm, rate, at); else play(pcm, rate); } }) : null;
       if (h) heard = { lang: h.lang, layer: h.layer, units: h.units.map(u => u.translit || u.gloss), text: h.text, seconds: h.seconds, backend: 'kokoro', firstMs: h.firstMs, totalMs: performance.now() - tH, fa: fa ? { route: fa.route, ms: fa.ms, hits: fa.hits } : null };
-      else { const f = heardReply(sim.pop, near.pid, day, a.text, c.seed, 24000, agent); heard = { lang: f.lang, layer: 'own', units: f.units.map(u => u.translit || u.gloss), seconds: f.seconds, backend: 'formant' }; play(f.data, f.rate); }
-      if (c.englishVoice || P.has('english')) { en ??= new EnglishVoice(); en.load().then(() => en!.say(a.text)).then(r => play(r.data, r.rate)).catch(() => {}); } }
+      // (D-720: every voice at the speaker, through the world's mixer: volume, reverb and place; the bare context only without a world)
+      else { const f = heardReply(sim.pop, near.pid, day, a.text, c.seed, 24000, agent); heard = { lang: f.lang, layer: 'own', units: f.units.map(u => u.translit || u.gloss), seconds: f.seconds, backend: 'formant' }; if (c.world.sayPcm) c.world.sayPcm(key, f.data, f.rate, at); else play(f.data, f.rate); }
+      if (c.englishVoice || P.has('english')) { en ??= new EnglishVoice(); en.load().then(() => en!.say(a.text)).then(r => { if (c.world.sayPcm) c.world.sayPcm(key, r.data, r.rate, at); else play(r.data, r.rate); }).catch(() => {}); } }
     // (D-370: what the sandbox step did, out of world, under the words: taken on, taken in, heard, refused and why)
     const sb = T.sandbox ? ` <br><i>(${T.sandbox.done?.ok ? SANDBOX_DONE[T.sandbox.act.a] ?? 'done' : T.sandbox.verdict.ok ? 'they would not' : T.sandbox.verdict.why})</i>` : '';
     // D-459: an open deed's outcome, out of world (what was done, or why not)
@@ -169,6 +180,12 @@ export function mountConverse(c: Ctx) {
   const mic = new Mic(); let recording = false;
   addEventListener('keydown', e => {
     if (e.target === input) return;
+    // D-720 (the holes audit #9): E (the interact key) speaks with whoever the stranger faces within reach, anyone of the
+    // population, not only the detailed agents: a greeting first, then the words are theirs to type or say; a door faced with
+    // no one before it is still E's (main.ts onInteract)
+    if (e.code === (c.settings?.keys?.interact ?? 'KeyE') && !e.repeat) { const n = facing(); if (n) { e.preventDefault(); e.stopImmediatePropagation();
+      if (state.talking?.pid !== n.pid && !state.busy) void say('Greetings.');
+      panel.style.display = 'block'; input.style.display = 'block'; input.focus(); return; } }
     if (e.code === 'KeyT' && !e.repeat) { panel.style.display = 'block'; input.style.display = 'block'; input.focus(); e.preventDefault(); e.stopPropagation(); }
     if (e.code === 'KeyV' && !e.repeat && !recording && gpu) { recording = true; show('<i>(listening)</i>'); mic.start().catch(err => { recording = false; show(`<i>no microphone: ${err}</i>`); }); }
   }, true);

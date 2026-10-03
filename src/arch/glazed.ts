@@ -38,10 +38,12 @@ export function doorFriezeFaces(parts: Part[]): FriezeFace[] {
   }
   return out;
 }
+/** D-750 (C, UD-29): the palaces' band height (m): the Apadana frieze's 11 courses (0.99 m) is lost past 200 m; 18 courses
+ *  (the rosettes 0.62 m, as the Apadana's, set in a wider ground) read as a colour line from the plain */
+export const PALACE_BAND_H = 1.62;
 /** D-750: the palaces' wall runs under their string courses (roofedge.ts bands), the Apadana frieze's courses down from there */
 export function palaceBandFaces(parts: Part[]): FriezeFace[] {
-  const F = v<any>('apadana', 'r_glazed_frieze'), H = F.courses * F.course;
-  return roofEdges(parts).bands.map(b => ({ tower: b.building, c: b.c, n: b.n, length: b.length, y0: b.y1 - H, y1: b.y1 }));
+  return roofEdges(parts).bands.map(b => ({ tower: b.building, c: b.c, n: b.n, length: b.length, y0: b.y1 - PALACE_BAND_H, y1: b.y1, own: true }));
 }
 /** linear-light RGB of an sRGB triple */
 const linRGB = (s: number[]) => { const c = new THREE.Color().setRGB(s[0], s[1], s[2], THREE.SRGBColorSpace); return [c.r, c.g, c.b]; };

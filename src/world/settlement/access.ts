@@ -14,7 +14,7 @@ import { siteReach, cellHasRoom, resetSiteCaches, openCode, BODY_MIN } from './w
 const NARROW_DOOR = 0.6;
 export function ensureAccess(s: Site, min = 0.8): { opened: number; resited: number; left: number } {
   if (s.meta.kind !== 'quarter') return { opened: 0, resited: 0, left: 0 }; // (the walled compounds: every place reached, reach_census.ts)
-  const N = s.W * s.H, W = s.W; let opened = 0, resited = 0, left = 0, cut = 0;
+  const N = s.W * s.H, W = s.W; let opened = 0, resited = 0, left = 0, cut = 0, widened = 0;
   const cellsOf = (e: number): [number, number] => e < N ? [e, e + W] : [e - N, e - N + 1];
   const fits = s.fittings.filter(f => f.kind !== 'tree' && f.kind !== 'channel' && f.kind !== 'ditch' && f.kind !== 'pool' && f.kind !== 'midden' && f.kind !== 'pen_dung');
   const inWay = (e: number) => { const [a, b] = cellsOf(e), p: P2 = [s.cu(a % W), s.cv((a / W) | 0)], q: P2 = [s.cu(b % W), s.cv((b / W) | 0)];
@@ -117,6 +117,37 @@ export function ensureAccess(s: Site, min = 0.8): { opened: number; resited: num
         s.doors.add(s.edgeBetween(m, n)); for (const e2 of best.extra) s.doors.add(e2); for (const q of qs) byPlot.set(q, (byPlot.get(q) ?? []).filter(x => !set.includes(x))); p.door = { cell: m, out: n };
         resetSiteCaches(s); r = siteReach(s); opened++; resited++; left -= cells.length; cut += set.length; }
       resetSiteCaches(s); } }
+  // s18 C2 (D-660, B690) a lane pocket no body can walk into (its only exit a one-cell lane between two plots' 0.7 m walls,
+  // 0.15 m of room): the corridor widened by a cell into the larger plot along it (its one-cell stretch and the two exit cells
+  // beyond), kept when the pocket is then reached and every plot keeps every place it had reached (a lane widened where a
+  // yard gave up its edge: C)
+  { resetSiteCaches(s); let r = siteReach(s); const isOpen = (k: number) => openCode(s.cell[k]);
+    const nb = (k: number, a: number, b: number) => { const i = k % W + a, j = ((k / W) | 0) + b; return s.inb(i, j) ? s.k(i, j) : -1; };
+    const seen = new Uint8Array(N);
+    for (let k0 = 0; k0 < N; k0++) { if (seen[k0] || r[k0] || !isOpen(k0)) continue; const comp: number[] = [], q = [k0]; seen[k0] = 1;
+      while (q.length) { const k = q.pop()!; comp.push(k); for (const [a, b] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const kk = nb(k, a, b); if (kk >= 0 && !seen[kk] && !r[kk] && isOpen(kk)) { seen[kk] = 1; q.push(kk); } } }
+      if (comp.length < 8) continue; const inC = new Set(comp);
+      // the corridor: pocket cells open on one axis only, and the reached open cells the pocket meets (the exit)
+      const exits = new Set<number>(); for (const k of comp) for (const [a, b] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const kk = nb(k, a, b); if (kk >= 0 && r[kk] && isOpen(kk)) exits.add(kk); }
+      if (!exits.size) continue;
+      for (const far of [false, true]) {
+      const cut = new Set<number>(); let bad = false;
+      const side = (k: number, axisU: boolean) => { const c = axisU ? [nb(k, 0, 1), nb(k, 0, -1)] : [nb(k, 1, 0), nb(k, -1, 0)];
+        const ok = c.filter(n => n >= 0 && s.cell[n] >= 0 && !(s.plots[s.cell[n]].door && (s.plots[s.cell[n]].door!.cell === n || s.plots[s.cell[n]].door!.out === n)) && (byPlot.get(s.cell[n])?.length ?? 0) > 60);
+        ok.sort((x, y) => (byPlot.get(s.cell[y])?.length ?? 0) - (byPlot.get(s.cell[x])?.length ?? 0)); return ok[0] ?? -1; };
+      for (const k of comp) { const o = (a: number, b: number) => { const n = nb(k, a, b); return n >= 0 && isOpen(n); };
+        const wide = (o(0, 1) || o(0, -1)) && (o(1, 0) || o(-1, 0)); if (wide) continue; const axisU = o(1, 0) || o(-1, 0); const n = side(k, axisU); if (n < 0) { bad = true; break; } cut.add(n); }
+      for (const x of exits) { const k = comp.find(c => [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([a, b]) => nb(c, a, b) === x)); if (k === undefined) continue; const axisU = Math.abs(x - k) === 1, n = side(x, axisU); if (n >= 0) cut.add(n);
+        // (and, the second try, one beyond: the two wall corners across the junction can leave a diagonal slot)
+        const x2 = x + (x - k); if (far && x2 >= 0 && x2 < N && isOpen(x2)) { const n2 = side(x2, axisU); if (n2 >= 0) cut.add(n2); } }
+      if (bad || !cut.size || cut.size > 24) break;
+      const set = [...cut], qs = [...new Set(set.map(n => s.cell[n]))], saved = set.map(n => [n, s.cell[n], s.sub[n], s.room[n]] as const);
+      const before = qs.map(q2 => (byPlot.get(q2) ?? []).filter(x => !cut.has(x) && r[x]).length);
+      for (const n of set) { s.cell[n] = LANE; s.sub[n] = 0; s.room[n] = -1; } resetSiteCaches(s); const r2 = siteReach(s);
+      // (a large yard may lose a corner cell or two of its 0.2 %: its own wall end against the widened lane)
+      if (comp.filter(k => r2[k]).length >= 0.9 * comp.length && qs.every((q2, x) => (byPlot.get(q2) ?? []).filter(y => !cut.has(y) && r2[y]).length >= before[x] - Math.floor(before[x] * 0.002))) {
+        for (const q2 of qs) byPlot.set(q2, (byPlot.get(q2) ?? []).filter(x => !cut.has(x))); r = r2; widened += set.length; break; }
+      for (const [n, c0, s0, m0] of saved) { s.cell[n] = c0; s.sub[n] = s0; s.room[n] = m0; } resetSiteCaches(s); } } }
   resetSiteCaches(s);
   return { opened, resited, left };
 }
