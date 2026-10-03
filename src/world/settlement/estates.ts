@@ -33,8 +33,8 @@ interface Ctx { props: Prop[]; group: string; row: string; feature: string; note
 const put = (X: Ctx, p: Omit<Prop, 'group' | 'row' | 'feature' | 'note'> & { note?: string }) => X.props.push({ group: X.group, row: X.row, feature: X.feature, ...p, note: p.note ? `${X.note}: ${p.note}` : X.note } as Prop);
 /** a box in frame f: centre (u, v), half sizes, y0..y1 above the group's base */
 function B(X: Ctx, f: Frame, u: number, v: number, hu: number, hv: number, y0: number, y1: number, mat: Mat, colour: C3, collide = false, note?: string) {
-  // (an overhead box, seen from below, asks for its bottom face: Prop.bottom, settlement/build.ts; until the town draws it the field is inert)
-  put(X, { shape: 'box', mat, c: toGrid(f, u, v), theta: f.theta, hu, hv, y0, y1, collide, colour: [...colour] as [number, number, number], note, ...(y0 > 1.5 ? { bottom: true } : {}) } as any);
+  // (an overhead box, seen from below, draws its bottom face: Prop.bottom, settlement/build.ts)
+  put(X, { shape: 'box', mat, c: toGrid(f, u, v), theta: f.theta, hu, hv, y0, y1, collide, colour: [...colour] as [number, number, number], note, ...(y0 > 1.5 ? { bottom: true } : {}) });
 }
 function Cy(X: Ctx, f: Frame, u: number, v: number, r: number, y0: number, y1: number, mat: Mat, colour: C3, r1 = 1, collide = false, note?: string) {
   put(X, { shape: 'cyl', mat, c: toGrid(f, u, v), theta: 0, hu: r, hv: r, r1, y0, y1, collide, colour: [...colour] as [number, number, number], note });
