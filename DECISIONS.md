@@ -9851,3 +9851,8 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
 - D-474 correction: re-measured on the tip with the ground fix (de0c067a, built, cold, T4, a train sharing the GPU): page ready
   41.6 s (morning ~42), first frames seen 58.9 s (45.5), shaders settled 931 s (753), memory 10.57 GB (10.48), frame 170 ms
   (117), validation errors 1 (15). The "181 s settled" above was the bugged build that drew no ground. Decision unchanged.
+
+## D-475 (s17, V8 ground): the ledge treads' streaks and the ground's macro variation
+- The grey streaked "ridge" of sb-town-from-rahmat (and every Rahmat view standing near a ledge) was not the terrain's planar UVs: it was the ledge strips' lip and tread (src/world/hills/ledges.ts), mapped to the face image's top 7 % (v 0.93..1, wrapT clamped) and stretched over up to 12 m of tread. The tread now takes the scree and stony ground scans (world triplanar, the terrain's own array texture: +1 sampler, 3 in all) and the geometric normal; the face keeps its baked map. Probe ground_probe ?bedrock view tfr (380,-60, az 228): before/after handoff/s17/ground_tfr_{before,after}.png. C.
+- The uncultivated and trodden ground (terrainPlain.ts) gets a macro tone variation at 23/37/61 m (+-11 % brightness, +-3.5 % warm/cool), plots excluded: the 20-60 m ground was one flat ochre field. C.
+- Not done (deadline moved to 04:40): denser micro scatter, height-blended pebbles/cracks near the walker, and slope-aware mapping for the dust/herb layers on steep terrain (only rock is triplanar; stony/scree stay planar on the terrain).
