@@ -32,3 +32,9 @@ Works: the Apadana hall crowd, the painted porch, the terrain and far views. Ret
 3. Ground and dressing (C3 plain, C15): fields in hard colour strips and sparse sprites -> blended dense cover; clutter in
    every court and lane.
 4. People (C14 close-up: faces, beard cards, clipping; C5/C1: no rows, no one lying in the court, crowds spread, no arms-out pose).
+
+## The review loop (the user, ~10:10 UTC: "fix, then do it again and again until everything passes")
+Cycle: owners push fixes -> lead merges -> C6 renders the fixed REVIEW SET (13 views) on that head -> two fresh blind
+reviewers score it (same prompts as the first review) -> lead retargets owners on their top items -> repeat.
+Pass = both blind reviewers >= 7/10 AND finish lines A-E. Deploy whenever a cycle's score rises and C9's live path is clean.
+Scores: cycle 0 (9700b06d T4 + c7dcb652 cloud): 3/10, 3/10.
