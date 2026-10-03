@@ -20,6 +20,9 @@ import { babeMode, type BabeMode } from './babes';
 import type { PeopleSim, Agent } from './sim';
 import { ACTIVITIES, type ActivityId } from './activities';
 import { PopGeo, routeAt, headingOf, type Spot, type Route } from './popgeo';
+import { buildTerrace } from '../arch/terrace';
+import type { Doorway } from '../arch/parts';
+import { toLocal, type Site } from '../world/settlement/site';
 import { FACING_ACTS } from './court';
 import { sunTimes } from './calendar';
 import { h32, salt } from './hash';
@@ -64,6 +67,8 @@ export interface ViewPerson {
   impair?: 0 | 1 | 2;
   /** D-244: drawn inside a room or a tent (the plan says indoors: population.ts planIndoors), not out of doors */
   indoor?: boolean;
+  /** D-690: making way for the stranger now (0..1: how far into the step aside; the crowd turns the head to the stranger) */
+  glance?: number;
 }
 interface DayPlan { day: number; n: number; t1: Float32Array; place: Int32Array; act: Uint8Array; why: Int32Array; where: Uint8Array; carry: Int32Array; withP: Int32Array }
 interface PS {
@@ -82,6 +87,11 @@ interface PS {
   /** where the person stands at their spot (clear of the others standing there), since when, the occupancy cell held, and
    *  the mode of the last update (a walker arriving steps from the spot to it) */
   sepFor: Spot | null; sepE: number; sepN: number; sepT: number; occ: number; lastMode: number;
+  /** D-690: the facing where they stand (a group at a social act faces its middle), and the step aside for the stranger:
+   *  the offset chosen (grid m) and how far into it the last update was (0..1) */
+  sepH: number; yE: number; yN: number; yK: number; yOn: boolean;
+  /** D-690: no room at the place (its rings full, or a doorway with no clear place by it): not drawn, never stacked on the spot */
+  full: boolean;
   /** the person's own ViewPerson (kept from update to update) and the state version it was filled at: a person standing
    *  at their place is refilled only when their state or place changes (collect's cost: session 6); `ver` counts the
    *  state's changes (evaluate, separate); `viewMoving`: last filled walking or stepping aside (refilled every update) */
@@ -117,8 +127,19 @@ export const HAND_GAP = handReach(0.87).gap;
 /** D-215 (gap audit item 37; C): shares of the lame (men of working age) and the blind (people of 60 and over). Blindness
  *  in old age from cataract and trachoma was common before modern medicine (C: no figure for Achaemenid Fars) */
 export const IMPAIR = { lame: { share: 0.006, ages: [22, 60] as [number, number] }, blind: { share: 0.03, from: 60 } } as const;
-/** people standing keep at least this far apart (m, C: shoulder to shoulder); an arriving walker takes STEP_S to step aside */
-export const SEP = 0.6; const STEP_S = 2;
+/** people standing keep at least this far apart (m, C): out of doors about a metre (s18 C5, D-690: at 0.6 m the packed
+ *  courts read as grids and stopped the walk), in a room or tent 0.7 m (shoulder to shoulder); an arriving walker takes
+ *  STEP_S to step aside */
+export const SEP = 1.0, SEP_IN = 0.7; const STEP_S = 2;
+/** D-690: a door opening and the apron before it (m from the opening's middle, either side) are kept clear of anyone standing */
+export const DOOR_CLEAR = 1.5;
+/** D-690: how far from its spot a person standing is spread at most (m; in a room or tent, out of doors) */
+export const SPREAD_R = { inside: 5, out: 8 } as const;
+/** D-690: people standing make way for the stranger within YIELD_R m (YIELD_DOOR_R by a doorway: doorways first), by up to
+ *  YIELD_STEP m, turned toward the stranger (C: a step aside, a glance) */
+export const YIELD_R = 2.4, YIELD_DOOR_R = 3.2, YIELD_STEP = 0.85;
+/** D-690: acts a group stands at facing its own middle (a talk, a rest, a game, a meal), not all one way */
+const SOCIAL = new Set<ActivityId>(['talk', 'rest', 'gamble', 'eat', 'shelter', 'mourn', 'play']);
 /** slowest walk shown (m/s); below it the person walks at their own pace and leaves late (C) */
 export const MIN_PACE = 0.75;
 /** walks faster than this are counted as hurried (C: brisk walking) */
@@ -161,7 +182,7 @@ export class PopView {
   /** route searches per update (ms): beyond it, people farther than `nearR` wait at the place they are leaving (they
    *  then walk faster to arrive on time); nearer people always get their route */
   routeBudgetMs = 3; nearR = 150;
-  readonly stats = { candidates: 0, planned: 0, planMs: 0, pending: 0, visible: 0, walking: 0, hurried: 0, lateLeaves: 0, steps: 0, hidden: 0, unresolved: 0, routeWait: 0, agentsOff: 0, evalMs: 0, updates: 0, carried: 0, nanTimes: 0, spread: 0, crowded: 0, warmed: 0, warmMs: 0, noRoom: 0, stepsIn: 0, inside: 0 };
+  readonly stats = { doorKept: 0, yielding: 0, yieldSteps: 0, candidates: 0, planned: 0, planMs: 0, pending: 0, visible: 0, walking: 0, hurried: 0, lateLeaves: 0, steps: 0, hidden: 0, unresolved: 0, routeWait: 0, agentsOff: 0, evalMs: 0, updates: 0, carried: 0, nanTimes: 0, spread: 0, crowded: 0, warmed: 0, warmMs: 0, noRoom: 0, stepsIn: 0, inside: 0 };
   private out: ViewPerson[] = []; private nOut = 0;
   private anchorsBuilt = false; private homes: Float64Array | null = null;
   /** opts.warm false (D-392): the court's routes are in the geo's core cache already (the baked world's, searched for this
@@ -193,7 +214,7 @@ export class PopView {
       const dh = Number.isFinite(hx) ? Math.hypot(hx - c[0], hy - c[1]) : Infinity, dw = Number.isFinite(wx) ? Math.hypot(wx - c[0], wy - c[1]) : Infinity, d = Math.min(dh, dw);
       if (d > R || (this.only && !this.only(pid))) continue;
       let s = this.ps.get(pid);
-      if (!s) s = { pid, home: [hx, hy], work: Number.isFinite(wx) ? [wx, wy] : null, d2: 0, plan: null, next: null, prev: null, v0: 1, v1: 0, mode: 0, spot: null, route: null, w0: 0, w1: 0, wOut: true, act: 'rest', carry: -1, speed: 0, what: '', entry: 0, why: -1, pl: -1, spots: new Map(), y: 0, prop: null, yOk: false, sepFor: null, sepE: 0, sepN: 0, sepT: -1e9, occ: -1, lastMode: 0,
+      if (!s) s = { pid, home: [hx, hy], work: Number.isFinite(wx) ? [wx, wy] : null, d2: 0, plan: null, next: null, prev: null, v0: 1, v1: 0, mode: 0, spot: null, route: null, w0: 0, w1: 0, wOut: true, act: 'rest', carry: -1, speed: 0, what: '', entry: 0, why: -1, pl: -1, spots: new Map(), y: 0, prop: null, yOk: false, sepFor: null, sepE: 0, sepN: 0, sepT: -1e9, occ: -1, lastMode: 0, sepH: 0, yE: 0, yN: 0, yK: 0, yOn: false, full: false,
         view: null, ver: 0, viewV: -1, viewMoving: false, isAgent: this.pop.persons[pid].agent >= 0, isYoung: false, youngV: -1, wp: -1, stamp: -1 };
       s.d2 = d * d; keep.set(pid, s);
     }
@@ -333,6 +354,9 @@ export class PopView {
     const jumped = this.lastT >= 0 && (t < this.lastT - 1e-6 || t - this.lastT > 0.25); if (jumped) this.jumps++; this.lastT = t;
     if (jumped || this.settling) this.jumpedNow = true; // (D-244: after a jump in time nobody is "just arriving": no step aside drawn)
     if (Math.hypot(centre[0] - this.centre[0], centre[1] - this.centre[1]) > 300) this.recentre(centre);
+    { const de = centre[0] - this.eye[0], dn = centre[1] - this.eye[1], L = Math.hypot(de, dn); // D-690: the stranger's way
+      if (L > 5) { this.eyeDir[0] = 0; this.eyeDir[1] = 0; } else if (L > 1e-3) { const k = Math.min(1, L / 0.6); this.eyeDir[0] += (de / L - this.eyeDir[0]) * k; this.eyeDir[1] += (dn / L - this.eyeDir[1]) * k; }
+      this.eye[0] = centre[0]; this.eye[1] = centre[1]; }
     this.budgetLeft = this.planBudgetMs; this.tPlan = performance.now(); this.navLeft = this.navBudget; this.routeT = 0;
     const d = Math.floor(t / 24), h = t - d * 24; this.stats.pending = 0;
     // plan the nearest first (the list is sorted by distance); tomorrow's plans in the last hour of the day
@@ -346,13 +370,13 @@ export class PopView {
     this.collect(t); this.jumpedNow = false;
     this.stats.evalMs = performance.now() - t0;
   }
-  private static blank(): ViewPerson { return { pid: -1, e: 0, n: 0, y: 0, heading: 0, act: 'rest', moving: false, why: '', place: '', prop: null, carryNote: null, speed: 0, entry: 0, what: '', agent: -1, plot: 0, wall: 0, hh: -1, babes: [], hand: 0, handWith: -1, handSide: 'l', handUp: 0, impair: 0, indoor: false }; }
+  private static blank(): ViewPerson { return { pid: -1, e: 0, n: 0, y: 0, heading: 0, act: 'rest', moving: false, why: '', place: '', prop: null, carryNote: null, speed: 0, entry: 0, what: '', agent: -1, plot: 0, wall: 0, hh: -1, babes: [], hand: 0, handWith: -1, handSide: 'l', handUp: 0, impair: 0, indoor: false, glance: 0 }; }
   /** the detailed agents off the map: pooled objects (reused from update to update) */
   private agentVps: ViewPerson[] = []; private nAgentVps = 0;
   private agentVp(): ViewPerson { let o = this.agentVps[this.nAgentVps]; if (!o) this.agentVps[this.nAgentVps] = o = PopView.blank(); this.nAgentVps++; this.out[this.nOut++] = o; return o; }
   private tmp = { e: 0, n: 0, heading: 0 };
   private collect(t: number) {
-    this.nOut = 0; this.nAgentVps = 0; let walking = 0, carried = 0; const day = Math.floor(t / 24);
+    this.nOut = 0; this.nAgentVps = 0; let walking = 0, carried = 0, nYield = 0; const day = Math.floor(t / 24);
     this.agentOcc.clear(); for (const a of this.sim.agents) if (!a.offmap) { const k = this.occKey(a.pos[0], a.pos[1]); const L = this.agentOcc.get(k); if (L) L.push(a); else this.agentOcc.set(k, [a]); }
     const upd = this.stats.updates; this.youngBuf.length = 0; this.handBuf.length = 0; this.blindBuf.length = 0; this.pairBuf.length = 0;
     for (const s of this.list) { const te = this.tv(s.pid, t);
@@ -371,7 +395,10 @@ export class PopView {
       // standing at their place, unchanged since the last update: the same ViewPerson (session 6: refilling ~8,000 people
       // every update cost the view 3-5 ms at 1× under load; only walkers, people stepping aside and changed states refill)
       let o = s.view;
-      if (o && s.viewV === s.ver && s.mode === 1 && !s.viewMoving && s.sepFor === s.spot) { this.out[this.nOut++] = o; s.stamp = upd; o.babes!.length = 0; o.hand = 0; if (s.wp >= 0 && PAIR_FOLLOW.test(o.why)) this.pairBuf.push(s); continue; }
+      // (D-690: and not making way for the stranger: those near the eye are refilled every update)
+      const nearEye = s.mode === 1 && !!s.spot && Math.abs(s.sepE - this.eye[0]) < YIELD_DOOR_R + 1 && Math.abs(s.sepN - this.eye[1]) < YIELD_DOOR_R + 1;
+      if (s.mode === 1 && s.full && s.sepFor === s.spot) continue; // (D-690: no room there: not drawn)
+      if (o && s.viewV === s.ver && s.mode === 1 && !s.viewMoving && s.sepFor === s.spot && !nearEye && !s.yOn) { this.out[this.nOut++] = o; s.stamp = upd; o.babes!.length = 0; o.hand = 0; if (s.wp >= 0 && PAIR_FOLLOW.test(o.why)) this.pairBuf.push(s); continue; }
       if (!o) s.view = o = PopView.blank(); this.out[this.nOut++] = o; s.stamp = upd; o.babes!.length = 0; o.hand = 0; o.impair = this.impairOf(s.pid, day);
       if (s.mode === 2 && s.wp >= 0 && this.pop.ageOn(s.pid, day) < TODDLER_HAND) this.handBuf.push(s); // D-215: a small child walking with someone
       if (s.mode === 2 && o.impair === 2) this.blindBuf.push(s);
@@ -381,19 +408,21 @@ export class PopView {
         if (!ACTIVITIES[o.act].moving) o.act = 'walk'; o.y = this.geo.y(o.e, o.n); o.prop = propOf(o.act, o.carryNote); }
       else {
         if (s.sepFor !== s.spot) { this.separate(s, te, last === 2); s.yOk = false; }
+        if (s.full) { this.nOut--; s.stamp = -1; continue; } // (D-690: no room there: not drawn)
         const sp = s.spot, k = (te - s.sepT) * 3600 / STEP_S;
         if (k >= 0 && k < 1 && (s.sepE !== sp.e || s.sepN !== sp.n)) { // just arrived: stepping aside from the spot
           o.e = sp.e + (s.sepE - sp.e) * k; o.n = sp.n + (s.sepN - sp.n) * k; o.heading = headingOf(s.sepE - sp.e, s.sepN - sp.n); o.moving = true; o.speed = Math.hypot(s.sepE - sp.e, s.sepN - sp.n) / STEP_S;
           o.y = this.geo.y(o.e, o.n, sp.net); o.prop = propOf(o.act, o.carryNote); walking++; s.viewV = s.ver; s.viewMoving = true; continue; }
-        o.e = s.sepE; o.n = s.sepN; o.heading = sp.heading; o.moving = false; o.speed = 0;
+        o.e = s.sepE; o.n = s.sepN; o.heading = s.sepH; o.moving = false; o.speed = 0;
         if (!s.yOk) { s.y = this.geo.y(o.e, o.n, sp.net); s.prop = propOf(o.act, o.carryNote); s.yOk = true; } o.y = s.y; o.prop = s.prop;
+        if (nearEye || s.yOn) { this.makeWay(s, o, sp); if (s.yK > 0) { nYield++; if (o.moving) walking++; s.viewV = s.ver; s.viewMoving = true; continue; } }
         if (s.wp >= 0 && PAIR_FOLLOW.test(o.why)) this.pairBuf.push(s); }
       s.viewV = s.ver; s.viewMoving = o.moving;
     }
     this.agentsOff(t);
     this.faceStranger(t);
     this.children(day, upd);
-    this.stats.visible = this.nOut; this.stats.walking = walking; this.stats.carried = carried;
+    this.stats.visible = this.nOut; this.stats.walking = walking; this.stats.carried = carried; this.stats.yielding = nYield;
   }
   /** standing places held (1 m cells of grid metres → the people holding them) */
   private occ = new Map<number, number[]>();
@@ -402,28 +431,103 @@ export class PopView {
     if (s.occ >= 0) { const L = this.occ.get(s.occ); if (L) { const i = L.indexOf(s.pid); if (i >= 0) L.splice(i, 1); if (!L.length) this.occ.delete(s.occ); } }
     s.occ = -1; s.sepFor = null;
   }
-  /** nobody else stands within SEP of (e, n): the population's people standing, the detailed agents on the map */
-  private freeAt(e: number, n: number, pid: number): boolean {
+  /** the eye (the stranger: the camera's ground point) and the way it has been going (a unit vector, 0 when standing) */
+  private eye: P2 = [1e9, 1e9]; private eyeDir: P2 = [0, 0];
+  /** D-690: a person standing near the stranger makes way: within YIELD_R (YIELD_DOOR_R by a doorway) they step up to
+   *  YIELD_STEP m aside, off the stranger's way (to the side of it they stand on; away when the stranger stands), to a
+   *  clear place (nobody there, the same court or open ground, not a doorway), turned toward the stranger; past the
+   *  radius they step back. How far is a function of the distance, so the step follows the stranger's own pace and a
+   *  person never jumps; the side is chosen as the step begins (again while it is young, when the stranger turns onto it). A post held (Spot.fixed) does not move but turns its head
+   *  (the crowd's glance, ViewPerson.glance) */
+  private makeWay(s: PS, o: ViewPerson, sp: Spot) {
+    const de = s.sepE - this.eye[0], dn = s.sepN - this.eye[1], d = Math.hypot(de, dn);
+    const R = this.inDoor(sp, s.sepE, s.sepN) || this.nearDoor(sp, s.sepE, s.sepN) ? YIELD_DOOR_R : YIELD_R;
+    const want = d >= R ? 0 : d <= 1.2 ? 1 : (R - d) / (R - 1.2), kk = want * want * (3 - 2 * want);
+    if (kk <= 0 && !s.yOn) { s.yK = 0; o.glance = 0; return; }
+    // (chosen again while the step is young when the stranger turns so that the place chosen lies on their way)
+    if (s.yOn && kk > 0 && s.yK < 0.5 && Math.hypot(this.eyeDir[0], this.eyeDir[1]) > 0.3) { const tx = s.sepE + s.yE - this.eye[0], ty = s.sepN + s.yN - this.eye[1];
+      if (tx * this.eyeDir[0] + ty * this.eyeDir[1] > 0 && Math.abs(tx * this.eyeDir[1] - ty * this.eyeDir[0]) < 0.8) s.yOn = false; }
+    if (!s.yOn && kk > 0) { // the side: off the stranger's way, to a clear place
+      const [fx, fy] = this.eyeDir, moving = Math.hypot(fx, fy) > 0.3; let best = -1e9, be = 0, bn = 0;
+      const lat = moving ? de * -fy + dn * fx : 0, side = lat >= 0 ? 1 : -1;
+      const cands: P2[] = moving ? [[-fy * side, fx * side], [(-fy * side + fx) * 0.7071, (fx * side + fy) * 0.7071], [(-fy * side - fx) * 0.7071, (fx * side - fy) * 0.7071], [fy * side, -fx * side]]
+        : [[de / (d || 1), dn / (d || 1)], [-dn / (d || 1), de / (d || 1)], [dn / (d || 1), -de / (d || 1)]];
+      if (!sp.fixed) for (let c = 0; c < cands.length; c++) { const [ux, uy] = cands[c]; for (const L of [YIELD_STEP, YIELD_STEP * 0.6, YIELD_STEP * 0.4]) {
+        const e2 = s.sepE + ux * L, n2 = s.sepN + uy * L;
+        if (!this.freeAt(e2, n2, s.pid, 0.55) || this.inDoor(sp, e2, n2) || !this.geo.stepClear({ ...sp, e: s.sepE, n: s.sepN }, [e2, n2])) continue;
+        const score = L - c * 0.3; if (score > best) { best = score; be = ux * L; bn = uy * L; } break; } }
+      s.yE = be; s.yN = bn; s.yOn = true; this.stats.yieldSteps++;
+    }
+    const prev = s.yK; s.yK = kk; if (kk <= 0) s.yOn = false;
+    o.e = s.sepE + s.yE * kk; o.n = s.sepN + s.yN * kk; o.y = this.geo.y(o.e, o.n, sp.net);
+    const step = Math.abs(kk - prev) * Math.hypot(s.yE, s.yN);
+    o.moving = step > 0.01; o.speed = o.moving ? 0.6 : 0;
+    // turned toward the stranger, as far as the step goes (a glance at the least)
+    const toward = headingOf(-de, -dn), dh = ((toward - s.sepH + 540) % 360) - 180;
+    o.heading = s.sepH + dh * Math.min(1, 0.75 * kk); o.glance = kk;
+  }
+  /** a standing place within a few metres of a doorway's apron (the radius of making way is wider there: doorways first) */
+  private nearDoor(sp: Spot, e: number, n: number) { for (const [a, b] of [[1.2, 0], [-1.2, 0], [0, 1.2], [0, -1.2]]) if (this.inDoor(sp, e + a, n + b)) return true; return false; }
+  /** nobody else stands within `sep` of (e, n): the population's people standing, the detailed agents on the map */
+  private freeAt(e: number, n: number, pid: number, sep = SEP): boolean {
     const fx = Math.floor(e), fy = Math.floor(n);
     for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) { const L = this.occ.get((fx + dx + 60000) * 131072 + (fy + dy + 60000)); if (!L) continue;
-      for (const q of L) { if (q === pid) continue; const o = this.ps.get(q); if (o && Math.hypot(o.sepE - e, o.sepN - n) < SEP) return false; } }
+      for (const q of L) { if (q === pid) continue; const o = this.ps.get(q); if (o && Math.hypot(o.sepE - e, o.sepN - n) < sep) return false; } }
     for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) { const L = this.agentOcc.get((fx + dx + 60000) * 131072 + (fy + dy + 60000)); if (!L) continue;
-      for (const a of L) if (Math.hypot(a.pos[0] - e, a.pos[1] - n) < SEP) return false; }
+      for (const a of L) if (Math.hypot(a.pos[0] - e, a.pos[1] - n) < sep) return false; }
     return true;
   }
   /** the detailed agents on the map by 1 m cell (rebuilt each update) */
   private agentOcc = new Map<number, Agent[]>();
-  /** where the person stands at their spot: the spot, or when someone already stands there the nearest clear place on
-   *  rings around it (0.63 m apart, to 5 m; C), reached by a short straight step that stays in the same court, yard or
-   *  open ground (popgeo.stepClear). Counted: `stats.spread`, and `stats.crowded` when no ring has room */
+  // ------------------------------------------------------------------------------------------------ D-690: doorways kept clear
+  /** the Terrace's doorways (world.ts hands the built ones over; else built here once, ~0.1 s) by 4 m cell */
+  private dwIx: Map<number, Doorway[]> | null = null;
+  setDoorways(dws: readonly Doorway[]) { const M = new Map<number, Doorway[]>();
+    for (const d of dws) { const r = d.width / 2 + d.depth / 2 + DOOR_CLEAR + 0.5;
+      for (let x = Math.floor((d.c[0] - r) / 4); x <= Math.floor((d.c[0] + r) / 4); x++) for (let y = Math.floor((d.c[1] - r) / 4); y <= Math.floor((d.c[1] + r) / 4); y++) { const k = x * 65536 + y; const L = M.get(k); if (L) L.push(d); else M.set(k, [d]); } }
+    this.dwIx = M; }
+  /** counted: standing places moved off a doorway or its apron (stats.doorKept) */
+  /** in a door opening or the apron before it (DOOR_CLEAR m out on either side; the opening's width and 0.35 m to each
+   *  side): on the Terrace its doorways; in the town and the villages the doors of the plan (the site's door edges) */
+  inDoor(sp: Spot, e: number, n: number): boolean {
+    if (sp.net === 'town' || sp.net === 'village') {
+      let S: Site | null = null, u = 0, v = 0;
+      if (sp.net === 'town') { const t = this.geo.town, l = t?.locate(e, n); if (!l) return false; S = t!.boxes[l.si].s; u = l.u; v = l.v; }
+      else if (sp.v !== undefined) { S = (this.geo as any).vsite(sp.v).site as Site; [u, v] = toLocal(S.frame, e, n); }
+      if (!S || !S.doors.size) return false;
+      const i0 = S.ci(u), j0 = S.cj(v), R = DOOR_CLEAR - 0.3;
+      for (let j = j0 - 2; j <= j0 + 2; j++) for (let i = i0 - 2; i <= i0 + 2; i++) { if (i < 0 || j < 0 || i >= S.W || j >= S.H) continue;
+        // (the edge between (i, j-1) and (i, j): along u; between (i-1, j) and (i, j): along v)
+        if (S.doors.has(S.eh(i, j)) && Math.abs(u - (S.u0 + i + 0.5)) < 0.85 && Math.abs(v - (S.v0 + j)) < R) return true;
+        if (S.doors.has(S.ev(i, j)) && Math.abs(v - (S.v0 + j + 0.5)) < 0.85 && Math.abs(u - (S.u0 + i)) < R) return true; }
+      return false;
+    }
+    if (e < -80 || e > 280 || n < -260 || n > 200) return false; // (the Terrace and the foot of its stairs)
+    if (!this.dwIx) this.setDoorways(buildTerrace().doorways);
+    const L = this.dwIx!.get(Math.floor(e / 4) * 65536 + Math.floor(n / 4)); if (!L) return false;
+    for (const d of L) { const de = e - d.c[0], dn = n - d.c[1], along = de * d.u[0] + dn * d.u[1], out = de * d.n[0] + dn * d.n[1];
+      if (Math.abs(along) < d.width / 2 + 0.35 && Math.abs(out) < d.depth / 2 + DOOR_CLEAR) return true; }
+    return false;
+  }
+  /** where the person stands at their spot: the spot, or when someone already stands there (or it is in a doorway) the
+   *  nearest clear place on rings around it (about SEP apart, a little uneven, to SPREAD_R; C), reached by a short straight
+   *  step that stays in the same court, yard or open ground (popgeo.stepClear). A group at a social act faces its middle
+   *  (the spot). Counted: `stats.spread`, `stats.crowded` when no ring has room, `stats.doorKept` off a doorway */
   private separate(s: PS, t: number, arriving: boolean) {
-    this.release(s); const sp = s.spot!; let e = sp.e, n = sp.n;
-    // (D-221: a post or a place in the court's order is held where it stands)
-    if (!sp.fixed && !this.freeAt(e, n, s.pid)) { let found = false; const ph = h32(this.seed, S.sep, s.pid) / 4294967296 * Math.PI * 2;
-      for (let ring = 1; ring <= 8 && !found; ring++) { const m = 6 * ring; for (let k = 0; k < m && !found; k++) { const a = ph + (k / m) * Math.PI * 2, r = SEP * 1.05 * ring, e2 = sp.e + Math.cos(a) * r, n2 = sp.n + Math.sin(a) * r;
-        if (this.freeAt(e2, n2, s.pid) && this.geo.stepClear(sp, [e2, n2])) { e = e2; n = n2; found = true; } } }
-      if (found) this.stats.spread++; else this.stats.crowded++; }
-    s.sepE = e; s.sepN = n; s.sepFor = sp; s.sepT = arriving ? t : -1e9; s.occ = this.occKey(e, n);
+    this.release(s); const sp = s.spot!; let e = sp.e, n = sp.n, h = sp.heading;
+    const sep = sp.inside ? SEP_IN : SEP, door = this.inDoor(sp, e, n);
+    // (D-221: a post or a place in the court's order is held where it stands, unless it is in a doorway: D-690)
+    if (door || (!sp.fixed && !this.freeAt(e, n, s.pid, sep))) { let found = false; const ph = h32(this.seed, S.sep, s.pid) / 4294967296 * Math.PI * 2;
+      // (to SPREAD_R m: a court's gathering spreads over its court rather than packing closer)
+      for (const g of [sep]) { const rings = Math.floor((sp.inside ? SPREAD_R.inside : SPREAD_R.out) / (g * 1.17));
+        for (let ring = 1; ring <= rings && !found; ring++) { const m = 6 * ring; for (let k = 0; k < m && !found; k++) {
+          const a = ph + (k / m) * Math.PI * 2, j = ((h32(this.seed, S.sep, s.pid * 64 + k) & 1023) / 1023 - 0.5) * 0.24, r = g * (1.05 + j) * ring, e2 = sp.e + Math.cos(a) * r, n2 = sp.n + Math.sin(a) * r;
+          if (this.freeAt(e2, n2, s.pid, g) && !this.inDoor(sp, e2, n2) && this.geo.stepClear(sp, [e2, n2])) { e = e2; n = n2; found = true; } } }
+        if (found) break; }
+      if (door) this.stats.doorKept++;
+      if (found) { this.stats.spread++; if (SOCIAL.has(s.act) && !door) h = headingOf(sp.e - e, sp.n - n); } else this.stats.crowded++;
+      s.full = !found; } else s.full = false;
+    s.sepE = e; s.sepN = n; s.sepH = h; s.sepFor = sp; s.sepT = arriving ? t : -1e9; s.occ = this.occKey(e, n); s.yK = 0; s.yOn = false;
     const L = this.occ.get(s.occ); if (L) L.push(s.pid); else this.occ.set(s.occ, [s.pid]);
   }
   /** a child under three who is not drawn now: under one always (in arms, nursing, on the back); at one and two when
