@@ -125,6 +125,8 @@ export const MAX_FULL = 50, MAX_MID = 100;
 export const ATTACH_R = 620, DETACH_R = 660;
 /** the most simulated people attached at once (the cap passed to sim.visibleAgents) */
 export const POOL_MAX = 400;
+/** D-693: the GPU's person slots made at the start: the pool, its hysteresis and the extras (lineups, drivers, riders, musicians) */
+export const SLOTS_AT_START = 640;
 /** people cast shadows within this distance (m) only. An instanced caster is drawn whole in every cascade its bounds
  *  touch, so each caster costs its triangles × cascades; at 90 m a person's shadow is a few pixels (D-093) */
 export const SHADOW_DIST = LOD_DIST[1];
@@ -252,6 +254,10 @@ export class Crowd {
     this.snd = new Rng(seed, 'crowd.calls');
     this.group.name = 'people';
     this.group.add(humans.gpu.group);
+    // (s18 C5, D-693: the bone and person tables sized for the whole pool and its extras now, before any material is compiled
+    // or drawn: growing them mid-play swaps the textures under compiled materials (HumanGPU.grow), and every frame with more
+    // than the 256 default attached lost its bodies on the GPU: empty courts, a body in the bind pose)
+    humans.gpu.grow(SLOTS_AT_START);
     this.rigS = new RigSolver(humans.A.meta.curlAxes);
     this.buildPropMeshes();
     if (sim) this.buildWorkObjects(); else this.autoPool = false;
