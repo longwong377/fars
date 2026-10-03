@@ -39,7 +39,9 @@ export interface Bondage { hh: string; to: string; from: number; until: number; 
  *  the town's reference stock: C) */
 export const MARKET_OUT = 0.012, MARKET_FLOOR = 0.6;
 /** D-720 (W17): interest on a silver loan, a year (B: ~20 % in the Neo-Babylonian contracts; C for Pārsa) */
-export const LOAN_RATE = 0.2;
+export /** D-720: the help a house in want is given (a gift, the kin's, the neighbours', a haggled sale, the treasury's): the want it meets */
+const HELP_GOT = /^(given|kin_help|neighbours_help|haggle_deal|relief|lent_by_neighbour|hired_by_neighbour|court_hire|wage_work|help)$/;
+const LOAN_RATE = 0.2;
 export interface Debt { to: string; amt: number; due: number; ev: number; n: number }
 /** a deferred step (D-347: data, not a closure, so the economy's state is saved and restored as it stands) */
 type Task =
@@ -687,11 +689,17 @@ export class Economy implements EconWorld {
     const act = (kind: string, causes: (number | undefined)[], other?: string, amt?: number) => { h.lastAct = day; return this.ev(day, h.id, kind, causes, other, amt); };
     if (top.kind === 'food' || top.kind === 'fuel') {
       const want = top.kind === 'food' ? eat * 20 : 10, cost = top.kind === 'food' ? want * pG : want * this.price('fuel', day);
-      const cause = top.kind === 'food' ? h.cause.food : h.cause.fuel;
+      let cause = top.kind === 'food' ? h.cause.food : h.cause.fuel;
       if (h.cash >= cost) { h.cash -= cost; if (top.kind === 'food') { const got = Math.min(want, this.market.grain); this.market.grain -= got; h.grain += got; } else h.fuel += want; act(top.kind === 'food' ? 'buy' : 'buy_fuel', [cause, top.kind === 'food' ? this.market.dearEv : undefined], 'market', cost); return; }
       // (D-720: bread out of reach at a dear market: the dearth is the house's want's cause, so its hunger, its petition or its theft
       // reads back to the harvest and the price)
       if (top.kind === 'food' && this.market.dearEv >= 0 && this.events[this.market.dearEv].day > day - 60) h.cause.food = h.cause.food ?? this.market.dearEv;
+      // (D-720, the chain census: the famine chain had no hunger in it: 'hunger' came only after a fortnight's short eating, and the
+      // help came before it. A house that cannot buy the bread it needs goes short: that is its hunger, from what emptied its bins
+      // (the harvest, the price, a theft), and what it does next (the kin, a sale, a loan, a theft, a petition) is from the hunger;
+      // once in thirty days, and not again in the month after help came: still the same want, not a new one)
+      if (top.kind === 'food') { const f = h.cause.food === undefined ? undefined : this.events[h.cause.food];
+        if (!(f && (f.kind === 'hunger' || HELP_GOT.test(f.kind)) && f.day > day - 30)) h.cause.food = this.ev(day, h.id, 'hunger', [h.cause.food]); cause = h.cause.food; }
       if (h.goods > 0) { h.goods--; h.cash += this.price('goods', day); act('sell', [cause, this.market.slumpEv], 'market'); return; }
       const kin = h.kin.map(x => this.hh.get(x)!).find(K => K && !K.dead && K.grain > K.eaters * GRAIN_EAT * 60 && (!this.trust || this.trust.willHelp(K.id, h.id, day, 0.2))); // (D-351: kin help whom they trust)
       if (kin && top.kind === 'food' && day - ((h as any).lastKin ?? -99) >= 40) { (h as any).lastKin = day; // (D-340: kin help once in forty days; C)
