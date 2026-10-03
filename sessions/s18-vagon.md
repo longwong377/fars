@@ -38,3 +38,13 @@ errors, one destroyed-buffer submit (MeshBasicNodeMaterial_608); census: 218 pro
 - Tools: tools/dev/empty_frames.mjs (a view set on the built site at the player's lens with F3 census; --guard, --test),
   player_probe.mjs, blank_probe.mjs, culprit_probe.mjs, c9_checks.mjs (the last on T:/s18-head only).
 - My own fault, ~20 min lost: throwaway Chrome profiles in %TEMP% filled C: to 0 bytes mid-run; temp now on T:.
+
+## Later (07:20-07:50 UTC)
+- Re-probe on s17-int ebf72036 (the cloud's fault catcher in): the live page now draws (200-370 calls while walking) but the frame
+  is STILL BLACK: a destroyed buffer is bound in the shadow pass (hadish:limestone, terrace:limestone; ShadowMaterial pipelines
+  "bindingBuffer390 used in submit while destroyed"), WebGPU rejects that submit and drops the whole frame; meterLost 125.
+  No deploy. tools/dev/live_check.mjs is the 5-minute check for the next head.
+- Face sources for the cloud: branch s18-face-assets @ 64250283, assets-raw/faces (284 files, 146 MB, SOURCES.md with sha256):
+  MakeHuman CC0 skins (albedo only, 20 sets), irises, brows, lashes, hair, teeth; the Lee Perry-Smith scanned head (CC BY 3.0,
+  albedo + spec + tangent normal + glb). The face work itself (projection, bakes, regroom) is the cloud's; no Vagon needed.
+- The head look (6 of 13 views, ?test + guard): renders/2026-10-03T07-20-s18-head-look on s17-renders; worst 5 in asks_cloud.md.

@@ -23,7 +23,7 @@ import { Rng } from '../core/rng';
 import { attribute, positionLocal, float, abs, min, max, mix, step } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { surfaceMaterial, propScanNodes } from '../render/materials';
-import { pose, MOCAP_ANIMS, type Pose, type Gait } from './anim';
+import { pose, MOCAP_ANIMS, plopPhase, TODDLER, type Pose, type Gait } from './anim';
 import { strideAt, type GaitStyle } from './mocap';
 import { ACTIVITIES, performanceFor, type ActivityId, type Performance, type WorkSpec, type Performer } from './activities';
 import { PeopleSim, PLACES, type Agent } from './sim';
@@ -75,6 +75,8 @@ const perfsOf = (P: Performance): Partial<Performance>[] => [P, ...(P.variants ?
 const SHARED_ACTS = new Set<string>(Object.entries(ACTIVITIES).filter(([, P]) => perfsOf(P).some(v => v.work?.some(w => w.shared))).map(([k]) => k));
 const THINGS_ACTS = new Set<string>(Object.entries(ACTIVITIES).filter(([, P]) => perfsOf(P).some(v => v.work?.length || v.animals)).map(([k]) => k));
 const PATH_ACTS = new Set<string>(Object.entries(ACTIVITIES).filter(([, P]) => perfsOf(P).some(v => v.anim && PATHED.has(v.anim))).map(([k]) => k));
+/** s18 C14 (D-790): the seconds a toddler takes to catch up its way after a plop */
+const CATCH_S = 3;
 /** the gait phase (rad/s) of a moving performance given at a standing spot of the plan: the bearers' 1.5 h at the burial
  *  ground, a guard's round at his post (the plans do not route them yet: Q-196). They walk in place at the pace the
  *  performance sheet's extras use (time × 4.2, about 0.96 m/s), not frozen mid-stride */
@@ -179,6 +181,7 @@ export interface Person {
    *  over the reference body: strides scale with it) and where the walker was last frame (the phase advances by the ground
    *  covered over the stride, so the planted foot does not slide) */
   gait: Gait; legK: number; gx: number; gz: number;
+  /** s18 C14 (D-790): a toddler held where it plopped down (rel: when it got up, −1 while sitting; the root eased back after) */ hold?: { x: number; y: number; z: number; rel: number };
   /** D-292: the belly drawn (Population.gravid on the day it was written) */
   belly?: number;
   /** s17 V3 (D-500): the marks drawn (texel 10: wound, scar), and a broken leg's limp from the deeds (DeedWorld.injuryOf) */
@@ -690,6 +693,12 @@ export class Crowd {
       else { p.shown = false; continue; }
       const b = p.base; b[0] = x; b[1] = y; b[2] = z; b[3] = yaw;
       this.resolve(p);
+      // s18 C14 (D-790): a toddler walking free (no hand held) plops down onto its bottom now and then: held where it sat
+      // while it sits and gets up, then it hurries after its way (the root eased back onto the walker's place over CATCH_S)
+      if (p.gait.toddler) { const plop = (a ? a.walking : vp ? vp.moving : !!ACTIVITIES[p.act as ActivityId]?.moving) && vp?.hand !== 2 && plopPhase(this.cycleT(p, time), p.animK) < TODDLER.fallS; p.gait.plop = plop;
+        if (plop) { if (!p.hold || p.hold.rel >= 0) p.hold = { x, y, z, rel: -1 }; x = p.hold.x; y = p.hold.y; z = p.hold.z; }
+        else if (p.hold) { const h = p.hold; if (h.rel < 0) h.rel = time; const u = Math.min(1, (time - h.rel) / CATCH_S), f = 1 - u * u * (3 - 2 * u);
+          if (f <= 0 || Math.hypot(h.x - x, h.z - z) > 4) p.hold = undefined; else { x += (h.x - x) * f; y += (h.y - y) * f; z += (h.z - z) * f; } } }
       // the walking phase of a person of the population: at their pace on the way; in place at a standing spot where the
       // performance is a moving one (the bearers, a guard's round: IN_PLACE_RATE). Advanced for the culled too, so the
       // footsteps they sound (soundsOnly) and the pose on turning back keep time

@@ -219,7 +219,8 @@ export function siteFill(s: Site, seed: number, items: FillItem[], st: FillStats
   // their household's spread): along the walls within MARKET_R of the point, every 2.6 m, a seller's spread on a reed mat (a
   // trade's goods, set out by day, sold out through the afternoon), a stall with its awning where the lane is wide; clear of
   // doors and fittings, the lane left passable (C: the analogues as for the squares' markets)
-  for (const [mu, mv] of markets) for (const R of [MARKET_R, MARKET_R * 2]) { const spots: [number, number][] = [];
+  for (const [mu, mv] of markets) { const n0 = items.length;
+  for (const R of [MARKET_R, MARKET_R * 2]) { const spots: [number, number][] = [];
     if (R > MARKET_R && items.some(it => it.at === 'market' && Math.hypot(...toLocal(s.frame, it.e, it.n).map((x, q) => x - [mu, mv][q]) as [number, number]) < MARKET_R)) break; // (the near ring held the market)
     const cand: { u: number; v: number; du: number; dv: number; w: number; d: number }[] = [];
     for (let j = Math.max(0, s.cj(mv) - R); j <= Math.min(H - 1, s.cj(mv) + R); j++) for (let i = Math.max(0, s.ci(mu) - R); i <= Math.min(W - 1, s.ci(mu) + R); i++) {
@@ -238,6 +239,9 @@ export function siteFill(s: Site, seed: number, items: FillItem[], st: FillStats
         if (!open(s.at(s.ci(gu), s.cj(gv)))) continue; const sj = sc * (0.93 + 0.14 * u01(k, x * 10, z * 10, 5)), gone = u01(k, x * 10, z * 10, 6);
         items.push({ m, e, n, dy: stall ? y : 0.012, rot: rotFacing(de, dn) + (u01(k, x * 10, z * 10) - 0.5) * 0.5, s: [sj, sj, sj], col, day: true, ...(gone < 0.45 ? { until: 12.5 + 6 * gone / 0.45 } : {}), at: 'market' }); st.market++; } } }
 
+  // (s18 C2, D-666: a point on the open ground of the site's raster, no wall within reach to set the spreads along: the
+  // open-ground market there, as for a point outside every site)
+  if (!items.slice(n0).some(it => it.at === 'market')) openMarket(toG(mu, mv), [s], seed, items, st); }
   // 2. the lane frontage and 3. the washing lines
   const lines: [number, number][] = [];
   for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) { const k = j * W + i, c = s.cell[k]; if (c !== LANE && c !== SQUARE && !(outside && c === OUT)) continue;

@@ -15,10 +15,14 @@ const MASTER = join(process.env.SCORE_WORK ?? join(homedir(), '.cache/parsa-scor
 const THEME = arg('--theme', existsSync(MASTER) ? MASTER : join(ROOT, 'tools/film/work/main_theme.opus')); // (the score build leaves both)
 mkdirSync(OUT, { recursive: true });
 const man = JSON.parse(readFileSync(join(ROOT, 'public/audio/score/manifest.json'), 'utf8')).cues.main_theme;
+/** --skip a-b: an edit that drops film time a..b (s) from picture and music, the music crossfaded over the cut (an interim
+ *  cut of the shots rendered so far: no black reaches a player) */
+const SKIP = arg('--skip', '') ? arg('--skip').split('-').map(Number) : null;
 
 // the shots in film order; each is made a 24 fps clip of its own (its frames at their own rate, motion-interpolated where they
 // are sparser than 24: shots may be rendered at different rates), then the clips are joined
-const shots = readdirSync(FR).filter(d => existsSync(join(FR, d, 'shot.json'))).map(d => ({ d, ...JSON.parse(readFileSync(join(FR, d, 'shot.json'), 'utf8')) })).sort((a, b) => a.t0 - b.t0);
+const shots = readdirSync(FR).filter(d => existsSync(join(FR, d, 'shot.json'))).map(d => ({ d, ...JSON.parse(readFileSync(join(FR, d, 'shot.json'), 'utf8')) }))
+  .filter(s => !SKIP || s.t1 <= SKIP[0] + 0.05 || s.t0 >= SKIP[1] - 0.05).sort((a, b) => a.t0 - b.t0);
 if (!shots.length) throw new Error(`no shots in ${FR}`);
 const clips = []; let t = 0, nb = 0;
 const W0 = shots[0].res?.[0] ?? 640, H0 = shots[0].res?.[1] ?? 268;
@@ -27,6 +31,7 @@ const black = (a, b) => { const f = join(FR, `black${nb++}.mkv`); execFileSync('
 for (const s of shots) {
   const frames = readdirSync(join(FR, s.d)).filter(f => /^\d{5}\.png$/.test(f)).map(f => +f.slice(0, 5)).sort((a, b) => a - b);
   if (!frames.length) throw new Error(`${s.d}: no frames`);
+  if (SKIP && Math.abs(t - SKIP[0]) < 0.05 && s.t0 >= SKIP[1] - 0.05) t = s.t0; // the cut
   if (s.t0 - t > 0.05) { clips.push(black(t, s.t0)); console.warn(`  ! not rendered: ${t.toFixed(2)}-${s.t0.toFixed(2)} s (black)`); }
   const step = frames.length > 1 ? Math.min(...frames.slice(1).map((f, i) => f - frames[i])) : 1, rate = s.fps / step, len = s.t1 - s.t0;
   const pat = join(FR, s.d, '%05d.png'), clip = join(FR, `${s.d}.mkv`);
@@ -41,7 +46,7 @@ for (const s of shots) {
 }
 if (man.marks.end - t > 0.05) { clips.push(black(t, man.marks.end)); console.warn(`  ! not rendered: ${t.toFixed(2)}-${man.marks.end.toFixed(2)} s (black)`); t = man.marks.end; }
 const list = join(FR, 'film.ffconcat'); writeFileSync(list, ['ffconcat version 1.0', ...clips.map(c => `file '${c}'`)].join('\n') + '\n');
-const dur = Math.max(t, man.seconds);
+const skipLen = SKIP ? SKIP[1] - SKIP[0] : 0, dur = Math.max(t, man.seconds) - skipLen;
 
 // the grade: a gentle S-curve with lifted, warm-tinted shadows (a print's), the vignette, fine grain; then the frame rate
 const scale = H ? `,scale=-2:${H}:flags=lanczos` : '';
@@ -55,7 +60,10 @@ console.log('grading and interpolating ...');
 execFileSync('ffmpeg', ['-y', '-v', 'error', '-f', 'concat', '-safe', '0', '-i', list, '-vf', vf, '-t', dur.toFixed(2), '-c:v', 'ffv1', tmp], { stdio: 'inherit' });
 
 const webm = join(OUT, 'parsa_title.webm'), mp4 = join(OUT, 'parsa_title.mp4'), jpg = join(OUT, 'parsa_title.jpg');
-const audio = existsSync(THEME) ? ['-i', THEME] : []; if (!audio.length) console.warn(`  ! no theme at ${THEME}: a silent film`);
+let THEME_IN = THEME;
+if (SKIP && existsSync(THEME)) { THEME_IN = join(FR, 'theme_cut.wav');
+  execFileSync('ffmpeg', ['-y', '-v', 'error', '-i', THEME, '-filter_complex', `[0]atrim=0:${SKIP[0] + 0.2},asetpts=PTS-STARTPTS[a];[0]atrim=${SKIP[1] - 0.2},asetpts=PTS-STARTPTS[b];[a][b]acrossfade=d=0.4:c1=tri:c2=tri`, THEME_IN]); }
+const audio = existsSync(THEME_IN) ? ['-i', THEME_IN] : []; if (!audio.length) console.warn(`  ! no theme at ${THEME}: a silent film`);
 const map = audio.length ? ['-map', '0:v', '-map', '1:a', '-shortest'] : [];
 console.log('AV1 + Opus ...');
 execFileSync('ffmpeg', ['-y', '-v', 'error', '-i', tmp, ...audio, ...map, '-c:v', 'libsvtav1', '-crf', '36', '-preset', '6', '-g', '96', '-svtav1-params', 'tune=0:film-grain=0',
@@ -64,5 +72,5 @@ console.log('H.264 + AAC ...');
 execFileSync('ffmpeg', ['-y', '-v', 'error', '-i', tmp, ...audio, ...map, '-c:v', 'libx264', '-crf', '26', '-preset', 'slow', '-profile:v', 'high', '-pix_fmt', 'yuv420p', '-g', '48',
   ...(audio.length ? ['-c:a', 'aac', '-b:a', '128k'] : []), '-movflags', '+faststart', '-metadata', 'title=Pārsa', mp4], { stdio: 'inherit' });
 // the poster: the moment before the title (the summit), graded like the rest
-execFileSync('ffmpeg', ['-y', '-v', 'error', '-ss', String(Math.max(0, Math.min(t - 1, (man.marks.title ?? 120) - 3))), '-i', tmp, '-frames:v', '1', '-q:v', '3', jpg]);
+execFileSync('ffmpeg', ['-y', '-v', 'error', '-ss', String(Math.max(0, Math.min(t - skipLen - 1, (man.marks.title ?? 120) - skipLen + (SKIP ? 5 : -3)))), '-i', tmp, '-frames:v', '1', '-q:v', '3', jpg]);
 for (const f of [webm, mp4, jpg]) console.log(`${f}: ${(statSync(f).size / 1048576).toFixed(2)} MB`);

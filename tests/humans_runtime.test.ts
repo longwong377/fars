@@ -145,9 +145,10 @@ describe('looks', () => {
       expect(L1).toEqual(L2);
       if (dress !== 'child') { const S = STATURE[sex]; expect(L1.stature).toBeGreaterThan(S.mean - 2.5 * S.sd - 0.03); expect(L1.stature).toBeLessThan(S.mean + 2.5 * S.sd + 0.03); }
       else expect(L1.stature).toBeLessThan(1.4);
-      for (const id of L1.pieces) expect([...COSTUMES[dress].always, ...COSTUMES[dress].opt]).toContain(id);
-      for (const id of COSTUMES[dress].opt) expect(((L1.mask >> pieceBit(dress, id)) & 1) === 1).toBe(L1.pieces.includes(id));
-      for (const id of COSTUMES[dress].always) expect((L1.mask >> pieceBit(dress, id)) & 1).toBe(1); // guards' bow and quiver: bits of the shared costume
+      const D = L1.dress; // (D-780: two in three guards not of Persian birth are drawn in the guards' robe: the dress drawn is checked)
+      for (const id of L1.pieces) expect([...COSTUMES[D].always, ...COSTUMES[D].opt]).toContain(id);
+      for (const id of COSTUMES[D].opt) expect(((L1.mask >> pieceBit(D, id)) & 1) === 1).toBe(L1.pieces.includes(id));
+      for (const id of COSTUMES[D].always) expect((L1.mask >> pieceBit(D, id)) & 1).toBe(1); // guards' bow and quiver: bits of the shared costume
       if (sex === 'f') expect(L1.pieces.some(p => p.startsWith('beard'))).toBe(false);
       expect(L1.note).toMatch(/C/);
     }

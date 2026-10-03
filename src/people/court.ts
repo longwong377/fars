@@ -314,6 +314,18 @@ export class CourtResidents {
   /** D-780 (holes u1): the royal women go out to the paradise this afternoon (about one day in five, not a banquet night: C) */
   womenOut(d: number) { return d > this.firstDay && d < this.leaveDay && !this.banquetNight(d) && u01(this.pop.seed, S.cer, d, 41) < 0.2; }
   womenOutHours(d: number): [number, number] { const a = 14.6 + 0.6 * u01(this.pop.seed, S.cer, d, 42); return [a, a + 2.4]; }
+  /** D-780 (holes u1, with C14's bearers): the litters of an outing: up to six of the household's women, each carried by four
+   *  attendants of one household (carry_bier, the litter shared by the group: crowd.ts), cached by day */
+  private litterCache = new Map<number, { woman: number; bearers: number[] }[]>();
+  litters(d: number): { woman: number; bearers: number[] }[] {
+    let L = this.litterCache.get(d); if (L) return L; L = [];
+    if (this.womenOut(d)) { const ok = (pid: number) => this.pop.present(pid, d) && !this.pop.sick(pid, d) && d !== this.pop.persons[pid].arrive;
+      const women = (this.byGroup.get('women') ?? []).filter(pid => ok(pid) && this.inOut(pid, d * 3 + 2, 0.12)).slice(0, 6);
+      const byHH = new Map<number, number[]>(); for (const pid of this.byGroup.get('attendants') ?? []) if (ok(pid) && this.pop.persons[pid].sex === 'm') { const h = this.pop.persons[pid].hh; (byHH.get(h) ?? byHH.set(h, []).get(h)!).push(pid); }
+      const crews = [...byHH.values()].filter(c => c.length >= 4);
+      women.forEach((w, k) => { if (k < crews.length) L!.push({ woman: w, bearers: crews[k].slice(0, 4) }); }); }
+    this.litterCache.set(d, L); if (this.litterCache.size > 6) this.litterCache.delete(this.litterCache.keys().next().value!); return L;
+  }
   /** D-780: is a Persian of rank (or a groom, a beater) of today's ride or hunt: a share of each, drawn per person and day (C) */
   inOut(pid: number, d: number, share: number) { return u01(this.pop.seed, S.cer, pid, d) < share; }
   /** D-199: the king's day, shared by his bearers and escort */
@@ -779,7 +791,7 @@ class CourtDay {
     else this.morning(r.range(5.6, 7));
     this.meal(H, 0.5, 'breakfast brought from the king’s kitchens'); this.fill(r.range(12, 13), opts);
     this.meal(H, 0.6, 'the midday meal brought from the king’s kitchens');
-    if (this.K.womenOut(this.d) && this.K.inOut(this.pid, this.d * 3 + 2, 0.12)) this.womenOuting(H); // (D-780, holes u1)
+    if (this.K.litters(this.d).some(l => l.woman === this.pid)) this.womenOuting(H); // (D-780, holes u1: carried in her litter)
     this.fill(r.range(18.3, 19.3), opts);
     this.meal(H, 0.7, 'the evening meal in the women’s court');
     if (vigil(this.d)) { this.at(24, H, 'rest', 'awake with the lamps lit in the women’s court (Heracleides, a claim; no music is shown)'); return; }
@@ -788,12 +800,20 @@ class CourtDay {
   /** D-780 (holes u1): a royal women's outing: on about one afternoon in five a party of the household's women goes down to the
    *  paradise W of the town, veiled, among their attendants and eunuchs, and walks and sits in the garden until the evening
    *  (the curtained carriages of the Persian women: Plutarch Them. 26, HDT 7.83, claims, B; the litter is not drawn yet: C) */
-  womenOuting(H: string) {
-    const G = 'garden_pw', [h0, h1] = this.K.womenOutHours(this.d), r = this.r;
-    this.fill(h0 - walkHours(this.cur, G), [[H, 'rest', 'resting in the women’s court before going out', 1]]);
-    this.go(G, this.m.g === 'women' ? 'going down to the paradise in a curtained litter, among her attendants and the eunuchs (curtained carriages: claims, B; C: D-780)' : 'walking beside the royal women’s litters to the paradise');
-    this.fill(h1 - walkHours(G, H), [[G, 'rest', this.m.g === 'women' ? 'sitting in the shade of the paradise with the women of the household' : 'in attendance on the royal women in the paradise', 2], [G, 'talk', this.m.g === 'women' ? 'walking and talking in the paradise with the women of the household' : 'keeping the way clear about the royal women in the paradise', 1.5]]);
-    this.go(H, this.m.g === 'women' ? 'carried back up to the women’s court in a curtained litter' : 'walking back beside the litters to the women’s court'); void r;
+  womenOuting(H: string, bearer = -1) {
+    const G = 'garden_pw', [h0, h1] = this.K.womenOutHours(this.d), r = this.r, woman = this.m.g === 'women', wHG = walkHours(H, G);
+    // (all gather in the women's court and leave together: the four bearers of a litter walk one route at one time)
+    this.fill(h0 - wHG - walkHours(this.cur, H) - 0.2, [[this.cur === H ? H : this.m.sleep, 'rest', 'resting before going out', 1]]);
+    this.go(H, 'going to the women’s court for the outing'); this.until(h0 - wHG, bearer >= 0 ? 'inspect' : 'rest', bearer >= 0 ? 'waiting by the litters in the women’s court' : 'waiting in the women’s court for the litters to go out');
+    // the woman inside the litter is not seen on the way (C14's litter and bearers carry it: one litter a woman); the bearers
+    // carry it, two with the pole on the left shoulder; the other attendants walk beside the litters
+    const way = (to: string, back: boolean) => {
+      if (woman) { this.add(this.t + walkHours(this.cur, to), '-', 'offmap', `carried ${back ? 'back to the women’s court' : 'down to the paradise'} in her curtained litter, unseen (curtained carriages: claims, B; C: D-780)`, undefined, 'away'); this.cur = to; }
+      else if (bearer >= 0) this.go(to, `carrying a royal woman’s curtained litter ${back ? 'back up to the women’s court' : 'down to the paradise'}${bearer % 2 ? ', the pole on his left shoulder' : ''} (C: D-780)`, 'carry_bier');
+      else this.go(to, back ? 'walking back beside the litters to the women’s court' : 'walking beside the royal women’s litters to the paradise'); };
+    way(G, false);
+    this.fill(h1 - wHG - 0.1, [[G, 'rest', this.m.g === 'women' ? 'sitting in the shade of the paradise with the women of the household' : 'in attendance on the royal women in the paradise', 2], [G, 'talk', this.m.g === 'women' ? 'walking and talking in the paradise with the women of the household' : 'keeping the way clear about the royal women in the paradise', 1.5]]);
+    this.until(h1 - wHG, 'rest', woman ? 'sitting in the paradise until the litters are brought' : 'waiting by the litters in the paradise'); way(H, true); void r;
   }
   attendant() {
     const r = this.r, f = this.p.sex === 'f', H = 'court_harem';
@@ -805,7 +825,8 @@ class CourtDay {
     this.fill(r.range(6.8, 7.4), opts); serve('carrying the women’s breakfast from the kitchens');
     this.fill(r.range(11.5, 12.2), opts); serve('carrying the women’s midday meal from the kitchens');
     this.meal(this.m.sleep, 0.5, 'the midday meal in the south wing');
-    if (this.K.womenOut(this.d) && this.K.inOut(this.pid, this.d * 3 + 2, 0.2)) this.womenOuting(H); // (D-780)
+    const crew = this.K.litters(this.d).find(l => l.bearers.includes(this.pid));
+    if (crew || (this.K.litters(this.d).length && this.K.inOut(this.pid, this.d * 3 + 2, 0.12))) this.womenOuting(H, crew ? crew.bearers.indexOf(this.pid) : -1); // (D-780)
     this.fill(r.range(17.5, 18.2), opts); serve('carrying the women’s evening meal from the kitchens');
     this.fill(r.range(19.2, 19.8), opts); this.meal(this.m.sleep, 0.5, 'the evening meal in the south wing'); this.fill(r.range(20.8, 21.8), opts); this.night();
   }

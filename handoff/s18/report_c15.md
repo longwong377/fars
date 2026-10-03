@@ -10,9 +10,8 @@ settlement/plan.ts (+ new settlement/estates.ts).
   source: ORACC ARIo (oracc/catf, CC0) edits these two texts in Old Persian only, and so do the ARIo JSON mirror, SLAB-NLP/Akk
   and the CDLI composites. No Hugging Face or GitHub dataset has them. The versions exist in print alone. Nothing was invented;
   the panels carry the Old Persian alone, flagged PLACEHOLDER in the carved mesh's note.
-- **DNe:** 18 of its 30 captions are carved; the other 12 lines are lost in the edition and stay uncut. Lines 29–30 have no
-  bearer drawn (the façade shows 28 bearers, plain.json). The captions have **no translation-layer entry** (translations.json
-  has no DNc/DNd/DNe), so they get no pick rectangle yet.
+- **DNc, DNd and DNe are carved but cannot be picked.** They are carved from the edition and have translations, but have no pick
+  rectangle (the plain is at its 40-mesh cap), so the translation layer cannot be opened on them yet.
 - **The estates' houses are still bare mud** behind the new painted porches. Plot kind `elite` is not in C2's wash draw
   (houses.ts `HOUSE_KINDS`). I asked the lead/C2 for a one-line change. The rooms' interiors are not painted (interiors are not
   mine). Two smaller gaps: the porch roofs sit on per-prop ground heights (no group base), and the estates add one settlement
@@ -30,8 +29,6 @@ settlement/plan.ts (+ new settlement/estates.ts).
   - Darius' tomb: 6,0xx of 21,702 façade vertices painted (tests/naqsh_life.test.ts asserts a share between 15 and 90 %), with
     gilded horns, throne legs and studs.
   - The Ka'ba is a fresh, finer white.
-  - DNc (2 lines, 43 signs) and DNd (1 line, 23 signs) are cut over Gobryas and Aspathines, and DNe's peoples beside the
-    bearers, all from the edition.
   - Before the second façade stands a scaffold of 16 standards with ledgers, transoms, 4 plank decks, ladders and the cutters'
     baskets. Below it lies a pale talus of fresh chips with spalls, and at the foot the cutters' lean-to: bench, whetstone, water
     jar, tool baskets, spare poles.
