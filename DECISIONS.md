@@ -9516,6 +9516,7 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
 - The court's baggage train (traffic.ts trainMovers; UD-09/UD-10): a string per tented household (camels for a pavilion's) along the royal road to its camp's edge, reaching it half an hour before its tent is pitched (court.ts's arrival hours: days 10-15, up to ~650 households in six hours), and out along the road on the leave day after the tents are struck; the southern camps by the south road where a straight leg would cross the town's plots. C (HDT 7.40-41's train a claim, B).
 - Road folk as population people (the lead, after the merge: talk to anyone, UD-08/UD-31): roadFolk.ts made pure and given hinterlandRegister / planOf / spotOf / bindPids (600 households a road, reused only time-disjoint); the persons, their plans and their placement by popview are C10's (asked).
 - Life on the land (the lead's second list): herder households of the register take their flocks out for 12 days in 36 (stubble June-October, slopes in spring and autumn, a few on the steppe in winter; folded at night, watched by turns; place graze:<kind>), drawn near as the herd performance and far (380 m-2.4 km) by fauna.ts from grazingSites; dogs at the camps' lines; bird counts raised within the worst-case triangle gate. All C.
+- The starlings drew nothing on the T4 (Vagon's first train: 17 vertex inputs; their 1,500 instances put the matrix in four inputs past the 64 KiB uniform limit): wildlife.ts packs each bird's 12 instance floats in three vec4s (birdIn); tests/vertex_inputs.test.ts keeps every life pipeline (birds with their models, jackals, small life, the fauna's Animals) <= 16 inputs, the birds four spare.
 - Hooks in world.ts (lead's file): no hoof sounds for walkers; fauna.addCampLines; physics to ConstructionView. Later: the grazing sites and the far flocks (one line).
 
 - Hooks in world.ts (lead's file): no hoof sounds for walkers; fauna.addCampLines; physics to ConstructionView.
@@ -9720,6 +9721,15 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
 - light v2b (D-480 cont.): the cloud deck fades out between 30 and 60 km (the march at grazing angles smeared the noise into
   streets converging on the vanishing point: cov-000's horizon fan; gone in the lab), and the night toe lift eases by up to
   75 % under a bright moon (GRADE.nightLift from the SkySystem): the moonlit plain p50 73 → 52, the moonless one unchanged (17).
+- contact (D-480 cont., the art direction: nothing floats): the lab's debug views showed the sun contact shadows all but dead
+  (sss view uniform 1 beside sunlit plinths and jambs: 0.6 m rays with 6 cm samples stepped through vertical occluders) and the
+  contact AO near white (0.9). Now SSS_MAX_DISTANCE 1.0 m, SSS_THICKNESS 0.12 m, and the contact AO sharpened by CONTACT_AO_POW
+  1.8 in the composite (pipeline.ts). C; lab-verified only.
+- (D-500, mocap) CMU takes re-fetched (T:/fars-assets-s12/mocap/cmu) and baked through tools/mocap/bake.ts (the old clips
+  reproduce byte for byte): sweep_a (13_23), sweep_b (14_13 mop), drink_a (13_09), dance_a (55_01), dance_b (90_31). The
+  sweepers' body layer is now a sweeping capture (weight 0.22, the broom hand within 3.5 cm). drink and dance are baked but
+  NOT wired: a new pose cycle needs impostor frames of its own (tests/impostor_frames: drink 0.27 m from the nearest frame),
+  i.e. tools/dev/imp_keys.ts --cover and an impostor re-render; next pass (B530).
 
 
 ## D-521 (s17, V5): rain that reads (mixed streaks, splashes), dust that shows, a weather probe
@@ -9784,3 +9794,18 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   weather probe only because the probe had no sky environment. The probe now prefilters a sky/ground sphere into skyEnv.
 - materials.ts (one line, uniform-driven, no new shader state): on walls the wet film runs in vertical streaks (wet 0.4-1.0 of
   the ground's), not an even 55 % film.
+
+## D-513 (s17, V4 terrace): the relief atlas re-baked with a deep undercut (the figures read as carved at 2-10 m)
+- The lead's two routes: (1) the CC-BY "Two Persian courtiers" scan (Objaverse 2af5acdf; a museum fragment, 980 k triangles,
+  checked in look.ts) as a carving-style source, (2) a Cycles re-bake of the existing relief geometry with real undercut depth.
+  Route 2 taken (it reaches all 221 figure definitions and 3,748 placements in one build inside the deadline; route 1 needs a
+  per-figure transfer). The Persepolis reliefs' dark contour line comes from the outline cut square to under: the undercut
+  now pulls the foot of every step of 0.2 relief depths or more (was 0.25) under its arris by 0.55 of the rise (was 0.3), up to
+  5 texels (was 3); the occlusion rays reach 3 relief depths (was 2), so folds and contour hollows hold shade. tools/blender/
+  relief_atlas.ts, baked on the CPU in slot batches (tools/dev/gpu_slot.mjs; ~4 s a figure at 6 jobs), packed and KTX2-encoded
+  as before; the atlas also takes D-510's polychromy change into its input hash. No new asset (the atlas is the project's own,
+  ASSET_LEDGER row "Carved-relief atlas" unchanged in kind). Tier C.
+## D-525 (s17, V5): puddles fade far off and at grazing angles
+- materials.ts finish() (one line, no new shader state): the puddle mask fades over 60-150 m of view distance and below
+  ~10 degrees between the view and the surface, so thin pools far off no longer show as white slivers of mirrored sky
+  along the horizon (shots/wx-wet-flat-w8.png); they read as wet ground there. shader_build and material tests green.

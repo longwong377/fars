@@ -92,7 +92,7 @@ export const CAPTURED_WORK = new Set<string>();
 const LAYER = { on: false, d: new Float32Array(54), w: 1 };
 /** the layer's weight where a cycle works at the edge of the arms' reach (the fork raised high, the seated crafts leaning
  *  far out): less of the body's own motion, so the hands still reach their marks (tests/performances.test.ts) */
-const LAYER_W: Partial<Record<string, number>> = { hoe: 0.5, irrigate: 0.5, winnow: 0.05, butcher: 0.15, mould: 0.1, stoke: 0.1, wash: 0.15, sweep: 0.4, lay: 0.4, weave: 0.25, smith: 0.4 };
+const LAYER_W: Partial<Record<string, number>> = { hoe: 0.5, irrigate: 0.5, winnow: 0.05, butcher: 0.15, mould: 0.1, stoke: 0.1, wash: 0.15, sweep: 0.22, lay: 0.4, weave: 0.25, smith: 0.4 };
 function body(p: Pose, o: { hp?: number; hy?: number; hr?: number; sp?: number; sy?: number; ch?: number; cy?: number; drop?: number; back?: number; side?: number }, t: number, k: number): Trunk {
   const br = LAYER.on ? 0 : 0.02 * S(t * 1.5 + k);
   p.rot.hips = [o.hp ?? 0, o.hy ?? 0, o.hr ?? 0]; p.rot.spine = [o.sp ?? 0, o.sy ?? 0, 0]; p.rot.chest = [(o.ch ?? 0) + br, o.cy ?? 0, 0];
@@ -922,7 +922,7 @@ function sling(t: number, k: number): Pose {
 }
 export function workPose(id: WorkAnim, t: number, ph: number, k: number, g: Gait = { v: 1.2, style: 'man' }): Pose {
   const m = WORK_META[id]; LAYER.on = !m.gait;
-  if (LAYER.on) { const seat = m.ground === 'seat', clip = seat ? 'sit_a' : IDLES[pickOf(k, IDLES.length, 5)];
+  if (LAYER.on) { const seat = m.ground === 'seat', clip = seat ? 'sit_a' : id === 'sweep' ? (pickOf(k, 2, 5) ? 'sweep_a' : 'sweep_b') : IDLES[pickOf(k, IDLES.length, 5)]; // (s17 V3: a sweeper's body from the sweeping captures)
     const d = devAt(LAYER.d, clip, (t * (0.9 + 0.2 * fr(k * 0.37))) / CLIPS[clip].dur + fr(k * 0.618034)); LAYER.w = LAYER_W[id] ?? (seat ? 0.35 : 0.7);
     // (bounded: the layer is the small motion of a body at rest; a cycle's hands must still reach their marks)
     for (let c = 0; c < 15; c++) d[c] = cl(d[c], -0.08, 0.08); for (let c = 51; c < 54; c++) d[c] = cl(d[c], -0.03, 0.03); }

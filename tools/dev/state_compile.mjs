@@ -13,13 +13,14 @@ const logs = []; page.on('console', m => { if (m.type() === 'error') logs.push(m
 const t0 = Date.now(), el = () => +((Date.now() - t0) / 1000).toFixed(1);
 const out = { label, states: [] };
 const save = () => { mkdirSync('../load-out', { recursive: true }); writeFileSync(`../load-out/state_compile_${label}.json`, JSON.stringify(out, null, 1)); };
-await page.goto(`http://localhost:${port}/?test&trace&shaderlog&quality=${process.env.Q ?? 'high'}&day=0&hour=5.4&weather=clear`);
+await page.goto(`http://localhost:${port}/?test&trace&shaderlog&quality=${process.env.Q ?? 'high'}&day=0&hour=${process.env.HOUR ?? 5.4}&weather=clear`);
 await page.waitForFunction(() => window.__parsa?.ready === true || window.__parsa?.error, null, { timeout: 3_600_000, polling: 1000 });
 out.readyS = el(); console.log('ready', out.readyS);
 const V = (process.env.VIEW ?? '-36.4,140.5,1.6,196,-8').split(',').map(Number);
 await page.evaluate((v) => { window.__parsa.renderer.setAnimationLoop(null); window.__parsa.view(...v); }, V);
 const step = async (name) => {
   const c0 = await page.evaluate(() => ({ ...window.__gpuCount, n: window.__shaderLog.length }));
+  const tk = Date.now(); await page.evaluate(() => window.__parsa.tick()); const tickS = (Date.now() - tk) / 1000;
   const t = Date.now(); const warm = await page.evaluate(() => window.__parsa.warmUp());
   for (let i = 0; i < 2; i++) await page.evaluate(() => window.__parsa.renderOnce());
   const s = (Date.now() - t) / 1000;
@@ -28,10 +29,10 @@ const step = async (name) => {
     return { modules: c.modules - c0.modules, pipes: c.pipes - c0.pipes, asyncPipes: c.asyncPipes - c0.asyncPipes, compute: c.compute - c0.compute, logged: L.length,
       rebuilt: L.filter(e => e.re).length, lightsChanged: L.filter(e => e.lights).length, sampleLights: L.find(e => e.lights)?.lights,
       top: Object.entries(g).sort((a, b) => b[1] - a[1]).slice(0, 60) }; }, c0);
-  const row = { name, s, warm, ...r }; out.states.push(row); save();
-  console.log(name, s, 's', JSON.stringify({ modules: r.modules, pipes: r.pipes + r.asyncPipes, compute: r.compute, rebuilt: r.rebuilt, lightsChanged: r.lightsChanged }));
+  const row = { name, tickS, s, warm, ...r }; out.states.push(row); save();
+  console.log(name, 'tick', tickS, 'warm', s, 's', JSON.stringify({ modules: r.modules, pipes: r.pipes + r.asyncPipes, compute: r.compute, rebuilt: r.rebuilt, lightsChanged: r.lightsChanged }));
 };
-await step('initial 0,5.4,clear');
+await step(`initial 0,${process.env.HOUR ?? 5.4},clear`);
 for (const st of STATES) {
   if (st.mode) { await page.evaluate((m) => { window.__parsaSunKept.on = m !== 'old'; }, st.mode); out.states.push({ name: 'mode ' + st.mode }); continue; }
   await page.evaluate(({ d, h, w }) => { const p = window.__parsa; p.setTime(d, h); p.setWeather(w); }, st);

@@ -56,6 +56,12 @@ export const SPECS: Spec[] = [
   { id: 'talk_b', take: '18_08', kind: 'loop', from: 0, to: 17.4, len: 9, out: 20, mirror: true, note: 'conversation, explaining with hand gestures (subject 18; mirrored, another stretch)' },
   { id: 'talk_c', take: '80_48', kind: 'loop', from: 0, to: 19, len: 15, out: 20, note: 'arguing (subject 80)' },
   // ---- sitting on the ground
+  // ---- s17 V3 (D-500): work and leisure takes (the body of a real sweeper, mopper, drinker and dancer)
+  { id: 'sweep_a', take: '13_23', kind: 'loop', from: 2, to: 30, len: 6, out: 20, note: 'sweep floor (subject 13)' },
+  { id: 'sweep_b', take: '14_13', kind: 'loop', from: 2, to: 25, len: 6, out: 20, note: 'mop floor (subject 14)' },
+  { id: 'drink_a', take: '13_09', kind: 'loop', from: 0, to: 9, len: 6, out: 20, note: 'drink (subject 13)' },
+  { id: 'dance_a', take: '55_01', kind: 'loop', from: 1, to: 14, len: 6, out: 24, note: 'dance, whirl (subject 55)' },
+  { id: 'dance_b', take: '90_31', kind: 'loop', from: 0.5, to: 7.5, len: 4, out: 24, note: 'russian dance (subject 90)' },
   { id: 'sit_a', take: '82_05', kind: 'loop', gaze: true, seat: true, from: 0, to: 18.7, len: 15, out: 15, note: 'sitting on the ground relaxing (subject 82)' },
 ];
 

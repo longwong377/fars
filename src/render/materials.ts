@@ -1261,7 +1261,10 @@ function finish(m: THREE.MeshStandardNodeMaterial, L: Layer, d: SurfaceDef) {
   // ~0.8 m (a second octave, band-limited); a band of saturated dark mud rims each pool
   const fpW = fwidth(p).length().max(1e-6);
   const pv = mx_noise_float(p.mul(0.12)).mul(0.5).add(0.5).add(level.sub(1).mul(0.35)).add(mx_noise_float(p.mul(1.3).add(vec3(4.1, 0, 2.3))).mul(0.025).mul(bandLimit(fpW, 0.77)));
-  const puddle = puddles.mul(open).mul(smoothstep(0.68, 0.72, pv));
+  // (V5 D-525: far off and at grazing angles a thin pool showed only as a white sliver of mirrored sky along the horizon: the
+  // pools fade into wet ground over 60-150 m and below ~10 degrees of view elevation)
+  const pFade = float(1).sub(smoothstep(60, 150, positionView.length())).mul(smoothstep(0.04, 0.18, normalView.dot(positionView.negate().normalize()).abs()));
+  const puddle = puddles.mul(open).mul(smoothstep(0.68, 0.72, pv)).mul(pFade);
   const shore = puddles.mul(open).mul(smoothstep(0.645, 0.69, pv)).mul(float(1).sub(puddle));
   alb = alb.mul(float(1).sub(shore.mul(d.porosity * 0.45)));
   // snow: zero when snow = 0 (noise only modulates coverage, never adds snow on its own)
