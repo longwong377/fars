@@ -10323,3 +10323,28 @@ touched; the budget baseline is not re-accepted from such a head.
 ## D-668 The town plastered, not tinted (s18 cloud C2, the user: "bare tan boxes")
 - The wash was blended at 34-62 % over the mud on the street faces and read as lighter tan; now it is a coat (houses.ts washF: the street face 0.84-0.95 of the wash, the court's full, dulled a little since its renewal; the mud at the worn foot in the material's skirt). Every walled plot takes one: houses by standing (lime white 34-58 %, cream 16 %, warm yellow ochre 14 %, pink 7 %, red ochre 7 %; bare mud only for the poorest few), estates and official compounds gypsum-white, yards, pens, stables and craft areas a lime or cream wash; a stronger palette. A painted dado to ~0.9 m (red ochre, blue-grey or ochre) on 15-65 % of houses by standing, their window reveals in its paint. Census (node, the quarters' street faces, 124 k m²): plastered (wash ≥ 0.75) 0 % → 94.7 %, bare mud (< 0.3) 61.4 % → 3.2 %. The far level and the near tiles both take tone(), so both keep it.
 - (D-669, s18 C2) Why the T4 still drew tan under D-661's washes: V9's earth weathering on house_plaster mixed the lower ~1.3 m of every face 35 % toward the earth and darkened it 20 % (most of what a lane shows), over the household's wash. Now a worn band: 0.6 m, 15 %, 12 % (surfaces.ts HOUSE_WEATHER base); with the splash foot and the skirting coat the mud reads at the foot only. The scan (a ratio over the vertex colour) and the wall bake (normal and cavity) keep the wash.
+## D-693 The bodies on the GPU, and nobody inside the camera (s18 cloud C5)
+- HumanGPU starts with 256 person slots and grows (new bone and person textures, the compiled materials' texture nodes
+  repointed, the old disposed) when the pool attaches more; the pool holds 400 + 48 and crowded views pass 256 (the gift day
+  445 skinned, cov-252 on the T4 435). The suspected cause of crowded frames drawing nobody, or a body in the bind pose (C6's
+  gift day, the T4's arms-out man); headless the crowd drew all 235 people in the gift day's frustum. The Crowd now makes 640
+  slots at its construction, before any material compiles: no texture swap in play (+~3 MB). On-screen confirmation: a cloud
+  frame of the gift day (renders on the lead's s18-renders-cloud round).
+- Nobody is drawn within EYE_CLEAR 0.5 m across of the eye with their height spanning it (a rig's or a teleport's camera
+  inside the dawn guard at the stair top; the player's capsule keeps people off by physics).
+## D-694 The nav grid takes the town's colliders (s18 cloud C5)
+- tools/build_nav.ts streams the Settlement's colliders over the grid's box (C2's doors in the houses). No house lies in the
+  grid today (q_b1's S edge n 190, the grid ends at 185; q_b3's E edge e -625, the grid starts at -620): the rebuilt grid
+  is byte-identical, not re-committed.
+## D-695 The visitor's footprints and step dust (s18 cloud C5; C12 4-11)
+- src/player/prints.ts: a print at each 0.68 m stride on earth (not the Terrace's paving), alternating sides, fading over
+  240 s, one instanced draw of 160 decals; the player's steps raise the walkers' dust (dust.ts kind 'walk') on dry ground.
+  Placed from crowd.update (the player's position the world passes). Not done: the crowd's own prints; mud from the weather
+  (the prints' wetness is 0 until the world passes it).
+## D-696 The visitor: business, not the halmi, at the palaces; turned back bodily; the visitor by default (s18 cloud C5)
+- W18: a palace's guard asks the stranger's business, shown by the sealed letter carried for the treasurer (C); the halmi,
+  a travel authorisation (PF: B), is asked only at the road's and the town's posts (access.ts LETTER_ZONES). The escort walks
+  at the shoulder (0.9 m aside, 0.45 m ahead), not 1.4 m before the eyes.
+- 4-3: a stranger stopped at a post is walked back 0.8 m from its line at about 1.2 m/s (controller.ts PUSH_M, PUSH_STEP),
+  not held at an invisible line; main.ts still applies the position (a teleport each frame of 4 cm).
+- settings.ts: playerMode defaults to 'visitor'. Ask (main.ts, not mine): keep ?test pages observer unless &visitor.
