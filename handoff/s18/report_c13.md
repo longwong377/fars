@@ -1,8 +1,11 @@
 # s18 cloud C13: court, ceremony and dress (D-780)
 
 ## Broken, placeholder, unseen (first)
-- **No frame judged yet.** The one crude SwiftShader run timed out: the page was not ready after 40 min on a box busy with test
-  runs. A retry is below if it lands. Nothing has been seen at the player's lens on a GPU.
+- **No frame of mine.** Two crude SwiftShader runs never reached 'ready': 40 min on a busy box, then 60 min stopped by me.
+  C6's frames are the eyes:
+  - the gift day read EMPTY at 08:30 although the plans hold 300+ people within 60 m (a draw issue, C5);
+  - the banquet read as a standing crowd. Since then the servers and lamp tenders stand by the tables and walls, and the guests
+    are seated by rank. Not re-seen.
 - **people_hair and people_cloth are STALE** (tests/people_models "current: its inputs hash"). Their input hash covers all of
   src/people/outfits.ts, and D-780 changed it (the workers' bronze rings, the kidaris, the radial head fit). They can only be
   rebuilt on Vagon, because the makehuman sources are on C:. Ask: `node tools/blender/build.mjs people_hair people_cloth`.
@@ -107,12 +110,14 @@ New people: the chiliarch (in Median dress with kandys, gold at the ears and wri
   - The banquet music is in the Apadana.
   - Not done: couches and reclining (the court's furnishings are at the 450 k budget) and food on the tables beyond the
     vessels.
-- **The royal women's outing.** On about one afternoon in five, about 77 women and attendants go to the paradise. The women are
-  carried in curtained litters: wo_litter, built in Blender, drawn round the walking woman, its curtains hiding her steps. The
-  bearers are not drawn under the poles; the attendants walk alongside.
-- **Seals:** officials, scribes and stewards in Persian or Median dress wear a cylinder seal on a cord, fitted to the chest
-  (80 %).
-- **Necklaces:** gold for the court women, bronze for 3 in 5 town women. Kohl for 45 % of the town's women.
+- **The royal women's outing.** On about one afternoon in five, up to six royal women go to the paradise, each in a curtained
+  litter. The litter is wo_litter, built in Blender for shoulder carry: poles at 1.45 m, the cabin on them. Each litter is carried
+  by four attendants of one household (C14's carry_bier variants); they leave and arrive together, the woman unseen inside.
+  Other attendants walk beside. Open: the crew's formation round the litter in crowd.ts (Q-196, C14/C5).
+- **Seals:** officials, scribes and the treasury's men in Median dress wear a cylinder seal on a cord, fitted to the chest
+  (80 %). The Persian costume's mesh cannot take it: its far levels are at their triangle budget.
+- **Necklaces:** bronze for 3 in 5 town women; the court women have none, for the same budget. Kohl for 45 % of the town's
+  women.
 - **Barefoot and bare-chested:** most labourers go barefoot. In the heat they strip to the waist, once popview passes `tempC`.
 - **Look-alikes:** 12.8 % → 2.0-3.2 % of crowds.
 - **The gifts are drawn:** a prop class of their own.

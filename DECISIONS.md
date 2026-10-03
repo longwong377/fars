@@ -10025,6 +10025,16 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   after (tests/cloud_slits_d680.test.ts; fails unwarped). The cover calibration tests pass unchanged. C.
 - Kuh-e Rahmat's bright streak: road_pasargadae's first segment (settlement.json [250,250] -> [2600,1900]) runs ruler-straight
   from 2 m up to ~290 m over the mountain behind the Terrace; a data fix (reroute round the north end) asked of the lead.
+- The live page's black frames (s18, the lead's urgent ask; the T4 and the cloud alike): (1) progressive.ts deferred, once the
+  frame's 40 ms build budget was spent, every draw never built before, and the full-screen quads are drawn last: the post
+  pipeline's (composite, TRAA, bloom, the meter's render-to-texture) at high, the renderer's own output quad (tone mapping
+  and sRGB to the canvas) at low; while the world streamed in they were deferred every frame, so the canvas stayed black and
+  the meter read an unwritten target (meterLn 0, EV -1 on the T4). A QuadMesh is never deferred now. Cloud live probe
+  (?webgl=1, low, Enter and the film skipped, no ?test): black at 54-93 draws before, the sky, clouds and ground from the
+  first sampled frame after. (2) pipeline.ts pins the renderer's tone mapping and colour space before three's RenderPipeline
+  pass and restores them in a finally (a throw inside it left NoToneMapping, and the next frame rebuilt the output without
+  AgX: toneMapping 0 on the live T4 page); a throwing pass is logged (window.__frameFaults) and the frame goes on. (3) main.ts:
+  a meter readback pending over 2 s is abandoned and an all-zero or non-finite one rejected; both fall back to the lux law.
 - Unseen: the cloud cannot draw Q=high (WebGL2: program validation failures and a lost device with the cascade on AND off;
   WebGPU: SwiftShader's 16-texture cap), so the far cascade is verified node-side only; it needs a T4 frame.
 
@@ -10310,3 +10320,48 @@ touched; the budget baseline is not re-accepted from such a head.
 - The garden (plan.ts gardenBeds, used by the paradise and Dasht-e Gohar gardens; drawn by build.ts fittingGeom 'bed' and 'path', near and far): every tree in a raised bed (a mud-brick kerb round tilled, furrowed earth, 5.4 m square), the beds without a tree the gardeners' greens, an understorey of shrubs and vines (pomegranate, fig, vine) in half the beds; a gravel walk either side of every channel between stone edges, laid in 8 m pieces (C: a planted garden on the Pasargadae plan, B by analogy, not rows of trees on bare ground). Basins and channels as before; the pavilion is C15's.
 - The belt (D-661) kept settlement.test whole: q_b4 and q_b6 now flank their roads instead of straddling them (no plot within a road's half-width + 1 m: only q_s1 takes a road as its street), q_b4 west of the road south between the stores and the lower town (130 x 130 m), q_b6 north of the road west (180 x 150 m, turned −105° so its door points round true), q_b3 and q_b1 off the nav grid's box, q_b5 off orchard_6. Plots 1,505 → 2,016 (homes 1,947, town capacity 10,165 ≤ 11,000), every one reached (0 shut, lane cells 100 %).
 - A population quarter's market point on the open ground inside a site's raster, with no wall within 28 m to set the spreads along (q_lt_e's, moved by the belt), gets the open-ground market (fillPlan.ts).
+- D-810 amended (07:5x UTC): the user approved deploying from the cloud ("to answer your question #1": deploy when C9's cloud live-path check is clean), so the lead pushes the first head whose cloud live path draws a bright frame with no 'used in submit while destroyed' to s14-int, then the next Vagon session confirms on the T4.
+
+## D-710 CI and the old failing tests (s18 cloud C7, cloud-s18-c7-ci; table and causes in handoff/s18/ci.md)
+- The full vitest suite, tsc and lint:all on each s17-int head the lead named; every new red bisected to its first bad commit and sent to its owner as it appeared. The old reds (~20, all also red on s14-int 63d26b45) root-caused one by one: a stale test or fixture was changed only after the change behind it was named and shown intended (instruments: D-255's fifth prop class; humans_faces: D-322 rev 4's sleeves on the back; people_children: D-292's injury limps; religion: a pinned s8 person, the economy's per-day cost; people_days_r3: a road-folk buttermilk jar; popview: a texel per edge; arch: block comments; coverage: the same seed regenerated), a stale hash re-made only where the outputs were shown unchanged (sculpt rebuilt byte-identical; 12 Blender assets' hashes moved by edits that do not touch their builds, proven by substitution; the horizon re-baked after the meander); real bugs in another agent's code sent as asks with patches (the economy sends court people to market; the deeds' overlay lays stretches with no walk to them: 51 jumps -> 1). No threshold in gates/ or any test budget loosened, no test skipped or deleted.
+- The coverage views look down the open bearings (holes row 22): no random headings on the walkable grid or Rahmat, the same draws so every point keeps its time and weather.
+
+## D-667 The settlement under its 45 meshes; the T4's hard-edged patches and black streaks (s18 cloud C2)
+- tests/settlement_build's meshes ≤ 45 (51 on the base): the street doors' leaves in three meshes by the wood's age (were six; the paint tints vary them), the official, stores, stables and way-station compounds' far level in one mesh, the wall wear's splash in the soot's mesh: 45, every settlement_build test green.
+- Vagon's T4 frame (hard-edged pale polygons with straight cuts, black vertical streaks down the faces): the middle ring (40-72 m) no longer draws the brick losses as flat pale polygons; the material's mud streaks from the tops halved (surfaces.ts HOUSE_WEATHER wash 0.3 → 0.15). Village houses keep no brick-loss halo (the plain's frame budget, C7). C15's estates washed gypsum-white.
+
+## D-668 The town plastered, not tinted (s18 cloud C2, the user: "bare tan boxes")
+- The wash was blended at 34-62 % over the mud on the street faces and read as lighter tan; now it is a coat (houses.ts washF: the street face 0.84-0.95 of the wash, the court's full, dulled a little since its renewal; the mud at the worn foot in the material's skirt). Every walled plot takes one: houses by standing (lime white 34-58 %, cream 16 %, warm yellow ochre 14 %, pink 7 %, red ochre 7 %; bare mud only for the poorest few), estates and official compounds gypsum-white, yards, pens, stables and craft areas a lime or cream wash; a stronger palette. A painted dado to ~0.9 m (red ochre, blue-grey or ochre) on 15-65 % of houses by standing, their window reveals in its paint. Census (node, the quarters' street faces, 124 k m²): plastered (wash ≥ 0.75) 0 % → 94.7 %, bare mud (< 0.3) 61.4 % → 3.2 %. The far level and the near tiles both take tone(), so both keep it.
+- (D-669, s18 C2) Why the T4 still drew tan under D-661's washes: V9's earth weathering on house_plaster mixed the lower ~1.3 m of every face 35 % toward the earth and darkened it 20 % (most of what a lane shows), over the household's wash. Now a worn band: 0.6 m, 15 %, 12 % (surfaces.ts HOUSE_WEATHER base); with the splash foot and the skirting coat the mud reads at the foot only. The scan (a ratio over the vertex colour) and the wall bake (normal and cavity) keep the wash.
+## D-693 The bodies on the GPU, and nobody inside the camera (s18 cloud C5)
+- HumanGPU starts with 256 person slots and grows (new bone and person textures, the compiled materials' texture nodes
+  repointed, the old disposed) when the pool attaches more; the pool holds 400 + 48 and crowded views pass 256 (the gift day
+  445 skinned, cov-252 on the T4 435). The suspected cause of crowded frames drawing nobody, or a body in the bind pose (C6's
+  gift day, the T4's arms-out man); headless the crowd drew all 235 people in the gift day's frustum. The Crowd now makes 640
+  slots at its construction, before any material compiles: no texture swap in play (+~3 MB). On-screen confirmation: a cloud
+  frame of the gift day (renders on the lead's s18-renders-cloud round).
+- Nobody is drawn within EYE_CLEAR 0.5 m across of the eye with their height spanning it (a rig's or a teleport's camera
+  inside the dawn guard at the stair top; the player's capsule keeps people off by physics).
+## D-694 The nav grid takes the town's colliders (s18 cloud C5)
+- tools/build_nav.ts streams the Settlement's colliders over the grid's box (C2's doors in the houses). No house lies in the
+  grid today (q_b1's S edge n 190, the grid ends at 185; q_b3's E edge e -625, the grid starts at -620): the rebuilt grid
+  is byte-identical, not re-committed.
+## D-695 The visitor's footprints and step dust (s18 cloud C5; C12 4-11)
+- src/player/prints.ts: a print at each 0.68 m stride on earth (not the Terrace's paving), alternating sides, fading over
+  240 s, one instanced draw of 160 decals; the player's steps raise the walkers' dust (dust.ts kind 'walk') on dry ground.
+  Placed from crowd.update (the player's position the world passes). Not done: the crowd's own prints; mud from the weather
+  (the prints' wetness is 0 until the world passes it).
+## D-696 The visitor: business, not the halmi, at the palaces; turned back bodily; the visitor by default (s18 cloud C5)
+- W18: a palace's guard asks the stranger's business, shown by the sealed letter carried for the treasurer (C); the halmi,
+  a travel authorisation (PF: B), is asked only at the road's and the town's posts (access.ts LETTER_ZONES). The escort walks
+  at the shoulder (0.9 m aside, 0.45 m ahead), not 1.4 m before the eyes.
+- 4-3: a stranger stopped at a post is walked back 0.8 m from its line at about 1.2 m/s (controller.ts PUSH_M, PUSH_STEP),
+  not held at an invisible line; main.ts still applies the position (a teleport each frame of 4 cm).
+- settings.ts: playerMode defaults to 'visitor'. Ask (main.ts, not mine): keep ?test pages observer unless &visitor.
+
+## D-670 The houses lived in through the year (s18 cloud C2, C12's u6, W21, 19, 4-12)
+- Every house (houses.ts roofFill, drawn instanced by fill.ts, its seasons as bits): in the warm months the household's mats and bedding rolls on its largest roof (60 % of houses, 1-3 sleepers' places), at the harvest fruit drying on a mat there (apricots, grapes, pomegranates; 50 %); in the court's corner farthest from the street door a heap of ash and sweepings (every house with a court of 6+ cells) and a reed-mat screen leaned across the corner over the latrine pit (70 %). C.
+- Every living room's niche with a saucer lamp and a little of the meal set out (interiors/plan.ts; C: household offerings in wall niches; no words or images of a named god). The neighbourhood shrine waits on precinct.ts's lock (tests/religion.test.ts).
+- The stalls by season (fillPlan.ts): fresh fruit at the harvest only; in the warm and cold months the same spreads sell dried fruit and nuts (C; the PF rations' dried fruit, B).
+- (D-671, s18 C2, C12 row 16) The paradise garden fed: a stone-lined inlet from the plain's side (NNE) through the wall into the first cross channel, 48 m, and a sluice where it enters (two dressed stone cheeks, a timber board in their slots, its lifting bar; build.ts 'sluice'). C: the Pasargadae garden's channels fed by an inlet, B by analogy; the source beyond the inlet's end is not drawn.
+- The villages (plain/villagehouses.ts): the far level takes each household's wash by C2's draw (D-661), so villages read from afar as they do near; 38 % of households a cloth or two drying over the eave, 45 % a straw and fodder stack on the roof, 30 % of wings brushwood (C); the estates' porches with pile carpets, cushions and a brazier, jars by the pool, benches. The dung cakes on the lane walls were cut again: s17-int already stood at 2.01 M plain triangles (cap 2.0 M), and this branch brings it back under.

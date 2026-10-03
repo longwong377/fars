@@ -69,6 +69,10 @@ export const COURT_SLOTS: Slot[] = GEN.slots;
  *  spot that is not out of doors); sim.ts merges them into PLACES too */
 export const COURT_PRIVATE: CourtPlace[] = COURT.private_places as CourtPlace[];
 export const NIGHT_SLOTS = COURT_SLOTS.map((s, i) => [s, i] as const).filter(([s]) => s.night).map(([, i]) => i);
+/** D-780 (the lead: night on the Terrace): a brazier at the middle of each line the night watch holds (the Gate, the Grand
+ *  Stair, the Apadana's front, the palace doors), for the fire system to light from dusk to dawn while the court is in
+ *  residence (C4: world/firePlaces.ts); C */
+export const COURT_NIGHT_FIRES: { line: string; at: P2; what: string }[] = LINES.filter(L => L.night).map(L => ({ line: L.id, at: [(L.a[0] + L.b[0]) / 2, (L.a[1] + L.b[1]) / 2] as P2, what: `a brazier by the night watch: ${L.what}` }));
 /** the court's camp below the Terrace (popgeo.ts resolves `court_camp` to open ground about it) */
 export const COURT_CAMP: { c: P2; r: number; note: string } = { c: COURT.camp.c, r: COURT.camp.r, note: COURT.camp.note };
 
@@ -90,7 +94,7 @@ export function courtKeepClear(e: number, n: number): boolean {
   const Wt = COURT.visitors.waiting, L = Wt.line;
   if (Math.abs(e) < 6.8 && n > 60 && n < 100) return true;
   if (e > L.x - 1.6 && e < L.x + (L.lines - 1) * L.gap_m + 0.9 && n > L.y0 - 0.7 && n < L.y0 + L.n * L.step_m + 0.2) return true;
-  for (const x of Wt.stations_x) if (Math.abs(e - x) < 2.6) for (const y of Wt.stations_y) if (n > y - 1.6 && n < y + 4.8) return true;
+  for (const x of Wt.stations_x) if (Math.abs(e - x) < 2.6) for (const y of Wt.stations_y) if (n > y - 1.6 && n < y + 5.6) return true; // (D-780: rows 1.3 m deep)
   return false;
 }
 /** D-221: the acts of waiting that face the focus (talk faces the one talked to, work its work) */
@@ -845,6 +849,13 @@ class CourtDay {
     const OPEN = /^(forecourt|gate_hall|court_portico|apadana_hall)$/, busy = dayOff || prep ? opts : opts.filter(o => !(o[1] === 'clean' && OPEN.test(o[0])));
     this.fill(r.range(7.5, 8.1), opts); this.fill(r.range(11.6, 12.6), busy); this.meal(this.m.sleep === 'court_camp' ? 'court_kitchen' : this.m.sleep, 0.5, 'the midday meal from the kitchens');
     this.fill(r.range(15.6, 16.2), busy);
+    // D-780 (night on the Terrace): one palace servant in twelve keeps the lamps and the braziers at the halls and the Gate from
+    // dusk until the late watch, then goes to sleep (C)
+    if (!dayOff && !prep && !this.K.banquetNight(this.d) && (this.d + this.pid) % 12 === 5) { const LAMPS = ['gate_hall', 'court_portico', 'court_tachara', 'court_hadish', 'court_tripylon', 'forecourt'], at = LAMPS[this.pid % LAMPS.length];
+      this.fill(r.range(18, 18.6), opts); this.meal(this.m.sleep === 'court_camp' ? 'court_kitchen' : this.m.sleep, 0.5, 'an early evening meal before the night lamps');
+      this.go('court_table_store', 'going for oil for the night lamps'); this.go(at, 'carrying oil to the lamps and the braziers for the night', 'carry_jar', 'a jar of lamp oil');
+      this.add(Math.max(this.t + 0.5, this.sun.set + 0.3), at, 'clean', 'filling and lighting the lamps for the night, by lamplight (C: D-780)');
+      this.add(r.range(22.8, 23.5), at, 'rest', 'keeping the lamps and the brazier burning by the night watch, by the fire (C: D-780)'); this.night(); return; }
     // D-780: on a night of a great banquet some of the palace servants set out and tend the lamps in the Apadana (C)
     if (!dayOff && !prep && this.K.banquetNight(this.d) && this.K.inOut(this.pid, this.d, CE.banquet.lamps / Math.max(1, (this.K.byGroup.get('palace') ?? []).length))) {
       const [b0, b1] = ceremonyHours(this.K.pop.seed, this.d).banquet; this.fill(b0 - 1.4, opts); this.meal(this.m.sleep === 'court_camp' ? 'court_kitchen' : this.m.sleep, 0.4, 'an early evening meal before the banquet');

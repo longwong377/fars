@@ -51,7 +51,8 @@ settlement/plan.ts (+ new settlement/estates.ts).
   - From afar, the far level carries each household's wash by C2's draw (white, ochre, red, or bare mud for most of the poor).
     tests/villages_life.test.ts keeps the table equal to houses.ts.
   - 38 % of households have a cloth or two drying over the eave, in madder, woad, weld, undyed or brown.
-  - 30 % have dung cakes drying on the lane wall.
+  - 45 % have a straw and fodder stack on the roof, and 30 % of the wings carry brushwood.
+  - The dung cakes were cut again for the plain's triangle cap: s17-int was already over it, at 2.01 M against 2.0 M.
 
 ## Frames (crude, SwiftShader, `?webgl=1`, 1280 × 720, day 25 10:00 clear)
 

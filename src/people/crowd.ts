@@ -59,6 +59,7 @@ import type { AnimId } from './anim';
 import type { NearPerson } from '../audio/voices';
 import { voiceIdentity, nearPerson, type VoiceIdentity } from './talkers';
 import { Reactions, reactPose, SIGHT_POLL_S } from './react';
+import { Prints } from '../player/prints';
 import { SIGHT_M, type Near } from './converse/sight';
 /** poses in which people sit, kneel or lie (the seat pass rests them on the ground; coats and back-carried weapons are
  *  laid aside) */
@@ -74,6 +75,9 @@ const perfsOf = (P: Performance): Partial<Performance>[] => [P, ...(P.variants ?
 const SHARED_ACTS = new Set<string>(Object.entries(ACTIVITIES).filter(([, P]) => perfsOf(P).some(v => v.work?.some(w => w.shared))).map(([k]) => k));
 const THINGS_ACTS = new Set<string>(Object.entries(ACTIVITIES).filter(([, P]) => perfsOf(P).some(v => v.work?.length || v.animals)).map(([k]) => k));
 const PATH_ACTS = new Set<string>(Object.entries(ACTIVITIES).filter(([, P]) => perfsOf(P).some(v => v.anim && PATHED.has(v.anim))).map(([k]) => k));
+/** s18 C14 (D-790): a carried object's crew: half the spacing across (the bearers 0.92 m apart, the pole on the shoulder) and
+ *  the distance of the front and back pairs from the centre (humanLab 'stations', the bier's poles 2.7 m) */
+const CREW = { x: 0.46, z: 1.0 };
 /** s18 C14 (D-790): the seconds a toddler takes to catch up its way after a plop */
 const CATCH_S = 3;
 /** the gait phase (rad/s) of a moving performance given at a standing spot of the plan: the bearers' 1.5 h at the burial
@@ -127,6 +131,8 @@ export const MAX_FULL = 50, MAX_MID = 100;
 export const ATTACH_R = 620, DETACH_R = 660;
 /** the most simulated people attached at once (the cap passed to sim.visibleAgents) */
 export const POOL_MAX = 400;
+/** D-693: a person this close to the eye across (m) is not drawn (their body would enclose the camera) */
+export const EYE_CLEAR = 0.5;
 /** D-693: the GPU's person slots made at the start: the pool, its hysteresis and the extras (lineups, drivers, riders, musicians) */
 export const SLOTS_AT_START = 640;
 /** people cast shadows within this distance (m) only. An instanced caster is drawn whole in every cascade its bounds
@@ -250,13 +256,15 @@ export class Crowd {
   /** hidden behind the walls of the court or yard they stand in, from a camera outside it and below the wall tops */
   private walledOff(vp: ViewPerson, camY: number) { return vp.wall > 0 && vp.plot !== this.camPlot && camY < vp.y + vp.wall - 0.3; }
   private camAt = new THREE.Vector3();
+  /** D-695: the stranger's footprints, and where they were last frame (their pace, for the dust) */
+  readonly prints = new Prints(); private playerPrev: THREE.Vector3 | null = null;
   /** `sim` null: a crowd of extras only (the human lab page, tests) */
   /** the herds' calls (bleats, brays, barks, clucks) draw on the world seed's own stream, never Math.random (MASTER_PLAN §6 order, step 1) */
   private snd: Rng;
   constructor(readonly sim: PeopleSim | null, readonly seed: number, readonly humans: HumanSystem) {
     this.snd = new Rng(seed, 'crowd.calls');
     this.group.name = 'people';
-    this.group.add(humans.gpu.group);
+    this.group.add(humans.gpu.group); this.group.add(this.prints.mesh);
     // (s18 C5, D-693: the bone and person tables sized for the whole pool and its extras now, before any material is compiled
     // or drawn: growing them mid-play swaps the textures under compiled materials (HumanGPU.grow), and every frame with more
     // than the 256 default attached lost its bodies on the GPU: empty courts, a body in the bind pose)
@@ -595,10 +603,10 @@ export class Crowd {
   //  bearer and passes to the lowest id remaining only when he leaves. A jump in time anchors afresh. It is drawn when any
   //  performer of its key is within THINGS_DIST of the camera (by distance, not the frustum: turning the camera neither
   //  moves nor hides it; the instanced mesh's bounding sphere culls it).
-  private anchors = new Map<string, { kind: WorkKind; pid: number; b: [number, number, number, number]; at: [number, number, number]; drawn: boolean; group: boolean; seen: number }>();
+  private anchors = new Map<string, { kind: WorkKind; pid: number; b: [number, number, number, number]; at: [number, number, number]; drawn: boolean; group: boolean; seen: number; /** s18 C14 (D-790): a carried group object's crew: pid -> the bearer's place about the centre (m: left +x, ahead +z) */ crew?: Map<number, [number, number]> }>();
   private anchorSrc: ViewPerson[] = []; private anchorJumps = -1;
   /** per key this frame: the lowest id performing there, the anchor's own frame if he still performs there, anyone near */
-  private anchorScan = new Map<string, { pid: number; b: [number, number, number, number]; at: [number, number, number]; kind: WorkKind; group: boolean; own: [number, number, number, number] | null; near: boolean }>();
+  private anchorScan = new Map<string, { pid: number; b: [number, number, number, number]; at: [number, number, number]; kind: WorkKind; group: boolean; own: [number, number, number, number] | null; near: boolean; /** s18 C14: a carried object's bearers (pid, side) */ mem?: [number, number][] }>();
   private anchorPass(fed: boolean, cam: THREE.Vector3) {
     const A = this.anchors; if (!this.view) { A.clear(); return; }
     if (this.view.jumps !== this.anchorJumps) { this.anchorJumps = this.view.jumps; A.clear(); } // a jump in time: anchored afresh
@@ -613,11 +621,18 @@ export class Crowd {
       for (const w of P.work) { if (!w.shared) continue; const key = this.popKey(w, o), g = S.get(key), a = A.get(key);
         const fr: [number, number, number, number] = [o.e, o.y, -o.n, yawOf(o.heading)];
         if (!g) S.set(key, { pid: o.pid, b: fr, at: w.at, kind: w.kind, group: w.shared === 'group', own: a && a.pid === o.pid ? fr : null, near });
-        else { if (o.pid < g.pid) { g.pid = o.pid; g.b = fr; g.at = w.at; } if (a && a.pid === o.pid) g.own = fr; if (near) g.near = true; } } }
+        else { if (o.pid < g.pid) { g.pid = o.pid; g.b = fr; g.at = w.at; } if (a && a.pid === o.pid) g.own = fr; if (near) g.near = true; }
+        if (w.shared === 'group' && w.follow && o.moving) { const e = S.get(key)!; (e.mem ??= []).push([o.pid, -Math.sign(w.at[0]) || 1]); } } }
     for (const [key, a] of A) if (!S.has(key)) A.delete(key); // nobody performs there now
     for (const [key, g] of S) { const a = A.get(key);
       if (!a || (g.group && !g.own)) A.set(key, { kind: g.kind, pid: g.pid, b: g.b, at: g.at, drawn: g.near, group: g.group, seen: this.frame });
-      else { a.drawn = g.near; a.seen = this.frame; if (g.group && g.own) a.b = g.own; } } // the bier goes with its bearer
+      else { a.drawn = g.near; a.seen = this.frame; if (g.group && g.own) a.b = g.own; } // the bier goes with its bearer
+      // s18 C14 (D-790): a carried object (the bier, the litter) walks with its crew in formation: the anchor bearer's place is
+      // the object's centre, each bearer at his corner by his side (the shoulder his pole is on) and his rank on that side
+      const a2 = A.get(key)!; a2.crew = undefined;
+      if (g.mem && g.mem.length >= 2) { const crew = new Map<number, [number, number]>(), rank = { 1: 0, [-1]: 0 } as Record<number, number>;
+        for (const [pid, sd] of g.mem.sort((x, y) => x[0] - y[0])) { const r = rank[sd]++; crew.set(pid, [sd * CREW.x, r % 2 ? -CREW.z * (1 + (r >> 1)) : CREW.z * (1 + (r >> 1))]); }
+        a2.crew = crew; } }
   }
   /** the key of a population person's shared work object: its kind and the plan's place (a group object: and the household) */
   private popKey(w: WorkSpec, o: ViewPerson) { return w.shared === 'group' ? `${w.kind}|pop:${o.place}|hh${o.hh}` : `${w.kind}|pop:${o.place}`; }
@@ -650,6 +665,11 @@ export class Crowd {
   update(time: number, cam: THREE.Vector3, playerPos: THREE.Vector3 | null, camera?: THREE.Camera) {
     const t0 = performance.now(); this.now = time; const dt = Math.max(0, Math.min(0.5, time - this.lastTime)); this.lastTime = time; this.reactions.clock = time;
     if (playerPos && this.sim && time >= this.reactions.nextPoll) this.pollSight(time, playerPos, cam); // (D-395: the people react to the stranger on sight)
+    // D-695 (C12's 4-11): the stranger's own prints in dust and mud, and the dust their steps raise on dry ground (as a walker's)
+    if (playerPos && dt > 0) { this.prints.step(playerPos, time);
+      const pp = this.playerPrev, v = pp ? Math.hypot(playerPos.x - pp.x, playerPos.z - pp.z) / dt : 0;
+      if (pp && v > 0.5 && v < 4 && this.dustTap) this.dustTap('walk', playerPos.x, playerPos.y - 0.85, playerPos.z, Math.atan2(playerPos.x - pp.x, playerPos.z - pp.z), v, 7919);
+      (this.playerPrev ??= new THREE.Vector3()).copy(playerPos); }
     if (camera) { this.lastCamera = camera; camera.updateMatrixWorld(); this.pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse); this.frustum.setFromProjectionMatrix(this.pm); this.wide.copy(this.frustum); for (const pl of this.wide.planes) pl.constant += 3; }
     this.frame++;
     // the air's temperature now (the sim's weather; once a frame), for the dress of the cold
@@ -683,6 +703,9 @@ export class Crowd {
       else { p.shown = false; continue; }
       const b = p.base; b[0] = x; b[1] = y; b[2] = z; b[3] = yaw;
       this.resolve(p);
+      // s18 C14 (D-790): a bearer of a carried object at his corner of the crew's formation (anchorPass)
+      if (vp && !a && p.perf?.moving) { const cw = p.perf.work?.find(w => w.shared === 'group' && w.follow), g = cw && this.anchors.get(this.popKey(cw, vp)), c = g && g.crew?.get(vp.pid);
+        if (g && c) { const co = Math.cos(g.b[3]), sn = Math.sin(g.b[3]); x = g.b[0] + co * c[0] + sn * c[1]; z = g.b[2] - sn * c[0] + co * c[1]; yaw = g.b[3]; b[0] = x; b[2] = z; b[3] = yaw; } }
       // s18 C14 (D-790): a toddler walking free (no hand held) plops down onto its bottom now and then: held where it sat
       // while it sits and gets up, then it hurries after its way (the root eased back onto the walker's place over CATCH_S)
       if (p.gait.toddler) { const plop = (a ? a.walking : vp ? vp.moving : !!ACTIVITIES[p.act as ActivityId]?.moving) && vp?.hand !== 2 && plopPhase(this.cycleT(p, time), p.animK) < TODDLER.fallS; p.gait.plop = plop;
@@ -704,7 +727,10 @@ export class Crowd {
       if (p.drawnFrame === this.frame - 1) { pr[0] = r[0]; pr[1] = r[1]; pr[2] = r[2]; pr[3] = r[3]; } else { pr[0] = x; pr[1] = y; pr[2] = z; pr[3] = yaw; }
       r[0] = x; r[1] = y; r[2] = z; r[3] = yaw;
       const d = len3(x - cam.x, y + 0.9 - cam.y, z - cam.z); p.dist = d;
-      p.shown = d < LOD_DIST[3] && !(d < this.rigClear);
+      // (D-693: nobody is drawn around the eye: a body within EYE_CLEAR m of the camera across, its height spanning the
+      // eye's, would be seen from inside: the dawn guard at the stair top, the hall's crowd. The player's own capsule keeps
+      // people off by physics; a camera placed by a rig or a teleport is not)
+      p.shown = d < LOD_DIST[3] && !(d < this.rigClear) && !(Math.hypot(x - cam.x, z - cam.z) < EYE_CLEAR && cam.y > y - 0.1 && cam.y < y + 2.0);
       if (!p.shown) continue;
       const reach = p.perf?.animals || p.perf?.work?.length ? 4 : 1.3; // a performance's things and animals spread a few metres
       if (camera && !this.wide.intersectsSphere(_s.set(_v.set(x, y + 0.9, z), reach * p.look.scale))) { if (a || !p.extra) this.soundsOnly(p, d, time); continue; }
@@ -733,7 +759,7 @@ export class Crowd {
     IK_Q.passes = 4; gpu.end(true);
     { const ti = performance.now(); this.drawImpostors(time); this.impPerf.impMs = performance.now() - ti; }
     for (const [, g] of this.shared) { if (g.n > 1) { _q.setFromAxisAngle(_up, g.yaw); _m.compose(_v.set(g.x / g.n, g.y / g.n, g.z / g.n), _q, _one); this.things.push(g.kind as any, _m); } else this.things.push(g.kind as any, g.one); }
-    for (const g of this.anchors.values()) if (g.drawn) this.things.push(g.kind, this.placeAt(g.b, g.at[0], g.at[1], g.at[2], 0, _m));
+    for (const g of this.anchors.values()) if (g.drawn) this.things.push(g.kind, g.crew ? this.placeAt(g.b, 0, g.at[1], g.at[2], 0, _m) : this.placeAt(g.b, g.at[0], g.at[1], g.at[2], 0, _m)); // (a crew's: at its centre)
     this.things.end(); this.animals.end(); this.reins.end();
     for (const c of this.carried) { const im = c.mesh; im.visible = im.count > 0; if (!im.count) continue;
       im.instanceMatrix.needsUpdate = true; im.instanceMatrix.clearUpdateRanges(); im.instanceMatrix.addUpdateRange(0, im.count * 16);

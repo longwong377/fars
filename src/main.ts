@@ -61,6 +61,7 @@ if (P.get('court')) settings.courtCalendar = P.get('court') === 'seasonal' ? 'se
 else if (P.has('test')) settings.courtCalendar = 'evidence'; // camera rigs pin the court: their views predate the default; coverage samples the default world with &court=seasonal (UD-10, D-236)
 const SEED = chooseWorldSeed(P.get('seed'), P.has('test') || P.has('bench')); // a new world per new game (D-236); tests and the bench fixed
 const TEST = P.has('test'); // frozen world for camera rig / walkthrough tests
+if (TEST && !P.has('visitor')) settings.playerMode = 'observer'; // s18 (C5 D-696): ?test pages stay observer unless &visitor, so walk bots and coverage pages do not meet the Gate guard
 /** the renderless world (MASTER_PLAN §4.2, D-253): the whole world runs (simulation, physics, the crowd's instance buffers, the
  *  audio graph, the translation layer's state) but nothing is drawn, so no render pipeline is ever compiled: the page is ready
  *  in the world's build time and never takes the render lane's cost. For bots, people traces, audio and soaks in the browser. */

@@ -114,7 +114,8 @@ export class Settlement {
     const clusters = new Map<string, Cluster>();
     const quarters = this.plan.sites.filter(s => s.meta.kind === 'quarter');
     const clusterOf = (s: Site): string => {
-      if (s.meta.kind === 'quarter') return BELT_WITH[s.id] ?? s.id; // (s18 C2, D-665: the belt's quarters in their neighbours' meshes: no new draws)
+      if (s.meta.kind === 'quarter') return BELT_WITH[s.id] ?? s.id;
+      if (s.id === 'official' || s.id === 'stables' || s.id === 'waystation' || s.id === 'stores') return 'compounds'; // (s18 C2, D-667: the small walled compounds in one mesh) // (s18 C2, D-665: the belt's quarters in their neighbours' meshes: no new draws)
       // low garden and orchard walls in one mesh that casts no shadow; the four estates in one mesh
       if (s.plots.length && s.plots.every(p => p.kind === 'garden')) return 'gardens';
       if (s.id.startsWith('estate_')) return 'estates';
@@ -131,7 +132,7 @@ export class Settlement {
       const cl = getC(clusterOf(s), s.frame.c); const col: SiteCol = { id: s.id, c: s.frame.c, r: Math.hypot(s.W, s.H) / 2 + 5, boxes: [], live: null };
       this.cols.push(col); this.buildSite(s, si, cl, () => B(cl, 'stone'), col, H);
     });
-    this.doors = new TownDoors(this.houses.flatMap(h => h.doors), phys); this.group.add(this.doors.group);
+    this.doors = new TownDoors(this.houses.flatMap(h => h.doors), phys, 3); this.group.add(this.doors.group); // (s18 C2, D-667: three leaves by the wood's age, the paint varying them: tests/settlement_build's 45 meshes)
     this.roofWear = new RoofWear(this.houses); this.group.add(this.roofWear.group); // s17 C1 (D-550): leaking and fresh roofs from the sim (setSource)
     this.wallWear = new WallWear(this.houses); this.group.add(this.wallWear.group); this.roofWear.onSource = f => this.wallWear.setSource(f); // s17 C1: smoke over the doors, splashed feet, fresh coats
     phase('sites');
@@ -447,6 +448,12 @@ export function fittingGeom(s: Site, f: Site['fittings'][0], mud: Batch, H: (e: 
       for (const [cu, cv, hu, hv] of [[0, Wd - kt / 2, L, kt / 2], [0, -Wd + kt / 2, L, kt / 2], [L - kt / 2, 0, kt / 2, Wd - kt], [-L + kt / 2, 0, kt / 2, Wd - kt]] as const) { const q = at(cu, cv); mud.box(q[0], q[1], th, hu, hv, y - 0.1, y + kh, sh(kerb, 0.85), kerb, d); }
       const q0 = at(0, 0); mud.box(q0[0], q0[1], th, L - kt, Wd - kt, y - 0.1, y + kh - 0.05, soilD, soil, d, false, 1);
       for (let k = 1; k < 5; k++) { const fv = -Wd + kt + (2 * (Wd - kt) * k) / 5, q = at(0, fv); mud.box(q[0], q[1], th, L - kt - 0.1, 0.05, y + kh - 0.05, y + kh - 0.035, soilD, sh(soilD, 0.8), d, false, 1); }
+      break; }
+    case 'sluice': { // s18 C2 (D-671): two dressed stone cheeks either side of the channel, a timber board in their slots, its lifting bar
+      const wd = 0.3, tb = lin([0.4, 0.33, 0.25]);
+      for (const sg of [-1, 1]) { const q = at(0, sg * (wd + 0.18)); mud.box(q[0], q[1], th, 0.22, 0.18, y - 0.3, y + 0.75, sh(st, 0.85), st, d); }
+      mud.box(g[0], g[1], th, 0.04, wd + 0.12, y - 0.25, y + 0.45, sh(tb, 0.8), tb, d);
+      { const q = at(0, 0); mud.box(q[0], q[1], th, 0.05, wd + 0.42, y + 0.8, y + 0.88, sh(tb, 0.8), tb, d); }
       break; }
     case 'path': { // s18 C2 (D-666): a garden walk: packed pale gravel between low stone edges, worn darker down its middle (C)
       const L = (f.len ?? 8) / 2, Wd = (f.wid ?? 2) / 2, grav = lin([0.66, 0.6, 0.5]), worn = lin([0.56, 0.5, 0.41]);
