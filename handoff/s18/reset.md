@@ -38,3 +38,13 @@ Cycle: owners push fixes -> lead merges -> C6 renders the fixed REVIEW SET (13 v
 reviewers score it (same prompts as the first review) -> lead retargets owners on their top items -> repeat.
 Pass = both blind reviewers >= 7/10 AND finish lines A-E. Deploy whenever a cycle's score rises and C9's live path is clean.
 Scores: cycle 0 (9700b06d T4 + c7dcb652 cloud): 3/10, 3/10.
+
+## The asset replacement (the user, ~10:45 UTC: "get it done, it should have been done years ago")
+The big forms are still code boxes (398 modelled files are props, columns, animals) and the people a MakeHuman base. Now:
+- C15 D-802: the town kit in Blender (public/models/kit/town/, manifest with footprints/sockets); C2 places it along every
+  house wall instead of Batch.box (boxes only as the far LOD).
+- C10 D-803: the Terrace kit in Blender (ashlar facing, merlons, stairs, stone frames with cavetto cornices, plastered walls);
+  Gate and Apadana first.
+- C14: the base body reworked in Blender (anatomy, variety by age/work, skin, hair on every head); C13 D-804: the garments
+  as baked cloth simulation.
+Budgets bind (load, frame, heap, 950 MB dist). Verification: the review loop.
