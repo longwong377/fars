@@ -35,6 +35,8 @@ export function buildWayside(terrain: Terrain): WaysideOut {
   const slope = (e: number, n: number) => Math.hypot(H(e + 3, n) - H(e - 3, n), H(e, n + 3) - H(e, n - 3)) / 6;
   const clear = (e: number, n: number, m: number) => slope(e, n) < 0.12 && !zones.some(z => pointInPolygon(e, n, z) || z.some(p => Math.hypot(p[0] - e, p[1] - n) < m));
   const solid = (g: Geo, c: THREE.Vector3, h: THREE.Vector3, rot = 0) => { out.parts.push(g); out.boxes.push({ c, h, rot }); };
+  // (roads share their first stretch out of the town, D-730: a stop with another of its kind within 500 m is not doubled)
+  const near = (kind: string, e: number, n: number) => out.places.some(p => p.id.startsWith(kind + ':') && Math.hypot(p.e - e, p.n - n) < 500);
   const roads = (settlementJson as any).features.filter((f: any) => f.kind === 'road' && f.present_467 && f.polyline?.length > 1);
   for (const r of roads) { out.info.roads++;
     const pts = r.polyline as P2[], W = (r.width_m ?? 7) / 2, reach = r.id === 'road_naqsh_e_rustam' ? 1e9 : K.reach;
@@ -45,14 +47,14 @@ export function buildWayside(terrain: Terrain): WaysideOut {
       return { e: q.a[0] + dx * t * q.L, n: q.a[1] + dy * t * q.L, dx, dy, side: [-dy, dx] as P2 }; };
     const end = Math.min(S, reach);
     // wells
-    for (let s = K.well[0], k = 0; s < end; s += K.well[1], k++) { const p = at(s), sd = k % 2 ? 1 : -1, e = p.e + p.side[0] * sd * (W + 5), n = p.n + p.side[1] * sd * (W + 5); if (!clear(e, n, 60)) continue;
+    for (let s = K.well[0], k = 0; s < end; s += K.well[1], k++) { const p = at(s), sd = k % 2 ? 1 : -1, e = p.e + p.side[0] * sd * (W + 5), n = p.n + p.side[1] * sd * (W + 5); if (!clear(e, n, 60)) continue; if (near('well', e, n)) continue;
       const y = H(e, n); solid(cyl(e, y - 0.2, -n, 0.85, 0.75, STONE, 8, 0.8), new THREE.Vector3(e, y + 0.2, -n), new THREE.Vector3(0.85, 0.4, 0.85)); out.parts.push(cyl(e, y + 0.5, -n, 0.55, 0.02, C.dark, 8, 0.55));
       const ax = p.dx, ay = p.dy; out.parts.push(rod(new THREE.Vector3(e - ax * 0.9, y, -(n - ay * 0.9)), new THREE.Vector3(e - ax * 0.9, y + 2.1, -(n - ay * 0.9)), 0.06, C.pole, 5), rod(new THREE.Vector3(e + ax * 0.9, y, -(n + ay * 0.9)), new THREE.Vector3(e + ax * 0.9, y + 2.1, -(n + ay * 0.9)), 0.06, C.pole, 5),
         rod(new THREE.Vector3(e - ax, y + 2.05, -(n - ay)), new THREE.Vector3(e + ax, y + 2.05, -(n + ay)), 0.05, C.pole, 5));
       const te = e - p.side[0] * sd * 2.0, tn = n - p.side[1] * sd * 2.0, rot = Math.atan2(p.dy, p.dx); solid(box(te, y + 0.25, -tn, 1.0, 0.25, 0.35, STONE, rot), new THREE.Vector3(te, y + 0.25, -tn), new THREE.Vector3(1.0, 0.25, 0.35), rot); // (along the road)
       out.info.wells++; out.places.push({ id: `well:${r.id}:${k}`, e, n }); }
     // halts, each with its cart
-    for (let s = K.halt[0], k = 0; s < end; s += K.halt[1], k++) { const p = at(s), sd = k % 2 ? -1 : 1, e = p.e + p.side[0] * sd * (W + 7), n = p.n + p.side[1] * sd * (W + 7); if (!clear(e, n, 80)) continue;
+    for (let s = K.halt[0], k = 0; s < end; s += K.halt[1], k++) { const p = at(s), sd = k % 2 ? -1 : 1, e = p.e + p.side[0] * sd * (W + 7), n = p.n + p.side[1] * sd * (W + 7); if (!clear(e, n, 80)) continue; if (near('halt', e, n)) continue;
       const y = H(e, n), rot = Math.atan2(p.dy, p.dx), ux = p.dx, uy = p.dy, vx = p.side[0] * sd, vy = p.side[1] * sd; // u along the road, v away from it
       const P = (u: number, v: number) => [e + ux * u + vx * v, n + uy * u + vy * v] as P2;
       const wall = (u: number, v: number, hu: number, hv: number) => { const [we, wn] = P(u, v), cy = y - 0.2 + 1.2; solid(box(we, cy, -wn, hu, 1.4, hv, C.mud, rot), new THREE.Vector3(we, cy, -wn), new THREE.Vector3(hu, 1.4, hv), rot); };
@@ -70,7 +72,7 @@ export function buildWayside(terrain: Terrain): WaysideOut {
         out.boxes.push({ c: new THREE.Vector3(ce, cy + 0.55, -cn), h: new THREE.Vector3(1.3, 0.55, 0.9), rot }); out.info.carts++; }
       out.info.halts++; out.places.push({ id: `halt:${r.id}:${k}`, e, n }); }
     // field shrines, on the far side
-    for (let s = K.shrine[0], k = 0; s < end; s += K.shrine[1], k++) { const p = at(s), sd = k % 2 ? 1 : -1, e = p.e + p.side[0] * sd * (W + 12), n = p.n + p.side[1] * sd * (W + 12); if (!clear(e, n, 60)) continue;
+    for (let s = K.shrine[0], k = 0; s < end; s += K.shrine[1], k++) { const p = at(s), sd = k % 2 ? 1 : -1, e = p.e + p.side[0] * sd * (W + 12), n = p.n + p.side[1] * sd * (W + 12); if (!clear(e, n, 60)) continue; if (near('shrine', e, n)) continue;
       const y = H(e, n), rot = Math.atan2(p.dy, p.dx);
       solid(box(e, y + 0.15, -n, 0.55, 0.35, 0.55, STONE, rot), new THREE.Vector3(e, y + 0.3, -n), new THREE.Vector3(0.55, 0.6, 0.55), rot);
       out.parts.push(box(e, y + 0.6, -n, 0.3, 0.12, 0.3, STONE, rot), box(e, y + 0.88, -n, 0.42, 0.16, 0.42, STONE, rot), box(e, y + 1.06, -n, 0.3, 0.03, 0.3, ASH, rot));
