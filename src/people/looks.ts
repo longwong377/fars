@@ -158,7 +158,7 @@ export const DELEGATION_OF_ORIGIN: Record<string, DelegationDef> = Object.fromEn
  *  paint, Akkadian guḫlu: RECOLLECTION, NOT SEEN; C). Median dress: the guards' shares, else the base (scribes, couriers) */
 export const JEWELS: Partial<Record<Dress, { base: { ear: number; brace: number; shield?: number; kohl?: number }; guard?: { ear: number; brace: number; shield?: number; kohl?: number } }>> = {
   persian: { base: { ear: 0.9, brace: 0.8, kohl: 0.5 } }, guard: { base: { ear: 0.85, brace: 0.6, shield: 0.35 } }, king: { base: { ear: 1, brace: 1, kohl: 1 } },
-  court_woman: { base: { ear: 1, brace: 1, kohl: 1 } }, median: { base: { ear: 0.45, brace: 0.4 }, guard: { ear: 0.8, brace: 0.5 } }, woman: { base: { ear: 0.75, brace: 0.6, kohl: 0.25 } },
+  court_woman: { base: { ear: 1, brace: 1, kohl: 1 } }, median: { base: { ear: 0.45, brace: 0.4 }, guard: { ear: 0.8, brace: 0.5 } }, woman: { base: { ear: 0.75, brace: 0.6, kohl: 0.45 } }, // (D-780: eye paint for nearly half the town's women: C)
   // D-780: a share of the working men with a bronze ring at the ear or the wrist (C, by analogy with the women's: D-207)
   worker: { base: { ear: 0.2, brace: 0.18 } },
 };
