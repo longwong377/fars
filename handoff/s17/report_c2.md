@@ -8,6 +8,11 @@
   01:26) shows the ground pitch black (night light, V1's, flagged by the lead), so nothing of the plain's fill can be judged
   from it. Views asked in asks_vagon.md (track verge in April, stooks in June, floor and straw in October).
 - FOUND AND FIXED: the plain's grass tufts drew black flames (uncut alpha cards on a black atlas) in every render since s12.
+- V2's probe frames (01:01 ask): camelthorn and thistle cards drawn black. Changed, UNSEEN: groundFlora.ts lights them as a
+  low canopy (facing-corrected normal bent 2/3 to the sky, the baked normal map dropped, the baked occlusion to a third),
+  life models and the scan fallback alike. NOT FOUND in the timebox: the near-ground blocky dark speckle in terrainPlain.ts
+  (the only hard-edged near pattern there, the flower heads' step at ~3.7/m, line 340, draws colour, not dark); it may be the
+  ground scans' grain (V2's surfaces) at low mips: needs V2's frame to place.
 - Residual copies: 155 of ~340,000 instances near the paths (0.05%) still have a twin within 20 m (a cell is checked against
   its neighbours' unturned items, so a turned neighbour can collide; cross-plot orchard chains); not zero.
 - Draw calls: fieldFill is its own group beside the plain (the plain's <= 40-mesh gate was full: it broke the gate once its
@@ -28,6 +33,8 @@
 - A worn quarrymen's path from the Majdabad quarry to a village track (4.1 km, routed round the slopes; C6's ask).
 - Load (C4's boot profile): the orchard plots and town ground baked with the zones (~2.7 s on a cache hit), the leaf atlas
   assembled in a worker (~2 s off the main thread).
+- Sown plots carry the weeds of an unweeded ancient field (0-3 grass and herb clumps a 2 m cell by a patch noise, larger
+  than the young crop): Vagon's tip1 frame (cov-000) read the young wheat as a lawn; changed after that frame, unseen.
 - Lone trees on the field bunds (~35/km2, by irrigation) break the crop sheet at mid distance.
 - The farm year: sheaves in the rows and stooks on every cut cereal plot in its own harvest weeks (late May-July), threshing
   floors in use doy 150-250 (trodden sheaves, sledge, grain heaps growing), straw stacks to March, an ard at plots being

@@ -9481,6 +9481,10 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   (ribbons.ts quarryPaths: A* on a 25 m grid, length weighted by slope, nothing steeper than 1 in 3, smoothed; 82 ms at
   load), drawn in the tracks' mesh (allowed on the slopes the village tracks are cut on) with the same tread and verge
   (verge.ts). Majdabad: 4.1 km to a village track, steepest 0.11 (C).
+- V2's probe frames: the camelthorn and thistle cards drawn black: groundFlora.ts lights them as a low canopy (normal bent 2/3
+  toward the sky, facing-corrected; the baked normal map dropped; the baked occlusion to a third). Unseen on the T4.
+- Vagon's tip1 frame (cov-000: the young wheat read as a lawn): groundCover.ts puts the weeds of an unweeded field in every
+  growing plot (0-3 tufts and sward clumps a 2 m cell by a patch noise, 0.9-1.6x), C. Unseen on the T4.
 
 ## D-590 The front end and the opening: one type system, a loading screen that is the place's own dawn, and a wordless in-engine intro (session 17, cloud C5; UD-37)
 - Screens (src/ui/shell.ts, shell.css): Cormorant Garamond (display) and Alegreya Sans (interface), SIL OFL, self-hosted in public/fonts (ASSET_LEDGER); the title and the pause menu are a column of glass over the live world with the place's name in Old Persian (𐎱𐎠𐎼𐎿, p-a-r-s, as carved in DB I 5 and passim), settings a tabbed sheet (World, Display, Sound, Language, Keys; Esc goes back), controls with readable key names; the chronicle (J) a journal grouped by day and rebuilt only when it changes (it was rebuilt every frame); subtitles without the box, eased in once per line.
