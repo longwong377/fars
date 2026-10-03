@@ -154,15 +154,14 @@ export class GroundFlora {
         const vis = k === 'cushion' ? this.uBloomA : k === 'camelthorn' ? this.uBloomC : this.uHeads;
         const sm = lifeMaterial(lm, { fallback: [0.35, 0.4, 0.25], tint, roughness: 0.9, side: THREE.DoubleSide, flowerVis: vis });
         sm.positionNode = positionLocal.mul(grow);
-        // D-670 (the black specks at 12-60 m): the atlas's transparent texels are black, so its coarser mips average the leaves
-        // with black and the far level (alpha-tested) drew dark-to-black; the colour is un-premultiplied by the mip's coverage
-        // (rgb / alpha: the mean colour of the leaves inside the texel), so a far plant keeps its near colour
-        if (lm.albedo) { const t = texture(lm.albedo, uv()); sm.colorNode = t.rgb.div(t.a.max(0.2)).min(vec3(1, 1, 1)).mul(tint); }
         // s17 (D-560, V2's probe frames: camelthorn and thistle cards drawn black): thin spiny cards lit like a low canopy: the
         // facing-corrected geometry normal bent two thirds toward the sky (no card ever faces away from the light into black),
         // and the baked occlusion (the normal texture's alpha) kept to a third of its depth
         sm.normalMap = null; sm.normalNode = mix(normalView.mul(faceDirection), cameraViewMatrix.mul(vec4(0, 1, 0, 0)).xyz, 0.65).normalize();
-        if (lm.nrm) sm.aoNode = texture(lm.nrm, uv()).a.mul(0.3).add(0.7);
+        // D-670 (Vagon's T4 frame: pale blobs with no ground contact): the plant darkens toward its foot (the shade and the soil
+        // splashed on the lowest leaves over its first ~12 cm), so it sits in the ground instead of floating on it
+        const foot = smoothstep(0.0, 0.12, positionLocal.y.mul(grow)).mul(0.55).add(0.45);
+        sm.aoNode = lm.nrm ? texture(lm.nrm, uv()).a.mul(0.3).add(0.7).mul(foot) : foot;
         const mk = (lvl: string) => { const g = lm.levels[lvl].clone(); g.setAttribute('fpos', new THREE.InstancedBufferAttribute(new Float32Array(FLORA[k].max * 3), 3));
           const im = new THREE.InstancedMesh(g, sm, FLORA[k].max); im.count = 0; im.frustumCulled = false; im.castShadow = false; im.receiveShadow = true; im.name = `flora-${k}:model:${lvl}`;
           im.userData = { tier: mesh.userData.tier, src: 'SMALL-R;RECON', placeholder: false, note: `${FLORA[k].name}: modelled as the species (tools/blender/life_flora.py; D-332: forms from botanical descriptions, C); near the viewer only, stands and density reconstructed (C)` };
