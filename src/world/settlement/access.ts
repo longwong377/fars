@@ -62,6 +62,16 @@ export function ensureAccess(s: Site, min = 0.8): { opened: number; resited: num
               for (const n of set) { s.cell[n] = LANE; s.sub[n] = 0; s.room[n] = -1; } resetSiteCaches(s); const r3 = siteReach(s);
               if (r3[k] && s.doorClear(e) >= min && qs.every((q, x) => q === p.idx || (byPlot.get(q) ?? []).filter(y => !set.includes(y) && r3[y]).length >= before[x])) {
                 for (const q of qs) byPlot.set(q, (byPlot.get(q) ?? []).filter(x => !set.includes(x))); p.door = { cell: k, out: kk }; r = r3; opened++; resited++; left -= cells.length; done = true; cut += set.length; break; }
+              // (the lead's last try) the house's own corner cut back: its street door through the cut corner, from a cell of the
+              // house beside a cut cell (a door in a wall along u first: nothing narrows it)
+              if (qs.every((q, x) => q === p.idx || (byPlot.get(q) ?? []).filter(y => !set.includes(y) && r3[y]).length >= before[x])) for (const n of set) { if (done || !r3[n]) continue;
+                const ni = n % W, nj = (n / W) | 0;
+                for (const [a2, b2] of [[0, 1], [0, -1], [1, 0], [-1, 0]] as const) { if (!s.inb(ni + a2, nj + b2)) continue; const m = s.k(ni + a2, nj + b2); if (s.cell[m] !== p.idx) continue;
+                  const e3 = s.edgeBetween(m, n); if (s.noWall.has(e3) || inWay(e3)) continue; const had3 = s.doors.has(e3); s.doors.add(e3); resetSiteCaches(s); const r4 = siteReach(s);
+                  if (r4[m] && s.doorClear(e3) >= min) { for (const q of qs) byPlot.set(q, (byPlot.get(q) ?? []).filter(x => !set.includes(x))); p.door = { cell: m, out: n }; r = r4; opened++; resited++; left -= cells.length; done = true; cut += 1; break; }
+                  if (!had3) s.doors.delete(e3); }
+                resetSiteCaches(s); }
+              if (done) break;
               for (const [n, c0, s0, m0] of saved) { s.cell[n] = c0; s.sub[n] = s0; s.room[n] = m0; } }
             if (!done) resetSiteCaches(s); }
           if (done) break;

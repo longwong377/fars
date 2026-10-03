@@ -9572,6 +9572,10 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   far-bank reflection follows SEASON (was a hard-coded green).
 - Third pass: the footings take 75 % of the scan's buff (sunlit they read cold white-grey); the palaces' plaster bays 1σ 0.07 -> 0.09
   and rain wash 0.13 -> 0.17 (the Gate's 20 m wall read as one flat plane). Frames: shots/a4, t4.
+- KTX2 (the lead): dirt_floor, raked_dirt, stone_wall, clay_block_wall encoded by tools/bake_world/ktx_scans.ts (UASTC+RDO, zstd, mips;
+  public/textures/ktx.json lists them, scans.ts loads them through sharedKTX2; the jpgs stay as the fallback): 9 maps, 24 MB jpg ->
+  32 MB ktx2 on disk, GPU memory a quarter of RGBA8 and no decode on the page. House lab frames identical (shots/a5). The
+  20-80 m ground tiling: no visible repeat in the plain probe frames (shots/p1 stair-top, drum-road).
 
 ## D-480 (s17, V1 light): light v1, the art direction's light and tone
 - Tone (toneLook.ts): the fitted AgX look re-graded for the art direction (AC Origins / RDR2: rich, warm, controlled highlights,
@@ -9741,6 +9745,13 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
 - animals.ts: a library model's coat darkens to ~0.6 of its albedo with the weather's surface wetness (WEATHER.wetness, the
   ground's own uniform), loses its fuzz rim and takes a duller sheen. Probe: shots/wx-rain-spring-w7.png, wx-herd-30m-w7.png
   (the spring green of D-522 reads on the plain at 30 m).
+- D-472 addendum (00:31 crash, the second): Windows logged "low virtual memory": COMMIT ran out (limit 71.5 GB = 63 GB RAM
+  + 8 GB page file) with 35 GB of RAM still free: Chrome GPU processes commit 5-10 GB each (9.8 + 8.2 + 5.5 GB at the event)
+  and the lead had started a full vitest run (up to 16 workers) beside the train and the agents' probes. The Claude app died
+  again and stopped every agent. Fix: boxguard.freeGB = min(free RAM, free commit) from perf counters; gpu slots start only
+  with >= 12 GB and end their job under 6 GB; scoreboard refuses under 24 GB. No full test suite on the Vagon box while
+  agents build (the cloud CI runs npm test on every s17-int push); targeted vitest files only.
+
 - D-523 addendum (s17, V5): the ox (drawn from the cow model) has no udder: tools/blender/animals_real.py `no_udder` presses
   what hangs below the belly line between the hind legs and the navel up to the belly (72 vertices on the cow model) before
   the levels and bakes are made.

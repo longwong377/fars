@@ -1,0 +1,14 @@
+{
+ "about": "D-354: the scans encoded as KTX2 (tools/bake_world/ktx_scans.ts), each with the hash of its jpg; src/render/scans.ts loads these instead of their jpg",
+ "maps": {
+  "clay_block_wall/arm": "67fb0416a2155811",
+  "clay_block_wall/diff": "34ab0878fe0a9756",
+  "dirt_floor/arm": "1dc1029c93aeff54",
+  "dirt_floor/diff": "ab2fe5c36f9c078c",
+  "raked_dirt/arm": "55e687d574a20360",
+  "raked_dirt/diff": "fa34cf82e2ca8cd9",
+  "stone_wall/arm": "a3915e78e89c8980",
+  "stone_wall/diff": "78a71771e25fa044",
+  "stone_wall/nor": "d18d0905563a180f"
+ }
+}
