@@ -12,8 +12,9 @@ do you do, what has happened to you this year, what troubles you). The full repl
   question asks for), not a reader's judgement; its two misses are "a toy of my own" (a three-letter word), i.e. grounded.
 - **Not mine, asked of the lead:** a court servant of a retinue camp (seed 1, pid 59405) spends the whole day at rest, talk and
   knucklebones (court.ts): the job is a label that day (she worked the day before: kneading, water, sweeping the tents).
-- **By design, not changed:** the minds' deeds touch ~600 people a day of 81,000 (initiative.ts: feeling-driven deeds capped at
-  300 a day, D-462's cost). None of the thirty had a townsfolk deed in the five live days; 8 of 30 (the road folk, children of the
+- **Raised, then capped by cost:** the minds' own deeds now look at 12,000 people a day (was 4,000), up to 900 deeds: 862 people a
+  day touched (was 666) for +29 ms of the minds' day (tools/dev/minds_rate.ts; 40,000/3,000 would reach 1,462 a day for +135 ms,
+  ~40 % more catch-up: when the budget allows). None of the thirty had a townsfolk deed in the five live days; 8 of 30 (the road folk, children of the
   Treasury, a mother at the field) still have nothing done by or to them this year that they could tell (they now have yesterday).
   Raising deed volume is a cost question for the budget (asked as a next step).
 - **Road folk** (hinterland register) live off the map all day (3 plan parts, 2 reasons): they pass through; their day off the map
@@ -56,6 +57,17 @@ do you do, what has happened to you this year, what troubles you). The full repl
   it runs (W17); src/data/lives_baked_s1.json deleted (W22).
 - **Kokoro accents:** no regional colour pool; four style voices of four trained languages, near-even. **Unheard** (no
   listening in the cloud): PLACEHOLDER-QUALITY until the T4 hears it; voices_eval's uniqueness should be re-measured on Vagon.
+
+## Later still
+- **C7's planCheck (land_work):** a hearing is half an hour waiting to be heard and the hearing itself; the deeds' laid stretches
+  are dressed against cold and dust. Re-run of the land_work sample: the wait and dress issues are gone; left (not mine): meal
+  gaps (C1) and base-plan labels ("with the household" with no one home; a short "through the heat" sleep).
+- **C14's visemes:** voices.speaking entries carry the words said (ipa, text); the talk reply passes {ipa, text} as sayPcm's fifth
+  argument. world.ts must pass them on to crowd.voice (routed by the lead).
+- **4-8:** the talk panel shows what happened in plain words (no verb names, rule reasons or debug; F3/?debug keeps them).
+- **Tests:** tests/talk_prompt.test.ts did not finish in 45 min on this box (it builds a year's world after every source change):
+  left to CI. One run of day_slice "a jump across frames is the jump at once" failed under load and passed three times after
+  (unexplained; flagged).
 
 ## The thirty, before → after (replies grounded of 5; thin spots)
 | seed/pid | kind | person | replies | thin before | thin after |
