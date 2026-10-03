@@ -12,6 +12,7 @@ finish() {
   [ -z "$(git diff --name-only --diff-filter=U)" ] && git log -1 --format='merged %h' && return 0 || return 1
 }
 if git diff --name-only --diff-filter=U | grep -q .; then finish || exit 1; fi
+git fetch -q origin "+refs/heads/cloud-s18-*:refs/remotes/origin/cloud-s18-*"
 for b in $(git branch -r | grep 'origin/cloud-s18-' | sed 's/^ *//'); do
   [ -n "$SKIP" ] && echo "$b" | grep -qE "$SKIP" && { echo "skip $b"; continue; }
   [ "$(git rev-list --count HEAD..$b)" -gt 0 ] || continue
