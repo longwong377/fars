@@ -9836,3 +9836,16 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   new parameters stay in relief_atlas.ts: the atlas test reads "not current", as it already did since D-510's polychromy
   change. To finish: `RELIEF_WORK=T:/fars-blender/reliefs node C:/Users/Administrator/fars/tools/dev/gpu_slot.mjs v4 -- npx tsx
   tools/blender/relief_atlas.ts --jobs=5 --reuse` (~8 min bake + pack), then commit the two KTX2 files and the index.
+
+## D-680 (s18, cloud C4): the far sun cascade; the Rahmat streak traced
+- sunShadows.ts: past the last cascade (600 m) nothing had a sun shadow, so the Terrace and town from the plain read flat-lit.
+  A fifth, static map fitted to the box of the Terrace and the town (FAR_BOX: east -1480..330, north -1580..840, 4096²,
+  texel <= 0.9 m at every sun: farCascadeFit), drawn once at load and again only when the sun has moved 0.4 deg (never while
+  it is down), shades fragments 560-600 m+ from the lens. It is read with textureLoad and a hand-made 2x2 bilinear comparison
+  (its depth texture has no compare function and nearest filtering), so it adds NO sampler to any material (the T4's 16 per
+  fragment stage, D-300); tests/far_cascade_d680.test.ts builds a lit surface with the cascades on and off: same sampler
+  count, the far map read by textureLoad. ?farcsm=0 (load) or __parsaFarCascade.value = 0 (run time) for the A/B. C.
+- Kuh-e Rahmat's bright streak: road_pasargadae's first segment (settlement.json [250,250] -> [2600,1900]) runs ruler-straight
+  from 2 m up to ~290 m over the mountain behind the Terrace; a data fix (reroute round the north end) asked of the lead.
+- Unseen: the cloud cannot draw Q=high (WebGL2: program validation failures and a lost device with the cascade on AND off;
+  WebGPU: SwiftShader's 16-texture cap), so the far cascade is verified node-side only; it needs a T4 frame.
