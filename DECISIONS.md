@@ -9848,3 +9848,6 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   (light, surfaces, people, animals, Terrace, interiors). Holding every merge back for 9 s would ship none of it; the budget
   baseline is NOT loosened (gates/budgets.json keeps the morning numbers), so the next merge has to win the 9 s back.
 - Fire shadow cube maps off (FIRE_SHADOW_LIGHTS 0): over the T4's 16 samplers the ground, hills and columns vanished.
+- D-474 correction: re-measured on the tip with the ground fix (de0c067a, built, cold, T4, a train sharing the GPU): page ready
+  41.6 s (morning ~42), first frames seen 58.9 s (45.5), shaders settled 931 s (753), memory 10.57 GB (10.48), frame 170 ms
+  (117), validation errors 1 (15). The "181 s settled" above was the bugged build that drew no ground. Decision unchanged.
