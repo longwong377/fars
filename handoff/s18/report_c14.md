@@ -23,6 +23,14 @@
 - Seen in passing, not mine: the porter's headband floats ~2 cm off the scalp all round (C13); a young porter with no beard
   (the reliefs show bearded men: looks, C13).
 
+**Round 2 (the leads' asks), still open.** The royal chariot driven with four horses and turning wheels, reins and turning
+cart wheels need moving vehicle geometry in workObjects/crowd (C5's files): not started, proposed to the lead. Mules and camels
+"cut from the plain for budget": not found which cut (asked C9/the lead). Each body its own idle: poses are C5's (asked).
+Storks and bats exist in wildlife.ts (C12's "none" is likely their months and hours: storks Mar-Aug by day, bats at dusk Mar-Oct).
+Done: the mouth takes the voices' IPA (crowd.voice's 5th argument; world.ts:815 to pass it), mounts trot/gallop by pace with
+the rider's seat following, the wild herds bolt and come back (alarm, hooves, watching, walking home), herds to water at dawn
+and dusk, the domestic cat in town yards (from the leopard body), the child's hand-hold fixed (people_children palms).
+
 **What a player now meets (measured, node + crude frames).**
 - A person talking to you shapes the mouth: rounded on u/o/w, spread on i/e, lips pressed on m/b/p, the lower lip under the
   teeth on f/v, the jaw opening on the vowels (coarticulated, ~12 phones a second); the brows lift on stressed syllables, the
