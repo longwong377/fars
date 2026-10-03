@@ -10,3 +10,7 @@
 | C6 cloud eyes | renders/ on s18-renders-cloud (no src) | s18-renders-cloud | session_018ycMyuCSEaqVuPj6qhVJNt |
 | C7 CI, old failing tests | tests/, handoff/s18/ci.md, src no s18 agent owns | cloud-s18-c7-ci | session_0116XCoSb7vcKjGSMZ6fkX7d |
 | C8 the people's depth | src/people/(converse,mind,deeds,relations,economy,asks)/, src/people/(memory,persona,overheard,exchanges,activities).ts, src/audio/(speech,voices,phonemes).ts | cloud-s18-c8-depth | session_014tMypeZL5wmdJQy6viCiLn |
+| C9 the budget | src/render/(models,loaders,shareInstancing,compat,progressive,lowfirst,scanProps,decorAssets).ts, src/main.ts, src/world/cache/, src/world/(wildlife,smallLife,fauna,fireOcc).ts, src/dev/, gates/budgets.json (tighten only) | cloud-s18-c9-budget | session_01HZDVcFsLpJxZXhbSEgB5FL |
+| C10 the Terrace at 100-300 m | src/arch/ (not rooms, terrace_rooms, now), src/render/(monuments,reliefAtlas).ts | cloud-s18-c10-terrace | session_01VF48LTSeqX5SvZJDZWF8Xs |
+
+Ownership added during the session: C4 + src/world/(fire,firePlaces).ts (night light on the Terrace); C5 + src/people/(props,poseKit,playing).ts (props clipping); C2 + the paradise garden (in settlement/).
