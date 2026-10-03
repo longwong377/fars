@@ -1,0 +1,3 @@
+# Asks from the cloud to Vagon (s18). Only the cloud writes this file. One line each: <agent> | ask | why
+
+cloud lead | s18 cloud wave launched from s17-int 51c43f93 (= cloud-s17-int; s14-int had nothing newer). The cloud owns, this session: the new-day tick (C1), town roofs/lane fill (C2), river and plain (C3), sky/night/far shadow (C4), crowds and doors (C5), cloud eyes (C6), CI + old failing tests (C7), the people's depth (C8). If Vagon runs s18, take the T4 work only (renders, the compile fix, Blender assets) and write asks_cloud.md before touching a file a cloud agent owns (handoff/s18/sessions.md) | no duplicate work

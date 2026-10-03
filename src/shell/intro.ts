@@ -37,7 +37,7 @@ export const SHOTS: IntroShot[] = [
   // high over the fields S of the river, moving S toward the Terrace (3 km): the patchwork, the villages' first smoke,
   // Kuh-e Rahmat dark against the dawn on the left
   { id: 'plain', what: 'the plain at dawn', dur: 14, atRise: -0.1,
-    keys: [{ e: 740, n: 3380, h: 95, az: 200, pitch: -7, fov: 42 }, { e: 680, n: 3200, h: 82, az: 196, pitch: -6, fov: 42 }] },
+    keys: [{ e: -380, n: 2700, h: 95, az: 168, pitch: -5, fov: 42 }, { e: -300, n: 2520, h: 82, az: 170, pitch: -4.5, fov: 42 }] }, // (moved W of the low ridge between the river and the Terrace after the cloud's frame, 02:20: from e 700 the ridge hid the Terrace and Rahmat; tools: the line of sight to the Terrace is clear from here, +0.6-0.9 deg)
   // the town N of the Terrace from just over its roofs, looking S to the Terrace with the low sun raking across from the E;
   // lanes, courts, smoke from the first fires
   { id: 'town', what: 'the town waking', dur: 15, atRise: 0.35,
