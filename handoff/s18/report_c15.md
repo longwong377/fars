@@ -12,10 +12,14 @@ settlement/plan.ts (+ new settlement/estates.ts).
   the panels carry the Old Persian alone, flagged PLACEHOLDER in the carved mesh's note.
 - **DNc, DNd and DNe are carved but cannot be picked.** They are carved from the edition and have translations, but have no pick
   rectangle (the plain is at its 40-mesh cap), so the translation layer cannot be opened on them yet.
-- **The estates' houses are still bare mud** behind the new painted porches. Plot kind `elite` is not in C2's wash draw
-  (houses.ts `HOUSE_KINDS`). I asked the lead/C2 for a one-line change. The rooms' interiors are not painted (interiors are not
-  mine). Two smaller gaps: the porch roofs sit on per-prop ground heights (no group base), and the estates add one settlement
-  mesh. The settlement test's mesh cap (45) was already failing at 55 before this work (C2's belt); it is now 56.
+- **The estate houses' walls.** C2's D-668, merged at the end, now washes plot kind `elite` white, so the walls behind the
+  porches should read white. This is unseen: the frames predate it. Interiors are not painted (not mine).
+- **Roofs from below.** Prop boxes have no bottom face (C2's build.ts), so the pavilion's, the hall's and the porches' roofs
+  read only as edges from below. I asked for a `Prop.bottom` flag; estates.ts already sets it on every overhead box.
+- **Mesh and triangle counts.** The estates add one settlement mesh. Two tests fail on the s17-int base itself, not because
+  of this branch:
+  - tests/language.test.ts 'every raster … registered': public/textures/plaster001.
+  - the settlement mesh cap: 55 meshes against a limit of 45 on the base, 56 with this branch.
 - **Village gates are not painted.** TownDoors paints only when `variants > 1`, and villages use 1 (C2's towndoors.ts). The
   cloths and dung cakes are on the far level only; when a tile is drawn near they give way to the near level's own things.
 - **The tomb-cutters and the visitors are not simulated.** The scaffold, the spoil and the lean-to stand empty unless C1 adds a
@@ -56,7 +60,8 @@ settlement/plan.ts (+ new settlement/estates.ts).
 
 ## Frames (crude, SwiftShader, `?webgl=1`, 1280 × 720, day 25 10:00 clear)
 
-Before: `origin/s17-int` 803a0e76 (06:00). After: this branch at 4f3ab187. All frames are in handoff/s18/c15/ as
+Before: `origin/s17-int` 803a0e76 (06:00). After: this branch at 4f3ab187. Since then: the village yards are trodden earth
+(1a3863f2), and the villages and estates follow C2's D-668 washes (merged at 931db695). All frames are in handoff/s18/c15/ as
 before_*.jpg and after_*.jpg. They are crude frames for placement and emptiness only, not for the look.
 
 | view | before | after |
