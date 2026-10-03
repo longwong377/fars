@@ -273,6 +273,11 @@ function paradiseSite(): Site {
     const ii = i + di, jj = j + dj; if (s.inb(ii, jj) && !inNotch(ii, jj) && s.cell[s.k(ii, jj)] === p.idx) s.noWall.add(s.edgeBetween(s.k(i, j), s.k(ii, jj))); }
   const rng = new Rng(TOWN_SEED, 'town:paradise');
   gardenBeds(s, p, rng, { axisV: 0, u0: -L / 2 + 30, u1: L / 2 - 24, v0: -Wd / 2 + 8, v1: Wd / 2 - 8, cross: [-L / 2 + 30, -40, 50, L / 2 - 24], row: 'paradise_bagh_e_firuzi', feature: 'zone_bagh_e_firuzi' });
+  // s18 C2 (D-671, C12 row 16): the garden's water: a stone-lined inlet from the plain's side (NNE, toward the Pulvar's
+  // channels) through the wall into the first cross channel, a sluice of stone cheeks and a timber board where it enters
+  // (C: the Pasargadae garden's channels fed by an inlet, B by analogy; the source off the map's edge here)
+  { const cu = -L / 2 + 30, v0 = Wd / 2 - 8, v1 = Wd / 2 + 40; s.fittings.push({ kind: 'channel', u: cu, v: (v0 + v1) / 2, rot: Math.PI / 2, size: 1, plot: p.idx, len: v1 - v0, wid: 0.45, note: 'the garden\'s inlet: a stone-lined channel bringing the water in from the plain (C)' });
+    s.fittings.push({ kind: 'sluice', u: cu, v: Wd / 2 - 1.2, rot: Math.PI / 2, size: 1, plot: p.idx, note: 'the sluice: stone cheeks and a timber board lifted to let the water into the garden (C)' }); }
   s.recount(); PAVILION.frame = { c: s.grid(-L / 2 + 14, 0), theta: f.theta }; return s;
 }
 
