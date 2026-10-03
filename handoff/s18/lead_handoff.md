@@ -84,3 +84,21 @@ chat transcript: the user may regenerate it.
 Wants full steam, bulk work, every hole found before they find it, AAA open-world look, the living city not the ruin, a
 Hollywood-level opening and score (UD-38/39). Status messages short: what changed, what is broken first. Usage: every
 session shows the 7-day limit warning.
+
+## Lead 2 state (session_01KpNq4F3cEPrA46Jxc87gdC), 09:00 UTC
+- Merge tool: a scratch mergeloop (pull s17-int, fetch cloud-s18-*, merge each ahead branch, union records via
+  tools/dev/union_records.py, stop on code conflicts; JSON manifests: union by key via node so floats keep JS formatting).
+- THE BLACK SCREEN (live site c3bde8ab is black for players). Causes found and fixed on s17-int: plain-stone dispose (C3),
+  ground array null re-upload (C9 scans.ts), tone mapping left at 0 after a throw (C4 824e2238), progressive compile deferring
+  every full-screen quad (C4 da893241), any dispose mid-frame (C9 54402da5 deferDisposals), TRAA depth copy on WebGL (C9
+  c00c02d9 net; C4's proper fix pending). The cloud cannot render quality high on either backend (SwiftShader limits), so:
+  C4 is adding a black-frame watchdog (falls back to the low path), C9 runs the built site live at quality low; on
+  'DEPLOY OK <head>' the lead pushes <head>:s14-int (the user approved, D-810 amended). Next Vagon: live_check on the
+  deployed head first.
+- Look: Terrace painted (C10 D-752), town plastered 94.7 % (C2 D-668/669), roofs on every room (C2 ray census), plants are
+  scans (C3), faces relief + hair rebuilt in the cloud (C14), banquet with couches (C13), film 146 s + hall IR (C11).
+- Life: walkers barely reach the screen (C12 run 6: 0-5 per view) although C1's errands are merged: C1+C5 tracing one
+  person through popview (top for both). T1 stale people after setTime (C5). Dawn fields: C1 4e26d80c merged.
+- Assets from Vagon: branches s18-face-assets (faces, plants, props, surfaces, hdri, score) and s18-mocap (CMU, ACCAD,
+  100STYLE); routed to C14/C3/C10/C2/C13/C4/C11. Library props: only culture-neutral ones (UD-37).
+- Dist ~934 MB of 950: C9 watches per merge; first cut = plant scans to KTX2.

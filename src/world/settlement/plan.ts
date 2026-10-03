@@ -8,7 +8,7 @@ import { ensureAccess } from './access';
 import { cacheGetSync, cachePutSync } from '../cache/worldCache';
 import { Rng } from '../../core/rng';
 import settlementJson from '../../data/settlement.json';
-import { Site, SiteMeta, Plot, P2, Frame, toGrid, toLocal, OUT, LANE, FREE, RES, ROOM, COURT, YARD, Fitting, snapSite, restoreSite } from './site';
+import { Site, SiteMeta, Plot, P2, Frame, toGrid, toLocal, OUT, LANE, FREE, RES, SQUARE, ROOM, COURT, YARD, Fitting, snapSite, restoreSite } from './site';
 import { generateQuarter, QuarterOpts } from './quarter';
 import { ringCompound, yardCompound, roomBlock, openGround } from './compounds';
 import { HOUSE } from './town_rules';
@@ -92,10 +92,24 @@ function quarterSite(q: QDef): Site {
   generateQuarter(s, { mains: q.mains, mainWidth: 4, laneWidth: 3, alleyWidth: 2, dmax: 16, plotW: HOUSE.plotW, plotD: HOUSE.plotD, workshopShare: q.ws, crafts: q.crafts, squares: q.squares,
     forced: q.road ? [{ axis: 'v', offset: 0, width: q.roadW ?? 7 }] : undefined, reserve, shape: q.shape, row: 'town_houses', feature: q.feature, idPrefix: q.id }, rng);
   if (q.id === 'q_w2') stampAreaB(s, reserve[0], rng);
+  neighbourhoodShrine(s);
   return s;
 }
 
 /** open a lane from a rectangle's side to the nearest lane cell (straight run), returns the side used */
+/** s18 C2 (D-672, C12 row 19; the lead: in the settlement, not the fire precinct): each quarter's neighbourhood shrine (C:
+ *  the town's foreign and local households' small sanctuaries, an offering table under the sky before a little roofed cella;
+ *  no image or words of a named god): the house plot of 50-150 m² whose door opens on a square, else the one nearest the
+ *  quarter's middle, kept as a walled shrine court; its offering table with bowls, clay figurines and a lamp in the court */
+function neighbourhoodShrine(s: Site) {
+  let best: Plot | null = null, bd = 1e9;
+  for (const p of s.plots) { if (p.kind !== 'house' || p.area < 50 || p.area > 150 || !p.door) continue; const [i0, j0, i1, j1] = p.rect, onSq = s.cell[p.door.out] === SQUARE ? 0 : 1e4;
+    const d = onSq + Math.hypot((i0 + i1) / 2 - s.W / 2, (j0 + j1) / 2 - s.H / 2); if (d < bd) { bd = d; best = p; } }
+  if (!best) return; const p = best; p.kind = 'shrine'; p.capacity = 0; p.note = 'the neighbourhood\'s shrine: a walled court with an offering table under the sky before a small roofed cella (C)';
+  const [i0, j0, i1, j1] = p.rect; let su = 0, sv = 0, n = 0; for (let j = j0; j < j1; j++) for (let i = i0; i < i1; i++) { const k = s.k(i, j); if (s.cell[k] === p.idx && s.sub[k] === COURT) { su += s.cu(i); sv += s.cv(j); n++; } }
+  if (!n) for (let j = j0; j < j1; j++) for (let i = i0; i < i1; i++) { const k = s.k(i, j); if (s.cell[k] === p.idx) { su += s.cu(i); sv += s.cv(j); n++; } }
+  s.fittings.push({ kind: 'shrine', u: su / n, v: sv / n, rot: 0, size: 1, plot: p.idx, note: 'the offering table: bread, fruit and a little oil in bowls, clay figurines left by the households, a lamp kept burning (C)' });
+}
 function laneTo(s: Site, rect: [number, number, number, number]): 'S' | 'N' | 'W' | 'E' {
   const [i0, j0, i1, j1] = rect; let best: { side: 'S' | 'N' | 'W' | 'E'; d: number; run: [number, number, number, number] } | null = null;
   const probes: ['S' | 'N' | 'W' | 'E', number, number, number, number][] = [['S', (i0 + i1) >> 1, j0 - 1, 0, -1], ['N', (i0 + i1) >> 1, j1, 0, 1], ['W', i0 - 1, (j0 + j1) >> 1, -1, 0], ['E', i1, (j0 + j1) >> 1, 1, 0]];
@@ -273,6 +287,11 @@ function paradiseSite(): Site {
     const ii = i + di, jj = j + dj; if (s.inb(ii, jj) && !inNotch(ii, jj) && s.cell[s.k(ii, jj)] === p.idx) s.noWall.add(s.edgeBetween(s.k(i, j), s.k(ii, jj))); }
   const rng = new Rng(TOWN_SEED, 'town:paradise');
   gardenBeds(s, p, rng, { axisV: 0, u0: -L / 2 + 30, u1: L / 2 - 24, v0: -Wd / 2 + 8, v1: Wd / 2 - 8, cross: [-L / 2 + 30, -40, 50, L / 2 - 24], row: 'paradise_bagh_e_firuzi', feature: 'zone_bagh_e_firuzi' });
+  // s18 C2 (D-671, C12 row 16): the garden's water: a stone-lined inlet from the plain's side (NNE, toward the Pulvar's
+  // channels) through the wall into the first cross channel, a sluice of stone cheeks and a timber board where it enters
+  // (C: the Pasargadae garden's channels fed by an inlet, B by analogy; the source off the map's edge here)
+  { const cu = -L / 2 + 30, v0 = Wd / 2 - 8, v1 = Wd / 2 + 40; s.fittings.push({ kind: 'channel', u: cu, v: (v0 + v1) / 2, rot: Math.PI / 2, size: 1, plot: p.idx, len: v1 - v0, wid: 0.45, note: 'the garden\'s inlet: a stone-lined channel bringing the water in from the plain (C)' });
+    s.fittings.push({ kind: 'sluice', u: cu, v: Wd / 2 - 1.2, rot: Math.PI / 2, size: 1, plot: p.idx, note: 'the sluice: stone cheeks and a timber board lifted to let the water into the garden (C)' }); }
   s.recount(); PAVILION.frame = { c: s.grid(-L / 2 + 14, 0), theta: f.theta }; return s;
 }
 

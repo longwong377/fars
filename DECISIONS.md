@@ -9936,6 +9936,22 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   a_wo_shaduf, a_wo_pontoon); waterworks.ts places ~127 shadufs on the river and canal banks within 12 km (every ~420 m /
   ~330 m, sides alternating, none near a ford or on a road) with a 'lift' spot each for C1, and a bridge of boats on the
   royal road over the Kur whose deck rides on the river's level of the day.
+- Real plants (Vagon's 26 Poly Haven downloads, the lead's ask): 23 scans built (ph_props.mjs; region-wrong ones rejected:
+  moss, a succulent, the fruit model, a garden tree), 11 MB. groundFlora.ts gains four kinds drawn only from scans: wild shrubs
+  (Searsia, a broom-like bush), bunch grasses (straw by summer; also at the water), dead wood (rare) and the spring flowers
+  (March-May); the old kinds prefer the scans over the modelled cards (the T4's pale floating blobs). Memo keys widened (x8).
+- The fishermen's shore (the water look's life): two more kit models (a_wo_skiff, a_wo_net_poles); every ~1.1 km of river
+  within 10 km a fish trap in the shallows, a skiff drawn up on the bank and a net drying on poles, with 'fish' and 'mend'
+  spots for C1 (waterworksLayout().spots).
+- The plain from the Terrace read as one sheet past ~300 m: every plot fades to its zone's mean there. Holdings (~260 m, wandering
+  edges) now vary the far mean (+-40 % green cover, -25 % straw, +-14 % shade) while a holding spans pixels (terrainPlain.ts;
+  colour only, the plot hashes, crops and CPU mirror unchanged; C).
+- The fields 4-7 km out stood empty at working hours (C12): fieldWork.ts gives the people layer each plot's village (nearest
+  within 2.5 km), use, crop, season stage (ploughing, growing, reaping, stubble, fallow, vines, orchard) and its workers' spots
+  (ploughman and sower at the furrow front, reapers in a line with binders behind, carriers and gleaners, waterer at the head,
+  weeders, pruners, pickers, a herder), fronts moving along the strip through the work's days; plain.fieldWork(e, n, r, day) (C).
+- The open ground before the Terrace drew one even sheet to 700 m (noon frame): the range now in 100-300 m patches, grazed
+  bare or thick (+-45 % herb cover), and grey-green Artemisia stands 150-400 m across (terrainPlain.ts; C).
 
 ## D-720 Follow thirty: the people answer from their own lives without the model, and the town's deeds and yesterday reach their talk (session 18, cloud C8; UD-07, UD-08, UD-11, UD-21, UD-24, UD-32)
 - Measured (tools/dev/follow30.ts; REVIEWS/follow30.json): thirty people drawn by seed across the town, the villages, the Terrace's
@@ -10025,6 +10041,23 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   after (tests/cloud_slits_d680.test.ts; fails unwarped). The cover calibration tests pass unchanged. C.
 - Kuh-e Rahmat's bright streak: road_pasargadae's first segment (settlement.json [250,250] -> [2600,1900]) runs ruler-straight
   from 2 m up to ~290 m over the mountain behind the Terrace; a data fix (reroute round the north end) asked of the lead.
+- The live page's black frames (s18, the lead's urgent ask; the T4 and the cloud alike): (1) progressive.ts deferred, once the
+  frame's 40 ms build budget was spent, every draw never built before, and the full-screen quads are drawn last: the post
+  pipeline's (composite, TRAA, bloom, the meter's render-to-texture) at high, the renderer's own output quad (tone mapping
+  and sRGB to the canvas) at low; while the world streamed in they were deferred every frame, so the canvas stayed black and
+  the meter read an unwritten target (meterLn 0, EV -1 on the T4). A QuadMesh is never deferred now. Cloud live probe
+  (?webgl=1, low, Enter and the film skipped, no ?test): black at 54-93 draws before, the sky, clouds and ground from the
+  first sampled frame after. (2) pipeline.ts pins the renderer's tone mapping and colour space before three's RenderPipeline
+  pass and restores them in a finally (a throw inside it left NoToneMapping, and the next frame rebuilt the output without
+  AgX: toneMapping 0 on the live T4 page); a throwing pass is logged (window.__frameFaults) and the frame goes on. (3) main.ts:
+  a meter readback pending over 2 s is abandoned and an all-zero or non-finite one rejected; both fall back to the lux law.
+- (4) TRAA on the WebGL backend copied the scene depth into its history depth every frame; a depth copy there needs the texture
+  bound as a framebuffer once, which the history never was, so it threw ("Invalid value used as weak map key") inside the
+  post quad's draw and the frame was black at quality high on ?webgl=1. pipeline.ts binds and depth-clears the history target
+  when its depth has no framebuffer (cloud: the fault at 94 s before, none through 493 s after). (5) A black-frame watchdog
+  (pipeline.ts watchMeter/enterSafe, WATCHDOG; tests/black_watchdog_d680.test.ts): after a 20 s grace, 3 black meter samples
+  in a row (target unwritten or log-luminance < -20) in daylight with the scene drawing, 10 readback timeouts, or 3 frames of
+  a throwing post pass switch to the renderer's own tone-mapped output without post passes (window.__safeMode; ?nosafe off).
 - Unseen: the cloud cannot draw Q=high (WebGL2: program validation failures and a lost device with the cascade on AND off;
   WebGPU: SwiftShader's 16-texture cap), so the far cascade is verified node-side only; it needs a T4 frame.
 
@@ -10143,9 +10176,6 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   rings for a share of working men; gold plaques on a third of the court robes (drawn as the rosette motif in gold-yellow).
   people_look's rank test: court chroma > 1.5x the working dress's (was 2x; rank still shows).
 - Furnishings (furnish_palaces.ts): the Apadana laid for the banquets (a carpet and a table in each seated bay, lamp stands,
-  hangings on the W, E and N walls); with the court away the halls keep their hangings, and the Apadana a keeper's corner and lamps.
-
-
   hangings on the W, E and N walls: dropped in the second pass for the 450 k budget, the tables then drawn at the model's lowest
   level); with the court away the halls keep their hangings, and the Apadana a keeper's corner and lamps.
 - Second pass (the lead's go-ahead and C12's passes 2-4): the asks applied in activities.ts, calendar.ts (E-28, E-29) and
@@ -10157,10 +10187,16 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   (seats round tables, the servers by the tables, the lamp tenders by the walls, a phiale and a jug on each table); the royal
   women's outing to the paradise; bead necklaces; barefoot labourers and stripping to the waist in the heat (lookInput.tempC);
   fewer look-alikes in a crowd (12.8 % -> 2-3 %); the gifts drawn as a prop class of their own.
+- Fourth pass (the lead's list): night on the Terrace (palace servants keep the lamps and braziers at the halls and the Gate from
+  dusk to the late watch; COURT_NIGHT_FIRES, a brazier per night-watch line, for C4); the top ranks recline on couches at the six
+  tables nearest the throne (workObjects 'feast_couch', the furnishings' couch model as one instanced work object; workAnims
+  'recline', measured on the rig); UD-27 at the court (court.json houses): the Persians of rank as 55 great houses married into
+  one another and into the king's house, with rivals, and the king's favour drifting by the season, shown in the banquet's
+  seats, the audience's places and who talks with whom (all C); court.test's sealed-letter test cut to the court's residence.
 
 ## D-760 An original score, out of world: recorded orchestra, a main theme, an hour for the world, and a director that leaves silence (session 18, cloud C11; UD-38, UD-39)
 - The user's words (UD-38, UD-39) add non-diegetic music to the out-of-world layer, at a Hollywood bar and never recognisable as AI: the brief's "no background score" (§11) gives way to them; its ban on the "ancient Persia" cliché stands and binds the score (blocklist 'music-cliche': no duduk, oud or santur, no augmented-second "exotic" modes, no bent ethnic solo as the theme's identity; after C12's fourth pass the first draft's cor-anglais "duduk", alto-flute "ney" and Phrygian/Hijaz cues were rewritten for solo cello, horn, clarinet and flute in minor, Dorian and Aeolian). Majesty comes from harmony, brass, choir and rhythm; the period's colour (harp, frame drum) is used lightly. Equal temperament is the orchestra's own: the brief's tuning rule governs the world's players (src/audio/music.ts), not the out-of-world score. C.
-- Composed, not generated: every note is written (tools/score/cues/*.ts; the arranger's kit lib/kit.ts voice-leads pads and basses but never invents a tune), performed with expression (lib/write.ts: CC1 hairpins with each long note's own swell, vibrato blooming on held notes, section onsets spread, rubato tempo maps, legato overlaps), rendered through recorded instruments only (Sonatina Symphonic Orchestra, CC Sampling Plus 1.0; VSCO-2 Community Edition, CC0; MuseScore General, MIT; via sfizz and fluidsynth: tools/score/fetch.sh), mixed on a stage (pan, depth, a hall, glue compression, a look-ahead limiter) and mastered to BS.1770 loudness (-16 LUFS the theme, -18 to -22 the world's cues, true peak under -1 dBTP). The composer checks by measurement (tools/score/analyze.ts loudness curve and spectrogram; the build's semitone-clash check of long notes against the harmony): nobody in the cloud can listen. The hall is synthetic (no recorded hall IR is reachable here: a Vagon fetch can replace it).
+- Composed, not generated: every note is written (tools/score/cues/*.ts; the arranger's kit lib/kit.ts voice-leads pads and basses but never invents a tune), performed with expression (lib/write.ts: CC1 hairpins with each long note's own swell, vibrato blooming on held notes, section onsets spread, rubato tempo maps, legato overlaps), rendered through recorded instruments only (Sonatina Symphonic Orchestra, CC Sampling Plus 1.0; VSCO-2 Community Edition, CC0; MuseScore General, MIT; via sfizz and fluidsynth: tools/score/fetch.sh), mixed on a stage (pan, depth, a hall, glue compression, a look-ahead limiter) and mastered to BS.1770 loudness (-16 LUFS the theme, -18 to -22 the world's cues, true peak under -1 dBTP). The composer checks by measurement (tools/score/analyze.ts loudness curve and spectrogram; the build's semitone-clash check of long notes against the harmony): nobody in the cloud can listen. The hall is measured: the Nordea concert hall's impulse response (Tallinn; Freesound 423803, CC0, fetched by Vagon), ~1.2 s decay; the modelled hall remains the fallback. Of Vagon's other fetched samples none is used: the harp and lyre files are phrases and ambiences, not note-by-note instruments (SSO's sampled harp stays), the one frame-drum file is a loop, and duduk, ney, oud, santur and tombak stay out by §11's ban.
 - The main theme "Pārsa" (2:25, D minor, its bars the title film's cuts); 21 cues for the world (64 min: dawn, day, dusk, night, rain, the Terrace and its court, the roads, the town, the plain), each 2:15-3:45, Opus in WebM at 80 kbps (the opening's cue also AAC): public/audio/score/, catalogue manifest.json.
 - In the world (src/audio/score.ts): after the opening (or at once on a continued visit, 4-7 min of silence first), one cue at a time fitting the hour, place and weather, never the last one, nothing heard in the last 8 cues or the last hour while a fresh one fits, 5-12 min of silence between, 6 s in, 8 s out. Settings › Sound: "Score" On/Off and "Score volume" of its own ("Music in the world" stays the people's playing). Streams on demand: nothing of the score loads before the walk but the opening's.
 
@@ -10239,6 +10275,14 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   four horses abreast, CHARIOT_YOKE 2.95 m, the car's floor 0.55 m); the royal women's curtained litter (workObjects 'litter',
   carry_bier on a why naming it; Plutarch Them. 26, HDT 7.83 claims B, the form C); household donkeys tied at lane doors by
   day and hens out at the door (fauna.json donkey 0.08 of lane-door houses; all C).
+- D-790 round 4: the toddler held where it plopped (crowd.ts hold, Gait.plop; a held hand keeps it up) and hurrying after;
+  carried biers and litters walk in formation with their crews (crowd.ts CREW: the anchor bearer's place the centre, the
+  bearers at 0.46 m / 1.0 m by their pole's shoulder; Q-196 closed for moving crews); the royal women's litter carried by
+  C13's bearers (C13's model). The face assets (branch s18-face-assets, Vagon): the Lee Perry-Smith scan's normal map (CC BY
+  3.0) integrated to height, fitted to hm08 by an affine and thin-plate warp on six landmarks, cast onto its UV and blended
+  over the procedural creases (tools/blender/face_scan.py; skin.ts applyFaceRelief); its albedo is not used (one man's
+  stubble and brows on every face). The hair atlas's curls loosened (curly, court and beard rows: more irregular radius,
+  pitch and phase, more strays and fray: the elder's "bubble wrap"), rebuilt in the cloud (ktx_cli.mjs takes given levels).
 
 ## D-691 Carried props sit on the body, seated poses clear their props (s18 cloud C5)
 - tools/dev/prop_clip.ts: every activity and variant that holds a prop, and the goods in the plan's words (basket, sack, jar,
@@ -10316,6 +10360,13 @@ touched; the budget baseline is not re-accepted from such a head.
 - The full vitest suite, tsc and lint:all on each s17-int head the lead named; every new red bisected to its first bad commit and sent to its owner as it appeared. The old reds (~20, all also red on s14-int 63d26b45) root-caused one by one: a stale test or fixture was changed only after the change behind it was named and shown intended (instruments: D-255's fifth prop class; humans_faces: D-322 rev 4's sleeves on the back; people_children: D-292's injury limps; religion: a pinned s8 person, the economy's per-day cost; people_days_r3: a road-folk buttermilk jar; popview: a texel per edge; arch: block comments; coverage: the same seed regenerated), a stale hash re-made only where the outputs were shown unchanged (sculpt rebuilt byte-identical; 12 Blender assets' hashes moved by edits that do not touch their builds, proven by substitution; the horizon re-baked after the meander); real bugs in another agent's code sent as asks with patches (the economy sends court people to market; the deeds' overlay lays stretches with no walk to them: 51 jumps -> 1). No threshold in gates/ or any test budget loosened, no test skipped or deleted.
 - The coverage views look down the open bearings (holes row 22): no random headings on the walkable grid or Rahmat, the same draws so every point keeps its time and weather.
 
+## D-667 The settlement under its 45 meshes; the T4's hard-edged patches and black streaks (s18 cloud C2)
+- tests/settlement_build's meshes ≤ 45 (51 on the base): the street doors' leaves in three meshes by the wood's age (were six; the paint tints vary them), the official, stores, stables and way-station compounds' far level in one mesh, the wall wear's splash in the soot's mesh: 45, every settlement_build test green.
+- Vagon's T4 frame (hard-edged pale polygons with straight cuts, black vertical streaks down the faces): the middle ring (40-72 m) no longer draws the brick losses as flat pale polygons; the material's mud streaks from the tops halved (surfaces.ts HOUSE_WEATHER wash 0.3 → 0.15). Village houses keep no brick-loss halo (the plain's frame budget, C7). C15's estates washed gypsum-white.
+
+## D-668 The town plastered, not tinted (s18 cloud C2, the user: "bare tan boxes")
+- The wash was blended at 34-62 % over the mud on the street faces and read as lighter tan; now it is a coat (houses.ts washF: the street face 0.84-0.95 of the wash, the court's full, dulled a little since its renewal; the mud at the worn foot in the material's skirt). Every walled plot takes one: houses by standing (lime white 34-58 %, cream 16 %, warm yellow ochre 14 %, pink 7 %, red ochre 7 %; bare mud only for the poorest few), estates and official compounds gypsum-white, yards, pens, stables and craft areas a lime or cream wash; a stronger palette. A painted dado to ~0.9 m (red ochre, blue-grey or ochre) on 15-65 % of houses by standing, their window reveals in its paint. Census (node, the quarters' street faces, 124 k m²): plastered (wash ≥ 0.75) 0 % → 94.7 %, bare mud (< 0.3) 61.4 % → 3.2 %. The far level and the near tiles both take tone(), so both keep it.
+- (D-669, s18 C2) Why the T4 still drew tan under D-661's washes: V9's earth weathering on house_plaster mixed the lower ~1.3 m of every face 35 % toward the earth and darkened it 20 % (most of what a lane shows), over the household's wash. Now a worn band: 0.6 m, 15 %, 12 % (surfaces.ts HOUSE_WEATHER base); with the splash foot and the skirting coat the mud reads at the foot only. The scan (a ratio over the vertex colour) and the wall bake (normal and cavity) keep the wash.
 ## D-693 The bodies on the GPU, and nobody inside the camera (s18 cloud C5)
 - HumanGPU starts with 256 person slots and grows (new bone and person textures, the compiled materials' texture nodes
   repointed, the old disposed) when the pool attaches more; the pool holds 400 + 48 and crowded views pass 256 (the gift day
@@ -10341,6 +10392,63 @@ touched; the budget baseline is not re-accepted from such a head.
 - 4-3: a stranger stopped at a post is walked back 0.8 m from its line at about 1.2 m/s (controller.ts PUSH_M, PUSH_STEP),
   not held at an invisible line; main.ts still applies the position (a teleport each frame of 4 cm).
 - settings.ts: playerMode defaults to 'visitor'. Ask (main.ts, not mine): keep ?test pages observer unless &visitor.
+
+## D-670 The houses lived in through the year (s18 cloud C2, C12's u6, W21, 19, 4-12)
+- Every house (houses.ts roofFill, drawn instanced by fill.ts, its seasons as bits): in the warm months the household's mats and bedding rolls on its largest roof (60 % of houses, 1-3 sleepers' places), at the harvest fruit drying on a mat there (apricots, grapes, pomegranates; 50 %); in the court's corner farthest from the street door a heap of ash and sweepings (every house with a court of 6+ cells) and a reed-mat screen leaned across the corner over the latrine pit (70 %). C.
+- Every living room's niche with a saucer lamp and a little of the meal set out (interiors/plan.ts; C: household offerings in wall niches; no words or images of a named god). The neighbourhood shrine waits on precinct.ts's lock (tests/religion.test.ts).
+- The stalls by season (fillPlan.ts): fresh fruit at the harvest only; in the warm and cold months the same spreads sell dried fruit and nuts (C; the PF rations' dried fruit, B).
+- (D-671, s18 C2, C12 row 16) The paradise garden fed: a stone-lined inlet from the plain's side (NNE) through the wall into the first cross channel, 48 m, and a sluice where it enters (two dressed stone cheeks, a timber board in their slots, its lifting bar; build.ts 'sluice'). C: the Pasargadae garden's channels fed by an inlet, B by analogy; the source beyond the inlet's end is not drawn.
+- The villages (plain/villagehouses.ts): the far level takes each household's wash by C2's draw (D-661), so villages read from afar as they do near; 38 % of households a cloth or two drying over the eave, 45 % a straw and fodder stack on the roof, 30 % of wings brushwood (C); the estates' porches with pile carpets, cushions and a brazier, jars by the pool, benches. The dung cakes on the lane walls were cut again: s17-int already stood at 2.01 M plain triangles (cap 2.0 M), and this branch brings it back under.
+
+## D-672 The neighbourhood shrines; warmer roofs; the dawn roof census (s18 cloud C2, the lead and C12 row 19; C6's intro-town)
+- Each quarter's neighbourhood shrine (plan.ts neighbourhoodShrine; the lead: in the settlement, not the fire precinct): the house plot of 50-150 m² whose door opens on a square (else the one nearest the middle) kept as a walled shrine court (kind 'shrine', no household), its room the cella, in the court an offering table of dressed stone with bowls of offerings, clay figurines and a lamp kept burning at night (build.ts 'shrine', the fire system's lamp; a collider). C: the town's local and foreign households' small sanctuaries; no image or words of a named god. 15 shrines, homes 1,947 → 1,932.
+- C6's intro-town (−320, 862, 20 m, az 154, pitch −11, 45°, at dawn) measured in node: of the town's pixels no ray reaches a room's floor (nor a court's): every room is roofed; the "open tops with dark floors" are the courts' inner faces in shadow (1,589 wall pixels against 188 roof at ~300 m and 20 m up). D-668's full wash on the court faces lifts them; the roofs' coat warmer (ROOF_COAT 0.8/0.64/0.44, 65-85 % over the plot's earth).
+- Market goods kept off the plots by 6 cm (a bowl on a cell's edge rounded into a workshop: fill.test), the open-ground market's goods checked too.
+- (D-673, s18 C2, C6's cov-037) The "floating wall-foot strip over a black gap": the stone footing's 3.5 cm ledge, its lit top over its own shaded face and the damp band; the ledge's top toned down (0.78) and the face lifted (0.94-1.06, ao +0.1). cov-037's large hatched brick loss on c7dcb652 is V9's material loss, capped at 1.5 % by D-663 (after that head).
+- (D-674, s18 C2, the lead's assets ask) The town's walls in a lime-plaster grain: ambientCG Plaster001 (CC0, Vagon's s18-face-assets; hand-laid lime plaster with trowel marks) as house_plaster's scan (src/render/scans.ts; public/textures/plaster001 diff and arm, scans.json, ASSET_LEDGER), was Poly Haven's Dirt Floor: the households' washes keep their colour (the scan is a ratio over it), the walls now read as plaster, not earth. Plaster007 (greenish stains) and PaintedPlaster017 (a modern painted finish) not taken.
+
+## D-751 The cloud frames' black walls: the KTX2 target from the WebGL2 context (s18 cloud C10)
+- The cloud's eyes draw through WebGL2 (?webgl=1) while sharedKTX2 (render/loaders.ts) took its transcode target from the WebGPU
+  adapter's features: BC7, which SwiftShader's WebGL2 cannot upload (compressedTexSubImage2D 'invalid format'), so every KTX2
+  scan sampled black (the Terrace's walls in every cloud frame since D-354). With ?webgl=1 the target now comes from a WebGL2
+  context's extensions. The T4 (WebGPU) path is unchanged. Probe frames before and after (handoff/s18/c10).
+
+## D-752 The Terrace in residence: the polychromy pass (s18 cloud C10; holes.md #3, #6, P2-3; D-771; UD-14, UD-29)
+- Palace walls and towers draw in palace_plaster (meshes.ts renderMaterial): the interior scheme inside (global.r_interior_paint)
+  and PALACE_OUTER_PAINT outside (a yellow-ochre lime ground, a red ochre dado 1.4 m edged by white, Egyptian blue and white
+  bands, a red frieze 1.1 m under the wall's head with a white edge); kept by the court (PALACE_KEPT: no fallen plaster, faint
+  wash and damp). The Treasury keeps its clay paint; the fortification and the working ranges keep PALACE_WEATHER. Pigments B
+  (RELIEFS_AND_COLOUR §3a), layout and tones C.
+- The frames (limestone_dark parts) draw in frame_coat: the whitish fluorapatite-and-calcite coat over the dark stone (Askari
+  Chaverdi et al. 2016, B), burnished (C). limestone_dark itself (the Now view, the Ka'ba) is unchanged (UD-20).
+- 467 stone fresh: no lichen on the Terrace's own stone (grime.ts LICHEN), the boulder scan's mottle at 20 % chroma and two
+  thirds of its weight (scans.ts; ALB_MIN kept). Royal cedar planed and painted red ochre (timber, roof_timber).
+- The protome capitals, the volutes and the Gate's colossi painted and gilded (src/arch/model_paint.ts: zones in each model's own
+  space, vertex colour plus a gilt mask on its own baked material; ~5 new pipelines). Every relief figure painted: flesh, leather,
+  the eye's white with a dark pupil, the animals' coats, the Elamite worshippers (relief_figures.ts); the paint atlas rebuilt
+  alone by tools/blender/relief_paint.ts (same layout, nao.ktx2 as baked; all 221 definitions checked against the index's grid).
+  The inscriptions' signs in Egyptian blue (C). Tests that pinned the ruin changed (polychromy, surfaces_s6, roofedge).
+- The relief triangle gate held: the cypress's error bound x1.6 on the vertex-painted levels (reliefs.ts ERR_K): 1.57 M -> 1.39 M.
+- Not done: the relief backgrounds (the façade stone) bare; the ceilings plain red.
+
+## D-753 The Apadana's tower stairs and walkable roofs (s18 cloud C10; holes.md P2-5, Q-630, D-771)
+- Each corner tower hollow (src/arch/tower_stairs.ts): 2.4 m walls carrying the tower's envelope, a door from its portico, a
+  stair of plastered mud brick climbing round the inside in flights with corner landings to a hatch in the tower's slab; a short
+  flight from the hall roof up to each tower top; the Apadana's roofs solid (walkable where the stairs reach them). The frieze,
+  the standards and the windows read the envelopes (glazed.ts towerEnvelopes). All sizes C.
+- roofedge.ts: an edge where a part continues the top flush at its own level is not free (no parapet between a tower's slab and
+  its walls' heads; also the doubled parapet where a wall's top is flush with a roof). arris_slabs.ts: a stair joint just past a
+  tread's end (under the parapet it abuts) grooved at the end, and clipped joints kept down to 4 mm (was 2 cm): a latent hole at
+  the Tripylon and Hadish stairs that the new faces' resampling of tests/arris_slabs exposed.
+- nav, probes and fire occlusion rebaked (parts hash).
+
+## D-754 The drums' sledge road and ramp (s18 cloud C10; holes.md P2-6, Q-710, D-771)
+- From the drum ground (traffic.ts DRUM_GROUND) south 104 m to the Terrace's N edge, on the ground as the heightfield gives it
+  (src/arch/drum_road_profile.json from tools/blender/drum_road_profile.ts): a packed-earth bed with the runners' ruts, timber
+  sleepers every 0.9 m, fieldstone kerbs; at the drum ground 18 drums on chocks and two sledges. The heightfield's bank stands
+  ~4 m over the court along the whole N edge, so an earth ramp (parts, walkable) comes down westward from a head against the
+  edge (e 146-154) to the court along the strip between the edge and the garrison. All C; the movers (traffic.ts) still stop at
+  the drum ground: their last 250 m onto the ramp is C1's.
 - (D-696, the walk) a post held keeps its place, but two people of a post are never on one spot (SEP_POST 0.1 m: a shared spot
   is spread, the court's files keep their own spacing), and a guard at his post gives half a step (0.5 m) to the stranger;
   the court's waiting keep facing what they wait on (no group facing for FACING_ACTS). Terrace bots seed 1: stuck time 4.8-6.6 %

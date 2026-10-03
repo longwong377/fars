@@ -25,7 +25,10 @@ export function installProgressiveCompile(renderer: THREE.WebGPURenderer, budget
   if (budgetMs > 0) {
     const direct = R._renderObjectDirect;
     R._renderObjectDirect = function (object: any, material: any, scene: any, camera: any, lightsNode: any, group: any, clip: any, passId: any) {
-      if (performance.now() > end) {
+      // D-680 (s18, the live page's black frames): the post pipeline's full-screen quads (the composite, the meter, every pass)
+      // are drawn last, after the world has spent the frame's build budget; deferred, they were deferred EVERY frame while the
+      // world streamed in, and the player saw black (and the meter read an unwritten target). A quad is never deferred.
+      if (performance.now() > end && !object.isQuadMesh) {
         const ro = this._objects.get(object, material, scene, camera, lightsNode, this._currentRenderContext, clip, passId);
         if (ro._nodeBuilderState === null) { deferred++; return; }
       }
@@ -60,6 +63,12 @@ export function installRenderSafetyNet(renderer: THREE.WebGPURenderer) {
   if (Q && !Q.__parsaSafe) { Q.__parsaSafe = true; const wb = Q.writeBuffer, wt = Q.writeTexture;
     Q.writeBuffer = function (this: any, buf: any, ...a: any[]) { if (B && !(buf instanceof B)) { note('writeBuffer to a missing buffer'); return; } try { return wb.call(this, buf, ...a); } catch (e) { note('writeBuffer', e); } };
     Q.writeTexture = function (this: any, ...a: any[]) { try { return wt.apply(this, a); } catch (e) { note('writeTexture', e); } }; }
+  // (a copy between textures that throws is skipped: on WebGL2 three's TRAA copies the scene's depth texture into its history
+  // and the WebGL backend's depth copy looks up a render target the depth texture does not record ("Invalid value used as
+  // weak map key"): the throw aborted the post pipeline's quad every frame and the canvas stayed black on the WebGL path; the
+  // history keeps last frame's depth instead)
+  const copy = R.copyTextureToTexture?.bind(R);
+  if (copy) R.copyTextureToTexture = (...a: any[]) => { try { return copy(...a); } catch (e) { note('copyTextureToTexture', e); } };
   const direct = R._renderObjectDirect;
   R._renderObjectDirect = function (object: any, ...rest: any[]) { const prev = cur; cur = object;
     try { return direct.call(this, object, ...rest); } catch (e) { note('draw', e); } finally { cur = prev; } };

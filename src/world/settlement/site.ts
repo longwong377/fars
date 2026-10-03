@@ -22,9 +22,9 @@ export interface Frame { c: P2; theta: number }
 export const toGrid = (f: Frame, u: number, v: number): P2 => { const c = Math.cos(f.theta), s = Math.sin(f.theta); return [f.c[0] + u * c - v * s, f.c[1] + u * s + v * c]; };
 export const toLocal = (f: Frame, e: number, n: number): P2 => { const c = Math.cos(f.theta), s = Math.sin(f.theta), de = e - f.c[0], dn = n - f.c[1]; return [de * c + dn * s, -de * s + dn * c]; };
 
-export type PlotKind = 'house' | 'house_large' | 'workshop' | 'elite' | 'official' | 'store' | 'stable' | 'station' | 'garden' | 'yard' | 'craft_area' | 'pavilion' | 'pen';
+export type PlotKind = 'house' | 'house_large' | 'workshop' | 'elite' | 'official' | 'store' | 'stable' | 'station' | 'garden' | 'yard' | 'craft_area' | 'pavilion' | 'pen' | 'shrine';
 export type Craft = 'metal' | 'wood' | 'textile' | 'bakery' | 'brewery' | 'pottery' | 'pigment' | 'bone' | 'kiln' | 'brick';
-export type FittingKind = 'hearth' | 'oven' | 'kiln' | 'forge' | 'jar' | 'jar_big' | 'tree' | 'well' | 'quern' | 'loom' | 'vat' | 'timber' | 'anvil' | 'pit' | 'midden' | 'pen_dung' | 'trough' | 'manger' | 'bench' | 'knucklebones' | 'toys' | 'grind_slab' | 'bricks' | 'pool' | 'channel' | 'column' | 'ditch' | 'bed' | 'path'
+export type FittingKind = 'hearth' | 'oven' | 'kiln' | 'forge' | 'jar' | 'jar_big' | 'tree' | 'well' | 'quern' | 'loom' | 'vat' | 'timber' | 'anvil' | 'pit' | 'midden' | 'pen_dung' | 'trough' | 'manger' | 'bench' | 'knucklebones' | 'toys' | 'grind_slab' | 'bricks' | 'pool' | 'channel' | 'column' | 'ditch' | 'bed' | 'path' | 'sluice' | 'shrine'
   /** D-254: a village household's mud storage bin (plain/villagehouses.ts draws it; the town has none) */
   | 'bin';
 

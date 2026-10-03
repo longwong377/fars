@@ -15,6 +15,17 @@
 - The night clouds' "hard round edges": not judged (Q=low frames are grainy). The clouds at Q=low in SwiftShader with 2 frames are grainy (no TRAA convergence): their edge softness cannot be judged in
   the cloud. The T4's final cov-000 (01:55) also shows white dots over the ground and sky at night (particles?), unidentified.
 
+## The black screen (the lead's urgent ask, mid-session)
+- Fixed on the cloud's live path (da893241): progressive compile deferred the full-screen quads drawn last in a frame (the
+  post pipeline's at high, the renderer's own output quad at low) every frame while the world streamed in: black canvas,
+  unwritten meter. Also 824e2238: tone mapping restored around the post pass however it ends; meter readback timeout and
+  zero-readback rejection, falling back to the lux law. Frames: c4_frames/live_black_before.png, live_after_quadfix.png.
+- e8e271e8: TRAA's depth-history copy threw every frame on WebGL (black at quality high, ?webgl=1): fixed; and a black-frame
+  watchdog switches to the renderer's own output (window.__safeMode) if the post output stays black, times out or throws.
+  Unseen on a real GPU; the cloud's SwiftShader gives out at ~500 s at quality high.
+- NOT fixed by me: the T4's "[Buffer] used in submit while destroyed" in ShadowMaterial pipelines (C9's deferred-dispose
+  work); the far cascade disposes nothing (?farcsm=0 rules it out on the T4).
+
 ## What a player meets now
 - **Far views get sun shadows** (if the T4 confirms): past 600 m, where nothing had a sun shadow, a fifth map fitted to the
   Terrace and town box (east -1480..330, north -1580..840; 4096², texel <= 0.9 m at every sun) shades walls, porticoes and

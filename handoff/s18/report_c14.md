@@ -23,6 +23,13 @@
 - Seen in passing, not mine: the porter's headband floats ~2 cm off the scalp all round (C13); a young porter with no beard
   (the reliefs show bearded men: looks, C13).
 
+**Round 4 (the face assets, the litter's crews).** The scanned face's relief (Lee Perry-Smith, CC BY 3.0) is in every head's
+crease channel: subtle in the cloud's renderer (≤0.3 mm), unseen on the T4. Its albedo is deliberately not used (one man's
+stubble and brows). The hair atlas's curls are loosened and rebuilt in the cloud; the people impostors were not re-baked
+(Vagon: `node tools/blender/impostors.mjs`). Eyes unchanged (procedural since D-155). Biers and litters on the move are
+carried in formation (the bearers at their corners, the object at the centre); the toddler sits where it plopped and hurries
+after. Still open: a parent stooping to pick the toddler up; the litter's poles at hip height (C13's model, asked).
+
 **Round 2-3 (the leads' asks).** Still open: the toddler's pick-up after a plop needs a crowd "hold in place" state (the
 plop itself is in: anim toddle(…, plop)); the litter's royal woman is not drawn (C13 to hide or seat her: the cabin is
 closed); each body its own idle (C5's poses). Unseen on the T4: the chariot, the litter, reins, wheels, door donkeys.

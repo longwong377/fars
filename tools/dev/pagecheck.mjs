@@ -30,7 +30,9 @@ const VIEWS = {
   terrace_court: { ...cov('cov-252'), id: 'terrace_court', day: 40, hour: 10, w: 'clear', why: 'the Terrace at 10:00 with the court resident (day 40)' },
   apadana: { ...cov('cov-294'), id: 'apadana', why: 'the Apadana hall, morning (cov-294)' },
   plain: { ...cov('cov-406'), id: 'plain', why: 'the open plain, dusk (cov-406)' },
-  fields: { ...cov('cov-196'), id: 'fields', why: 'the approach fields, dawn (cov-196)' },
+  approach_dawn: { ...cov('cov-196'), id: 'approach_dawn', why: 'the Terrace approach at dawn (cov-196; area approach, not fields)' },
+  field_spring: { ...cov('cov-096'), id: 'field_spring', why: 'plain fields, day 58 08:24 (cov-096)' },
+  field_autumn: { ...cov('cov-387'), id: 'field_autumn', why: 'plain fields, day 272 07:19 (cov-387)' },
   night: { ...cov('cov-448'), id: 'night', why: 'the town at night (cov-448)' },
   night_terrace: { ...cov('sb-night-terrace'), id: 'night_terrace', why: 'the Terrace at 22:30 (sb-night-terrace)' },
 };

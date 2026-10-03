@@ -19,6 +19,7 @@ import { FieldFill } from './fieldFill';
 import { VillageHouses } from './villagehouses';
 import type { FireSystem } from '../fire';
 import { buildZones, ZoneMap, ZONE, landUseAt } from './fields';
+import { fieldWorkNear, type FieldPlotWork } from './fieldWork';
 import { cachedSync } from '../cache/worldCache';
 import { PlainGround } from './terrainPlain';
 import { buildRivers } from './rivers';
@@ -68,6 +69,8 @@ export interface PlainBuild {
   update(dt: number, ctx: any): void;
   /** D-254: the villages as built (their sites, houses, gates, colliders) */
   villageHouses: VillageHouses;
+  /** D-670: the field plots within r m of (e, n) with work on this day: village, crop, stage and the workers' spots (fieldWork.ts) */
+  fieldWork(e: number, n: number, r: number, dayIndex: number, max?: number): FieldPlotWork[];
   stats(): Record<string, number>; summary(): string;
   /** dev: every plain tree within R of grid (e, n), as [e, n, crown width] */
   treesAround(e: number, n: number, R: number): number[][];
@@ -280,6 +283,6 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     for (const t of fieldTrees(zones, e, -n, R)) if (Math.hypot(t.x, t.y) > FIELD_FAR_R) add(t);
     return out;
   };
-  return { group, data: { rivers, canals, villages, zones, fords: fords.detail }, update, villageHouses: vb, stats, treesAround, nearTrees: () => ({ placed: [placed.a, placed.b, placed.c], sets: [lod0, lod1s, lod1n], models: kit.models }),
+  return { group, data: { rivers, canals, villages, zones, fords: fords.detail }, update, villageHouses: vb, fieldWork: (e: number, n: number, r: number, d: number, max?: number) => fieldWorkNear(zones, villages, e, n, r, d, max), stats, treesAround, nearTrees: () => ({ placed: [placed.a, placed.b, placed.c], sets: [lod0, lod1s, lod1n], models: kit.models }),
     summary: () => { const s = stats(); return `plain: ${s.villages} villages (${s.compounds} compounds), ${s.canals} canals, ${s.lineTrees} river/canal trees, ${s.orchardPlots} orchard plots, near trees ${s.nearTrees} (LOD0 ${s.lod0Trees}), mid-ring impostors ${s.midTrees}, crop tufts ${s.crops}, built in ${s.buildMs} ms`; } };
 }

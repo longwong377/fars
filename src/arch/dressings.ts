@@ -14,6 +14,7 @@
 import * as THREE from 'three/webgpu';
 import type { Part, Box, Column } from './parts';
 import { roofEdges, ROOFEDGE } from './roofedge';
+import { towerEnvelopes } from './glazed';
 import { propMaterial, surfaceMaterial } from '../render/materials';
 import { Rng } from '../core/rng';
 
@@ -110,14 +111,15 @@ export function standardPlaces(parts: Part[]): StandardAt[] {
   const boxes = parts.filter(p => p.type === 'box') as Box[];
   for (const b of boxes) {
     if (b.building === 'gate_nations' && b.kind === 'roof') for (const [e, n] of corners(b)) out.push({ building: b.building, e, n, y: b.y1 + top });
-    if (b.building === 'apadana' && b.kind === 'tower') { const ap = boxes.filter(q => q.building === 'apadana' && q.kind === 'tower'), cx = ap.reduce((a, q) => a + q.c[0], 0) / ap.length, cy = ap.reduce((a, q) => a + q.c[1], 0) / ap.length;
-      const k = corners(b).sort((p, q) => Math.hypot(q[0] - cx, q[1] - cy) - Math.hypot(p[0] - cx, p[1] - cy))[0]; out.push({ building: b.building, e: k[0], n: k[1], y: b.y1 + ROOFEDGE.cap + top }); }
     if ((b.building === 'tachara' || b.building === 'hadish') && b.kind === 'roof') {
       const P = roofEdges(parts).porches.find(p => p.building === b.building && Math.hypot(p.b[0] - p.a[0], p.b[1] - p.a[1]) > 12);
       const cs = corners(b).map(([e, n]) => ({ e, n, d: P ? (e - b.c[0]) * P.n[0] + (n - b.c[1]) * P.n[1] : 0 })).sort((p, q) => q.d - p.d).slice(0, 2);
       for (const q of cs) out.push({ building: b.building, e: q.e, n: q.n, y: b.y1 + top });
     }
   }
+  { // the Apadana's towers (their envelopes: D-753 made them hollow): the outer corner of each
+    const ap = towerEnvelopes(parts), cx = ap.reduce((a, q) => a + q.c[0], 0) / Math.max(1, ap.length), cy = ap.reduce((a, q) => a + q.c[1], 0) / Math.max(1, ap.length);
+    for (const b of ap) { const k = corners(b).sort((p, q) => Math.hypot(q[0] - cx, q[1] - cy) - Math.hypot(p[0] - cx, p[1] - cy))[0]; out.push({ building: b.building, e: k[0], n: k[1], y: b.y1 + ROOFEDGE.cap + top }); } }
   return out;
 }
 /** a standard: the pole (octagonal), the finial (a bronze disc on a ball, the eagle's seat), and the swallow-tailed banner */
@@ -148,8 +150,8 @@ function standard(pole: Soup, cloth: Soup, metal: Soup, at: StandardAt, rng: Rng
 export const TOWER_WINDOWS = { w: 1.5, h: 3, frame: 0.32, depth: 0.35, cornice: { h: 0.45, over: 0.22, proj: 0.28 }, rows: [9.5, 16.5], pitch: 5.6, edge: 3.2,
   stone: [0.27, 0.26, 0.25], recess: [0.1, 0.085, 0.07] };
 export function towerWindowFaces(parts: Part[]): { c: [number, number]; u: [number, number]; n: [number, number]; y0: number; len: number }[] {
-  const T = parts.filter(p => p.building === 'apadana' && p.kind === 'tower' && p.type === 'box' && !(p as Box).rot) as Box[]; if (!T.length) return [];
-  const boxes = parts.filter(p => p.type === 'box' && p.building === 'apadana' && !p.door) as Box[];
+  const T = towerEnvelopes(parts); if (!T.length) return [];
+  const boxes = parts.filter(p => p.type === 'box' && p.building === 'apadana' && !p.door && !(p as Box).env && p.kind !== 'step') as Box[];
   const cx = T.reduce((a, q) => a + q.c[0], 0) / T.length, cy = T.reduce((a, q) => a + q.c[1], 0) / T.length, out: ReturnType<typeof towerWindowFaces> = [];
   const inside = (e: number, n: number, y: number, self: Box) => boxes.some(b => b !== self && y >= b.y0 && y <= b.y1 && Math.abs(e - b.c[0]) <= b.size[0] / 2 && Math.abs(n - b.c[1]) <= b.size[1] / 2);
   for (const t of T) for (const [nx, ny] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as [number, number][]) {
