@@ -10114,3 +10114,8 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   the heard reply says the reply, overheard pairs say their own fact (#15); the court's people, travellers and herders not sent
   to market (C7); meals bought by the stranger (4-12); trespass (4-1); W5, W6, W13, W14, W15, W17, W22; Kokoro blends without a
   regional colour (all C).
+
+## D-663 A kept town, washing in the courts (s18 cloud C2: the lead's V9 note and C12's W11)
+- The town's plaster loss (V9's EarthWeatherDef on house_plaster) 7 % → 1.5 % of the face: the houses are re-plastered each spring; the bricks show where houses.ts's own losses put them (by the household's upkeep and the wall's age), the splash and streaks kept (surfaces.ts).
+- No washing lines across the public lanes (C12 W11): each line now hangs across the household's own court, wall to wall over a straight run of 2-7 court cells, for six houses in ten (fillPlan.ts; C); the roofs keep theirs.
+- tests/plain.test.ts's village_p22 frame (C7: 2.04 M > 2.0 M on D-660) passes on this head: D-662's far-level trims (roofs a top, door infills, the crests) won it back.
