@@ -177,9 +177,13 @@ export function pose(id: AnimId, t: number, ph: number, k: number, g: Gait = GAI
     // reins (not drawn); a small rise and fall with the mount's walk. Not planted and not seated on the ground: the crowd
     // lifts the root so the seat (RIDE.seat, measured on the rig: tests/fauna.test.ts) rests on the mount's back
     case 'ride': {
-      const b = Math.abs(S(t * 3.3 + k)); p.hips = [0, RIDE.drop + 0.012 * b, RIDE.back]; r.hips = [-0.06, 0, 0];
+      // (s18 C14, D-790: the seat follows the mount's gait from the rider's own speed (crowd gaitStep): a walk sways, a trot
+      // bounces at the trot's beat, a gallop sits forward and rides the swing; C)
+      const tr = Math.min(1, Math.max(0, (g.v - 1.6) / 0.5)), gl = Math.min(1, Math.max(0, (g.v - 2.2) / 0.2));
+      const b = Math.abs(S(t * (3.3 + 2.2 * tr) + k)), lean = 0.22 * gl;
+      p.hips = [0, RIDE.drop + (0.012 + 0.025 * tr * (1 - gl)) * b + 0.03 * gl, RIDE.back]; r.hips = [-0.06 + lean * 0.5, 0, 0];
       r.l_thigh = [RIDE.thigh[0], 0, RIDE.thigh[1]]; r.r_thigh = [RIDE.thigh[0], 0, -RIDE.thigh[1]]; r.l_shin = [RIDE.shin, 0, -RIDE.shinIn]; r.r_shin = [RIDE.shin, 0, RIDE.shinIn];
-      r.l_foot = [0.5, 0, 0]; r.r_foot = [0.5, 0, 0]; r.spine = [0.06 + 0.02 * b, 0, 0];
+      r.l_foot = [0.5, 0, 0]; r.r_foot = [0.5, 0, 0]; r.spine = [0.06 + 0.02 * b + lean, 0, 0];
       r.l_upper = [-0.4, 0, 0.12]; r.l_fore = [-1.05, 0, -0.15]; r.r_upper = [-0.4, 0, -0.12]; r.r_fore = [-1.05, 0, 0.15];
       r.head = [0.04, 0.3 * wob(t * 0.25, k), 0]; break;
     }
