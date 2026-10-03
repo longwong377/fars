@@ -10090,6 +10090,13 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   from the sun and the ecliptic pole; C (dates, place, brightness). (i) The season's clouds (cloudKind.ts): the deck's
   stratiform share by month (winter 0.7: thin, flat, even, softly eroded), a cirrus veil in the dome (autumn 0.55, summer
   0.15), lit by the high sun. C.
+- (j) Daytime light (lead 3's reset: the blind reviewers' #1 fix, "flat grey-beige everywhere, black interiors"). Step 1: the
+  sky's ambient by day at ~1/4.5 of the sun (SKY_AMBIENT 0.65 on the hemisphere light, faded in from -4 to 8 deg: shade drew
+  nearly as bright as sun, ~1/3); a filmic grade with contrast (toneLook power 1.32, toe lift 0.45, sat 1.25, warm/cool split
+  0.9); the contact AO's power 2.4 (was 1.8); the outdoor field re-baked for today's town (27 regions). Step 2: the eye in a
+  town room (the upward rays test only the Terrace's architecture, so every house kept the open court's exposure): outside
+  the halls' volumes the outdoor field answers (outdoor.ts outdoorEyeVisibility, the halls' law, weighted in only where
+  enclosed, vis < 0.55, floor 0.01); open lanes and courts unchanged. C (the weights); tests/eye_outdoor_d680.test.ts.
 - Unseen: the cloud cannot draw Q=high (WebGL2: program validation failures and a lost device with the cascade on AND off;
   WebGPU: SwiftShader's 16-texture cap), so the far cascade is verified node-side only; it needs a T4 frame.
 
