@@ -35,7 +35,7 @@ const {
 } = TSL as any; // TSL's typings do not follow mixed float/vec3 arithmetic; the graph is checked when it builds
 import { MAT, EYE_UNIT, SKIN_CURV_MAX, LOOK_BITS, PRM_UPPER, PRM_ROBE, PRM_CARD, HB, HBONES } from './humanFormat';
 import { ROBE, BEARD, BELLY } from './drape';
-import { CHEEK_R, NOSE_R } from './bodyShape';
+import { CHEEK_R, NOSE_R, FACE_FIELD as FF } from './bodyShape';
 import type { HumanScans } from './humanScans';
 
 /** height field → shading normal (view space; surface gradient from screen-space derivatives, Mikkelsen 2010) */
@@ -65,7 +65,7 @@ const TAU = Math.PI * 2;
 export interface HumanTextures {
   /** RGBA32F: xyz bind position, w packed normal; row-major over variant × NV vertices */
   source: THREE.DataTexture; sourceWidth: number; NV: number;
-  /** RGBA32F: one row per slot, 186 texels (59 bones × 3 rows of a 3×4 matrix, then D-363 the body's 9 extra texels: bodyShape EX) */
+  /** RGBA32F: one row per slot, 189 texels (59 bones × 3 rows of a 3×4 matrix, then D-363 the body's 12 extra texels: bodyShape EX) */
   bones: THREE.DataTexture; prevBones: THREE.DataTexture;
   /** RGBA32F: one row per slot, 8 texels (see PERSON_TEXELS) */
   person: THREE.DataTexture;
@@ -156,7 +156,11 @@ export const SKIN = {
 /** D-215: eye paint (the court's fashion, Xenophon Cyr. 1.3.2, 8.1.41: B claim; who wears it C): the lash strips' roots,
  *  `band` of the strip's depth, are filled solid and near black, a line along each lid at the lashes (C) */
 export const KOHL = { band: 0.35, alb: [0.018, 0.016, 0.015] as RGB };
-export const EYE = { irisR: 0.0059, pupilR: 0.0015, sclera: [0.64, 0.6, 0.55] as RGB, caruncle: [0.6, 0.36, 0.34] as RGB, lidShadow: 0.45, f0: 0.025 };
+/** D-790: the brows' hairs: strand lines per metre across, hair lengths per metre along, clumps of hairs per metre across (C) */
+export const BROW = { lines: 2800, len: 140, clumps: 650 };
+/** the coordinate across the brow's hairs (their direction at angle th from the horizontal, outward) */
+const bP = (y: any, ax: any, c: any, sn: any) => y.mul(c).sub(ax.mul(sn));
+export const EYE = { irisR: 0.0059, pupilR: 0.0015, sclera: [0.64, 0.6, 0.55] as RGB, caruncle: [0.6, 0.36, 0.34] as RGB, lidShadow: 0.55, f0: 0.025, /** D-790 */ cornerShade: 0.38 };
 export const IRIS: RGB[] = [[0.04, 0.02, 0.009], [0.062, 0.032, 0.013], [0.095, 0.05, 0.02], [0.13, 0.072, 0.03], [0.14, 0.1, 0.045], [0.11, 0.115, 0.06], [0.11, 0.13, 0.105], [0.1, 0.14, 0.18]];
 /** lash strips (MakeHuman helper UVs span u 0.704–0.762 along both lids): clumps along the lid, tapering to the tip */
 export const LASH = { u0: 0.704, u1: 0.762, clumps: 72 };
@@ -336,9 +340,25 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
       // the nose scaled about its base (wider × 0.7, longer, more projecting × 1.2; the cheek centre's w is its k − 1)
       const nZ = e8.w.sub(0.025), dNo = vec3(s.x, s.y.sub(e8.z), s.z.sub(nZ)), qNo = max(float(1).sub(dot(dNo, dNo).div(NOSE_R * NOSE_R)), 0);
       const offNo = dNo.mul(vec3(0.7, 1, 1.2)).mul(e6.w).mul(qNo.mul(qNo).mul(smoothstep(nZ.sub(0.005), nZ.add(0.01), s.z)).mul(faceM));
+      // D-790: the face's motion field (bodyShape.faceOffset, term for term): the lips' visemes, the smile and the cheeks, the
+      // brows; texel 9 the mouth's frame, 10 and 11 the controls the rig writes each solve (all zero: nothing moves)
+      const e9 = xe(9), e10 = xe(10), e11 = xe(11), Wm = max(e9.z, 1e-4), fOn = e11.w.mul(step(1e-5, e9.z)).mul(faceM);
+      const fdy = s.y.sub(e9.x), fax = abs(s.x), fFront = smoothstep(e9.y.sub(FF.front[0]), e9.y.sub(FF.front[1]), s.z);
+      const fq = max(float(1).sub(s.x.div(Wm.mul(FF.kx)).mul(s.x.div(Wm.mul(FF.kx)))).sub(fdy.div(FF.lipY).mul(fdy.div(FF.lipY))), 0), wM = fq.mul(fq).mul(fFront);
+      const fql = max(float(1).sub(s.x.div(Wm.mul(1.15)).mul(s.x.div(Wm.mul(1.15)))).sub(fdy.div(FF.lipYc).mul(fdy.div(FF.lipYc))), 0), wL = fql.mul(fFront);
+      const fCorner = smoothstep(Wm.mul(0.35), Wm, fax), fUp = smoothstep(-0.002, 0.004, fdy), fLo = float(1).sub(fUp);
+      const fOx = s.x.mul(wM).mul(e10.x.mul(-FF.round[0]).add(e10.y.mul(FF.wide)).add(e11.x.mul(FF.smile[1])));
+      const fcx = fax.sub(Wm.mul(1.6)), fcy = s.y.sub(e9.x.add(0.028)), fqc = max(float(1).sub(fcx.div(0.025).mul(fcx.div(0.025))).sub(fcy.div(0.022).mul(fcy.div(0.022))), 0);
+      const fOy = wM.mul(fdy.mul(0.15).mul(e10.x).add(fCorner.mul(FF.smile[0]).mul(e11.x)))
+        .add(wL.mul(e10.z.mul(FF.press).mul(fLo.sub(fUp)).add(e10.w.mul(FF.tuck[0]).mul(fLo))))
+        .add(fqc.mul(fqc).mul(fFront).mul(FF.cheekUp).mul(e11.x));
+      const fOz = wL.mul(e10.x.mul(FF.round[1]).sub(e10.z.mul(FF.press)).sub(e10.w.mul(FF.tuck[1]).mul(fLo))).sub(wM.mul(fCorner).mul(e10.y.mul(0.002).add(e11.x.mul(FF.smile[2]))));
+      const fbx = fax.sub(FF.browR[0]), fby = s.y.sub(e9.w), fqb = max(float(1).sub(fbx.div(FF.browR[1]).mul(fbx.div(FF.browR[1]))).sub(fby.div(FF.browR[2]).mul(fby.div(FF.browR[2]))), 0);
+      const wB = fqb.mul(fqb).mul(smoothstep(e9.y.sub(0.06), e9.y.sub(0.035), s.z)), fIn = float(1).sub(smoothstep(0.012, 0.035, fax));
+      const offFace = vec3(fOx.sub(wB.mul(side).mul(FF.knit[1]).mul(e11.z).mul(fIn)), fOy.add(wB.mul(e11.y.mul(FF.browUp).sub(e11.z.mul(FF.knit[0]).mul(fIn)))), fOz).mul(fOn);
       const thW = max(float(1).sub(s.y.sub(e8.x).div(0.16).mul(s.y.sub(e8.x).div(0.16))), 0);
       const limbY = thW.mul(isB(HB.thigh_l).mul(e5.z).add(isB(HB.thigh_r).mul(e5.w))).add(isB(HB.upperarm_l).mul(e7.y).add(isB(HB.upperarm_r).mul(e7.z)).mul(0.7)).mul(fadeJ);
-      const bodyOff = offBr.add(offBt).add(offCh).add(offNo).add(vec3(0, limbY, 0));
+      const bodyOff = offBr.add(offBt).add(offCh).add(offNo).add(offFace).add(vec3(0, limbY, 0));
       const bellyJ = vec3(0, xe(3).w, xe(4).w).mul(bQ.mul(bS)).mul(fadeJ);
       const bind = s.xyz.add(bodyOff).add(bellyJ).add(vec3(rad.x, hatDy, rad.y).mul(vec3(dS, 1, dS))).add(nB.mul(rowV)).add(vec3(0, bDz.mul(-BELLY.drop), bDz));
       const R = skinned(boneTex);
@@ -470,7 +490,19 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
       const uS = vec2(U.x, float(1).sub(U.y)); // (the layers' rows run top-down, flipY off; the atlas's UV convention is bottom-up)
       skinBase = mix(texture(sc, uS).depth(lw.x).rgb, texture(sc, uS).depth(lw.y).rgb, wD); }
     let skinAlb: any = skinBase.mul(tone).mul(vec3(1).add(vec3(0.05, 0.03, 0.025).mul(n3))).mul(float(1).add(n2.mul(0.035).mul(band(SKIN.pores[1][0]))));
-    const browA = smoothstep(pv(3).mul(0.4), float(1).sub(pv(4).mul(0.3)), sA.a); // sparser or denser brows per person
+    const browA0 = smoothstep(pv(3).mul(0.4), float(1).sub(pv(4).mul(0.3)), sA.a); // sparser or denser brows per person
+    // D-790: the brows as hairs, not a painted bar: strands ~0.35 mm apart and ~7 mm long, laid as brows grow (the inner ends
+    // up, the body out and up, the tail out and down; C), spilling a little past the map's edge so the edge breaks into hairs;
+    // band-limited: past ~1.5 m the map's soft bar is what a pixel sees
+    const bax = abs(P.x), bth = mix(mix(float(1.2), float(0.42), smoothstep(0.012, 0.03, bax)), float(-0.2), smoothstep(0.04, 0.062, bax));
+    const bcs = cos(bth), bsn = sin(bth), bAcross = bP(P.y, bax, bcs, bsn), bAlong = bax.mul(bcs).add(P.y.mul(bsn));
+    const bStr = smoothstep(0.25, 0.9, sin(bAcross.mul(TAU * BROW.lines).add(u3.mul(7))).mul(0.5).add(0.5))
+      .mul(smoothstep(0.05, 0.6, sin(bAlong.mul(TAU * BROW.len).add(u2.mul(6)).add(floor(bAcross.mul(BROW.lines)).mul(2.3))).mul(0.5).add(0.5)));
+    const browEdge = smoothstep(0.04, 0.45, sA.a);
+    // (the hairs lie in clumps of a few: a coarser octave that a pixel at conversation distance still resolves)
+    const bClump = smoothstep(0.2, 0.8, sin(bAcross.mul(TAU * BROW.clumps).add(u3.mul(5))).mul(0.5).add(0.5)).mul(0.6).add(0.4);
+    const browC = mix(browA0, min(browEdge.mul(bClump).mul(1.25), 1), band(BROW.clumps).mul(kSkin));
+    const browA = mix(browC, min(browEdge.mul(bStr).mul(bClump).mul(1.7).add(browA0.mul(0.2)), 1), band(BROW.lines).mul(kSkin));
     skinAlb = mix(skinAlb, vHair.mul(0.9), browA.mul(pv(5).mul(0.25).add(0.7))); // brows
     skinAlb = mix(skinAlb, skinAlb.mul(vHair.mul(2.2).add(0.35).min(1)), vAux.y.mul(stubV).mul(0.55)); // shaven stubble
     skinAlb = mix(skinAlb, vHair.mul(0.7), vAux.y.mul(roots).mul(0.9)); // under a beard: roots
@@ -503,7 +535,8 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     const veins = smoothstep(0.62, 0.9, u2).mul(smoothstep(0.007, 0.012, abs(ex))).mul(0.35);
     let sclera: any = mix(vec3(...EYE.sclera), vec3(...EYE.sclera).mul(vec3(1, 0.62, 0.58)), veins);
     sclera = mix(sclera, vec3(...EYE.caruncle), nasal.mul(0.8));
-    const lidSh = float(1).sub(smoothstep(-0.0015, 0.0018, ey).mul(EYE.lidShadow)); // the upper lid's shadow on the eyeball
+    const lidSh = float(1).sub(smoothstep(-0.0015, 0.0018, ey).mul(EYE.lidShadow)) // the upper lid's shadow on the eyeball
+      .mul(float(1).sub(smoothstep(0.0055, 0.0115, abs(ex)).mul(EYE.cornerShade))); // (D-790: the white turns away into the corners: a bright flat white read as a doll's)
     const eyeAlb = mix(sclera, iris, irisM).mul(lidSh);
 
     // ---- hair: natural curls, court rows of snail curls, straight strands
