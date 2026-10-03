@@ -25,7 +25,7 @@ function seven(from: number, to: number, busy = false): LNote[] {
   return out;
 }
 const parts: Part[] = [
-  { id: 'drums', inst: 'kit', art: 'hit', notes: [...seven(1, 44), ...seven(45, 48, true), ...seven(49, 64), ...seven(65, 76)], dyn: [], gain: -2, depth: 0.45 },
+  { id: 'drums', inst: 'kit', art: 'hit', notes: [...seven(1, 44), ...seven(45, 48, true), ...seven(49, 64), ...seven(65, 76)], dyn: [], gain: 1, depth: 0.45 },
   { id: 'bigdrum', inst: 'kit', art: 'hit', notes: [45, 46, 47, 48, ...Array.from({ length: 16 }, (_, i) => 49 + i)].map(b => ({ b: B(b), d: 1, p: KIT.bigDrum })), dyn: [], gain: -5 },
   { id: 'vc_pizz', inst: 'vc', art: 'pizz', notes: H.filter(c => c.b >= B(5) && c.b < B(73)).flatMap(c => bass([c], 'C2', 'B2').flatMap(n => [{ ...n, d: 1 }, { ...n, b: n.b + 2, d: 1, p: n.p + 7 }])), dyn: [], gain: -2 },
   { id: 'oboe', inst: 'ob', art: 'leg', notes: [...line(A, B(5)), ...line(A, B(29)), ...line(A, B(65))],

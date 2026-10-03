@@ -187,3 +187,9 @@ body.intro .tl, body.intro .crosshair, body.intro #converse, body.intro .save-no
 @keyframes subin { from { opacity: 0; transform: translate(-50%, 6px); } to { opacity: 1; transform: translate(-50%, 0); } }
 @keyframes notice { 0% { opacity: 0; transform: translateX(16px); } 4% { opacity: 1; transform: none; } 92% { opacity: 1; } 100% { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01s !important; transition-duration: .01s !important; } }
+
+/* the controls at the first steps (out of world, once; D-760's C11 pass) */
+.first-steps { position: fixed; left: 50%; bottom: 7vh; transform: translateX(-50%); display: flex; flex-wrap: wrap; gap: 10px 22px; justify-content: center;
+  max-width: min(92vw, 980px); padding: 14px 22px; border-radius: 12px; background: rgba(12, 10, 9, .46); backdrop-filter: blur(6px);
+  color: rgba(238, 228, 208, .9); font: 400 14px/1.6 'Alegreya Sans', system-ui, sans-serif; opacity: 0; transition: opacity 1.6s ease; pointer-events: none; z-index: 20; }
+.first-steps.on { opacity: 1; }

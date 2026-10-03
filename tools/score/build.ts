@@ -78,7 +78,7 @@ function mixCue(cue: Cue) {
     const I: Inst = ORCH[p.inst], s = stem(p, cue, 1000 + i * 7919 + cue.id.length);
     const pan = p.pan ?? I.pan, depth = p.depth ?? I.depth, width = I.width;
     // distance: a little less level and air the further back; the hall send grows with it
-    let L = s.L, Rr = s.R;
+    let L: Float32Array = s.L, Rr: Float32Array = s.R;
     if (depth > 0.2) { L = biquad(L, SR, 'highshelf', 6000, 0.7, -5 * depth); Rr = biquad(Rr, SR, 'highshelf', 6000, 0.7, -5 * depth); }
     const g = db((p.gain ?? 0) + I.trim - 4 * depth + 26), a = ((pan + 1) * Math.PI) / 4, gl = Math.cos(a) * Math.SQRT2, gr = Math.sin(a) * Math.SQRT2;
     const send = 0.18 + 0.75 * depth, n = Math.min(len, L.length); let pk = 0;
@@ -89,14 +89,19 @@ function mixCue(cue: Cue) {
     report.push(`${p.id.padEnd(14)} ${p.inst}/${p.art} peak ${(20 * Math.log10(pk + 1e-9)).toFixed(1)} dB`);
     if (pk < 1e-4) throw new Error(`${cue.id}/${p.id}: the stem is silent`);
   });
-  const [ia, ib, ic, id] = [11, 23, 37, 41].map(s => hallIR(s));
+  // a recorded hall when Vagon has fetched one (tools/score/fetch_vagon.mjs), else the modelled one
+  const rec = join(import.meta.dirname, 'ext/ir/hall.wav');
+  let ia: Float32Array, ib: Float32Array, ic: Float32Array, id: Float32Array;
+  if (existsSync(rec)) { const a = readWav(rec), l = a.ch[0], r = a.ch[1] ?? a.ch[0], norm = (x: Float32Array) => { let e = 0; for (const v of x) e += v * v; const g = 1 / Math.sqrt(e || 1); return x.map(v => v * g); };
+    ia = norm(l); ib = norm(r); ic = norm(r); id = norm(l); }
+  else [ia, ib, ic, id] = [11, 23, 37, 41].map(s => hallIR(s));
   const wl = convolve(sendL, ia), wr = convolve(sendR, ib), xl = convolve(sendR, ic), xr = convolve(sendL, id), wet = 0.55;
-  let L = new Float32Array(len), R = new Float32Array(len);
+  let L: Float32Array = new Float32Array(len), R: Float32Array = new Float32Array(len);
   for (let k = 0; k < len; k++) { L[k] = dryL[k] + wet * (wl[k] + 0.45 * xl[k]); R[k] = dryR[k] + wet * (wr[k] + 0.45 * xr[k]); }
   // the master: a warm tilt, the glue, the level, the ceiling
-  L = <any>biquad(biquad(L, SR, 'lowshelf', 90, 0.7, 1.5), SR, 'highshelf', 9000, 0.7, 1.0); R = <any>biquad(biquad(R, SR, 'lowshelf', 90, 0.7, 1.5), SR, 'highshelf', 9000, 0.7, 1.0);
-  L = <any>biquad(L, SR, 'hp', 24, 0.7); R = <any>biquad(R, SR, 'hp', 24, 0.7);
-  let ch = compress([L, R], SR, { thr: -20, ratio: 1.8, att: 0.03, rel: 0.35, knee: 8 });
+  L = biquad(biquad(L, SR, 'lowshelf', 90, 0.7, 1.5), SR, 'highshelf', 9000, 0.7, 1.0); R = biquad(biquad(R, SR, 'lowshelf', 90, 0.7, 1.5), SR, 'highshelf', 9000, 0.7, 1.0);
+  L = biquad(L, SR, 'hp', 24, 0.7); R = biquad(R, SR, 'hp', 24, 0.7);
+  let ch: Float32Array[] = compress([L, R], SR, { thr: -20, ratio: 1.8, att: 0.03, rel: 0.35, knee: 8 });
   const target = cue.lufs ?? -18, now = lufs(ch, SR), gain = db(target - now);
   ch = ch.map(c => c.map(x => x * gain));
   ch = limit(ch, SR, -1.5);
@@ -114,7 +119,9 @@ function encode(cue: Cue, ch: Float32Array[], meas: { lufs: number; tp: number }
   if (process.env.SCORE_WAV) writeWav(join(OUT, `${cue.id}.wav`), { sr: SR, ch });
   // the film carries the main theme in its own file (tools/film/assemble.mjs): no separate audio; the opening's cue in Opus
   // and AAC (it must sound on every browser); the world's cues in Opus (WebM) only, 80 kbps
-  if (cue.tags.includes('film')) return { webm: 0, m4a: 0, ...meas };
+  if (cue.tags.includes('film')) { // the film's soundtrack source, for the edit on any machine (tools/film/assemble.mjs)
+    execFileSync('ffmpeg', ['-y', '-v', 'error', '-i', wav, '-c:a', 'libopus', '-b:a', '192k', join(ROOT, 'tools/film/work', `${cue.id}.opus`)]);
+    return { webm: 0, m4a: 0, ...meas }; }
   const opening = cue.tags.includes('opening'), br = opening ? '96k' : '80k', webm = join(OUT, `${cue.id}.webm`), m4a = join(OUT, `${cue.id}.m4a`);
   execFileSync('ffmpeg', ['-y', '-v', 'error', '-i', wav, '-c:a', 'libopus', '-b:a', br, '-vbr', 'on', '-application', 'audio', '-metadata', `title=${cue.title}`, '-f', 'webm', webm]);
   if (opening) execFileSync('ffmpeg', ['-y', '-v', 'error', '-i', wav, '-c:a', 'aac', '-b:a', '112k', '-movflags', '+faststart', '-metadata', `title=${cue.title}`, m4a]);

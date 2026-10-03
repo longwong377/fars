@@ -105,6 +105,6 @@ export function figure(from: number, to: number, fig: string, key: number, bpb =
 /** octave-fold notes into an instrument's range */
 export function fold(notes: LNote[], lo: string, hi: string): LNote[] { const L = pc(lo), H = pc(hi); return notes.map(n => { let p = n.p; while (p < L) p += 12; while (p > H) p -= 12; return { ...n, p }; }); }
 /** shift notes in time */
-export const at = (notes: LNote[], beats: number) => notes.map(n => ({ ...n, b: n.b + beats }));
+export const at = <T extends { b: number }>(notes: T[], beats: number): T[] => notes.map(n => ({ ...n, b: n.b + beats }));
 /** a hairpin envelope across [b0, b1]: from v0 rising to peak at the middle (or `at`), down to v1 */
 export const swell = (b0: number, b1: number, v0: number, peak: number, v1: number, atU = 0.6): [number, number][] => [[b0, v0], [b0 + (b1 - b0) * atU, peak], [b1, v1]];
