@@ -12,7 +12,6 @@
 //        [--out handoff/s18/pagecheck] [--keep-server]
 // Writes <out>.json (every class row per view) and <out>.md (the summary and the flags). Out of world, English.
 import { chromium } from 'playwright';
-import { spawn } from 'node:child_process';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 
@@ -36,14 +35,26 @@ const VIEWS = {
 };
 const pick = (arg('views', Object.keys(VIEWS).join(','))).split(',').map(k => { if (!VIEWS[k]) throw new Error('unknown view ' + k); return VIEWS[k]; });
 
-// ---- the server: vite preview of <tree>/dist (base /fars/)
+// ---- the server: <tree>/dist at /fars/ (the deployed base), with the headers the site needs (COOP/COEP: SharedArrayBuffer).
+// Not vite preview: the config's base is /fars/ only for `build`, so preview serves the built html at / and its /fars/ assets 404.
+const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.wasm': 'application/wasm',
+  '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.ktx2': 'image/ktx2', '.glb': 'model/gltf-binary',
+  '.bin': 'application/octet-stream', '.woff2': 'font/woff2', '.ogg': 'audio/ogg', '.opus': 'audio/ogg', '.mp3': 'audio/mpeg', '.wav': 'audio/wav', '.webm': 'video/webm', '.mp4': 'video/mp4', '.txt': 'text/plain' };
 const up = async () => { try { const r = await fetch(`http://localhost:${PORT}/fars/`); return r.ok; } catch { return false; } };
 let server = null;
 if (!(await up())) {
-  if (!existsSync(`${TREE}/dist/index.html`)) throw new Error(`no ${TREE}/dist: build it first (cd ${TREE} && npx vite build)`);
-  server = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort'], { cwd: TREE, stdio: 'ignore', detached: false });
-  for (let i = 0; i < 60 && !(await up()); i++) await new Promise(r => setTimeout(r, 1000));
-  if (!(await up())) throw new Error('vite preview did not come up');
+  const DIST = `${TREE}/dist`; if (!existsSync(`${DIST}/index.html`)) throw new Error(`no ${DIST}: build it first (cd ${TREE} && npx vite build)`);
+  const { createServer } = await import('node:http'); const { createReadStream, statSync } = await import('node:fs'); const { extname, join, normalize } = await import('node:path');
+  server = createServer((req, res) => {
+    let u = decodeURIComponent(new URL(req.url, 'http://x').pathname); if (!u.startsWith('/fars/')) { res.writeHead(404); return res.end(); }
+    let f = normalize(join(DIST, u.slice(6))); if (!f.startsWith(DIST)) { res.writeHead(403); return res.end(); }
+    try { if (statSync(f).isDirectory()) f = join(f, 'index.html'); const st = statSync(f);
+      res.writeHead(200, { 'Content-Type': MIME[extname(f).toLowerCase()] ?? 'application/octet-stream', 'Content-Length': st.size, 'Cross-Origin-Opener-Policy': 'same-origin', 'Cross-Origin-Embedder-Policy': 'require-corp', 'Cross-Origin-Resource-Policy': 'same-origin' });
+      createReadStream(f).pipe(res);
+    } catch { res.writeHead(404); res.end(); }
+  }).listen(PORT);
+  for (let i = 0; i < 20 && !(await up()); i++) await new Promise(r => setTimeout(r, 250));
+  if (!(await up())) throw new Error('static server did not come up');
 }
 const head = (() => { try { return readFileSync(`${TREE}/.git`, 'utf8').trim(); } catch { return ''; } })();
 
@@ -54,8 +65,12 @@ const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 const t0 = Date.now(), T = () => ((Date.now() - t0) / 1000).toFixed(0) + 's';
 const errs = new Map(); page.on('console', m => { if (m.type() === 'error') { const k = m.text().slice(0, 160); errs.set(k, (errs.get(k) ?? 0) + 1); } });
 page.on('pageerror', e => console.log(T(), 'PAGEERROR', String(e).slice(0, 300)));
+page.on('crash', () => { console.log(T(), 'PAGE CRASHED'); process.exit(2); });
+let closing = false; browser.on('disconnected', () => { if (closing) return; console.log(T(), 'BROWSER DISCONNECTED'); process.exit(2); });
+page.on('console', m => { const t = m.text(); if (t.startsWith('[boot]') || process.env.VERBOSE) console.log(T(), t.slice(0, 160)); });
 const f = pick[0];
-await page.goto(`http://localhost:${PORT}/fars/?test&norender&webgl=1&quality=test&nointro&day=${f.day}&hour=${f.hour}&weather=${f.w}&court=seasonal`, { timeout: 600000, waitUntil: 'domcontentloaded' });
+console.log(T(), 'loading');
+await page.goto(`http://localhost:${PORT}/fars/?test&trace&norender&webgl=1&quality=test&nointro&day=${f.day}&hour=${f.hour}&weather=${f.w}&court=seasonal`, { timeout: 600000, waitUntil: 'domcontentloaded' });
 await page.waitForFunction(() => window.__parsa?.ready === true || window.__parsa?.error, null, { timeout: 2400000, polling: 2000 });
 const err = await page.evaluate(() => window.__parsa.error); if (err) throw new Error(err);
 console.log(T(), 'ready');
@@ -83,7 +98,7 @@ const readView = () => {
     if (g && !g.boundingSphere) { try { g.computeBoundingSphere(); } catch { } }
     if (o.isInstancedMesh || o.isBatchedMesh) {
       const n = o.isInstancedMesh ? o.count : (o._instanceInfo?.length ?? o.instanceCount ?? 0); r.inst += n; if (!v) return; r.instVis += n;
-      if (!o.isInstancedMesh || !g?.boundingSphere) { r.instIn += n; r.tris += triPer * n; return; }
+      if (!o.isInstancedMesh || !g?.boundingSphere) { r.instIn += n; r.tris += o.isBatchedMesh ? triPer : triPer * n; return; }
       const im = o.instanceMatrix.array, step = n > 200000 ? Math.ceil(n / 200000) : 1; let inF = 0, near = 0;
       for (let i = 0; i < n; i += step) { m.fromArray(im, i * 16).premultiply(o.matrixWorld); s.copy(g.boundingSphere).applyMatrix4(m);
         if (s.radius > 0 && fr.intersectsSphere(s)) { inF += step; if (s.center.distanceTo(camP) < 60) near += step; } }
@@ -93,13 +108,28 @@ const readView = () => {
     if (o.frustumCulled === false) { r.instIn += 1; r.tris += triPer; return; }
     if (g?.boundingSphere) { s.copy(g.boundingSphere).applyMatrix4(o.matrixWorld); if (fr.intersectsSphere(s)) { r.instIn += 1; r.tris += triPer; if (s.center.distanceTo(camP) < 60 + s.radius) r.near60 += 1; } }
   });
+  // the town's roofs (C2's houses are merged meshes, roofs and walls together): within 150 m of the point the camera looks at
+  // on the ground, the area of up-facing triangles standing 1.8 m or more above the mesh's local floor (roofs, parapet tops)
+  // against the area of vertical triangles (walls). A roofless town reads ~0; a roofed one about 0.4-1.5 (C).
+  const look = (() => { const d = new V3(0, 0, -1).applyQuaternion(cam.quaternion); const t = d.y < -0.05 ? Math.min(300, (camP.y - (camP.y - 20)) / -d.y) : 60; return camP.clone().addScaledVector(d, Math.min(t, 150)); })();
+  let up = 0, vert = 0, tris = 0; const a = new V3(), b = new V3(), c = new V3(), e1 = new V3(), e2 = new V3(), nn = new V3();
+  scene.traverse(o => { if (!o.isMesh || o.isInstancedMesh || !/^settlement:(near:(plaster|brick|stone|timber)|q_[a-z]#?.*:far|q_[a-z][0-9]+:far)/.test(o.name) || !effVis(o)) return;
+    const g = o.geometry, P = g.attributes.position, I = g.index; if (!P) return; const n3 = I ? I.count : P.count; o.updateMatrixWorld();
+    let ymin = Infinity; for (let i = 0; i < P.count; i += 7) { a.fromBufferAttribute(P, i).applyMatrix4(o.matrixWorld); if (Math.hypot(a.x - look.x, a.z - look.z) < 150 && a.y < ymin) ymin = a.y; }
+    for (let i = 0; i < n3; i += 3) { const i0 = I ? I.getX(i) : i, i1 = I ? I.getX(i + 1) : i + 1, i2 = I ? I.getX(i + 2) : i + 2;
+      a.fromBufferAttribute(P, i0).applyMatrix4(o.matrixWorld); if (Math.hypot(a.x - look.x, a.z - look.z) > 150) continue;
+      b.fromBufferAttribute(P, i1).applyMatrix4(o.matrixWorld); c.fromBufferAttribute(P, i2).applyMatrix4(o.matrixWorld);
+      e1.subVectors(b, a); e2.subVectors(c, a); nn.crossVectors(e1, e2); const ar = nn.length() / 2; if (!ar) continue; nn.normalize(); tris++;
+      if (Math.abs(nn.y) < 0.3) vert += ar; else if (nn.y > 0.7 && (a.y + b.y + c.y) / 3 - ymin > 1.8) up += ar; } });
+  const roofs = { upAreaAbove18: Math.round(up), wallArea: Math.round(vert), ratio: vert ? +(up / vert).toFixed(3) : null, tris, at: [+look.x.toFixed(0), +(-look.z).toFixed(0)] };
   // what the simulation in this page holds round the camera (the population view and the detailed agents)
-  const ce = camP.x, cn = -camP.z; let simNear = 0, simNearAll = 0;
-  for (const p of P?.view?.visible ?? []) { const d = Math.hypot(p.e - ce, p.n - cn); if (d < 60) simNear++; if (d < 250) simNearAll++; }
+  const ce = camP.x, cn = -camP.z; let simNear = 0, simNearAll = 0, openNear = 0, courtNear = 0, movingNear = 0; const places = {};
+  for (const p of P?.view?.visible ?? []) { const d = Math.hypot(p.e - ce, p.n - cn); if (d < 60) { simNear++; if (p.plot) courtNear++; else openNear++; if (p.moving) movingNear++;
+      const k = (p.place || (p.moving ? '(walking)' : '?')).split(/[:#]/)[0]; places[k] = (places[k] ?? 0) + 1; } if (d < 250) simNearAll++; }
   for (const a of P?.sim?.agents ?? []) if (!a.offmap) { const d = Math.hypot(a.pos[0] - ce, a.pos[1] - cn); if (d < 60) simNear++; if (d < 250) simNearAll++; }
   const lights = []; scene.traverse(o => { if (o.isDirectionalLight && o.castShadow) lights.push({ name: o.name, far: o.shadow?.camera?.far, size: [o.shadow?.camera?.right - o.shadow?.camera?.left] }); });
   let crowd = null; try { crowd = api.humans(); } catch { }
-  return { cam: [+ce.toFixed(1), +cn.toFixed(1), +camP.y.toFixed(1)], simNear60: simNear, simNear250: simNearAll, crowd, lights,
+  return { cam: [+ce.toFixed(1), +cn.toFixed(1), +camP.y.toFixed(1)], simNear60: simNear, simNear250: simNearAll, openNear60: openNear, courtNear60: courtNear, movingNear60: movingNear, places60: places, crowd, lights, roofs,
     rows: [...rows.values()].map(r => ({ ...r, mats: [...r.mats].slice(0, 4), tiers: [...r.tiers], tris: Math.round(r.tris) })) };
 };
 
@@ -120,7 +150,7 @@ for (const v of pick) {
     console.log(T(), v.id, r.error ?? `sim<60m ${r.simNear60}, rows ${r.rows.length}`);
   } catch (e) { console.log(T(), v.id, 'FAILED', String(e).slice(0, 300)); results.push({ view: v.id, error: String(e).slice(0, 300) }); if (/closed|crash/i.test(String(e))) break; }
 }
-await browser.close(); if (server && !process.argv.includes('--keep-server')) server.kill();
+closing = true; await browser.close(); if (server) server.close();
 
 // ---- classes and flags
 const CLASSES = [
@@ -143,15 +173,18 @@ for (const r of results) {
   md.push('| class | meshes visible / hidden | instances in frustum | of them < 60 m | triangles in frustum |', '|---|---|---|---|---|');
   for (const [name, re] of CLASSES) { const s = sum(r, re); md.push(`| ${name} | ${s.vis} / ${s.hidden} | ${s.instIn} | ${s.near60} | ${s.tris} |`); }
   md.push('', `shadow-casting lights: ${JSON.stringify(r.lights)}`, '');
-  const people = sum(r, CLASSES[0][1]).near60 + sum(r, CLASSES[1][1]).near60 + sum(r, CLASSES[2][1]).near60;
-  if (r.simNear60 >= 10 && people < r.simNear60 * 0.3) flags.push(`${r.view}: the sim holds ${r.simNear60} people within 60 m; the page has ${people} person instances visible within 60 m in the frustum (skinned ${sum(r, CLASSES[0][1]).near60}, lod3 ${sum(r, CLASSES[1][1]).near60}, impostors ${sum(r, CLASSES[2][1]).near60}; hidden people meshes ${sum(r, CLASSES[0][1]).hidden + sum(r, CLASSES[1][1]).hidden + sum(r, CLASSES[2][1]).hidden})`);
-  const roofs = sum(r, CLASSES[3][1]), walls = sum(r, CLASSES[4][1]);
-  if (walls.instIn > 20 && roofs.instIn < walls.instIn * 0.1) flags.push(`${r.view}: ${walls.instIn} wall instances in the frustum but ${roofs.instIn} roof instances (roof meshes visible ${roofs.vis}, hidden ${roofs.hidden})`);
+  const cs = r.crowd ?? {}, drawn = (cs.people ?? 0) + (cs.impostors ?? 0);
+  md.push(`people: sim out of doors within 60 m ${r.simNear60} (open ground ${r.openNear60}, inside walled courts ${r.courtNear60}, walking ${r.movingNear60}; places ${JSON.stringify(r.places60)}; 250 m ${r.simNear250}); crowd attached ${cs.perf?.attached ?? '?'}, skinned drawn ${cs.people ?? '?'} by LOD ${JSON.stringify(cs.byLod ?? [])}, impostors drawn ${cs.impostors ?? '?'} of ${cs.impPerf?.candidates ?? '?'} candidates`, '');
+  md.push(`town roofs (150 m round ${JSON.stringify(r.roofs?.at)}): up-facing area above 1.8 m ${r.roofs?.upAreaAbove18} m², wall area ${r.roofs?.wallArea} m², ratio ${r.roofs?.ratio} (${r.roofs?.tris} triangles)`, '');
+  if (r.simNear60 >= 10 && drawn < r.simNear250 * 0.3) flags.push(`${r.view} [C5 people]: the sim holds ${r.simNear60} people out of doors within 60 m (${r.openNear60} on open ground, ${r.courtNear60} in walled courts; ${r.simNear250} within 250 m); the crowd draws ${cs.people} skinned (by LOD ${JSON.stringify(cs.byLod)}) + ${cs.impostors} impostors of ${cs.impPerf?.candidates} candidates, ${cs.perf?.attached} attached`);
+  if (r.roofs?.wallArea > 2000 && r.roofs.ratio !== null && r.roofs.ratio < 0.15) flags.push(`${r.view} [C2 roofs]: within 150 m of ${JSON.stringify(r.roofs.at)} the houses show ${r.roofs.wallArea} m² of wall but ${r.roofs.upAreaAbove18} m² of up-facing surface above 1.8 m (ratio ${r.roofs.ratio}): roofless`);
   md.push('<details><summary>all classes (top 60 by triangles)</summary>', '', '| object key | vis / hidden | inst in frustum | < 60 m | tris | mats | tiers |', '|---|---|---|---|---|---|---|');
   for (const x of [...r.rows].sort((a, b) => b.tris - a.tris || b.hidden - a.hidden).slice(0, 60)) md.push(`| ${x.k} | ${x.vis} / ${x.hidden} | ${x.instIn} | ${x.near60} | ${x.tris} | ${x.mats.join(', ')} | ${x.tiers.join('')} |`);
   md.push('', '</details>', '');
 }
 md.splice(6, 0, '## Flags', '', ...(flags.length ? flags.map(s => '- ' + s) : ['- none']), '', `Page errors (unique): ${errs.size}`, ...[...errs].slice(0, 12).map(([k, n]) => `- ${n}x ${k}`), '');
-writeFileSync(OUT + '.json', JSON.stringify({ tree: TREE, head, results }, null, 1));
+// the json keeps the 80 heaviest rows per view (the full graph is ~2.5 MB a run; --full keeps every row)
+const slim = process.argv.includes('--full') ? results : results.map(r => r.rows ? { ...r, rows: [...r.rows].sort((a, b) => b.tris - a.tris || b.hidden - a.hidden).slice(0, 80) } : r);
+writeFileSync(OUT + '.json', JSON.stringify({ tree: TREE, head, results: slim }));
 writeFileSync(OUT + '.md', md.join('\n') + '\n');
 console.log(T(), 'wrote', OUT + '.md', '\nFLAGS:\n' + flags.join('\n'));
