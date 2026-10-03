@@ -669,7 +669,8 @@
         "men",
         "women"
        ],
-       "pinTop": 0.12,
+       "ease": 1.55,
+       "pinTop": 0.1,
        "keepOver": {
         "men": [
          "robe_upper"
@@ -685,6 +686,7 @@
         "men",
         "women"
        ],
+       "shoulderPin": 0.06,
        "cinch": 0.006,
        "ease": 1.14,
        "cuff": [
@@ -850,18 +852,18 @@
        "over": {
         "women": [
          "robe_upper",
-         "robe_sleeves",
          "robe_skirt"
         ]
        },
-       "ease": 1.06,
+       "ease": 1.25,
        "cloth": {
         "bending": 0.2
        },
        "pinShoulder": true,
        "keepOver": {
         "women": [
-         "belt"
+         "belt",
+         "robe_sleeves"
         ]
        }
       },

@@ -222,3 +222,11 @@ See handoff/s18/c13_frames/ (if present): the forecourt and N stair at 09:12 on 
   and the reclining pose on the rig), court_fill, people_children, performances (including the 300 performers' CPU budget,
   alone on the box) and palace_furnish: 64 passed. model_props: the work object kinds, all modelled. court.test's sealed-letter
   test passes in 436 s alone.
+
+## D-804 garments (lead 3's resume, then lead 4)
+**Broken or unseen first:** no in-game frame (Blender contact sheets only: handoff/s18/c13_garments/); people_hair is stale
+(its input hash covers outfits.ts; it builds only on Vagon: asked of C14); people_pieces fails on the base too (not mine).
+- Family 1, the Persian robe: bell sleeves that fold (sleeve ease about the arm), the shoulder rim gone, the court veil whole
+  (it tore into strips over the robe's pleats). people_cloth rebuilt and byte-reproduced in the cloud; budgets kept (the veil
+  sized to the 42 k costume budget with the hair cards).
+- Next: the kandys (a rigid slab today), the women's headcloth, trousers, tunics.

@@ -117,7 +117,7 @@ for (const [piece, P] of Object.entries(ARGS.pieces as Record<string, any>)) for
       // cuffs; the chest, back, sides and sleeves are free (they fold over the body and the arms; D-307 pinned all but a band
       // above the belt, and the tunics read as shrink-wrapped)
       case 'upper': { const sh = J(vid, 'upperarm_l')[1], cuff = armV ? sstep(P.cuff[0], P.cuff[1], alongArm(vid, x, y, z)) : 0;
-        w = Math.max(sstep(sh - 0.005, sh + 0.035, y), sstep(waist + 0.05, waist + 0.01, y), cuff); break; }
+        w = Math.max(sstep(sh - (P.shoulderPin ?? 0.005), sh + 0.035, y), sstep(waist + 0.05, waist + 0.01, y), cuff); break; } // (D-804: `shoulderPin` lowers the pinned cap over the shoulder: the robe's crumpled there)
       case 'legs': w = sstep(waist - 0.12, waist - 0.06, y); break; // D-322: trousers hang from the waist band
       case 'sleeve': w = t < P.pinTop ? 1 : 0; break;
       case 'hang': w = sstep(P.pinY[0], P.pinY[1], y - neck); break; // coats and cloths hang from the shoulders or the head
@@ -134,6 +134,11 @@ for (const [piece, P] of Object.entries(ARGS.pieces as Record<string, any>)) for
       const up = y > b[1], f = up ? Math.min(1, Math.max(0, (a[1] - y) / (a[1] - b[1]))) : Math.min(1, Math.max(0, (b[1] - y) / (b[1] - c[1])));
       const ax = up ? a[0] + (b[0] - a[0]) * f : b[0] + (c[0] - b[0]) * f, az = up ? a[2] + (b[2] - a[2]) * f : b[2] + (c[2] - b[2]) * f;
       const e = 1 + (PE - 1) * (1 - w) + rip * 10; start.set([ax + (x - ax) * e, y, az + (z - az) * e], o * 3); continue; }
+    // D-804: a sleeve is cut fuller than the arm it hangs from (`ease` about the arm's own axis, below the pinned top): the
+    // solver draws nothing in, so the spare cloth falls into folds round and under the arm instead of hanging as a smooth tube
+    if (P.kind === 'sleeve' && P.ease) { const s = x >= 0 ? 'l' : 'r', a = J(vid, `upperarm_${s}` as HBone), b = J(vid, `lowerarm_${s}` as HBone), c = J(vid, `hand_${s}` as HBone), u = alongArm(vid, x, y, z);
+      const ax = u <= 1 ? [0, 1, 2].map(e => a[e] + (b[e] - a[e]) * u) : [0, 1, 2].map(e => b[e] + (c[e] - b[e]) * Math.min(1, u - 1));
+      const e = 1 + (PE - 1) * sstep(P.pinTop, P.pinTop + 0.12, t) + rip * 10; start.set([ax[0] + (x - ax[0]) * e, ax[1] + (y - ax[1]) * e, ax[2] + (z - ax[2]) * e], o * 3); continue; }
     // D-322: an upper garment is also cut longer than the body from the shoulder seam to the belt (`blouse`): the pinned
     // waist band is drawn up to its fitted place over the first frames and the extra length falls over the belt in folds
     const shY = J(vid, 'upperarm_l')[1], yb = P.kind === 'upper' && PB && !armV && y < shY ? shY - (shY - y) * (1 + PB) : y;

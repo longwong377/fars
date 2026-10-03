@@ -10509,3 +10509,15 @@ touched; the budget baseline is not re-accepted from such a head.
   sent to C2 with a repro. At q_s1 (d0 10:00) 53 of 75 people on the move walk; the walks are short (3-5 min), and only 6 of
   303 drawn within 60 m walk: more and longer trips are the plans' (C1).
 - The doorstep shares a little higher (spin 50 %, play 65 %, talk 55 %, rest 40 %, craft 35 %, clean 45 %, eat 20 %).
+
+## D-804 The garments as settled cloth, family by family (s18 cloud C13; the user: people must stop looking like 2010 stock models)
+- The split with C14: C13 the garments (outfits.ts garment pieces, drape.ts, garments.ts, tools/blender/cloth.py and
+  sources/people_cloth*.ts, the cloth branch of humanMaterial), C14 the body, skin, rig and hair. Built in the cloud with pip
+  bpy (6 min; byte-reproduced, build.mjs --verify); Blender contact sheets (preview_garments) are the eyes.
+- The Persian court robe (family 1): the solver hung the sleeves as smooth tubes (no spare cloth); a sleeve now has `ease`
+  about the arm's own axis (1.55 below the pinned top), so it falls in folds as the reliefs' bell sleeves do; the robe's
+  shoulder cap pinned lower (`shoulderPin` 6 cm: the crumpled rim at the shoulder). The court woman's veil: 26 x 22 at full
+  detail (was 16 x 12), cut fuller (ease 1.25), ±57° from the back (the bell sleeves came through at ±75°), settled over the
+  robe's body and skirt only (it snagged on a sleeve) and kept, in the game, radially outside the robe as placed on each body
+  (the robe as drawn, with its baked pleats, is fuller than as settled: its pleats showed through the veil in strips).
+  Before/after: handoff/s18/c13_garments/robe_*.jpg. All C.
