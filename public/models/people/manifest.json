@@ -4,20 +4,20 @@
   "people_cloth": {
    "files": {
     "people_cloth.json": {
-     "sha256": "e596e8d5ec55bb960af4304c1b9302e3a12396a5cbd7d58eabbfdef0ef6aae16",
-     "bytes": 37061
+     "sha256": "02d9d000edc3664206b538542acbe29da1fd46e1c82f13df28d2df06cd4f8629",
+     "bytes": 36164
     },
     "people_cloth.bin": {
-     "sha256": "c928a311af1f58c5c7dc49c03b6f9f01223229f2232d1e554ce7fdc541b8b3e3",
-     "bytes": 583792
+     "sha256": "782a1f862fd6c14dba8b32de9081eaefc9319842505a8b27e08ec48f80bda45b",
+     "bytes": 580204
     },
     "people_cloth_folds.png": {
-     "sha256": "84b37694dd9fb9bd73938f91f04944e7b8b58887a520a0b440591d3db7cab999",
-     "bytes": 1106058
+     "sha256": "1cd2e3268e06608e00655da052664b28761fd43dc535bc6cce0ec74ec7607fe9",
+     "bytes": 1081955
     }
    },
-   "inHash": "38dbaca4fe794f95801a139d243f146e4462e51fb00d61e1634690e1cb2690d5",
-   "bytes": 1726911,
+   "inHash": "0c65af01677bd97ccafb6dad11558ff0362f4d810d1ec4a0e08ccdc20c1abf08",
+   "bytes": 1698323,
    "gpuBytes": 0,
    "stats": {
     "robe_skirt_men": {
@@ -347,19 +347,6 @@
       "robe_upper_women",
       "robe_sleeves_women",
       "robe_skirt_women"
-     ]
-    },
-    "veil_women_s1": {
-     "verts": 3185,
-     "tris": 6144,
-     "levels": 2,
-     "edge0_cm": 7.06,
-     "edge_cm": 1.77,
-     "pinned": 0.306,
-     "over": [
-      "robe_upper_women_s1",
-      "robe_sleeves_women_s1",
-      "robe_skirt_women_s1"
      ]
     },
     "belt_men": {
@@ -1110,41 +1097,23 @@
      "sampled": 24,
      "pushed": 0
     },
-    "veil@0|women#1": {
-     "rms_mm": 82.5,
-     "max_mm": 255.3,
-     "sampled": 221,
-     "pushed": 13
-    },
-    "veil@1|women#1": {
-     "rms_mm": 76.8,
-     "max_mm": 226.7,
-     "sampled": 54,
-     "pushed": 4
-    },
-    "veil@2|women#1": {
-     "rms_mm": 75.8,
-     "max_mm": 193.9,
-     "sampled": 24,
-     "pushed": 0
-    },
     "$folds": {
      "scale_mm": 12,
      "texelsPerMetre": 163.2,
      "charts": 25,
-     "samples": 368122
+     "samples": 361752
     }
    },
    "tier": "C",
    "src": "IR-CAND;IR-WOMEN;RELIEF-R",
    "blender": "5.0.1",
    "ktx": "ktx version: v4.4.2-compatible (ktx2-encoder, Basis Universal WASM)",
-   "build_s": 418,
+   "build_s": 402,
    "reproduced": {
     "files": {
-     "people_cloth.json": "e596e8d5ec55bb960af4304c1b9302e3a12396a5cbd7d58eabbfdef0ef6aae16",
-     "people_cloth.bin": "c928a311af1f58c5c7dc49c03b6f9f01223229f2232d1e554ce7fdc541b8b3e3",
-     "people_cloth_folds.png": "84b37694dd9fb9bd73938f91f04944e7b8b58887a520a0b440591d3db7cab999"
+     "people_cloth.json": "02d9d000edc3664206b538542acbe29da1fd46e1c82f13df28d2df06cd4f8629",
+     "people_cloth.bin": "782a1f862fd6c14dba8b32de9081eaefc9319842505a8b27e08ec48f80bda45b",
+     "people_cloth_folds.png": "1cd2e3268e06608e00655da052664b28761fd43dc535bc6cce0ec74ec7607fe9"
     },
     "blender": "5.0.1"
    }
