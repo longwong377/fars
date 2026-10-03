@@ -8,6 +8,7 @@ the previous head, with the commit that broke it (bisected) and its owner. OLD =
 |---|---|---|---|---|---|---|
 | 0ff7edef | 10-03 02:42 | (killed at ~100 min for memory when the head moved twice; no table) | | | | |
 | ca471bef | 10-03 04:43- | running | | | | court_fill tents on a road (bd141ed7 D-730: fixed by the lead cdaeaf78); plain village frame 2.05 M > 2.0 M (64d8f0c1 C2 D-660); language image registry, 83 KTX2 (C9 D-740: fixed by C7 6d40f45f); horizonmap stale after the meander (ef9df75f C3 D-670: re-baked by C7 2e8b302d); terrain ring seams 53 m apart + terrain_walk mid/far gap (ef9df75f C3 D-670); settlement_build walk to q_w1 blocked at (-451.9, 265.6) (5819c8ef C2 D-661) |
+| eb6f768f | 10-03 07:20-09:40 | 280 files (264 reported) / 2056 tests | 78 tests in 41 files (11 timeouts under load; list: ci_fails_eb6f768f.txt) | 0 errors | red: language (cat KTX2 C14, DNc C15) | C13: persian LOD budgets (96f1ae4b, fixed by C13 2e672f33), robe_upper (54655633), people_drape ΔE 12 (e9341d07), people_models hair/cloth stale (outfits.ts); C15: DNc carved without text (592d1b2f); C14: cat KTX2 unregistered (2c212081), impostor frames 71 vs 68 (f6ffdede); C2: fauna route / camp_life train / town_glow / plain_d223 fields (5819c8ef), plain_d223 radial run (9522767b), plain static 2.007 M; C1: crafts tannery/press 62 m (5a3c79f6), person_census name share (6371b169); C11: Math.random in score.ts (5cac851e) |
 
 ## OLD failures: root cause, owner, state
 | test | root cause | owner | state |
@@ -31,3 +32,7 @@ the previous head, with the commit that broke it (bisected) and its owner. OLD =
 | settlement_build (meshes ≤ 45) | 48 at d1adeedf (s17 C1 D-550 six door forms), 51 by s17's end, 55 with s18 C2 | C2 | ask sent |
 | persistence (save-load-save) | `npc.people.deeds.z` re-saves smaller after a load (831,583 vs 808,059 chars): the deeds engine does not restore all it saves | C8 (deeds) | to send |
 | exchanges (gate_check 0 in 8 days) | no guard at a check post meets a courier/official/porter among the agents; bisecting 2c2180f1..63d26b45 | C8 / C1 | in progress |
+| adult_only | road-folk wives floored at 16 (s17 C10 D-640), under D-348's ADULT 18 | C7 | fixed (roadFolk.ts) |
+| econ_plans (moves without a walk) | DeedWorld.overlay cutIn lays goals' stretches with no walk, over the economy's walks (D-461) | C8 | patch sent (handoff/s18/patches) |
+| exchanges (gate_check) | seed 1 has no courier/official/porter within 8 m of a guard at a check post since 61f93192 (seeds 2-4: ~100) | C1 / C8 | sent |
+| day plans read after the world moved on | a past day's laid deeds/visits are dropped once the world advanced (9 of 1,176 sampled plans differ) | C8 / C1 | sent |

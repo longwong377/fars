@@ -75,6 +75,7 @@ export function starLimitMag(alt: number): number {
   for (let i = 1; i < K.length; i++) if (alt >= K[i][0]) { const [a0, m0] = K[i - 1], [a1, m1] = K[i], t = (alt - a0) / (a1 - a0); return m0 + (m1 - m0) * t; }
   return 6.5;
 }
+const sq2 = (x: any) => x.mul(x);
 export class SkySystem {
   readonly sky = new SkyMesh();
   readonly sun = new THREE.DirectionalLight(0xffffff, 3);
@@ -286,7 +287,21 @@ export class SkySystem {
     // inner part eases in (tSh squared) so the drawn edge is not a step from 3 % to half-lit)
     const core = mix(float(UMBRA_DISPLAY_CORE), float(1), clamp(dSh.div(this.uShadow.x), 0, 1));
     const eclipse = mix(vec3(1, 1, 1), mix(vec3(...UMBRA_RGB).mul(core.mul(UMBRA_DISPLAY)), vec3(1, 1, 1), tSh.mul(tSh)), this.uShadow.z);
-    mm.colorNode = vec4(vec3(0.95, 0.93, 0.88).mul(lit.mul(1.2)).add(vec3(0.8, 1.0, 1.4).mul(this.uEarthshine)).mul(eclipse), 1);
+    // D-680 (C12: "the Moon is a blank disc"): its face. The maria as dark basalt plains where they lie on the near side seen
+    // from the north (north up: the disc's frame from the Moon's direction and the zenith; libration and the parallactic tilt
+    // left out, C), ~60 % of the highlands' albedo, with a fine mottle and Tycho's bright spot (positions A in outline, C in
+    // detail)
+    const mR = normalize(vec3(this.uMoonDirW.z.negate(), 0, this.uMoonDirW.x).add(vec3(1e-5, 0, 0)));
+    const mU = normalize(vec3(mR.y.mul(this.uMoonDirW.z).sub(mR.z.mul(this.uMoonDirW.y)), mR.z.mul(this.uMoonDirW.x).sub(mR.x.mul(this.uMoonDirW.z)), mR.x.mul(this.uMoonDirW.y).sub(mR.y.mul(this.uMoonDirW.x))));
+    const mu = dot(normalWorld, mR), mv = dot(normalWorld, mU);
+    const blob = (a: number, b: number, ra: number, rb: number) => exp(sq2(mu.sub(a).div(ra)).add(sq2(mv.sub(b).div(rb))).mul(-1.6));
+    const MARIA: [number, number, number, number][] = [[-0.33, 0.45, 0.28, 0.24], [0.17, 0.43, 0.15, 0.15], [0.33, 0.16, 0.19, 0.16], [0.66, 0.33, 0.1, 0.12],
+      [0.52, -0.12, 0.13, 0.16], [0.37, -0.32, 0.09, 0.09], [-0.62, 0.05, 0.25, 0.42], [-0.17, -0.38, 0.15, 0.12], [-0.5, -0.42, 0.09, 0.09], [0.0, 0.72, 0.45, 0.07]];
+    let mare: any = float(0); for (const [a, b, ra, rb] of MARIA) mare = max(mare, blob(a, b, ra, rb));
+    const mottle = mx_fractal_noise_float(normalWorld.mul(9), int(3), float(2.1), float(0.5)).mul(0.07);
+    const tycho = exp(sq2(mu.add(0.1)).add(sq2(mv.add(0.7))).mul(-900)).mul(0.5);
+    const albedo = float(1).sub(smoothstep(0.25, 0.75, mare).mul(0.4)).add(mottle).add(tycho);
+    mm.colorNode = vec4(vec3(0.95, 0.93, 0.88).mul(lit.mul(1.2)).mul(albedo).add(vec3(0.8, 1.0, 1.4).mul(this.uEarthshine).mul(albedo)).mul(eclipse), 1);
     this.moon = new THREE.Mesh(new THREE.SphereGeometry(moonR, 32, 16), mm);
     this.moon.frustumCulled = false; this.moon.renderOrder = -8;
     scene.add(this.moon);

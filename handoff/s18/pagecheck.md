@@ -1,21 +1,31 @@
 # Page check (D-772): what the page draws vs what its simulation holds
 
-Tree /home/user/fars-pc gitdir: /home/user/fars/.git/worktrees/fars-pc; built site (vite build, base /fars/), headless Chromium, ?test&norender&webgl=1&quality=test&court=seasonal; 2026-10-03T09:26:57.478Z.
+Tree /home/user/fars-pc gitdir: /home/user/fars/.git/worktrees/fars-pc; built site (vite build, base /fars/), headless Chromium, ?test&norender&webgl=1&quality=test&court=seasonal; 2026-10-03T09:42:24.981Z.
 Per view: objects effectively visible (every ancestor visible) and meeting the camera frustum, their instances and triangles;
 hidden = present in the scene but visible=false somewhere up the chain. sim<60 m = population view + detailed agents within 60 m of the camera.
 
-## Run 8 (C12, s17-int 5aff34bb: C13 court, C3 plain incl. da0351cd fieldWork, C1 field work from first light; clock running; 2026-10-03 ~09:45 UTC)
+## Run 9 (C12, s17-int 82544b5c: C1 c83555ae out-of-doors day, C3 e6cac08b herders, C5 b4e90ff2; clock running; 2026-10-03 ~10:00 UTC)
 
-**No flags.**
-- **The real field views are still empty near the eye.**
-  - cov-096 (day 58, 08:24): 1 person within 250 m (was 0), none within 60 m.
-  - cov-387 (day 272, 07:19): nobody within 250 m, though far impostors there went 341 -> 1,290 (C3's field work drawn at
-    distance).
-- **The town is as in run 6.** The lanes at 13:48: 140 of 142 at home, 2 on the lane, 0 walking. The q_s1 lane at 10:00:
-  48 on the lane, 2 walking. The court cov-037: 41 on the lane.
-- **T1 (stale people after setTime): forecourt_wait 88** on day 200 and day 5, not in any plan (C13's node check). Still
-  open with C5 and C1.
-- Walkers per view: 0, 0, 2, 0, 5, 4, 0, 0, 0, 0, 0, 0, 0.
+**No flags.** Against run 8, out of doors within 60 m (on a lane / walking):
+
+| view | run 8 | run 9 |
+|---|---|---|
+| lanes cov-142, d88 13:48 | 142 (2 / 0) | 140 (**23** / 0); 117 at home |
+| town20 (same spot, eye 20 m) | 140 (0 / 0) | 138 (23 / 0) |
+| court cov-037, d14 11:04 | 106 (41 / 0) | 105 (**57** / 0) |
+| q_s1 lane, d0 10:00 | 204 (48 / 2) | 169 (42 / 2) |
+| Terrace noon | 28 (- / 5) | 28 (- / 6) |
+| Terrace court day | 82 (- / 4) | 81 (- / 4) |
+| Apadana d200 (T1) | 121: hall 31, forecourt 88 | 90: hall 0, forecourt 88 |
+| fields cov-096 / cov-387 | 1 / 0 within 250 m | 0 / 0 within 250 m |
+| night town / night Terrace | 87 / 99 | 87 / 99 (forecourt 88: T1) |
+
+What changed:
+- **C1's out-of-doors day now shows: 23 people on the lane at 13:48** (was 2), and 57 on the court's lane (was 41).
+- **Nobody walks in town at the sampled moments** (0 at every town view, with the clock running). The lanes fill with people
+  standing or sitting, not passing.
+- **The stale 'apadana_hall' people are gone; the stale forecourt_wait 88 stays** (T1) on days 200 and 5.
+- **The real field views hold nobody within 250 m** (C3 herders and field work happen elsewhere).
 
 ## Flags
 
@@ -26,16 +36,16 @@ Page errors (unique): 1
 
 ## town20: the town from 20 m up (roofs vs walls) (day 88, 13.805 h)
 
-camera -871.9, -150.4, 4.4; sim people within 60 m: 140, within 250 m: 559; crowd stats: {"draws":3,"triangles":17556,"people":4,"byLod":[0,3,0,1],"shadowDraws":2,"shadowTriangles":1493,"propDraws":1,"props":1,"propTriangles":4056,"propsDropped":0,"placeholderActs":0,"motionCapture":2,"motionAuthored":2,"things":{"draws":0,"instances":0,"triangles":0,"kinds":{},"dropped":0},"animals":{"
+camera -871.9, -150.4, 4.4; sim people within 60 m: 138, within 250 m: 396; crowd stats: {"draws":2,"triangles":16843,"people":3,"byLod":[0,3,0,0],"shadowDraws":2,"shadowTriangles":1493,"propDraws":0,"props":0,"propTriangles":0,"propsDropped":0,"placeholderActs":0,"motionCapture":1,"motionAuthored":2,"things":{"draws":0,"instances":0,"triangles":0,"kinds":{},"dropped":0},"animals":{"dra
 
 | class | meshes visible / hidden | instances in frustum | of them < 60 m | triangles in frustum |
 |---|---|---|---|---|
-| people (skinned, any LOD) | 5 / 45 | 1 | 0 | 713 |
+| people (skinned, any LOD) | 4 / 46 | 2 | 2 | 5938 |
 | people LOD3 (far) | 0 / 0 | 0 | 0 | 0 |
 | people impostors | 1 / 0 | 1 | 0 | 2 |
 | house roofs | 13 / 5 | 0 | 0 | 0 |
 | house walls | 4 / 0 | 1 | 1 | 300 |
-| ground fill / props | 113 / 226 | 5 | 0 | 32072 |
+| ground fill / props | 112 / 227 | 4 | 0 | 28016 |
 | trees | 22 / 0 | 16 | 0 | 181066 |
 | crops / flora | 85 / 40 | 5 | 0 | 2034 |
 | fires / lamps | 13 / 1 | 2349 | 0 | 4698 |
@@ -47,7 +57,7 @@ shadow-casting lights: [{"name":"","far":2000,"size":[240]}]
 
 page: backend WebGL2, norender true, catch-up ticks 0 (still catching up: false), crowd looks pending 0
 
-people in the frustum: within 40 m 0 of 59; within 60 m 0 of 140 (behind court walls for this eye: 0; to be drawn: 0)
+people in the frustum: within 40 m 1 of 60; within 60 m 1 of 138 (behind court walls for this eye: 0; to be drawn: 1)
 
 | people mesh | visible / hidden meshes | instances (count) | in frustum | < 60 m |
 |---|---|---|---|---|
@@ -62,10 +72,10 @@ people in the frustum: within 40 m 0 of 59; within 60 m 0 of 140 (behind court w
 | world / humans:worker:lod# | 0 / 4 | 4 | 0 | 0 |
 | world / humans:woman:shadow | 0 / 1 | 1 | 0 | 0 |
 | world / humans:woman:shadow-far | 1 / 0 | 1 | 0 | 0 |
-| world / humans:woman:lod# | 2 / 2 | 4 | 1 | 0 |
+| world / humans:woman:lod# | 1 / 3 | 4 | 0 | 0 |
 | world / humans:child:shadow | 0 / 1 | 1 | 0 | 0 |
-| world / humans:child:shadow-far | 1 / 0 | 1 | 0 | 0 |
-| world / humans:child:lod# | 1 / 3 | 4 | 0 | 0 |
+| world / humans:child:shadow-far | 1 / 0 | 1 | 1 | 1 |
+| world / humans:child:lod# | 1 / 3 | 4 | 1 | 1 |
 | world / humans:envoy:shadow | 0 / 1 | 1 | 0 | 0 |
 | world / humans:envoy:shadow-far | 0 / 1 | 1 | 0 | 0 |
 | world / humans:envoy:lod# | 0 / 4 | 4 | 0 | 0 |
@@ -80,7 +90,7 @@ people in the frustum: within 40 m 0 of 59; within 60 m 0 of 140 (behind court w
 | world / people:impostors | 1 / 0 | 1 | 1 | 0 |
 | player-body / humans:median:lod# | 0 / 2 | 2 | 0 | 0 |
 
-people: sim out of doors within 60 m 140 (open ground 29, inside walled courts 111, walking 0; places {"h":140}; 250 m 559); crowd attached 419, skinned drawn 4 by LOD [0,3,0,1], impostors drawn 71 of 600 candidates
+people: sim out of doors within 60 m 138 (open ground 41, inside walled courts 97, walking 0; places {"h":115,"lane":23}; 250 m 396); crowd attached 399, skinned drawn 3 by LOD [0,3,0,0], impostors drawn 48 of 481 candidates
 
 town roofs (150 m round [-852,-196]): up-facing area above 1.8 m 21102 m², wall area 83423 m², ratio 0.253 (208948 triangles)
 
@@ -98,28 +108,28 @@ town roofs (150 m round [-852,-196]): up-facing area above 1.8 m 21102 m², wall
 | world / settlement:ground | 1 / 0 | 1 | 1 | 88536 | MeshStandardNodeMaterial | C |
 | world / plain-stone | 1 / 0 | 1 | 1 | 84008 | MeshStandardNodeMaterial | C |
 | world / plain-tracks | 1 / 0 | 1 | 0 | 75768 | MeshStandardNodeMaterial | C |
-| world / plain-villages--#,-# | 2 / 0 | 1 | 0 | 55696 | MeshStandardNodeMaterial | C |
 | world / plain-canal-banks | 1 / 0 | 1 | 0 | 55524 | MeshStandardNodeMaterial | C |
+| world / plain-villages--#,-# | 2 / 0 | 1 | 0 | 54984 | MeshStandardNodeMaterial | C |
 | world / settlement:near:timber | 1 / 0 | 1 | 0 | 53210 | MeshStandardNodeMaterial | C |
 | world / river-water | 1 / 0 | 1 | 0 | 50324 | MeshStandardNodeMaterial |  |
 | world / animals:sheep:lod# | 2 / 0 | 46 | 0 | 45080 | MeshStandardNodeMaterial |  |
 | world / settlement:near:items | 1 / 0 | 1 | 0 | 40299 | MeshStandardNodeMaterial | C |
 | world / interiors:cloth | 1 / 0 | 1 | 0 | 37403 | MeshStandardNodeMaterial | C |
 | world / animals:goat:lod# | 2 / 0 | 34 | 0 | 33320 | MeshStandardNodeMaterial |  |
-| world / plain-villages-#,# | 2 / 0 | 1 | 1 | 33122 | MeshStandardNodeMaterial | C |
+| world / plain-villages-#,# | 2 / 0 | 1 | 1 | 32572 | MeshStandardNodeMaterial | C |
 | world / settlement:gardens:far | 1 / 0 | 1 | 1 | 31796 | MeshStandardNodeMaterial | C |
 | world / ledges:far | 1 / 0 | 1 | 0 | 28850 | ledges |  |
 | plain-qanats / qanat-tile:#,-# | 2 / 13 | 318 | 0 | 28620 | MeshStandardNodeMaterial | C |
 | world / settlement:near:props | 1 / 0 | 1 | 0 | 26180 | MeshStandardNodeMaterial | C |
 | world / settlement:refuse | 1 / 0 | 1 | 1 | 21888 | MeshStandardNodeMaterial | C |
 | world / settlement:roads | 1 / 0 | 1 | 1 | 20956 | MeshStandardNodeMaterial | C |
+| world / nr-life | 1 / 0 | 1 | 1 | 19006 | MeshStandardNodeMaterial | C |
 | world / settlement:near:stone | 1 / 0 | 1 | 0 | 15432 | MeshStandardNodeMaterial | C |
 | world / interiors:clay | 1 / 0 | 1 | 0 | 12382 | MeshStandardNodeMaterial | C |
-| world / nr-life | 1 / 0 | 1 | 1 | 9792 | MeshStandardNodeMaterial | C |
 | world / settlement:compounds:far | 1 / 0 | 1 | 1 | 9482 | MeshStandardNodeMaterial | C |
 | world / settlement:water | 1 / 0 | 1 | 1 | 9242 | MeshStandardNodeMaterial | C |
+| world / humans:child:lod# | 1 / 3 | 1 | 1 | 5548 | human |  |
 | world / bird-chukar:stand# | 2 / 0 | 24 | 0 | 4224 | life:chukar |  |
-| world / props:carried | 1 / 0 | 1 | 0 | 4056 | MeshStandardNodeMaterial |  |
 | world / fire | 1 / 0 | 1796 | 0 | 3592 | MeshBasicNodeMaterial |  |
 | world / rock-boulder:namaqualand_boulder_#:lod# | 10 / 0 | 8 | 1 | 3048 | scan:namaqualand_boulder_02, scan:namaqualand_boulder_03, scan:namaqualand_boulder_04, scan:namaqualand_boulder_05 |  |
 | Points | 1 / 0 | 1 | 0 | 2973 | PointsNodeMaterial |  |
@@ -143,8 +153,8 @@ town roofs (150 m round [-852,-196]): up-facing area above 1.8 m 21102 m², wall
 | world / settlement:trees-leaves-lod# | 2 / 0 | 2 | 0 | 880 | MeshStandardNodeMaterial |  |
 | world / plain-trees-leaves-lod# | 2 / 0 | 2 | 0 | 880 | MeshStandardNodeMaterial |  |
 | plain-works / works:oven | 1 / 0 | 3 | 0 | 780 | MeshStandardNodeMaterial | C |
-| world / humans:woman:lod# | 2 / 2 | 1 | 0 | 713 | human |  |
 | world / rock-boulder:rock_face_#:lod# | 2 / 0 | 1 | 1 | 500 | scan:rock_face_02 |  |
+| world / humans:child:shadow-far | 1 / 0 | 1 | 1 | 390 | human |  |
 | world / bird-crow:fly# | 3 / 0 | 5 | 0 | 300 | life:crow |  |
 | plain-works / works-walls | 1 / 0 | 1 | 1 | 300 | MeshStandardNodeMaterial | B/C |
 | plain-works / works:wo_press | 1 / 0 | 1 | 0 | 292 | MeshStandardNodeMaterial | C |
@@ -153,7 +163,7 @@ town roofs (150 m round [-852,-196]): up-facing area above 1.8 m 21102 m², wall
 
 ## lanes: a town lane, afternoon (cov-142) (day 88, 13.805 h)
 
-camera -871.9, -150.4, -14; sim people within 60 m: 142, within 250 m: 966; crowd stats: {"draws":3,"triangles":2536,"people":4,"byLod":[0,0,0,4],"shadowDraws":0,"shadowTriangles":0,"propDraws":1,"props":1,"propTriangles":4056,"propsDropped":0,"placeholderActs":0,"motionCapture":1,"motionAuthored":3,"things":{"draws":0,"instances":0,"triangles":0,"kinds":{},"dropped":0},"animals":{"draw
+camera -871.9, -150.4, -14; sim people within 60 m: 140, within 250 m: 724; crowd stats: {"draws":3,"triangles":2536,"people":4,"byLod":[0,0,0,4],"shadowDraws":0,"shadowTriangles":0,"propDraws":1,"props":1,"propTriangles":4056,"propsDropped":0,"placeholderActs":0,"motionCapture":1,"motionAuthored":3,"things":{"draws":0,"instances":0,"triangles":0,"kinds":{},"dropped":0},"animals":{"draw
 
 | class | meshes visible / hidden | instances in frustum | of them < 60 m | triangles in frustum |
 |---|---|---|---|---|
@@ -174,7 +184,7 @@ shadow-casting lights: [{"name":"","far":2000,"size":[240]}]
 
 page: backend WebGL2, norender true, catch-up ticks 0 (still catching up: false), crowd looks pending 0
 
-people in the frustum: within 40 m 2 of 60; within 60 m 2 of 142 (behind court walls for this eye: 2; to be drawn: 0)
+people in the frustum: within 40 m 2 of 61; within 60 m 2 of 140 (behind court walls for this eye: 2; to be drawn: 0)
 
 | people mesh | visible / hidden meshes | instances (count) | in frustum | < 60 m |
 |---|---|---|---|---|
@@ -207,7 +217,7 @@ people in the frustum: within 40 m 2 of 60; within 60 m 2 of 142 (behind court w
 | world / people:impostors | 1 / 0 | 1 | 1 | 0 |
 | player-body / humans:median:lod# | 0 / 2 | 2 | 0 | 0 |
 
-people: sim out of doors within 60 m 142 (open ground 31, inside walled courts 111, walking 0; places {"h":140,"lane":2}; 250 m 966); crowd attached 422, skinned drawn 4 by LOD [0,0,0,4], impostors drawn 111 of 1056 candidates
+people: sim out of doors within 60 m 140 (open ground 41, inside walled courts 99, walking 0; places {"h":117,"lane":23}; 250 m 724); crowd attached 418, skinned drawn 4 by LOD [0,0,0,4], impostors drawn 94 of 851 candidates
 
 town roofs (150 m round [-811,-287]): up-facing area above 1.8 m 1101 m², wall area 4657 m², ratio 0.236 (22824 triangles)
 
@@ -225,24 +235,24 @@ town roofs (150 m round [-811,-287]): up-facing area above 1.8 m 1101 m², wall 
 | world / settlement:ground | 1 / 0 | 1 | 1 | 88536 | MeshStandardNodeMaterial | C |
 | world / plain-stone | 1 / 0 | 1 | 1 | 84008 | MeshStandardNodeMaterial | C |
 | world / plain-tracks | 1 / 0 | 1 | 0 | 75768 | MeshStandardNodeMaterial | C |
-| world / plain-villages--#,-# | 2 / 0 | 1 | 0 | 55696 | MeshStandardNodeMaterial | C |
 | world / plain-canal-banks | 1 / 0 | 1 | 0 | 55524 | MeshStandardNodeMaterial | C |
+| world / plain-villages--#,-# | 2 / 0 | 1 | 0 | 54984 | MeshStandardNodeMaterial | C |
 | world / settlement:near:timber | 1 / 0 | 1 | 0 | 53210 | MeshStandardNodeMaterial | C |
 | world / river-water | 1 / 0 | 1 | 0 | 50324 | MeshStandardNodeMaterial |  |
 | world / animals:sheep:lod# | 2 / 0 | 46 | 0 | 45080 | MeshStandardNodeMaterial |  |
 | world / settlement:near:items | 1 / 0 | 1 | 0 | 40299 | MeshStandardNodeMaterial | C |
 | world / interiors:cloth | 1 / 0 | 1 | 0 | 37403 | MeshStandardNodeMaterial | C |
 | world / animals:goat:lod# | 2 / 0 | 34 | 0 | 33320 | MeshStandardNodeMaterial |  |
-| world / plain-villages-#,# | 2 / 0 | 1 | 1 | 33122 | MeshStandardNodeMaterial | C |
+| world / plain-villages-#,# | 2 / 0 | 1 | 1 | 32572 | MeshStandardNodeMaterial | C |
 | world / settlement:gardens:far | 1 / 0 | 1 | 1 | 31796 | MeshStandardNodeMaterial | C |
 | world / ledges:far | 1 / 0 | 1 | 0 | 28850 | ledges |  |
 | plain-qanats / qanat-tile:#,-# | 2 / 13 | 318 | 0 | 28620 | MeshStandardNodeMaterial | C |
 | world / settlement:near:props | 1 / 0 | 1 | 0 | 26180 | MeshStandardNodeMaterial | C |
 | world / settlement:refuse | 1 / 0 | 1 | 1 | 21888 | MeshStandardNodeMaterial | C |
 | world / settlement:roads | 1 / 0 | 1 | 1 | 20956 | MeshStandardNodeMaterial | C |
+| world / nr-life | 1 / 0 | 1 | 1 | 19006 | MeshStandardNodeMaterial | C |
 | world / settlement:near:stone | 1 / 0 | 1 | 0 | 15432 | MeshStandardNodeMaterial | C |
 | world / interiors:clay | 1 / 0 | 1 | 0 | 12382 | MeshStandardNodeMaterial | C |
-| world / nr-life | 1 / 0 | 1 | 1 | 9792 | MeshStandardNodeMaterial | C |
 | world / settlement:compounds:far | 1 / 0 | 1 | 1 | 9482 | MeshStandardNodeMaterial | C |
 | world / settlement:water | 1 / 0 | 1 | 1 | 9242 | MeshStandardNodeMaterial | C |
 | world / animals:donkey:lod# | 3 / 0 | 1 | 1 | 5879 | MeshStandardNodeMaterial |  |
@@ -280,16 +290,16 @@ town roofs (150 m round [-811,-287]): up-facing area above 1.8 m 1101 m², wall 
 
 ## qs1: a q_s1 lane on the road south at day 0, 10:00 (cov-381's spot) (day 0, 10 h)
 
-camera -397, -894.7, -16.2; sim people within 60 m: 204, within 250 m: 592; crowd stats: {"draws":11,"triangles":534024,"people":248,"byLod":[6,34,0,208],"shadowDraws":7,"shadowTriangles":31130,"propDraws":4,"props":172,"propTriangles":602430,"propsDropped":0,"placeholderActs":0,"motionCapture":97,"motionAuthored":151,"things":{"draws":10,"instances":189,"triangles":609006,"kinds":{"loo
+camera -397, -894.7, -16.2; sim people within 60 m: 169, within 250 m: 442; crowd stats: {"draws":12,"triangles":564698,"people":287,"byLod":[6,34,0,247],"shadowDraws":7,"shadowTriangles":31453,"propDraws":4,"props":167,"propTriangles":554354,"propsDropped":0,"placeholderActs":0,"motionCapture":66,"motionAuthored":221,"things":{"draws":10,"instances":182,"triangles":590346,"kinds":{"loo
 
 | class | meshes visible / hidden | instances in frustum | of them < 60 m | triangles in frustum |
 |---|---|---|---|---|
-| people (skinned, any LOD) | 18 / 32 | 18 | 16 | 107859 |
+| people (skinned, any LOD) | 19 / 31 | 19 | 17 | 108630 |
 | people LOD3 (far) | 0 / 0 | 0 | 0 | 0 |
 | people impostors | 1 / 0 | 1 | 0 | 2 |
 | house roofs | 13 / 5 | 7 | 3 | 1772 |
 | house walls | 4 / 0 | 1 | 1 | 300 |
-| ground fill / props | 120 / 219 | 673 | 304 | 721661 |
+| ground fill / props | 120 / 219 | 668 | 288 | 673585 |
 | trees | 22 / 0 | 16 | 0 | 181066 |
 | crops / flora | 86 / 39 | 30 | 18 | 7038 |
 | fires / lamps | 13 / 1 | 3917 | 54 | 8274 |
@@ -301,13 +311,13 @@ shadow-casting lights: [{"name":"","far":2000,"size":[240]}]
 
 page: backend WebGL2, norender true, catch-up ticks 0 (still catching up: false), crowd looks pending 0
 
-people in the frustum: within 40 m 56 of 95; within 60 m 105 of 204 (behind court walls for this eye: 69; to be drawn: 36)
+people in the frustum: within 40 m 48 of 89; within 60 m 87 of 169 (behind court walls for this eye: 51; to be drawn: 36)
 
 | people mesh | visible / hidden meshes | instances (count) | in frustum | < 60 m |
 |---|---|---|---|---|
 | world / humans:persian:shadow | 0 / 1 | 1 | 0 | 0 |
 | world / humans:persian:shadow-far | 1 / 0 | 1 | 1 | 0 |
-| world / humans:persian:lod# | 1 / 3 | 4 | 1 | 0 |
+| world / humans:persian:lod# | 2 / 2 | 4 | 2 | 1 |
 | world / humans:median:shadow | 0 / 1 | 1 | 0 | 0 |
 | world / humans:median:shadow-far | 1 / 0 | 1 | 1 | 1 |
 | world / humans:median:lod# | 2 / 2 | 4 | 2 | 2 |
@@ -334,7 +344,7 @@ people in the frustum: within 40 m 56 of 95; within 60 m 105 of 204 (behind cour
 | world / people:impostors | 1 / 0 | 1 | 1 | 0 |
 | player-body / humans:median:lod# | 0 / 2 | 2 | 0 | 0 |
 
-people: sim out of doors within 60 m 204 (open ground 79, inside walled courts 125, walking 2; places {"h":65,"lane":48,"ws":82,"(walking)":2,"well":1,"ws_textile":6}; 250 m 592); crowd attached 445, skinned drawn 248 by LOD [6,34,0,208], impostors drawn 161 of 1723 candidates
+people: sim out of doors within 60 m 169 (open ground 72, inside walled courts 97, walking 2; places {"h":64,"lane":42,"ws":59,"(walking)":2,"well":1,"ws_textile":1}; 250 m 442); crowd attached 446, skinned drawn 287 by LOD [6,34,0,247], impostors drawn 15 of 1318 candidates
 
 town roofs (150 m round [-455,-1033]): up-facing area above 1.8 m 26159 m², wall area 95202 m², ratio 0.275 (199449 triangles)
 
@@ -344,21 +354,21 @@ town roofs (150 m round [-455,-1033]): up-facing area above 1.8 m 26159 m², wal
 |---|---|---|---|---|---|---|
 | world / relief:figures | 9 / 3 | 927 | 0 | 1690000 | MeshStandardNodeMaterial | C |
 | terrain | 208 / 0 | 55 | 3 | 740608 | MeshStandardNodeMaterial | C |
-| world / work:loom | 1 / 0 | 154 | 26 | 557480 | MeshStandardNodeMaterial |  |
-| world / props:carried | 1 / 0 | 110 | 49 | 446160 | MeshStandardNodeMaterial |  |
+| world / work:loom | 1 / 0 | 149 | 26 | 539380 | MeshStandardNodeMaterial |  |
+| world / props:carried | 1 / 0 | 78 | 34 | 316368 | MeshStandardNodeMaterial |  |
 | world / settlement:q_s#:far | 4 / 0 | 3 | 1 | 246034 | MeshStandardNodeMaterial | C |
+| world / props:tools | 2 / 2 | 86 | 20 | 234080 | MeshStandardNodeMaterial |  |
 | world / settlement:near:plaster | 1 / 0 | 1 | 0 | 187967 | MeshStandardNodeMaterial | C |
 | world / plain-orchards-far | 1 / 0 | 1 | 0 | 176772 | MeshStandardNodeMaterial |  |
 | world / river-banks | 1 / 0 | 1 | 0 | 159880 | MeshStandardNodeMaterial | C |
-| world / props:tools | 2 / 2 | 55 | 20 | 147156 | MeshStandardNodeMaterial |  |
-| world / plain-villages--#,-# | 2 / 0 | 2 | 0 | 134860 | MeshStandardNodeMaterial | C |
+| world / plain-villages--#,-# | 2 / 0 | 2 | 0 | 133082 | MeshStandardNodeMaterial | C |
 | world / settlement:near:timber | 1 / 0 | 1 | 0 | 122887 | MeshStandardNodeMaterial | C |
 | world / animals:hen:lod# | 1 / 0 | 157 | 17 | 98282 | MeshStandardNodeMaterial |  |
 | world / settlement:near:items | 1 / 0 | 1 | 0 | 88870 | MeshStandardNodeMaterial | C |
 | world / settlement:ground | 1 / 0 | 1 | 1 | 88536 | MeshStandardNodeMaterial | C |
 | world / plain-stone | 1 / 0 | 1 | 1 | 84008 | MeshStandardNodeMaterial | C |
 | world / plain-tracks | 1 / 0 | 1 | 0 | 75768 | MeshStandardNodeMaterial | C |
-| world / plain-villages--#,# | 4 / 0 | 1 | 0 | 64166 | MeshStandardNodeMaterial | C |
+| world / plain-villages--#,# | 4 / 0 | 1 | 0 | 62844 | MeshStandardNodeMaterial | C |
 | world / plain-canal-banks | 1 / 0 | 1 | 0 | 55524 | MeshStandardNodeMaterial | C |
 | world / river-water | 1 / 0 | 1 | 0 | 50324 | MeshStandardNodeMaterial |  |
 | world / settlement:near:props | 1 / 0 | 1 | 0 | 48732 | MeshStandardNodeMaterial | C |
@@ -367,24 +377,23 @@ town roofs (150 m round [-455,-1033]): up-facing area above 1.8 m 26159 m², wal
 | world / work:beam | 1 / 0 | 16 | 6 | 37824 | MeshStandardNodeMaterial |  |
 | world / humans:child:lod# | 3 / 1 | 3 | 3 | 36304 | human |  |
 | world / ledges:far | 1 / 0 | 1 | 0 | 33710 | ledges |  |
-| world / plain-villages-#,# | 2 / 0 | 1 | 1 | 33122 | MeshStandardNodeMaterial | C |
+| world / plain-villages-#,# | 2 / 0 | 1 | 1 | 32572 | MeshStandardNodeMaterial | C |
 | world / settlement:gardens:far | 1 / 0 | 1 | 1 | 31796 | MeshStandardNodeMaterial | C |
 | world / settlement:near:stone | 1 / 0 | 1 | 0 | 29820 | MeshStandardNodeMaterial | C |
 | world / settlement:refuse | 1 / 0 | 1 | 1 | 21888 | MeshStandardNodeMaterial | C |
 | world / settlement-doors:# | 3 / 0 | 126 | 17 | 21276 | MeshStandardNodeMaterial | C |
 | world / settlement:roads | 1 / 0 | 1 | 1 | 20956 | MeshStandardNodeMaterial | C |
+| world / nr-life | 1 / 0 | 1 | 1 | 19006 | MeshStandardNodeMaterial | C |
 | world / animals:goat:lod# | 3 / 0 | 16 | 10 | 15680 | MeshStandardNodeMaterial |  |
 | world / animals:dog:lod# | 1 / 0 | 16 | 1 | 15648 | MeshStandardNodeMaterial |  |
 | world / interiors:clay | 1 / 0 | 1 | 0 | 13908 | MeshStandardNodeMaterial | C |
 | world / animals:cock:lod# | 1 / 0 | 19 | 2 | 11894 | MeshStandardNodeMaterial |  |
 | world / animals:donkey:lod# | 3 / 0 | 6 | 3 | 11754 | MeshStandardNodeMaterial |  |
-| world / nr-life | 1 / 0 | 1 | 1 | 9792 | MeshStandardNodeMaterial | C |
 | world / settlement:compounds:far | 1 / 0 | 1 | 1 | 9482 | MeshStandardNodeMaterial | C |
 | world / settlement:water | 1 / 0 | 1 | 1 | 9242 | MeshStandardNodeMaterial | C |
-| world / props:children | 1 / 0 | 7 | 3 | 9114 | MeshStandardNodeMaterial |  |
 | world / humans:worker:lod# | 2 / 2 | 2 | 2 | 7581 | human |  |
+| world / humans:persian:lod# | 2 / 2 | 2 | 1 | 7070 | human |  |
 | world / humans:median:lod# | 2 / 2 | 2 | 2 | 6569 | human |  |
-| world / humans:persian:lod# | 1 / 3 | 1 | 0 | 6299 | human |  |
 | world / fill:jar_water:clay:lod# | 3 / 0 | 50 | 17 | 6296 | MeshStandardNodeMaterial | C |
 | world / animals:cat:lod# | 1 / 0 | 10 | 2 | 5880 | MeshStandardNodeMaterial |  |
 | world / fill:wo_dung_cakes:dung:lod# | 2 / 1 | 54 | 9 | 5600 | MeshStandardNodeMaterial | C |
@@ -392,6 +401,7 @@ town roofs (150 m round [-455,-1033]): up-facing area above 1.8 m 26159 m², wal
 | world / settlement:near:brick | 1 / 0 | 1 | 0 | 4692 | MeshStandardNodeMaterial | B/C |
 | world / fill:fill_bundle:wood:lod# | 2 / 1 | 12 | 12 | 4248 | MeshStandardNodeMaterial | C |
 | world / fill:mat:matting:lod# | 2 / 1 | 31 | 5 | 4045 | MeshStandardNodeMaterial | C |
+| world / props:children | 1 / 0 | 3 | 2 | 3906 | MeshStandardNodeMaterial |  |
 | world / fill:fill_line:cloth_a:lod# | 2 / 1 | 31 | 7 | 3720 | MeshStandardNodeMaterial | C |
 | world / fill:fill_matlean:reed:lod# | 2 / 1 | 9 | 9 | 3700 | MeshStandardNodeMaterial | C |
 | world / fill:jar_store:clay:lod# | 2 / 1 | 41 | 9 | 3690 | MeshStandardNodeMaterial | C |
@@ -400,35 +410,35 @@ town roofs (150 m round [-455,-1033]): up-facing area above 1.8 m 26159 m², wal
 | world / road-litter | 1 / 0 | 15 | 15 | 3120 | MeshStandardNodeMaterial |  |
 | world / fill:fill_line:cloth_b:lod# | 2 / 1 | 31 | 7 | 3100 | MeshStandardNodeMaterial | C |
 | Points | 1 / 0 | 1 | 0 | 2973 | PointsNodeMaterial |  |
-| world / work:knucklebones | 1 / 0 | 10 | 5 | 2800 | MeshStandardNodeMaterial |  |
 | world / fill:fill_stall:cloth:lod# | 3 / 0 | 1 | 1 | 2600 | MeshStandardNodeMaterial | C |
+| world / humans:woman:shadow | 1 / 0 | 1 | 1 | 2562 | human |  |
 
 </details>
 
 ## court: a town court, noon (cov-037) (day 14, 11.07 h)
 
-camera -535.4, 401.1, -12; sim people within 60 m: 106, within 250 m: 442; crowd stats: {"draws":11,"triangles":347702,"people":134,"byLod":[5,19,0,110],"shadowDraws":5,"shadowTriangles":20817,"propDraws":3,"props":74,"propTriangles":261556,"propsDropped":0,"placeholderActs":0,"motionCapture":65,"motionAuthored":69,"things":{"draws":11,"instances":39,"triangles":38734,"kinds":{"beam":1
+camera -535.4, 401.1, -12; sim people within 60 m: 105, within 250 m: 391; crowd stats: {"draws":11,"triangles":416568,"people":140,"byLod":[7,19,0,114],"shadowDraws":5,"shadowTriangles":25384,"propDraws":3,"props":84,"propTriangles":304620,"propsDropped":0,"placeholderActs":0,"motionCapture":65,"motionAuthored":75,"things":{"draws":11,"instances":48,"triangles":47818,"kinds":{"beam":1
 
 | class | meshes visible / hidden | instances in frustum | of them < 60 m | triangles in frustum |
 |---|---|---|---|---|
-| people (skinned, any LOD) | 16 / 34 | 16 | 12 | 95476 |
+| people (skinned, any LOD) | 16 / 34 | 16 | 13 | 95476 |
 | people LOD3 (far) | 0 / 0 | 0 | 0 | 0 |
 | people impostors | 1 / 0 | 1 | 0 | 2 |
 | house roofs | 13 / 5 | 6 | 5 | 1328 |
 | house walls | 4 / 0 | 1 | 1 | 300 |
-| ground fill / props | 112 / 227 | 377 | 267 | 319391 |
+| ground fill / props | 112 / 227 | 388 | 273 | 367763 |
 | trees | 22 / 0 | 16 | 0 | 181066 |
 | crops / flora | 85 / 40 | 61 | 15 | 9664 |
 | fires / lamps | 13 / 1 | 2992 | 59 | 7610 |
 | water | 16 / 3 | 120 | 22 | 370609 |
-| animals | 146 / 12 | 300 | 31 | 247811 |
+| animals | 146 / 12 | 305 | 31 | 254555 |
 | terrace architecture | 120 / 217 | 928 | 0 | 1690036 |
 
 shadow-casting lights: [{"name":"","far":2000,"size":[240]}]
 
 page: backend WebGL2, norender true, catch-up ticks 0 (still catching up: false), crowd looks pending 0
 
-people in the frustum: within 40 m 17 of 53; within 60 m 25 of 106 (behind court walls for this eye: 7; to be drawn: 18)
+people in the frustum: within 40 m 18 of 52; within 60 m 28 of 105 (behind court walls for this eye: 8; to be drawn: 20)
 
 | people mesh | visible / hidden meshes | instances (count) | in frustum | < 60 m |
 |---|---|---|---|---|
@@ -446,7 +456,7 @@ people in the frustum: within 40 m 17 of 53; within 60 m 25 of 106 (behind court
 | world / humans:woman:lod# | 3 / 1 | 4 | 3 | 3 |
 | world / humans:child:shadow | 1 / 0 | 1 | 1 | 1 |
 | world / humans:child:shadow-far | 1 / 0 | 1 | 1 | 1 |
-| world / humans:child:lod# | 3 / 1 | 4 | 3 | 2 |
+| world / humans:child:lod# | 3 / 1 | 4 | 3 | 3 |
 | world / humans:envoy:shadow | 0 / 1 | 1 | 0 | 0 |
 | world / humans:envoy:shadow-far | 0 / 1 | 1 | 0 | 0 |
 | world / humans:envoy:lod# | 1 / 3 | 4 | 1 | 0 |
@@ -461,7 +471,7 @@ people in the frustum: within 40 m 17 of 53; within 60 m 25 of 106 (behind court
 | world / people:impostors | 1 / 0 | 1 | 1 | 0 |
 | player-body / humans:median:lod# | 0 / 2 | 2 | 0 | 0 |
 
-people: sim out of doors within 60 m 106 (open ground 66, inside walled courts 40, walking 0; places {"h":65,"lane":41}; 250 m 442); crowd attached 431, skinned drawn 134 by LOD [5,19,0,110], impostors drawn 18 of 2499 candidates
+people: sim out of doors within 60 m 105 (open ground 73, inside walled courts 32, walking 0; places {"lane":57,"h":48}; 250 m 391); crowd attached 454, skinned drawn 140 by LOD [7,19,0,114], impostors drawn 16 of 1814 candidates
 
 town roofs (150 m round [-423,500]): up-facing area above 1.8 m 17353 m², wall area 66594 m², ratio 0.261 (168770 triangles)
 
@@ -471,18 +481,18 @@ town roofs (150 m round [-423,500]): up-facing area above 1.8 m 17353 m², wall 
 |---|---|---|---|---|---|---|
 | world / relief:figures | 9 / 3 | 927 | 0 | 1690000 | MeshStandardNodeMaterial | C |
 | terrain | 208 / 0 | 71 | 2 | 847616 | MeshStandardNodeMaterial | C |
+| world / props:carried | 1 / 0 | 54 | 19 | 219024 | MeshStandardNodeMaterial |  |
 | world / plain-orchards-far | 1 / 0 | 1 | 0 | 176772 | MeshStandardNodeMaterial |  |
-| world / props:carried | 1 / 0 | 40 | 13 | 162240 | MeshStandardNodeMaterial |  |
 | world / river-banks | 1 / 0 | 1 | 0 | 159880 | MeshStandardNodeMaterial | C |
 | world / settlement:near:plaster | 1 / 0 | 1 | 0 | 152189 | MeshStandardNodeMaterial | C |
-| world / plain-villages-#,# | 2 / 0 | 2 | 1 | 116766 | MeshStandardNodeMaterial | C |
+| world / plain-villages-#,# | 2 / 0 | 2 | 1 | 115224 | MeshStandardNodeMaterial | C |
 | plain-works / works:wo_brick_field | 1 / 0 | 428 | 0 | 108712 | MeshStandardNodeMaterial | C |
 | world / settlement:q_w#:far | 3 / 0 | 1 | 1 | 104186 | MeshStandardNodeMaterial | C |
 | world / settlement:near:timber | 1 / 0 | 1 | 0 | 89244 | MeshStandardNodeMaterial | C |
 | world / settlement:ground | 1 / 0 | 1 | 1 | 88536 | MeshStandardNodeMaterial | C |
 | world / plain-stone | 1 / 0 | 1 | 1 | 84008 | MeshStandardNodeMaterial | C |
 | world / plain-tracks | 1 / 0 | 1 | 0 | 75768 | MeshStandardNodeMaterial | C |
-| world / props:tools | 2 / 2 | 28 | 10 | 74980 | MeshStandardNodeMaterial |  |
+| world / props:tools | 2 / 2 | 25 | 10 | 66568 | MeshStandardNodeMaterial |  |
 | world / settlement:near:items | 1 / 0 | 1 | 0 | 66556 | MeshStandardNodeMaterial | C |
 | world / animals:sheep:lod# | 2 / 0 | 66 | 0 | 64680 | MeshStandardNodeMaterial |  |
 | world / settlement:q_n#:far | 1 / 0 | 1 | 0 | 64558 | MeshStandardNodeMaterial | C |
@@ -493,7 +503,7 @@ town roofs (150 m round [-423,500]): up-facing area above 1.8 m 17353 m², wall 
 | plain-waterworks / works:wo_shaduf | 1 / 0 | 59 | 0 | 47436 | MeshStandardNodeMaterial | C |
 | world / ledges:far | 1 / 0 | 1 | 0 | 44560 | ledges |  |
 | world / humans:woman:lod# | 3 / 1 | 3 | 3 | 43166 | human |  |
-| world / humans:child:lod# | 3 / 1 | 3 | 2 | 36304 | human |  |
+| world / humans:child:lod# | 3 / 1 | 3 | 3 | 36304 | human |  |
 | world / settlement:near:props | 1 / 0 | 1 | 0 | 35849 | MeshStandardNodeMaterial | C |
 | world / nr-cliff | 1 / 0 | 1 | 0 | 33260 | MeshStandardNodeMaterial | C |
 | world / settlement:gardens:far | 1 / 0 | 1 | 1 | 31796 | MeshStandardNodeMaterial | C |
@@ -504,21 +514,22 @@ town roofs (150 m round [-423,500]): up-facing area above 1.8 m 17353 m², wall 
 | world / settlement:near:stone | 1 / 0 | 1 | 0 | 22748 | MeshStandardNodeMaterial | C |
 | world / settlement:refuse | 1 / 0 | 1 | 1 | 21888 | MeshStandardNodeMaterial | C |
 | world / settlement:roads | 1 / 0 | 1 | 1 | 20956 | MeshStandardNodeMaterial | C |
+| world / nr-life | 1 / 0 | 1 | 1 | 19006 | MeshStandardNodeMaterial | C |
+| world / animals:camel:lod# | 2 / 0 | 13 | 0 | 17836 | MeshStandardNodeMaterial |  |
+| world / work:drying_rack | 1 / 0 | 7 | 0 | 14392 | MeshStandardNodeMaterial |  |
 | quarries-detail / plain-quarries:rock:quarry_sivand | 1 / 0 | 1 | 0 | 13745 | bedrock:ground |  |
 | world / interiors:clay | 1 / 0 | 1 | 0 | 12146 | MeshStandardNodeMaterial | C |
 | world / nr_darius_tomb | 1 / 0 | 1 | 0 | 11154 | MeshStandardNodeMaterial | C |
 | world / nr_xerxes_tomb | 1 / 0 | 1 | 0 | 11154 | MeshStandardNodeMaterial | C |
-| world / animals:camel:lod# | 2 / 0 | 8 | 0 | 10976 | MeshStandardNodeMaterial |  |
 | world / animals:mule:lod# | 1 / 0 | 8 | 0 | 10968 | MeshStandardNodeMaterial |  |
-| world / work:drying_rack | 1 / 0 | 5 | 0 | 10280 | MeshStandardNodeMaterial |  |
-| world / nr-life | 1 / 0 | 1 | 1 | 9792 | MeshStandardNodeMaterial | C |
 | world / animals:horse:lod# | 1 / 0 | 7 | 0 | 9597 | MeshStandardNodeMaterial |  |
 | world / settlement:compounds:far | 1 / 0 | 1 | 1 | 9482 | MeshStandardNodeMaterial | C |
+| world / work:wash_stone | 1 / 0 | 7 | 0 | 9296 | MeshStandardNodeMaterial |  |
 | world / settlement:water | 1 / 0 | 1 | 1 | 9242 | MeshStandardNodeMaterial | C |
 | world / settlement:q_g#:far | 1 / 0 | 1 | 0 | 9204 | MeshStandardNodeMaterial | C |
 | world / settlement:canal_banks | 1 / 0 | 1 | 0 | 7836 | MeshStandardNodeMaterial | C |
 | world / humans:worker:lod# | 2 / 2 | 2 | 1 | 7581 | human |  |
-| world / work:wash_stone | 1 / 0 | 5 | 0 | 6640 | MeshStandardNodeMaterial |  |
+| world / work:fodder | 1 / 0 | 13 | 0 | 6448 | MeshStandardNodeMaterial |  |
 | world / settlement-doors:# | 3 / 0 | 37 | 16 | 6172 | MeshStandardNodeMaterial | C |
 | world / fill:jar_water:clay:lod# | 3 / 0 | 28 | 21 | 6140 | MeshStandardNodeMaterial | C |
 | world / bedrock-ground:talus#:lod# | 1 / 2 | 75 | 0 | 5925 | bedrock:ground |  |
@@ -527,23 +538,22 @@ town roofs (150 m round [-423,500]): up-facing area above 1.8 m 17353 m², wall 
 | world / animals:cock:lod# | 1 / 0 | 7 | 1 | 4382 | MeshStandardNodeMaterial |  |
 | world / fire | 1 / 0 | 2070 | 34 | 4140 | MeshBasicNodeMaterial |  |
 | world / settlement:zone_dasht_e_gohar:mud | 1 / 0 | 1 | 0 | 4090 | MeshStandardNodeMaterial | C |
-| world / work:fodder | 1 / 0 | 8 | 0 | 3968 | MeshStandardNodeMaterial |  |
 | plain-qanats / qanat-tile:#,# | 1 / 13 | 43 | 0 | 3870 | MeshStandardNodeMaterial | C |
 
 </details>
 
 ## terrace: the Terrace, noon (cov-252) (day 168, 12.586 h)
 
-camera 84.8, 9.8, 1.6; sim people within 60 m: 28, within 250 m: 524; crowd stats: {"draws":7,"triangles":505608,"people":140,"byLod":[0,67,0,73],"shadowDraws":3,"shadowTriangles":47538,"propDraws":4,"props":73,"propTriangles":289022,"propsDropped":0,"placeholderActs":0,"motionCapture":28,"motionAuthored":112,"things":{"draws":3,"instances":3,"triangles":5260,"kinds":{"knucklebone
+camera 84.8, 9.8, 1.6; sim people within 60 m: 28, within 250 m: 319; crowd stats: {"draws":6,"triangles":493727,"people":139,"byLod":[0,65,0,74],"shadowDraws":3,"shadowTriangles":46105,"propDraws":3,"props":72,"propTriangles":287984,"propsDropped":0,"placeholderActs":0,"motionCapture":29,"motionAuthored":110,"things":{"draws":2,"instances":2,"triangles":2440,"kinds":{"knucklebone
 
 | class | meshes visible / hidden | instances in frustum | of them < 60 m | triangles in frustum |
 |---|---|---|---|---|
-| people (skinned, any LOD) | 10 / 40 | 9 | 9 | 22249 |
+| people (skinned, any LOD) | 9 / 41 | 9 | 9 | 22249 |
 | people LOD3 (far) | 0 / 0 | 0 | 0 | 0 |
 | people impostors | 1 / 0 | 1 | 0 | 2 |
 | house roofs | 11 / 7 | 175 | 2 | 2880 |
 | house walls | 4 / 0 | 9 | 2 | 940 |
-| ground fill / props | 27 / 312 | 109 | 47 | 277109 |
+| ground fill / props | 26 / 313 | 109 | 47 | 277109 |
 | trees | 22 / 0 | 16 | 0 | 181066 |
 | crops / flora | 78 / 47 | 186 | 0 | 24690 |
 | fires / lamps | 10 / 4 | 2280 | 6 | 30272 |
@@ -570,7 +580,7 @@ people in the frustum: within 40 m 0 of 0; within 60 m 28 of 28 (behind court wa
 | world / humans:worker:lod# | 2 / 2 | 4 | 2 | 2 |
 | world / humans:woman:shadow | 0 / 1 | 1 | 0 | 0 |
 | world / humans:woman:shadow-far | 1 / 0 | 1 | 1 | 1 |
-| world / humans:woman:lod# | 2 / 2 | 4 | 1 | 1 |
+| world / humans:woman:lod# | 1 / 3 | 4 | 1 | 1 |
 | world / humans:child:shadow | 0 / 1 | 1 | 0 | 0 |
 | world / humans:child:shadow-far | 1 / 0 | 1 | 1 | 1 |
 | world / humans:child:lod# | 1 / 3 | 4 | 1 | 1 |
@@ -588,7 +598,7 @@ people in the frustum: within 40 m 0 of 0; within 60 m 28 of 28 (behind court wa
 | world / people:impostors | 1 / 0 | 1 | 1 | 0 |
 | player-body / humans:median:lod# | 0 / 2 | 2 | 0 | 0 |
 
-people: sim out of doors within 60 m 28 (open ground 19, inside walled courts 0, walking 5; places {"worksite":3,"work_hearth":10,"(walking)":5,"querns":1}; 250 m 524); crowd attached 449, skinned drawn 140 by LOD [0,67,0,73], impostors drawn 5 of 2602 candidates
+people: sim out of doors within 60 m 28 (open ground 19, inside walled courts 0, walking 6; places {"worksite":3,"work_hearth":10,"(walking)":6}; 250 m 319); crowd attached 449, skinned drawn 139 by LOD [0,65,0,74], impostors drawn 5 of 1904 candidates
 
 town roofs (150 m round [145,11]): up-facing area above 1.8 m 0 m², wall area 0 m², ratio null (0 triangles)
 
@@ -604,7 +614,7 @@ town roofs (150 m round [145,11]): up-facing area above 1.8 m 0 m², wall area 0
 | world / garrison:room_fittings:mats_b | 1 / 0 | 208 | 0 | 186160 | MeshStandardNodeMaterial | C |
 | world / plain-orchards-far | 1 / 0 | 1 | 0 | 176772 | MeshStandardNodeMaterial |  |
 | world / river-banks | 1 / 0 | 1 | 0 | 159880 | MeshStandardNodeMaterial | C |
-| world / plain-villages-#,# | 2 / 0 | 2 | 1 | 116766 | MeshStandardNodeMaterial | C |
+| world / plain-villages-#,# | 2 / 0 | 2 | 1 | 115224 | MeshStandardNodeMaterial | C |
 | world / work:objects | 1 / 0 | 1 | 1 | 92036 | MeshStandardNodeMaterial |  |
 | world / settlement:ground | 1 / 0 | 1 | 1 | 88536 | MeshStandardNodeMaterial | C |
 | world / plain-stone | 1 / 0 | 1 | 1 | 84008 | MeshStandardNodeMaterial | C |
@@ -630,6 +640,7 @@ town roofs (150 m round [145,11]): up-facing area above 1.8 m 0 m², wall area 0
 | world / settlement:roads | 1 / 0 | 1 | 1 | 20956 | MeshStandardNodeMaterial | C |
 | world / garrison:mudbrick | 1 / 0 | 1 | 1 | 20292 | MeshStandardNodeMaterial | B/C |
 | world / fire-body:hearth:stone | 1 / 0 | 9 | 1 | 19800 | MeshStandardNodeMaterial | C |
+| world / nr-life | 1 / 0 | 1 | 1 | 19006 | MeshStandardNodeMaterial | C |
 | world / bedrock-ground:outcrop#:lod# | 2 / 1 | 123 | 0 | 18580 | bedrock:ground |  |
 | world / hall#:construction:#|#|#:protome:lod# | 1 / 1 | 30 | 6 | 16860 | model:capital_protome:0:limestone_carved, model:capital_protome:1:limestone_carved | C |
 | world / garrison:room_fittings | 1 / 0 | 1 | 1 | 16124 | MeshStandardNodeMaterial | C |
@@ -641,10 +652,9 @@ town roofs (150 m round [145,11]): up-facing area above 1.8 m 0 m², wall area 0
 | world / ledges:mid | 1 / 0 | 1 | 0 | 10840 | ledges |  |
 | world / treasury:timber:ceiling | 1 / 0 | 1 | 0 | 10506 | MeshStandardNodeMaterial | C |
 | world / treasury:scale_armour | 1 / 0 | 18 | 0 | 10224 | MeshStandardNodeMaterial | C |
-| world / nr-life | 1 / 0 | 1 | 1 | 9792 | MeshStandardNodeMaterial | C |
 | world / settlement:water | 1 / 0 | 1 | 1 | 9242 | MeshStandardNodeMaterial | C |
 | world / treasury:chert_set | 1 / 0 | 30 | 0 | 8340 | MeshStandardNodeMaterial | C |
-| world / props:tools | 3 / 1 | 3 | 1 | 8120 | MeshStandardNodeMaterial |  |
+| world / props:tools | 2 / 2 | 3 | 1 | 8120 | MeshStandardNodeMaterial |  |
 | world / scribes:furnishings | 1 / 0 | 1 | 0 | 8096 | MeshStandardNodeMaterial | C |
 | world / garrison:columns:base_square#:lod# | 1 / 1 | 36 | 0 | 8064 | model:column_base_square2:0:limestone_carved, model:column_base_square2:1:limestone_carved | C |
 | world / settlement:canal_banks | 1 / 0 | 1 | 0 | 7836 | MeshStandardNodeMaterial | C |
@@ -661,7 +671,7 @@ town roofs (150 m round [145,11]): up-facing area above 1.8 m 0 m², wall area 0
 
 ## terrace_court: the Terrace at 10:00 with the court resident (day 40) (day 40, 10 h)
 
-camera 84.8, 9.8, 1.6; sim people within 60 m: 82, within 250 m: 632; crowd stats: {"draws":7,"triangles":839478,"people":237,"byLod":[0,100,29,108],"shadowDraws":3,"shadowTriangles":91841,"propDraws":3,"props":162,"propTriangles":651772,"propsDropped":0,"placeholderActs":0,"motionCapture":45,"motionAuthored":192,"things":{"draws":5,"instances":23,"triangles":27748,"kinds":{"knuck
+camera 84.8, 9.8, 1.6; sim people within 60 m: 81, within 250 m: 418; crowd stats: {"draws":7,"triangles":826008,"people":229,"byLod":[0,100,25,104],"shadowDraws":3,"shadowTriangles":88968,"propDraws":3,"props":155,"propTriangles":623380,"propsDropped":0,"placeholderActs":0,"motionCapture":45,"motionAuthored":184,"things":{"draws":4,"instances":5,"triangles":5468,"kinds":{"knuckle
 
 | class | meshes visible / hidden | instances in frustum | of them < 60 m | triangles in frustum |
 |---|---|---|---|---|
@@ -670,7 +680,7 @@ camera 84.8, 9.8, 1.6; sim people within 60 m: 82, within 250 m: 632; crowd stat
 | people impostors | 1 / 0 | 1 | 0 | 2 |
 | house roofs | 11 / 7 | 175 | 2 | 2880 |
 | house walls | 4 / 0 | 9 | 2 | 940 |
-| ground fill / props | 26 / 313 | 194 | 96 | 621869 |
+| ground fill / props | 26 / 313 | 189 | 95 | 601589 |
 | trees | 22 / 0 | 16 | 0 | 181066 |
 | crops / flora | 78 / 47 | 186 | 0 | 24690 |
 | fires / lamps | 10 / 4 | 2280 | 6 | 30272 |
@@ -682,7 +692,7 @@ shadow-casting lights: [{"name":"","far":2000,"size":[240]}]
 
 page: backend WebGL2, norender true, catch-up ticks 1 (still catching up: false), crowd looks pending 0
 
-people in the frustum: within 40 m 12 of 12; within 60 m 65 of 82 (behind court walls for this eye: 0; to be drawn: 65)
+people in the frustum: within 40 m 12 of 12; within 60 m 64 of 81 (behind court walls for this eye: 0; to be drawn: 64)
 
 | people mesh | visible / hidden meshes | instances (count) | in frustum | < 60 m |
 |---|---|---|---|---|
@@ -715,7 +725,7 @@ people in the frustum: within 40 m 12 of 12; within 60 m 65 of 82 (behind court 
 | world / people:impostors | 1 / 0 | 1 | 1 | 0 |
 | player-body / humans:median:lod# | 0 / 2 | 2 | 0 | 0 |
 
-people: sim out of doors within 60 m 82 (open ground 65, inside walled courts 0, walking 4; places {"h100_door_N1":32,"h100_wall_W":26,"hall100_site":6,"querns":1}; 250 m 632); crowd attached 449, skinned drawn 237 by LOD [0,100,29,108], impostors drawn 6 of 2732 candidates
+people: sim out of doors within 60 m 81 (open ground 64, inside walled courts 0, walking 4; places {"h100_door_N1":32,"h100_wall_W":26,"hall100_site":6}; 250 m 418); crowd attached 440, skinned drawn 229 by LOD [0,100,25,104], impostors drawn 6 of 2026 candidates
 
 town roofs (150 m round [145,11]): up-facing area above 1.8 m 0 m², wall area 0 m², ratio null (0 triangles)
 
@@ -725,13 +735,13 @@ town roofs (150 m round [145,11]): up-facing area above 1.8 m 0 m², wall area 0
 |---|---|---|---|---|---|---|
 | world / relief:figures | 9 / 3 | 927 | 0 | 1690000 | MeshStandardNodeMaterial | C |
 | terrain | 208 / 0 | 72 | 2 | 752640 | MeshStandardNodeMaterial | C |
-| world / props:carried | 1 / 0 | 150 | 54 | 608400 | MeshStandardNodeMaterial |  |
+| world / props:carried | 1 / 0 | 145 | 53 | 588120 | MeshStandardNodeMaterial |  |
 | world / garrison:room_fittings:bedrolls | 1 / 0 | 624 | 0 | 469248 | MeshStandardNodeMaterial | C |
 | world / garrison:room_fittings:mats | 1 / 0 | 416 | 0 | 372320 | MeshStandardNodeMaterial | C |
 | world / garrison:room_fittings:mats_b | 1 / 0 | 208 | 0 | 186160 | MeshStandardNodeMaterial | C |
 | world / plain-orchards-far | 1 / 0 | 1 | 0 | 176772 | MeshStandardNodeMaterial |  |
 | world / river-banks | 1 / 0 | 1 | 0 | 159880 | MeshStandardNodeMaterial | C |
-| world / plain-villages-#,# | 2 / 0 | 2 | 1 | 116766 | MeshStandardNodeMaterial | C |
+| world / plain-villages-#,# | 2 / 0 | 2 | 1 | 115224 | MeshStandardNodeMaterial | C |
 | world / animals:sheep:lod# | 1 / 1 | 116 | 0 | 113680 | MeshStandardNodeMaterial |  |
 | world / work:objects | 1 / 0 | 1 | 1 | 92036 | MeshStandardNodeMaterial |  |
 | world / settlement:ground | 1 / 0 | 1 | 1 | 88536 | MeshStandardNodeMaterial | C |
@@ -759,7 +769,7 @@ town roofs (150 m round [145,11]): up-facing area above 1.8 m 0 m², wall area 0
 | world / settlement:roads | 1 / 0 | 1 | 1 | 20956 | MeshStandardNodeMaterial | C |
 | world / garrison:mudbrick | 1 / 0 | 1 | 1 | 20292 | MeshStandardNodeMaterial | B/C |
 | world / fire-body:hearth:stone | 1 / 0 | 9 | 1 | 19800 | MeshStandardNodeMaterial | C |
-| world / work:brick_stack | 1 / 0 | 9 | 0 | 19440 | MeshStandardNodeMaterial |  |
+| world / nr-life | 1 / 0 | 1 | 1 | 19006 | MeshStandardNodeMaterial | C |
 | world / bedrock-ground:outcrop#:lod# | 2 / 1 | 123 | 0 | 18580 | bedrock:ground |  |
 | world / hall#:construction:#|#|#:protome:lod# | 1 / 1 | 30 | 6 | 16860 | model:capital_protome:0:limestone_carved, model:capital_protome:1:limestone_carved | C |
 | world / garrison:room_fittings | 1 / 0 | 1 | 1 | 16124 | MeshStandardNodeMaterial | C |
@@ -772,7 +782,6 @@ town roofs (150 m round [145,11]): up-facing area above 1.8 m 0 m², wall area 0
 | world / humans:worker:lod# | 3 / 1 | 3 | 3 | 10507 | human |  |
 | world / treasury:timber:ceiling | 1 / 0 | 1 | 0 | 10506 | MeshStandardNodeMaterial | C |
 | world / treasury:scale_armour | 1 / 0 | 18 | 0 | 10224 | MeshStandardNodeMaterial | C |
-| world / nr-life | 1 / 0 | 1 | 1 | 9792 | MeshStandardNodeMaterial | C |
 | world / settlement:water | 1 / 0 | 1 | 1 | 9242 | MeshStandardNodeMaterial | C |
 | world / treasury:chert_set | 1 / 0 | 30 | 0 | 8340 | MeshStandardNodeMaterial | C |
 | world / props:tools | 2 / 2 | 3 | 1 | 8120 | MeshStandardNodeMaterial |  |
@@ -783,21 +792,22 @@ town roofs (150 m round [145,11]): up-facing area above 1.8 m 0 m², wall area 0
 | world / treasury:silver_phiale | 1 / 0 | 19 | 0 | 6802 | MeshStandardNodeMaterial | C |
 | world / treasury:bitumen_jar | 1 / 0 | 22 | 0 | 6776 | MeshStandardNodeMaterial | C |
 | world / terrace-foot:blocks | 1 / 0 | 1 | 1 | 6745 | MeshStandardNodeMaterial | C |
+| world / garrison:timber:ceiling | 1 / 0 | 1 | 1 | 6576 | MeshStandardNodeMaterial | C |
 
 </details>
 
 ## apadana: the Apadana hall, morning (cov-294) (day 200, 8.809 h)
 
-camera 14.3, 32.6, 4.6; sim people within 60 m: 121, within 250 m: 765; crowd stats: {"draws":9,"triangles":374569,"people":140,"byLod":[0,55,0,85],"shadowDraws":5,"shadowTriangles":32338,"propDraws":3,"props":65,"propTriangles":247366,"propsDropped":0,"placeholderActs":0,"motionCapture":70,"motionAuthored":70,"things":{"draws":1,"instances":1,"triangles":280,"kinds":{"knucklebones"
+camera 14.3, 32.6, 4.6; sim people within 60 m: 90, within 250 m: 541; crowd stats: {"draws":10,"triangles":376127,"people":142,"byLod":[0,55,0,87],"shadowDraws":5,"shadowTriangles":32338,"propDraws":4,"props":67,"propTriangles":249442,"propsDropped":0,"placeholderActs":0,"motionCapture":70,"motionAuthored":72,"things":{"draws":1,"instances":1,"triangles":280,"kinds":{"knucklebones
 
 | class | meshes visible / hidden | instances in frustum | of them < 60 m | triangles in frustum |
 |---|---|---|---|---|
-| people (skinned, any LOD) | 14 / 36 | 14 | 10 | 36167 |
+| people (skinned, any LOD) | 15 / 35 | 15 | 10 | 36946 |
 | people LOD3 (far) | 0 / 0 | 0 | 0 | 0 |
 | people impostors | 1 / 0 | 1 | 0 | 2 |
 | house roofs | 11 / 7 | 159 | 17 | 2532 |
 | house walls | 4 / 0 | 1 | 1 | 300 |
-| ground fill / props | 16 / 323 | 66 | 10 | 211830 |
+| ground fill / props | 17 / 322 | 68 | 10 | 213906 |
 | trees | 22 / 0 | 16 | 0 | 181066 |
 | crops / flora | 78 / 47 | 126 | 0 | 13790 |
 | fires / lamps | 10 / 4 | 2040 | 0 | 20608 |
@@ -809,7 +819,7 @@ shadow-casting lights: [{"name":"","far":2000,"size":[240]}]
 
 page: backend WebGL2, norender true, catch-up ticks 1 (still catching up: false), crowd looks pending 0
 
-people in the frustum: within 40 m 3 of 20; within 60 m 48 of 121 (behind court walls for this eye: 0; to be drawn: 48)
+people in the frustum: within 40 m 3 of 4; within 60 m 48 of 90 (behind court walls for this eye: 0; to be drawn: 48)
 
 | people mesh | visible / hidden meshes | instances (count) | in frustum | < 60 m |
 |---|---|---|---|---|
@@ -818,7 +828,7 @@ people in the frustum: within 40 m 3 of 20; within 60 m 48 of 121 (behind court 
 | world / humans:persian:lod# | 2 / 2 | 4 | 2 | 1 |
 | world / humans:median:shadow | 0 / 1 | 1 | 0 | 0 |
 | world / humans:median:shadow-far | 1 / 0 | 1 | 1 | 1 |
-| world / humans:median:lod# | 1 / 3 | 4 | 1 | 1 |
+| world / humans:median:lod# | 2 / 2 | 4 | 2 | 1 |
 | world / humans:worker:shadow | 0 / 1 | 1 | 0 | 0 |
 | world / humans:worker:shadow-far | 0 / 1 | 1 | 0 | 0 |
 | world / humans:worker:lod# | 1 / 3 | 4 | 1 | 0 |
@@ -842,7 +852,7 @@ people in the frustum: within 40 m 3 of 20; within 60 m 48 of 121 (behind court 
 | world / people:impostors | 1 / 0 | 1 | 1 | 0 |
 | player-body / humans:median:lod# | 0 / 2 | 2 | 0 | 0 |
 
-people: sim out of doors within 60 m 121 (open ground 120, inside walled courts 0, walking 0; places {"palaces":1,"apadana_hall":31,"forecourt_wait":88}; 250 m 765); crowd attached 443, skinned drawn 140 by LOD [0,55,0,85], impostors drawn 10 of 2893 candidates
+people: sim out of doors within 60 m 90 (open ground 89, inside walled courts 0, walking 0; places {"palaces":1,"forecourt_wait":88}; 250 m 541); crowd attached 445, skinned drawn 142 by LOD [0,55,0,87], impostors drawn 7 of 2177 candidates
 
 town roofs (150 m round [54,77]): up-facing area above 1.8 m 0 m², wall area 0 m², ratio null (0 triangles)
 
@@ -858,7 +868,7 @@ town roofs (150 m round [54,77]): up-facing area above 1.8 m 0 m², wall area 0 
 | world / river-banks | 1 / 0 | 1 | 0 | 159880 | MeshStandardNodeMaterial | C |
 | plain-works / works:wo_brick_field | 1 / 0 | 591 | 0 | 150114 | MeshStandardNodeMaterial | C |
 | world / garrison:room_fittings:mats | 1 / 0 | 149 | 0 | 133355 | MeshStandardNodeMaterial | C |
-| world / plain-villages-#,# | 2 / 0 | 2 | 1 | 116766 | MeshStandardNodeMaterial | C |
+| world / plain-villages-#,# | 2 / 0 | 2 | 1 | 115224 | MeshStandardNodeMaterial | C |
 | world / work:objects | 1 / 0 | 1 | 0 | 92036 | MeshStandardNodeMaterial |  |
 | world / settlement:ground | 1 / 0 | 1 | 1 | 88536 | MeshStandardNodeMaterial | C |
 | world / plain-stone | 1 / 0 | 1 | 1 | 84008 | MeshStandardNodeMaterial | C |
@@ -883,6 +893,7 @@ town roofs (150 m round [54,77]): up-facing area above 1.8 m 0 m², wall area 0 
 | world / settlement:roads | 1 / 0 | 1 | 1 | 20956 | MeshStandardNodeMaterial | C |
 | world / garrison:mudbrick | 1 / 0 | 1 | 1 | 20292 | MeshStandardNodeMaterial | B/C |
 | world / arris-band:limestone | 25 / 0 | 11 | 11 | 19248 | MeshStandardNodeMaterial | C |
+| world / nr-life | 1 / 0 | 1 | 1 | 19006 | MeshStandardNodeMaterial | C |
 | world / garrison:room_fittings | 1 / 0 | 1 | 0 | 16124 | MeshStandardNodeMaterial | C |
 | world / apadana:columns:shaft:lod# | 5 / 1 | 4 | 4 | 15360 | model:column_shaft_f48:0:limestone_carved, model:column_shaft_f48:1:limestone_carved | C |
 | world / apadana-glazed-frieze | 1 / 0 | 1 | 1 | 14912 | MeshStandardNodeMaterial | C |
@@ -895,21 +906,20 @@ town roofs (150 m round [54,77]): up-facing area above 1.8 m 0 m², wall area 0 
 | world / fire-body:hearth:stone | 1 / 0 | 5 | 0 | 11000 | MeshStandardNodeMaterial | C |
 | world / apadana:limestone | 2 / 0 | 2 | 2 | 10875 | MeshStandardNodeMaterial | C |
 | world / gate_nations:colossus:lamassu:lod# | 2 / 2 | 2 | 0 | 9794 | model-paint:colossus_lamassu:0:limestone_carved, model-paint:colossus_lamassu:1:limestone_carved | C |
-| world / nr-life | 1 / 0 | 1 | 1 | 9792 | MeshStandardNodeMaterial | C |
 | world / settlement:compounds:far | 1 / 0 | 1 | 1 | 9482 | MeshStandardNodeMaterial | C |
 | world / palace-furnishings:apadana:stored:bronze | 1 / 0 | 1 | 1 | 9440 | MeshStandardNodeMaterial | C |
 | world / apadana:timber:ceiling | 1 / 0 | 1 | 1 | 9312 | MeshStandardNodeMaterial | C |
 | world / settlement:water | 1 / 0 | 1 | 1 | 9242 | MeshStandardNodeMaterial | C |
 | world / settlement:q_g#:far | 1 / 0 | 1 | 0 | 9204 | MeshStandardNodeMaterial | C |
+| world / c#:drum-road:kerbs | 1 / 0 | 1 | 0 | 9164 | MeshStandardNodeMaterial | C |
 | world / ledges:mid | 1 / 0 | 1 | 0 | 8390 | ledges |  |
 | world / settlement:canal_banks | 1 / 0 | 1 | 0 | 7836 | MeshStandardNodeMaterial | C |
+| world / props:tools | 2 / 2 | 4 | 0 | 7684 | MeshStandardNodeMaterial |  |
 | world / crown-merlons:gate_nations|#|# | 2 / 0 | 37 | 0 | 7548 | decor:merlon:limestone_merlon | C |
 | world / humans:persian:lod# | 2 / 2 | 2 | 1 | 7070 | human |  |
 | world / terrace-foot:blocks | 1 / 0 | 1 | 1 | 6745 | MeshStandardNodeMaterial | C |
 | plain-works / works:wo_brick_stack | 1 / 0 | 26 | 0 | 6708 | MeshStandardNodeMaterial | C |
 | world / humans:envoy_short:lod# | 1 / 3 | 1 | 1 | 6593 | human |  |
-| world / garrison:timber:ceiling | 1 / 0 | 1 | 1 | 6576 | MeshStandardNodeMaterial | C |
-| world / crenellations | 1 / 0 | 32 | 32 | 6528 | decor:merlon:limestone_merlon | C |
 
 </details>
 
@@ -969,7 +979,7 @@ people in the frustum: within 40 m 0 of 0; within 60 m 0 of 0 (behind court wall
 | world / people:impostors | 0 / 1 | 1 | 0 | 0 |
 | player-body / humans:median:lod# | 0 / 2 | 2 | 0 | 0 |
 
-people: sim out of doors within 60 m 0 (open ground 0, inside walled courts 0, walking 0; places {}; 250 m 0); crowd attached 0, skinned drawn 0 by LOD [0,0,0,0], impostors drawn 0 of 215 candidates
+people: sim out of doors within 60 m 0 (open ground 0, inside walled courts 0, walking 0; places {}; 250 m 0); crowd attached 0, skinned drawn 0 by LOD [0,0,0,0], impostors drawn 0 of 200 candidates
 
 town roofs (150 m round [-6332,-1962]): up-facing area above 1.8 m 0 m², wall area 0 m², ratio null (0 triangles)
 
@@ -981,15 +991,16 @@ town roofs (150 m round [-6332,-1962]): up-facing area above 1.8 m 0 m², wall a
 | terrain | 208 / 0 | 31 | 4 | 698112 | MeshStandardNodeMaterial | C |
 | world / plain-orchards-far | 1 / 0 | 1 | 0 | 176772 | MeshStandardNodeMaterial |  |
 | world / river-banks | 1 / 0 | 1 | 0 | 159880 | MeshStandardNodeMaterial | C |
-| world / plain-villages--#,-# | 2 / 0 | 2 | 0 | 134860 | MeshStandardNodeMaterial | C |
+| world / plain-villages--#,-# | 2 / 0 | 2 | 0 | 133082 | MeshStandardNodeMaterial | C |
 | world / settlement:ground | 1 / 0 | 1 | 1 | 88536 | MeshStandardNodeMaterial | C |
 | world / plain-stone | 1 / 0 | 1 | 1 | 84008 | MeshStandardNodeMaterial | C |
 | world / plain-tracks | 1 / 0 | 1 | 0 | 75768 | MeshStandardNodeMaterial | C |
-| world / plain-villages--#,# | 4 / 0 | 1 | 1 | 64166 | MeshStandardNodeMaterial | C |
+| world / plain-villages--#,# | 4 / 0 | 1 | 1 | 62844 | MeshStandardNodeMaterial | C |
 | world / plain-canal-banks | 1 / 0 | 1 | 0 | 55524 | MeshStandardNodeMaterial | C |
 | world / river-water | 1 / 0 | 1 | 0 | 50324 | MeshStandardNodeMaterial |  |
 | world / settlement:refuse | 1 / 0 | 1 | 1 | 21888 | MeshStandardNodeMaterial | C |
 | world / settlement:roads | 1 / 0 | 1 | 1 | 20956 | MeshStandardNodeMaterial | C |
+| world / nr-life | 1 / 0 | 1 | 1 | 19006 | MeshStandardNodeMaterial | C |
 | world / cover-tuft:tuft_m#c:lod# | 6 / 0 | 81 | 81 | 12628 | ground-cover |  |
 | world / settlement:compounds:far | 1 / 0 | 1 | 1 | 9482 | MeshStandardNodeMaterial | C |
 | world / settlement:water | 1 / 0 | 1 | 1 | 9242 | MeshStandardNodeMaterial | C |
@@ -1036,13 +1047,12 @@ town roofs (150 m round [-6332,-1962]): up-facing area above 1.8 m 0 m², wall a
 | world / ford-cobbles:#:lod# | 0 / 9 | 0 | 0 | 0 | ford:cobbles |  |
 | world / door-sealing:treasury:w_stores_#_E | 0 / 7 | 0 | 0 | 0 | clay-writing |  |
 | world / writing:door_sealing:treasury:w_stores_#_E:pick | 0 / 7 | 0 | 0 | 0 | MeshBasicNodeMaterial |  |
-| world / relief:shadow-proxy | 0 / 7 | 0 | 0 | 0 | MeshBasicNodeMaterial |  |
 
 </details>
 
 ## approach_dawn: the Terrace approach at dawn (cov-196; area approach, not fields) (day 126, 5.635 h)
 
-camera -491.3, -73.3, -12.5; sim people within 60 m: 0, within 250 m: 149; crowd stats: {"draws":5,"triangles":122740,"people":171,"byLod":[0,0,0,171],"shadowDraws":0,"shadowTriangles":0,"propDraws":2,"props":137,"propTriangles":456764,"propsDropped":0,"placeholderActs":0,"motionCapture":41,"motionAuthored":130,"things":{"draws":0,"instances":0,"triangles":0,"kinds":{},"dropped":0},"an
+camera -491.3, -73.3, -12.5; sim people within 60 m: 0, within 250 m: 149; crowd stats: {"draws":5,"triangles":8617,"people":12,"byLod":[0,0,0,12],"shadowDraws":0,"shadowTriangles":0,"propDraws":1,"props":10,"propTriangles":40560,"propsDropped":0,"placeholderActs":0,"motionCapture":8,"motionAuthored":4,"things":{"draws":0,"instances":0,"triangles":0,"kinds":{},"dropped":0},"animals":{"
 
 | class | meshes visible / hidden | instances in frustum | of them < 60 m | triangles in frustum |
 |---|---|---|---|---|
@@ -1051,7 +1061,7 @@ camera -491.3, -73.3, -12.5; sim people within 60 m: 0, within 250 m: 149; crowd
 | people impostors | 1 / 0 | 1 | 0 | 2 |
 | house roofs | 11 / 7 | 727 | 0 | 10212 |
 | house walls | 4 / 0 | 18 | 1 | 1184 |
-| ground fill / props | 6 / 333 | 141 | 0 | 458080 |
+| ground fill / props | 5 / 334 | 14 | 0 | 41876 |
 | trees | 22 / 0 | 16 | 0 | 181066 |
 | crops / flora | 85 / 40 | 126 | 83 | 22696 |
 | fires / lamps | 11 / 3 | 1128 | 0 | 56676 |
@@ -1096,7 +1106,7 @@ people in the frustum: within 40 m 0 of 0; within 60 m 0 of 0 (behind court wall
 | world / people:impostors | 1 / 0 | 1 | 1 | 0 |
 | player-body / humans:median:lod# | 0 / 2 | 2 | 0 | 0 |
 
-people: sim out of doors within 60 m 0 (open ground 0, inside walled courts 0, walking 0; places {}; 250 m 149); crowd attached 383, skinned drawn 171 by LOD [0,0,0,171], impostors drawn 803 of 3104 candidates
+people: sim out of doors within 60 m 0 (open ground 0, inside walled courts 0, walking 0; places {}; 250 m 149); crowd attached 394, skinned drawn 12 by LOD [0,0,0,12], impostors drawn 642 of 2491 candidates
 
 town roofs (150 m round [-448,-115]): up-facing area above 1.8 m 0 m², wall area 0 m², ratio null (0 triangles)
 
@@ -1108,15 +1118,13 @@ town roofs (150 m round [-448,-115]): up-facing area above 1.8 m 0 m², wall are
 | terrain | 208 / 0 | 76 | 3 | 712960 | MeshStandardNodeMaterial | C |
 | world / treasury:arrow_bundle | 1 / 0 | 487 | 0 | 428560 | MeshStandardNodeMaterial | C |
 | world / treasury:alabaster_vessel | 1 / 0 | 894 | 0 | 402300 | MeshStandardNodeMaterial | C |
-| world / props:carried | 1 / 0 | 58 | 0 | 235248 | MeshStandardNodeMaterial |  |
 | world / treasury:textile_bale | 1 / 0 | 406 | 0 | 230608 | MeshStandardNodeMaterial | C |
-| world / props:tools | 1 / 3 | 79 | 0 | 221516 | MeshStandardNodeMaterial |  |
 | world / plain-orchards-far | 1 / 0 | 1 | 0 | 176772 | MeshStandardNodeMaterial |  |
 | world / river-banks | 1 / 0 | 1 | 0 | 159880 | MeshStandardNodeMaterial | C |
 | world / treasury:chert_set | 1 / 0 | 487 | 0 | 135386 | MeshStandardNodeMaterial | C |
 | world / harem:room_fittings:bedrolls | 1 / 0 | 176 | 0 | 132352 | MeshStandardNodeMaterial | C |
-| world / plain-villages-#,# | 2 / 0 | 2 | 1 | 116766 | MeshStandardNodeMaterial | C |
 | world / treasury:scale_armour | 1 / 0 | 203 | 0 | 115304 | MeshStandardNodeMaterial | C |
+| world / plain-villages-#,# | 2 / 0 | 2 | 1 | 115224 | MeshStandardNodeMaterial | C |
 | world / settlement:q_s#:far | 4 / 0 | 1 | 0 | 114540 | MeshStandardNodeMaterial | C |
 | world / crown-merlons:harem|#|-# | 4 / 0 | 962 | 0 | 108258 | decor:merlon:limestone_merlon | C |
 | world / harem:room_fittings:mats | 1 / 0 | 117 | 0 | 104715 | MeshStandardNodeMaterial | C |
@@ -1139,6 +1147,7 @@ town roofs (150 m round [-448,-115]): up-facing area above 1.8 m 0 m², wall are
 | world / treasury:room_fittings:jars | 1 / 0 | 96 | 0 | 42624 | MeshStandardNodeMaterial | C |
 | world / fortification_e:mudbrick | 2 / 0 | 2 | 0 | 41744 | MeshStandardNodeMaterial | B/C |
 | world / treasury:glass_bowl | 1 / 0 | 122 | 0 | 40992 | MeshStandardNodeMaterial |  |
+| world / props:carried | 1 / 0 | 10 | 0 | 40560 | MeshStandardNodeMaterial |  |
 | world / animals:sheep:lod# | 1 / 1 | 39 | 0 | 38220 | MeshStandardNodeMaterial |  |
 | plain-qanats / qanat-tile:#,-# | 3 / 12 | 391 | 0 | 35190 | MeshStandardNodeMaterial | C |
 | world / animals:goat:lod# | 1 / 2 | 34 | 0 | 33320 | MeshStandardNodeMaterial |  |
@@ -1154,6 +1163,7 @@ town roofs (150 m round [-448,-115]): up-facing area above 1.8 m 0 m², wall are
 | world / settlement:roads | 1 / 0 | 1 | 1 | 20956 | MeshStandardNodeMaterial | C |
 | world / doors:leaves | 1 / 0 | 94 | 0 | 20680 | MeshStandardNodeMaterial | C |
 | world / garrison:room_fittings:bedrolls | 1 / 0 | 27 | 0 | 20304 | MeshStandardNodeMaterial | C |
+| world / nr-life | 1 / 0 | 1 | 1 | 19006 | MeshStandardNodeMaterial | C |
 | world / apadana:mudbrick | 1 / 0 | 1 | 0 | 18186 | MeshStandardNodeMaterial | B/C |
 | world / fire-body:hearth:stone | 1 / 0 | 8 | 0 | 17600 | MeshStandardNodeMaterial | C |
 | world / garrison:room_fittings | 1 / 0 | 1 | 0 | 16124 | MeshStandardNodeMaterial | C |
@@ -1169,7 +1179,7 @@ town roofs (150 m round [-448,-115]): up-facing area above 1.8 m 0 m², wall are
 
 ## field_spring: plain fields, day 58 08:24 (cov-096) (day 58, 8.402 h)
 
-camera -5806.8, 1649.7, -20.2; sim people within 60 m: 0, within 250 m: 1; crowd stats: {"draws":0,"triangles":0,"people":0,"byLod":[0,0,0,0],"shadowDraws":0,"shadowTriangles":0,"propDraws":0,"props":0,"propTriangles":0,"propsDropped":0,"placeholderActs":0,"motionCapture":0,"motionAuthored":0,"things":{"draws":0,"instances":0,"triangles":0,"kinds":{},"dropped":0},"animals":{"draws":0,"
+camera -5806.8, 1649.7, -20.2; sim people within 60 m: 0, within 250 m: 0; crowd stats: {"draws":0,"triangles":0,"people":0,"byLod":[0,0,0,0],"shadowDraws":0,"shadowTriangles":0,"propDraws":0,"props":0,"propTriangles":0,"propsDropped":0,"placeholderActs":0,"motionCapture":0,"motionAuthored":0,"things":{"draws":0,"instances":0,"triangles":0,"kinds":{},"dropped":0},"animals":{"draws":0,"
 
 | class | meshes visible / hidden | instances in frustum | of them < 60 m | triangles in frustum |
 |---|---|---|---|---|
@@ -1223,7 +1233,7 @@ people in the frustum: within 40 m 0 of 0; within 60 m 0 of 0 (behind court wall
 | world / people:impostors | 1 / 0 | 1 | 1 | 0 |
 | player-body / humans:median:lod# | 0 / 2 | 2 | 0 | 0 |
 
-people: sim out of doors within 60 m 0 (open ground 0, inside walled courts 0, walking 0; places {}; 250 m 1); crowd attached 6, skinned drawn 0 by LOD [0,0,0,0], impostors drawn 323 of 1046 candidates
+people: sim out of doors within 60 m 0 (open ground 0, inside walled courts 0, walking 0; places {}; 250 m 0); crowd attached 3, skinned drawn 0 by LOD [0,0,0,0], impostors drawn 311 of 735 candidates
 
 town roofs (150 m round [-5955,1673]): up-facing area above 1.8 m 0 m², wall area 0 m², ratio null (0 triangles)
 
@@ -1233,7 +1243,7 @@ town roofs (150 m round [-5955,1673]): up-facing area above 1.8 m 0 m², wall ar
 |---|---|---|---|---|---|---|
 | world / relief:figures | 9 / 3 | 927 | 0 | 1690000 | MeshStandardNodeMaterial | C |
 | terrain | 208 / 0 | 27 | 2 | 774400 | MeshStandardNodeMaterial | C |
-| world / plain-villages--#,# | 4 / 0 | 3 | 1 | 211930 | MeshStandardNodeMaterial | C |
+| world / plain-villages--#,# | 4 / 0 | 3 | 1 | 208652 | MeshStandardNodeMaterial | C |
 | world / plain-orchards-far | 1 / 0 | 1 | 0 | 176772 | MeshStandardNodeMaterial |  |
 | world / river-banks | 1 / 0 | 1 | 0 | 159880 | MeshStandardNodeMaterial | C |
 | world / settlement:ground | 1 / 0 | 1 | 1 | 88536 | MeshStandardNodeMaterial | C |
@@ -1244,6 +1254,7 @@ town roofs (150 m round [-5955,1673]): up-facing area above 1.8 m 0 m², wall ar
 | plain-waterworks / works:wo_shaduf | 1 / 0 | 36 | 0 | 28944 | MeshStandardNodeMaterial | C |
 | world / settlement:refuse | 1 / 0 | 1 | 1 | 21888 | MeshStandardNodeMaterial | C |
 | world / settlement:roads | 1 / 0 | 1 | 1 | 20956 | MeshStandardNodeMaterial | C |
+| world / nr-life | 1 / 0 | 1 | 1 | 19006 | MeshStandardNodeMaterial | C |
 | plain-field-fill / field:fill_stall_reed:lod# | 1 / 1 | 24 | 0 | 14688 | MeshStandardNodeMaterial | C |
 | quarries-detail / plain-quarries:rock:quarry_majdabad | 1 / 0 | 1 | 0 | 13745 | bedrock:ground |  |
 | world / settlement:compounds:far | 1 / 0 | 1 | 1 | 9482 | MeshStandardNodeMaterial | C |
@@ -1290,7 +1301,6 @@ town roofs (150 m round [-5955,1673]): up-facing area above 1.8 m 0 m², wall ar
 | world / bird-crow:fly# | 3 / 0 | 1 | 0 | 60 | life:crow |  |
 | world / flora-grass:grass_bermuda_#_v#:lod# | 6 / 0 | 3 | 3 | 50 | scan:grass_bermuda_01_v1, scan:grass_bermuda_01_v2, scan:grass_bermuda_01_v3 |  |
 | world / plain-crops-near | 1 / 0 | 1 | 0 | 34 | MeshStandardNodeMaterial |  |
-| world / settlement:smoke-plumes | 1 / 0 | 1 | 0 | 16 | MeshBasicNodeMaterial |  |
 
 </details>
 
@@ -1350,7 +1360,7 @@ people in the frustum: within 40 m 0 of 0; within 60 m 0 of 0 (behind court wall
 | world / people:impostors | 1 / 0 | 1 | 1 | 0 |
 | player-body / humans:median:lod# | 0 / 2 | 2 | 0 | 0 |
 
-people: sim out of doors within 60 m 0 (open ground 0, inside walled courts 0, walking 0; places {}; 250 m 0); crowd attached 0, skinned drawn 0 by LOD [0,0,0,0], impostors drawn 1290 of 1627 candidates
+people: sim out of doors within 60 m 0 (open ground 0, inside walled courts 0, walking 0; places {}; 250 m 0); crowd attached 0, skinned drawn 0 by LOD [0,0,0,0], impostors drawn 1079 of 1335 candidates
 
 town roofs (150 m round [4134,1820]): up-facing area above 1.8 m 0 m², wall area 0 m², ratio null (0 triangles)
 
@@ -1366,7 +1376,7 @@ town roofs (150 m round [4134,1820]): up-facing area above 1.8 m 0 m², wall are
 | world / garrison:room_fittings:mats | 1 / 0 | 416 | 0 | 372320 | MeshStandardNodeMaterial | C |
 | world / settlement:q_s#:far | 4 / 0 | 4 | 0 | 317074 | MeshStandardNodeMaterial | C |
 | world / settlement:q_w#:far | 3 / 0 | 3 | 0 | 286968 | MeshStandardNodeMaterial | C |
-| world / plain-villages--#,# | 4 / 0 | 4 | 0 | 252456 | MeshStandardNodeMaterial | C |
+| world / plain-villages--#,# | 4 / 0 | 4 | 0 | 248574 | MeshStandardNodeMaterial | C |
 | world / treasury:textile_bale | 1 / 0 | 406 | 0 | 230608 | MeshStandardNodeMaterial | C |
 | world / garrison:room_fittings:mats_b | 1 / 0 | 208 | 0 | 186160 | MeshStandardNodeMaterial | C |
 | world / plain-orchards-far | 1 / 0 | 1 | 0 | 176772 | MeshStandardNodeMaterial |  |
@@ -1384,9 +1394,9 @@ town roofs (150 m round [4134,1820]): up-facing area above 1.8 m 0 m², wall are
 | world / plain-stone | 1 / 0 | 1 | 1 | 84008 | MeshStandardNodeMaterial | C |
 | world / treasury:blue_vessel | 1 / 0 | 244 | 0 | 81984 | MeshStandardNodeMaterial | C |
 | world / doors:bands | 1 / 0 | 432 | 0 | 81216 | MeshStandardNodeMaterial | C |
-| world / plain-villages--#,-# | 2 / 0 | 1 | 0 | 79164 | MeshStandardNodeMaterial | C |
 | world / crown-merlons:harem|#|-# | 4 / 0 | 962 | 0 | 78884 | decor:merlon:limestone_merlon | C |
 | world / animals:sheep:lod# | 1 / 1 | 80 | 0 | 78400 | MeshStandardNodeMaterial |  |
+| world / plain-villages--#,-# | 2 / 0 | 1 | 0 | 78098 | MeshStandardNodeMaterial | C |
 | world / plain-tracks | 1 / 0 | 1 | 0 | 75768 | MeshStandardNodeMaterial | C |
 | world / treasury:sealed_jar | 1 / 0 | 244 | 0 | 75152 | MeshStandardNodeMaterial | C |
 | world / treasury:shield | 1 / 0 | 162 | 0 | 70956 | MeshStandardNodeMaterial | C |
@@ -1409,8 +1419,8 @@ town roofs (150 m round [4134,1820]): up-facing area above 1.8 m 0 m², wall are
 | world / fire-body:torch:head | 1 / 0 | 36 | 0 | 33552 | MeshStandardNodeMaterial | C |
 | world / nr-cliff | 1 / 0 | 1 | 0 | 33260 | MeshStandardNodeMaterial | C |
 | world / rock-stone:namaqualand_rocks_#_v#:lod# | 8 / 0 | 106 | 106 | 33127 | scan:namaqualand_rocks_01_v1, scan:namaqualand_rocks_01_v2, scan:namaqualand_rocks_01_v3, scan:namaqualand_rocks_01_v4 |  |
-| world / plain-villages-#,# | 2 / 0 | 1 | 1 | 33122 | MeshStandardNodeMaterial | C |
 | world / rock-stone:namaqualand_stones_#_v#:lod# | 10 / 0 | 116 | 116 | 32965 | scan:namaqualand_stones_01_v1, scan:namaqualand_stones_01_v2, scan:namaqualand_stones_01_v3, scan:namaqualand_stones_01_v4 |  |
+| world / plain-villages-#,# | 2 / 0 | 1 | 1 | 32572 | MeshStandardNodeMaterial | C |
 | world / ledges:mid | 1 / 0 | 1 | 0 | 32250 | ledges |  |
 | world / settlement:gardens:far | 1 / 0 | 1 | 0 | 31796 | MeshStandardNodeMaterial | C |
 | world / bedrock-ground:outcrop#:lod# | 2 / 1 | 113 | 2 | 31154 | bedrock:ground |  |
@@ -1423,7 +1433,7 @@ town roofs (150 m round [4134,1820]): up-facing area above 1.8 m 0 m², wall are
 
 ## night: the town at night (cov-448) (day 310, 3.446 h)
 
-camera -900.2, -1513.5, -18.1; sim people within 60 m: 87, within 250 m: 572; crowd stats: {"draws":4,"triangles":82652,"people":131,"byLod":[0,0,0,131],"shadowDraws":0,"shadowTriangles":0,"propDraws":2,"props":24,"propTriangles":45018,"propsDropped":0,"placeholderActs":0,"motionCapture":5,"motionAuthored":126,"things":{"draws":0,"instances":0,"triangles":0,"kinds":{},"dropped":0},"animal
+camera -900.2, -1513.5, -18.1; sim people within 60 m: 87, within 250 m: 473; crowd stats: {"draws":4,"triangles":81932,"people":130,"byLod":[0,0,0,130],"shadowDraws":0,"shadowTriangles":0,"propDraws":2,"props":22,"propTriangles":36906,"propsDropped":0,"placeholderActs":0,"motionCapture":5,"motionAuthored":125,"things":{"draws":0,"instances":0,"triangles":0,"kinds":{},"dropped":0},"animal
 
 | class | meshes visible / hidden | instances in frustum | of them < 60 m | triangles in frustum |
 |---|---|---|---|---|
@@ -1432,7 +1442,7 @@ camera -900.2, -1513.5, -18.1; sim people within 60 m: 87, within 250 m: 572; cr
 | people impostors | 1 / 0 | 1 | 0 | 2 |
 | house roofs | 13 / 5 | 0 | 0 | 0 |
 | house walls | 4 / 0 | 0 | 0 | 0 |
-| ground fill / props | 82 / 257 | 153 | 77 | 77479 |
+| ground fill / props | 82 / 257 | 151 | 77 | 69367 |
 | trees | 22 / 0 | 16 | 0 | 181066 |
 | crops / flora | 83 / 42 | 23 | 22 | 4879 |
 | fires / lamps | 12 / 2 | 4933 | 13 | 9866 |
@@ -1477,7 +1487,7 @@ people in the frustum: within 40 m 7 of 41; within 60 m 19 of 87 (behind court w
 | world / people:impostors | 1 / 0 | 1 | 1 | 0 |
 | player-body / humans:median:lod# | 0 / 2 | 2 | 0 | 0 |
 
-people: sim out of doors within 60 m 87 (open ground 0, inside walled courts 87, walking 0; places {"h":87}; 250 m 572); crowd attached 415, skinned drawn 131 by LOD [0,0,0,131], impostors drawn 33 of 3782 candidates
+people: sim out of doors within 60 m 87 (open ground 0, inside walled courts 87, walking 0; places {"h":87}; 250 m 473); crowd attached 420, skinned drawn 130 by LOD [0,0,0,130], impostors drawn 20 of 2871 candidates
 
 town roofs (150 m round [-957,-1534]): up-facing area above 1.8 m 20466 m², wall area 79970 m², ratio 0.256 (192502 triangles)
 
@@ -1489,8 +1499,8 @@ town roofs (150 m round [-957,-1534]): up-facing area above 1.8 m 20466 m², wal
 | terrain | 208 / 0 | 52 | 2 | 837376 | MeshStandardNodeMaterial | C |
 | world / plain-orchards-far | 1 / 0 | 1 | 0 | 176772 | MeshStandardNodeMaterial |  |
 | world / river-banks | 1 / 0 | 1 | 0 | 159880 | MeshStandardNodeMaterial | C |
-| world / plain-villages--#,-# | 2 / 0 | 2 | 0 | 134860 | MeshStandardNodeMaterial | C |
-| world / plain-villages--#,# | 4 / 0 | 2 | 0 | 122836 | MeshStandardNodeMaterial | C |
+| world / plain-villages--#,-# | 2 / 0 | 2 | 0 | 133082 | MeshStandardNodeMaterial | C |
+| world / plain-villages--#,# | 4 / 0 | 2 | 0 | 120868 | MeshStandardNodeMaterial | C |
 | world / settlement:ground | 1 / 0 | 1 | 1 | 88536 | MeshStandardNodeMaterial | C |
 | world / plain-stone | 1 / 0 | 1 | 1 | 84008 | MeshStandardNodeMaterial | C |
 | world / settlement:near:plaster | 1 / 0 | 1 | 0 | 79740 | MeshStandardNodeMaterial | C |
@@ -1500,19 +1510,19 @@ town roofs (150 m round [-957,-1534]): up-facing area above 1.8 m 20466 m², wal
 | world / river-water | 1 / 0 | 1 | 0 | 50324 | MeshStandardNodeMaterial |  |
 | world / settlement:near:timber | 1 / 0 | 1 | 0 | 45442 | MeshStandardNodeMaterial | C |
 | world / settlement:near:items | 1 / 0 | 1 | 0 | 38863 | MeshStandardNodeMaterial | C |
-| world / plain-villages-#,# | 2 / 0 | 1 | 1 | 33122 | MeshStandardNodeMaterial | C |
+| world / plain-villages-#,# | 2 / 0 | 1 | 1 | 32572 | MeshStandardNodeMaterial | C |
 | world / settlement:gardens:far | 1 / 0 | 1 | 1 | 31796 | MeshStandardNodeMaterial | C |
 | world / settlement:refuse | 1 / 0 | 1 | 1 | 21888 | MeshStandardNodeMaterial | C |
 | world / settlement:roads | 1 / 0 | 1 | 1 | 20956 | MeshStandardNodeMaterial | C |
 | world / settlement:near:props | 1 / 0 | 1 | 0 | 20676 | MeshStandardNodeMaterial | C |
-| world / props:carried | 1 / 0 | 5 | 0 | 20280 | MeshStandardNodeMaterial |  |
 | world / props:children | 1 / 0 | 15 | 1 | 19530 | MeshStandardNodeMaterial |  |
+| world / nr-life | 1 / 0 | 1 | 1 | 19006 | MeshStandardNodeMaterial | C |
 | plain-waterworks / works:wo_shaduf | 1 / 0 | 23 | 0 | 18492 | MeshStandardNodeMaterial | C |
 | world / ledges:far | 1 / 0 | 1 | 0 | 15180 | ledges |  |
 | quarries-detail / plain-quarries:rock:quarry_majdabad | 1 / 0 | 1 | 0 | 13745 | bedrock:ground |  |
 | world / settlement:near:stone | 1 / 0 | 1 | 0 | 13478 | MeshStandardNodeMaterial | C |
+| world / props:carried | 1 / 0 | 3 | 0 | 12168 | MeshStandardNodeMaterial |  |
 | world / animals:goat:lod# | 2 / 1 | 12 | 6 | 11760 | MeshStandardNodeMaterial |  |
-| world / nr-life | 1 / 0 | 1 | 1 | 9792 | MeshStandardNodeMaterial | C |
 | world / settlement:compounds:far | 1 / 0 | 1 | 1 | 9482 | MeshStandardNodeMaterial | C |
 | world / settlement:water | 1 / 0 | 1 | 1 | 9242 | MeshStandardNodeMaterial | C |
 | world / animals:dog:lod# | 1 / 0 | 9 | 1 | 8802 | MeshStandardNodeMaterial |  |
@@ -1550,16 +1560,16 @@ town roofs (150 m round [-957,-1534]): up-facing area above 1.8 m 20466 m², wal
 
 ## night_terrace: the Terrace at 22:30 (sb-night-terrace) (day 5, 22.5 h)
 
-camera 0, 92, 1.6; sim people within 60 m: 99, within 250 m: 447; crowd stats: {"draws":11,"triangles":2269136,"people":400,"byLod":[48,24,0,328],"shadowDraws":6,"shadowTriangles":139815,"propDraws":3,"props":260,"propTriangles":885500,"propsDropped":0,"placeholderActs":0,"motionCapture":217,"motionAuthored":183,"things":{"draws":8,"instances":63,"triangles":97472,"kinds":{"wa
+camera 0, 92, 1.6; sim people within 60 m: 99, within 250 m: 257; crowd stats: {"draws":10,"triangles":2074249,"people":178,"byLod":[48,18,0,112],"shadowDraws":5,"shadowTriangles":135502,"propDraws":3,"props":133,"propTriangles":490422,"propsDropped":0,"placeholderActs":0,"motionCapture":118,"motionAuthored":60,"things":{"draws":5,"instances":44,"triangles":71436,"kinds":{"bri
 
 | class | meshes visible / hidden | instances in frustum | of them < 60 m | triangles in frustum |
 |---|---|---|---|---|
-| people (skinned, any LOD) | 17 / 33 | 15 | 10 | 110153 |
+| people (skinned, any LOD) | 15 / 35 | 13 | 8 | 103693 |
 | people LOD3 (far) | 0 / 0 | 0 | 0 | 0 |
 | people impostors | 1 / 0 | 1 | 0 | 2 |
 | house roofs | 13 / 5 | 1093 | 131 | 14604 |
 | house walls | 4 / 0 | 1 | 1 | 300 |
-| ground fill / props | 19 / 320 | 265 | 5 | 875107 |
+| ground fill / props | 19 / 320 | 138 | 5 | 480029 |
 | trees | 22 / 0 | 16 | 0 | 181066 |
 | crops / flora | 78 / 47 | 74 | 0 | 8216 |
 | fires / lamps | 11 / 3 | 4365 | 12 | 87826 |
@@ -1583,10 +1593,10 @@ people in the frustum: within 40 m 41 of 92; within 60 m 42 of 99 (behind court 
 | world / humans:median:lod# | 2 / 2 | 4 | 1 | 0 |
 | world / humans:worker:shadow | 0 / 1 | 1 | 0 | 0 |
 | world / humans:worker:shadow-far | 1 / 0 | 1 | 1 | 1 |
-| world / humans:worker:lod# | 2 / 2 | 4 | 2 | 2 |
+| world / humans:worker:lod# | 2 / 2 | 4 | 2 | 1 |
 | world / humans:woman:shadow | 0 / 1 | 1 | 0 | 0 |
-| world / humans:woman:shadow-far | 1 / 0 | 1 | 1 | 0 |
-| world / humans:woman:lod# | 2 / 2 | 4 | 2 | 1 |
+| world / humans:woman:shadow-far | 0 / 1 | 1 | 0 | 0 |
+| world / humans:woman:lod# | 1 / 3 | 4 | 1 | 0 |
 | world / humans:child:shadow | 0 / 1 | 1 | 0 | 0 |
 | world / humans:child:shadow-far | 0 / 1 | 1 | 0 | 0 |
 | world / humans:child:lod# | 1 / 3 | 4 | 1 | 0 |
@@ -1604,7 +1614,7 @@ people in the frustum: within 40 m 41 of 92; within 60 m 42 of 99 (behind court 
 | world / people:impostors | 1 / 0 | 1 | 1 | 0 |
 | player-body / humans:median:lod# | 0 / 2 | 2 | 0 | 0 |
 
-people: sim out of doors within 60 m 99 (open ground 91, inside walled courts 0, walking 0; places {"palaces":2,"forecourt_wait":88,"stair_foot":1}; 250 m 447); crowd attached 400, skinned drawn 400 by LOD [48,24,0,328], impostors drawn 1694 of 3934 candidates
+people: sim out of doors within 60 m 99 (open ground 91, inside walled courts 0, walking 0; places {"palaces":2,"forecourt_wait":88,"stair_foot":1}; 250 m 257); crowd attached 397, skinned drawn 178 by LOD [48,18,0,112], impostors drawn 1194 of 3002 candidates
 
 town roofs (150 m round [0,32]): up-facing area above 1.8 m 0 m², wall area 0 m², ratio null (0 triangles)
 
@@ -1614,15 +1624,14 @@ town roofs (150 m round [0,32]): up-facing area above 1.8 m 0 m², wall area 0 m
 |---|---|---|---|---|---|---|
 | world / relief:figures | 9 / 3 | 927 | 0 | 1690000 | MeshStandardNodeMaterial | C |
 | terrain | 208 / 0 | 85 | 2 | 963840 | MeshStandardNodeMaterial | C |
-| world / props:carried | 1 / 0 | 153 | 0 | 620568 | MeshStandardNodeMaterial |  |
+| world / props:carried | 1 / 0 | 112 | 0 | 454272 | MeshStandardNodeMaterial |  |
 | world / treasury:arrow_bundle | 1 / 0 | 446 | 0 | 392480 | MeshStandardNodeMaterial | C |
 | world / treasury:alabaster_vessel | 1 / 0 | 824 | 0 | 370800 | MeshStandardNodeMaterial | C |
 | world / settlement:q_s#:far | 4 / 0 | 4 | 0 | 317074 | MeshStandardNodeMaterial | C |
-| world / props:tools | 2 / 2 | 104 | 1 | 252764 | MeshStandardNodeMaterial |  |
 | world / treasury:textile_bale | 1 / 0 | 382 | 0 | 216976 | MeshStandardNodeMaterial | C |
 | world / plain-orchards-far | 1 / 0 | 1 | 0 | 176772 | MeshStandardNodeMaterial |  |
 | world / river-banks | 1 / 0 | 1 | 0 | 159880 | MeshStandardNodeMaterial | C |
-| world / plain-villages--#,-# | 2 / 0 | 2 | 0 | 134860 | MeshStandardNodeMaterial | C |
+| world / plain-villages--#,-# | 2 / 0 | 2 | 0 | 133082 | MeshStandardNodeMaterial | C |
 | world / harem:room_fittings:bedrolls | 1 / 0 | 176 | 0 | 132352 | MeshStandardNodeMaterial | C |
 | world / treasury:chert_set | 1 / 0 | 455 | 0 | 126490 | MeshStandardNodeMaterial | C |
 | world / relief:far-set | 9 / 0 | 9 | 1 | 123451 | MeshStandardNodeMaterial | C |
@@ -1656,20 +1665,21 @@ town roofs (150 m round [0,32]): up-facing area above 1.8 m 0 m², wall area 0 m
 | world / animals:goat:lod# | 1 / 2 | 41 | 0 | 40180 | MeshStandardNodeMaterial |  |
 | world / treasury:room_fittings:jars | 1 / 0 | 88 | 0 | 39072 | MeshStandardNodeMaterial | C |
 | world / treasury:glass_bowl | 1 / 0 | 111 | 0 | 37296 | MeshStandardNodeMaterial |  |
-| world / work:brick_stack | 1 / 0 | 16 | 0 | 34560 | MeshStandardNodeMaterial |  |
 | world / animals:sheep:lod# | 1 / 1 | 34 | 0 | 33320 | MeshStandardNodeMaterial |  |
-| world / plain-villages-#,# | 2 / 0 | 1 | 1 | 33122 | MeshStandardNodeMaterial | C |
 | world / relief:rosettes | 1 / 0 | 824 | 824 | 32960 | MeshStandardNodeMaterial | C |
+| world / plain-villages-#,# | 2 / 0 | 1 | 1 | 32572 | MeshStandardNodeMaterial | C |
 | world / settlement:gardens:far | 1 / 0 | 1 | 1 | 31796 | MeshStandardNodeMaterial | C |
 | world / harem:room_fittings:jars | 1 / 0 | 70 | 0 | 31080 | MeshStandardNodeMaterial | C |
 | plain-qanats / qanat-tile:#,-# | 3 / 12 | 319 | 0 | 28710 | MeshStandardNodeMaterial | C |
-| world / work:weigh_table | 1 / 0 | 15 | 0 | 27540 | MeshStandardNodeMaterial |  |
+| world / work:brick_stack | 1 / 0 | 13 | 0 | 28080 | MeshStandardNodeMaterial |  |
 | world / crenellations | 1 / 0 | 134 | 68 | 27336 | decor:merlon:limestone_merlon | C |
 | world / crown-merlons:terrace|#|-# | 2 / 0 | 223 | 0 | 26760 | decor:merlon:limestone_merlon | C |
 | world / crown-merlons:apadana|#|-# | 1 / 0 | 130 | 0 | 26520 | decor:merlon:limestone_merlon | C |
 | world / fire-body:torch:head | 1 / 0 | 28 | 0 | 26096 | MeshStandardNodeMaterial | C |
 | world / crown-merlons:apadana|-#|-# | 1 / 0 | 124 | 0 | 25296 | decor:merlon:limestone_merlon | C |
 | world / treasury:gold_rhyton | 1 / 0 | 78 | 0 | 24492 | MeshStandardNodeMaterial | C |
+| world / props:tools | 2 / 2 | 18 | 1 | 23982 | MeshStandardNodeMaterial |  |
+| world / work:weigh_table | 1 / 0 | 13 | 0 | 23868 | MeshStandardNodeMaterial |  |
 | world / c#:dressings:cloth | 1 / 0 | 1 | 1 | 23770 | MeshStandardNodeMaterial | C |
 | world / apadana:palace_plaster | 1 / 0 | 1 | 1 | 23144 | MeshStandardNodeMaterial | B/C |
 
