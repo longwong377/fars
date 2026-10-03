@@ -9961,6 +9961,8 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
 - Blind review (s18, 3/10: "fields in hard-edged colour strips with sparse weed sprites"): every plot's crop thins over 3-8 m into
   the headland's weeds (one shared band between plots), plot shades +-12 % (were +-17 %); the near cover denser (wild herbs x1.3,
   weeds in the crops x1.25, caps up), paid for by nearer LODs (4/12 m, were 5.5/16), within the 0.35 M cover budget (C).
+- Blind review cycle 1 (plain at 1.5 km 2/10: "flat colour bands with ruler edges"): the far districts' year and irrigated share
+  blend over ~180 m either side of their edges, the holdings' shade fades over ~60 m at theirs and is gentler (+-30 %) (C).
 - The plain's static triangles went over 2 M (2.009 M: the merged Naqsh relief figures, 0.5 M): the rivers' sections beyond 12 km
   from the Apadana every 20-45 m (were 12-45 m), 1.99 M (C).
 - Millet (W19): a summer crop row after flax, 3 % of the irrigated plots taken from the fallow (17 %), sown June, cut mid-September
@@ -10084,6 +10086,19 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   town from the Terrace 0.23 -> 0.34); (f) the soundscape: the nightingale on spring nights, the dawn chorus, the summer noon
   hush; (g) ledges.ts disposes a swapped strip geometry two updates later. Dusk measured: sunset 18.36 h on day 0, the sun
   sinks 12.6 deg/h (30 N), so 19.25 h is the end of nautical twilight. All C.
+- (h) the comet of 467 (comet.ts): Plutarch (Lysander 12, after Daimachus) has a fiery body seen 75 days before the stone of
+  Aegospotami (Pliny NH 2.149: Ol. 78.2, 467/466); here a great comet for 75 evenings from game day 88 (mid-July 467), east
+  of the sun (elongation 35-62-40 deg), magnitude 4.5 -> 0.2 -> 4.5, tail 6-24 deg away from the sun, drawn in the world frame
+  from the sun and the ecliptic pole; C (dates, place, brightness). (i) The season's clouds (cloudKind.ts): the deck's
+  stratiform share by month (winter 0.7: thin, flat, even, softly eroded), a cirrus veil in the dome (autumn 0.55, summer
+  0.15), lit by the high sun. C.
+- (j) Daytime light (lead 3's reset: the blind reviewers' #1 fix, "flat grey-beige everywhere, black interiors"). Step 1: the
+  sky's ambient by day at ~1/4.5 of the sun (SKY_AMBIENT 0.65 on the hemisphere light, faded in from -4 to 8 deg: shade drew
+  nearly as bright as sun, ~1/3); a filmic grade with contrast (toneLook power 1.32, toe lift 0.45, sat 1.25, warm/cool split
+  0.9); the contact AO's power 2.4 (was 1.8); the outdoor field re-baked for today's town (27 regions). Step 2: the eye in a
+  town room (the upward rays test only the Terrace's architecture, so every house kept the open court's exposure): outside
+  the halls' volumes the outdoor field answers (outdoor.ts outdoorEyeVisibility, the halls' law, weighted in only where
+  enclosed, vis < 0.55, floor 0.01); open lanes and courts unchanged. C (the weights); tests/eye_outdoor_d680.test.ts.
 - Unseen: the cloud cannot draw Q=high (WebGL2: program validation failures and a lost device with the cascade on AND off;
   WebGPU: SwiftShader's 16-texture cap), so the far cascade is verified node-side only; it needs a T4 frame.
 
@@ -10167,6 +10182,7 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
 - Not done / not mine: the dist grew 704 -> 934 MB (Pages limit 1 GB). build_site.mjs should leave out the jpgs whose KTX2 is listed (77 MB) and the ground-only layer jpgs (84 MB): ~773 MB (asked of the lead). RGBA8 textures left in other owners' files: models/land cover/ground (6 x 21 MB), people_cloth_folds (21 MB), humans scans array (107 MB), tree leaf atlases (2 x 32 MB), bark array (45 MB) (asked).
 - Round 2 (the lead's asks): (1) build_site.mjs (now C9's) leaves out every image whose KTX2 the page loads (the listed scan maps, the ground layers, ktx_maps.json's, the people's scan layers and folds png, the bark jpgs) and fails the deploy above 950 MB (SITE_MAX_MB); off-BC7 GPUs load the full KTX2. (2) Format-only KTX2 for other owners' RGBA8 textures: the people's 20-layer scan array (tools/bake_world/ktx_humans.ts, 107 -> ~28 MB GPU), the land's rock and cover atlases (ktx_maps.ts + loaders.ts loadMap with a 128-px thumbnail for the mean colours; 128 -> 32 MB), the bark array (ktx_bark.ts via assets.ts barkTexels; ~45 -> 12 MB). The leaf atlases are not done (computed on the page with coverage-preserving mips: an ask). tests/ktx_fresh checks every KTX2 against its sources. (3) The T4's black screen: scans.ts's jpg ground array was released after upload and the low-first upgrade re-flagged it with image.data null (writeTexture threw, every frame aborted); fixed, release.ts never re-uploads a released texture without data, and progressive.ts installRenderSafetyNet (main.ts, ?nosafetynet) skips a bad writeBuffer/writeTexture or a throwing object draw, logged once (window.__renderFaults). (4) ?shaderlog records every rejected pipeline's targets, write masks and fragment outputs (the T4's 'writeMask' on three's post quad, renderPipeline_RenderPipeline_61x: not reproducible here, SwiftShader rejects that pipeline earlier at 18 sampled textures of 16). (5) pipeline_census.mjs --check: the built site's pipelines at noon and at night against 16 inputs / 8 buffers / 16 samplers, exit 1 (for CI). (6) Birds and jackals keep the sun's hours (solarHour; tests/wildlife_sun). (7) build_fire_occ.ts bakes firePlaces.ts banquetFireLights when C4 adds it. (8) Mules and camels back at the stair foot (D-227's cut): donkeys plus the day's second kind, within tests/terrace_foot's 10 calls.
 - Not done: the frame-time cut (the cloud's SwiftShader took > 40 min to compile one view's pipelines at quality high; no profile rows), the leaf atlases' KTX2, the writeMask fix itself (diagnostics shipped).
+- Round 3 (the black screen, the deploy, the heap): every dispose deferred 3 frames (progressive.ts deferDisposals: the T4's "used in submit while destroyed" voided whole frames); a throwing copyTextureToTexture skipped (three's TRAA depth copy on WebGL); live_path.mjs (title, Enter, walk, talk; canvas brightness, faults, heap) is the deploy gate: e8e271e8 lit on WebGL low and default, 0 destroyed on WebGPU, deployed. The dist: unused scans pruned (897.4 MiB, was 967.1 MiB = over Pages' 1 GB). The heap: backing stores 2,929 -> 2,637 MB at ready (cloud-s15-load's settlement cuts ported); static geometry's arrays released after upload (?keepgeo), unmeasured where uploads happen. The cloud's WebGL renderer stalls (frames > 2 min) and closes under SwiftShader: no OOM in its log, so not the heap.
 
 ## D-771 The ruin rules rewritten in research/ and the blocklist (s18 cloud C12; UD-02, UD-14, UD-29)
 - Every absence rule that only recorded the evidence's silence now says what 467 most probably had (tier C, each change
@@ -10289,6 +10305,12 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   the heard reply says the reply, overheard pairs say their own fact (#15); the court's people, travellers and herders not sent
   to market (C7); meals bought by the stranger (4-12); trespass (4-1); W5, W6, W13, W14, W15, W17, W22; Kokoro blends without a
   regional colour (all C).
+- D-720 addendum 2 (the lead's last asks): the asks and rumours survive a save exactly (the running world cut to the saved state
+  each evening: minds.canon, goals.canon; the save keeps every wrong; a test in deeds.test.ts); those who come to sit with the sick
+  go alone (farmer 11543); the laid days keep their labels and walks (econ_plans 283 → 1; the rest in handoff/s18/c8_plans_ask.patch
+  for population.ts and living/world.ts, which also fixes day_jump); a house that cannot buy its bread goes short (economy 'hunger'
+  from the harvest, the price or a theft, once a month, not in the month after help; the famine chain's links 0 → 34 into hunger,
+  872 to help, 101 to a sale or loan; all C).
 - D-790 round 2 (the leads' asks): the mouth takes the voices' words (crowd.voice's optional 5th argument `words`, IPA or
   transliteration, sets FaceState.say; face.ts folds IPA onto the viseme classes; world.ts:815 to pass `v.ipa ?? v.text`);
   mounts trot and gallop by their pace (gaitOfPace: walk to ~1.8 m/s, trot to ~3.6, gallop above; a transverse gallop:
@@ -10448,6 +10470,9 @@ touched; the budget baseline is not re-accepted from such a head.
 - Draws and triangles held: the three in their neighbours' far meshes (settlement_build 45 meshes), the far roofs' things the jars and mats only (houses.test's far level < 800 k).
 - tests/settlement.test.ts's "no plot inside the nav box" (the old rule) now fails by design: asked of the lead to narrow it to the Terrace and the stair forecourt; the nav grid wants C5's rebuild with the town's colliders.
 - Addendum (lead 2, lead 3): tests/settlement.test.ts's nav check narrowed to the Terrace (e −65…262, n −245…240) and the stair forecourt (e −250…−60, n 40…200), houses only kept out of those; q_b1 removed (it sat on the forecourt's approach), the house being built moved to q_b10-0027 (centre −342.2, 136.4); 2,164 plots, capacity 10,638 ≤ 11,000. Then (lead 3, C7 camp_life red): the court baggage trains' legs off the road kept open ground: q_b9 split either side of the west camp's leg (q_b9 E, q_b11 W), q_b10 (road 160–280 m) and q_b6 (720–860 m) beside the court's and north camp's legs, q_b8 narrowed W of the way round the Terrace's foot; building site now q_b10-0020 (−311.2, 121.3); 2,083 plots, capacity 10,033; the nav check's forecourt n 0…200 (the road corridor is the roads clause); towndoors: every leaf takes instanceColor (C15). C7's red "no run points at the camera" (plain/townGround.ts, not mine, lead 3's mandate): a desire line longer than ~12 m whose midpoint bearing from the stair lies within 15° of its own is not drawn (radial runs 1 → 0). Town props take `bottom?: boolean` (C15's ask, plan.ts Prop, build.ts passes it to Batch.box); the town's own props all stand on the ground, so none set it. The plain_d223 fields share (0.177 < 0.4) is NOT fixed: the town now fills the stair view's 200–1,000 m foreground, a conflict put to the lead, the test not loosened.
+- Addendum 2 (lead 3's reset list): the fields-share test's ground is the plain beyond the town's sites and trodden apron (tests/plain_d223, lead 3's (a); passes at ≥ 0.4), terrace_foot's herb share the foot outside the town's plots (thresholds unchanged). The belt's houses stood empty at the Terrace's foot (population.ts housePlots fills each quarter's nearest sites first: q_b8 4/63, q_b9 17/89, q_b10 0/51 lived in) and their unlinked hearths burned on the default schedule (town_glow: 236 lit at the warm dusk, < 60): q_b11 and q_b6 removed (capacity 10,033 → 9,089, ≥ 7,000), now q_b8 62/63, q_b9 89/89, q_b10 50/51; the shrine plots keep no hearth or oven, the shrine lamps no group (a saucer's light, like the houses' lamps): 73 → < 60 lit. The blind review's "hatched decals with cut-out blotches read as a bug": the plaster losses to the brick, the repair patches and the bare-brick decals off (houses.ts BRICK_LOSSES; houselod.test now expects none).
+- Addendum 3: q_w3 moved 20 m W (c −955, −95): on its E side it abutted q_b3 (gap ≤ 5 m) and its lanes' way out E led into a pocket (C5: 261 of 537 q_w3 lane cells could not reach the market at −773, −145; now 5 of 581; TownWalk.route). tools/dev/open_sky_census.ts: the cloud eyes' open-to-sky measure (render.mjs 31f0e69f) in node with the near ring: intro-town 0.052 (135 samples), town-20m 0 (6), town-200m-noon 0 (16).
+- Addendum 4 (the reset's surfaces, C15's D-802 kit): the lanes' blank walls opened: every room on a lane takes small high windows (0.34-0.48 x 0.38-0.52 m, sill 1.9-2.15 m, about one per 3.5 m, fewer on poorer houses), each lined by the kit's wooden frame and grille (window0/1, near level; src/world/settlement/townkit.ts bundles the kit); the rooms' roof poles run out through the lane walls as vigas, their chopped ends 0.22-0.34 m proud (the house kit's plog). 954 framed windows in q_s1, q_b9 and q_w1; near tiles mean 25 k, worst 44 k triangles (≤ 60 k). The workshops' awnings (the kit's awning, its cloth's underside added) are placed but held off (AWNINGS_ON) until a frame confirms them. All C.
 ## D-751 The cloud frames' black walls: the KTX2 target from the WebGL2 context (s18 cloud C10)
 - The cloud's eyes draw through WebGL2 (?webgl=1) while sharedKTX2 (render/loaders.ts) took its transcode target from the WebGPU
   adapter's features: BC7, which SwiftShader's WebGL2 cannot upload (compressedTexSubImage2D 'invalid format'), so every KTX2
@@ -10496,5 +10521,72 @@ touched; the budget baseline is not re-accepted from such a head.
   -> 0.47 % (gate 0.5 %), 40/40; seed 2: 1.56 %, 40/40, the rest at the Hall of 100's site where detailed agents (masons,
   sim.ts) stand in the way: they do not make way yet (sim.ts, C1). tools/dev/walkers.ts --stuck: where the time is spent.
 ## D-801 The roads of the plain in use: wells, halts, carts, field shrines, the road's dung (s18 cloud C15, lead 3's round 2)
+
+- src/world/plain/wayside.ts, drawn in Naqsh-e Rustam's nr-life mesh (no new draw): along the first 9 km of every road present in 467 (settlement.json; the Naqsh-e Rustam road its whole length), a well every ~2.2 km (fieldstone kerb, posts and beam, a stone trough), a halt every ~2.6 km (a mud-brick shelter open to the road, a bench, jars, a tethering post and dung, an ox-cart stood by it with solid wheels, shafts and sacks), a field shrine every ~3.1 km on the far side (a small stepped altar of the Naqsh reliefs' form, its ash heap and stacked wood; the fire is the people's action, not drawn), nothing in a settlement zone or on steep ground. Measured: 4 roads, 12 wells, 12 halts and carts, 10 shrines, ~6.7 k triangles (the road's droppings are roadLitter.ts's, session 10: not repeated). Way-stations and travel rations B (the Fortification texts); the spacing and the forms C. To pay for it inside the plain's 2.0 M: the threshing floors' kerbs 12 larger stones (were 26), the roof stacks three faces.
+
+## D-755 The paint read from 0.6-2 km (s18 cloud C10; handoff/s18/reset.md)
+- From the plain the D-752 scheme read as mud and grey (C6 round 3: the Gate wall below its band, the N stair, the merlons).
+  Now: the palaces' outer ground a white lime wash (was a yellow-ochre lime), the red ochre dado 2 m (was 1.4), an Egyptian blue
+  frieze 1.6 m under the wall's head with a white edge (was a red 1.1 m); the crests (parapets, copings, string courses) red
+  ochre plaster (palace_crest); the roof-line merlons under the frames' whitish coat; the Apadana stair façades' relief ground
+  Egyptian blue (relief_ground); faces with no floor in front (the towers over the podium's edge) painted too. All C (pigments B).
+- Probe frames (WebGL2 SwiftShader, no aerial perspective) at 700 m-1 km before/after: handoff/s18/c10/distance-*.jpg.
+
 - src/world/plain/wayside.ts, drawn in Naqsh-e Rustam's nr-life mesh (no new draw): along the first 9 km of every road present in 467 (settlement.json; the Naqsh-e Rustam road its whole length), a well every ~2.2 km (fieldstone kerb, posts and beam, a stone trough), a halt every ~2.6 km (a mud-brick shelter open to the road, a bench, jars, a tethering post and dung, an ox-cart stood by it with solid wheels, shafts and sacks), a field shrine every ~3.1 km on the far side (a small stepped altar of the Naqsh reliefs' form, its ash heap and stacked wood; the fire is the people's action, not drawn), nothing in a settlement zone or on steep ground. Measured: 4 roads, 10 wells, 10 halts and carts, 9 shrines (a stop with another of its kind within 500 m not doubled where roads share their stretch out of the town), 5.7 k triangles (the road's droppings are roadLitter.ts's, session 10: not repeated). Way-stations and travel rations B (the Fortification texts); the spacing and the forms C. To pay for it inside the plain's 2.0 M: the threshing floors' kerbs 12 larger stones (were 26), the roof stacks three faces.
 | D-811 | s18 lead 3 | Deployed s17-int e8e271e8 to s14-int (Pages): C9's live path (a) WebGL low lit, 0 faults; the live site was black (c3bde8ab). The user: the lead is the director and deploys without asking. |
+## D-697 After a jump nobody stays where the old state put them; the walks traced (s18 cloud C5)
+- popview.ts collect: a state more than STALE_H (0.05 h) out of date (not yet re-evaluated after a jump, over the plan budget)
+  is not drawn (C12's T1: 489 people stood at the court's places for seconds after a jump from day 40 to day 200; now 0 at
+  the first update). The catch-up after a jump runs longer (CATCH_UP 60 ms, then 8 ms for 90 updates): three seconds after
+  a jump the view places >= 80 % of a settle (tests/people_drawn.test.ts); a second after, cov-266 had 25 of 45 (the earlier
+  "104 of 116" counted stale states from before the jump).
+- tools/dev/walktrace.ts: the plans' walks at a moment against the view. At cov-142 (d88 13:48) the errands' walks are lost to
+  routes: TownWalk finds no route out of most of q_w3 eastward (261 of 537 lane cells; 58 of 67 homes without a route out),
+  sent to C2 with a repro. At q_s1 (d0 10:00) 53 of 75 people on the move walk; the walks are short (3-5 min), and only 6 of
+  303 drawn within 60 m walk: more and longer trips are the plans' (C1).
+- The doorstep shares a little higher (spin 50 %, play 65 %, talk 55 %, rest 40 %, craft 35 %, clean 45 %, eat 20 %).
+- Later the same session (C12's holes and the lead's asks): staffed works at C3's stations (D-670 spots); a wedding never overfills a town house and a craft's house is never in another craft's workshop; a village's fields out to 3.2 km; meals, feeds and dress kept whatever the overlays lay (keepFood, keepDress: meal and feed faults 37-54 a day -> 0); the Six's names kept off commoners, no doubled or royal xšaθra- women's names, all twelve Old Persian months first, the chronicle as the world's record (chronicleWords); the Terrace's courts and kitchens spread (slots 1.2 m apart); save/load: the minds' reading off the plan cache, the deeds' evSeen and window kept (the persistence round trip byte-identical; still diverging after ~5 days because the minds' memories are not saved: C8's budget).
+- The out-of-doors day (outOfDoors, follow): errands through the lanes (the well, the market ground, kin's door: 1.4 an adult a day, ~15 min of walking), the children's play in their lane, the heat of the day in the lane's shade and on the doorstep (45 % of house-days), the evening at the door, the field work from first light; who is "with" another follows them out (Seg.od). Node census (tools/dev/outdoor_census.ts, pagecheck's reading): the lane cov-142 at 13:48 open 2 -> 25 of 142.
+## D-802 The town kit: modelled mud-brick pieces for the town's and the villages' houses (s18 cloud C15, lead 3)
+- tools/blender/kit_town.py (Blender 5.0.1; `node tools/blender/kit_town.mjs`, BLENDER=tools/blender/bpy_cli.sh in the cloud; reproducible: the same kit.json hash on two builds) writes public/models/kit/town/kit.json, manifest.json and town_kit.glb: wall runs (wall0..2 plastered, with the batter, the float's undulation and rain runnels; wallworn0..1 with the plaster fallen to 4+ brick courses; walllaced0..1 with a timber lacing band), corner, foot0..1 (splashed skirt, fieldstones), doorframe (reveals, timber lintel, threshold), window0..1 (grille), parapet0..1 (lip, drip edge, vigas), roof0..1, hatch, steps, awning (in metres). Each in three levels (LOD0 <= 1.6 k triangles, a wall run 240 / 60 / 4), Cycles AO baked at the real size with a 0.8 m reach (open faces ~1, as the house kit). In the house kit's unit frames, so kit.ts kitFrame places them unchanged; loader src/render/townKit.ts (loadTownKit, townPiece). No texture maps: the town's world-space scanned plaster, brick and timber surfaces dress them (the T4's 16-sampler cap), colour by the callers' vertex colours x the pieces' shade. C2 swaps the boxes (interface sent). No ladder piece: the house kit's log/rung pieces build ladders.
+- src/world/plain/wayside.ts, drawn in Naqsh-e Rustam's nr-life mesh (no new draw): along the first 9 km of every road present in 467 (settlement.json; the Naqsh-e Rustam road its whole length), a well every ~2.2 km (fieldstone kerb, posts and beam, a stone trough), a halt every ~2.6 km (a mud-brick shelter open to the road, a bench, jars, a tethering post and dung, an ox-cart stood by it with solid wheels, shafts and sacks), a field shrine every ~3.1 km on the far side (a small stepped altar of the Naqsh reliefs' form, its ash heap and stacked wood; the fire is the people's action, not drawn), nothing in a settlement zone or on steep ground. Measured: 4 roads, 12 wells, 12 halts and carts, 10 shrines, ~6.7 k triangles (the road's droppings are roadLitter.ts's, session 10: not repeated). Way-stations and travel rations B (the Fortification texts); the spacing and the forms C. To pay for it inside the plain's 2.0 M: the threshing floors' kerbs 12 larger stones (were 26), the roof stacks three faces.
+
+## D-755 The paint read from 0.6-2 km (s18 cloud C10; handoff/s18/reset.md)
+- From the plain the D-752 scheme read as mud and grey (C6 round 3: the Gate wall below its band, the N stair, the merlons).
+  Now: the palaces' outer ground a white lime wash (was a yellow-ochre lime), the red ochre dado 2 m (was 1.4), an Egyptian blue
+  frieze 1.6 m under the wall's head with a white edge (was a red 1.1 m); the crests (parapets, copings, string courses) red
+  ochre plaster (palace_crest); the roof-line merlons under the frames' whitish coat; the Apadana stair façades' relief ground
+  Egyptian blue (relief_ground); faces with no floor in front (the towers over the podium's edge) painted too. All C (pigments B).
+- Probe frames (WebGL2 SwiftShader, no aerial perspective) at 700 m-1 km before/after: handoff/s18/c10/distance-*.jpg.
+
+- Addendum 3: q_w3 moved 20 m W (c −955, −95): on its E side it abutted q_b3 (gap ≤ 5 m) and its lanes' way out E led into a pocket (C5: 261 of 537 q_w3 lane cells could not reach the market at −773, −145; now 5 of 581; TownWalk.route). tools/dev/open_sky_census.ts: the cloud eyes' open-to-sky measure (render.mjs 31f0e69f) in node with the near ring: intro-town 0.052 (135 samples), town-20m 0 (6), town-200m-noon 0 (16).
+- (D-697) The court's people anchored at their groups' places on a court day (COURT_ANCHOR: the forecourt for the delegations
+  and the royal guard, the Apadana's N portico for the nobles, officials, heralds and table), not at their camps or the Terrace's
+  centre: tied with every Terrace worker they ranked 10,000-15,000th and a jump to the gift day placed 4 of the 747 a settle
+  puts within 60 m of the N court for 8 s; now 689 two seconds on (tests/people_drawn.test.ts). A walker over the route budget
+  asks again after half a game minute (ROUTE_RETRY_H), not every update.
+## D-694 (rebuild) The nav grid with C2's lower town (s18 cloud C5)
+- tools/build_nav.ts adds every collider box of the sites reaching into the grid (5 sites, 8,486 boxes: q_b8, q_b9, q_b10 at the
+  Terrace's W foot and their neighbours), and on the approach (west of e -45) blocks the pockets no body reaches from the seeds
+  (the quarters' houses and lanes: their walk is the town's TownWalk, not this grid). The Terrace's cells are unchanged. 162,852
+  approach cells fewer walkable (the quarters). Bots: approach 40/40 (0.53 % stuck), Terrace 39/40 (the miss: people at the
+  Tachara's door; stuck time at the Hall of 100's masons, sim.ts). terrace_walk's "every road block ... decides to an on-Terrace
+  task" fails identically on the old grid (not this rebuild).
+- Addendum 3: q_w3 moved 20 m W (c −955, −95): on its E side it abutted q_b3 (gap ≤ 5 m) and its lanes' way out E led into a pocket (C5: 261 of 537 q_w3 lane cells could not reach the market at −773, −145; now 5 of 581; TownWalk.route). tools/dev/open_sky_census.ts: the cloud eyes' open-to-sky measure (render.mjs 31f0e69f) in node with the near ring: intro-town 0.052 (135 samples), town-20m 0 (6), town-200m-noon 0 (16).
+## D-803 The Terrace kit (s18 cloud C10, lead 3; tools/blender/terracekit.py -> src/arch/terracekit.json)
+- Modelled and AO-baked in Blender (bpy), instanced near/far:
+  - Batches 1-2: the palaces' wall-head cornice (Egyptian gorge) and wall-foot plinth along every palace wall run, and the
+    Apadana towers' stone window frames.
+  - Batch 3: drafted margins on the retaining walls (materials.ts); the palace lime coat smooth (the review's "hatched decals").
+  - Batch 4: the cornice scales with its wall, 0.72 m up to 12 m, then in proportion. Only the Gate's grows (1.64x); the
+    Apadana towers keep the 0.78 m their glazed frieze leaves.
+  - Batch 5 (src/arch/site_kit.ts), the sites under construction (Hall of 100 Columns, Tripylon), for cov-252's flat slab and
+    "capitals floating on sticks":
+    - mud-brick courses racked up in stretches over the flat wall tops, the bricks modelled;
+    - brick stacks on the tops, putlog scaffolds against the faces, pole ladders;
+    - cedar main beams in the saddles of the raised capitals (ceilings.ts sizes).
+  - All C (D-022: method unknown). Render only: no colliders, parts unchanged.
+- (D-694, rebuild 2) The grid rebuilt on C2's 3c2eec36 (q_w3 moved west): 4 sites, 6,509 boxes, 32,821 approach pocket cells
+  blocked, 1,291,033 walkable. Bots: approach 40/40 (0.64 % stuck), town 40/40 (8.25 % stuck time: up from 0.40 % this
+  morning, not yet traced). Walkers drawn within 60 m: cov-142 1 of 58, q_s1 lane 5 of 307 (the plans: 42 of 69 and 67 of 97
+  residents within 400 m on the move walk).

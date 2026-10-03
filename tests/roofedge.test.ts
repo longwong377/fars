@@ -58,7 +58,7 @@ describe('D-334 roof edges and wall heads', () => {
   });
   it('built with the world: triangles within budget, the class drawn in its materials', () => {
     const B = buildMeshes(parts), B0 = buildMeshes(parts, undefined, { noRoofEdges: true });
-    const added = B.triangles - B0.triangles;
+    const added = B.triangles - B0.triangles - (B.kitTriangles ?? 0) - (B.siteTriangles ?? 0); // (D-803: the Terrace kit is its own class, budgeted in terrace_dressing.test.ts)
     expect(added).toBeGreaterThan(0); expect(added).toBeLessThan(600000); // (the pieces at full detail: ~310 k; beyond 28 m 12 each)
     const names = new Set<string>(); B.group.traverse(o => names.add(o.name));
     expect([...names].some(n => n.startsWith('roofedge:dentil'))).toBe(true); expect([...names].some(n => n.startsWith('roofedge:spout'))).toBe(true);

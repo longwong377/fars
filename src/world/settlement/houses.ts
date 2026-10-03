@@ -21,10 +21,16 @@
 import { interiorsOn } from '../interiors/town';
 import { registerHouses } from '../interiors/ring';
 import { Batch, RGB, lin } from './geom';
-import { Site, Plot, Wall, ROOF_T, DOOR_H, P2, ROOM, COURT, YARD, toLocal } from './site';
+import { Site, Plot, Wall, ROOF_T, DOOR_H, P2, ROOM, COURT, YARD, SQUARE, toLocal } from './site';
 import { hashString } from '../../core/rng';
 import { fixturesOf, livesOf, HOUSE_KINDS, buildingPlot, BUILDING_WALL, type Fixture, type HouseLife } from './houseplan';
 import { kitOn, kitLog, kitPiece, kitFrame, KIT, scanVessel } from './kit';
+import { tkit, AWNING, AWNING_UNDER, KIT_STATS } from './townkit';
+/** s18 C2 (lead 3's reset, the blind review: "the hatched decals with cut-out blotches read as a bug"): no plaster losses,
+ *  repair patches or bare brick on the kept, washed town of 467; its wear is the plaster scan's grain, the soot, the splash */
+const BRICK_LOSSES = false;
+/** s18 C2: the workshops' awnings (C15's kit) are placed but held off until a frame confirms them (the freeze: CPU previews only) */
+const AWNINGS_ON = false;
 /** D-324: the kit's brick losses (tools/blender/housekit.py brick_patch: 0.9 x 0.38 m, bricks ~33 cm, courses 11.5 cm) */
 const BRICK_W = 0.9, BRICK_H = 0.38;
 import { scanShape, modelFit, mergedModel } from '../../render/scanProps';
@@ -104,7 +110,7 @@ interface Side { cls: 'room' | 'court' | 'open'; plot: number; roof: number }
 interface RoomEl { plot: number; room: number; i0: number; j0: number; i1: number; j1: number; full: boolean; drain: number; eave: number; tile: number; R: number; fall: number }
 interface WallEl { w: Wall; tile: number; plot: number; room: number; street: boolean }
 /** `brick` (D-324): a loss of the plaster over the brick (the kit's variant, drawn by brickLoss, no reveal); `fl` its mirror */
-interface Hole { s0: number; s1: number; y0: number; y1: number; through: boolean; depth: number; col?: RGB; brick?: number; fl?: number }
+interface Hole { s0: number; s1: number; y0: number; y1: number; through: boolean; depth: number; col?: RGB; brick?: number; fl?: number; grille?: number }
 interface Dec { s0: number; s1: number; y0: number; y1: number; kind: 'patch' | 'bare' | 'soot' | 'streak' | 'dung' | 'stain'; seed: number; k?: number }
 /** a street door as the door system needs it (grid e, n; world y) */
 export interface StreetDoor { id: string; plot: number; tile: number; hinge: P2; theta: number; closedYaw: number; openYaw: number; y: number; h: number; wood: number; kind: string; site: string }
@@ -489,8 +495,12 @@ export class SiteHouses {
       if (w.kind === 'facade' && other.cls === 'court' && len >= 2.4) { const nW = Math.floor(len / 3.2 * (0.35 + 0.65 * L.standing) + hi(seed, 11));
         for (let k = 0; k < nW; k++) { const ww = 0.42 + 0.18 * hi(seed, k, 1), wh = 0.4 + 0.2 * hi(seed, k, 2), sc = sA + (len * (k + 1)) / (nW + 1) + (hi(seed, k, 3) - 0.5) * 0.4; const sill = floorOf(room) + 1.35 + 0.35 * hi(seed, k, 4);
           if (sill + wh + 0.2 < ceil && sc - ww / 2 > sA + 0.5 && sc + ww / 2 < sB - 0.5) holes.push({ s0: sc - ww / 2, s1: sc + ww / 2, y0: sill, y1: sill + wh, through: true, depth: t }); } }
-      if (w.kind === 'outer' && other.cls === 'open' && len >= 3 && hi(seed, 12) < 0.3 + 0.3 * L.standing) { const sc = sA + len * (0.3 + 0.4 * hi(seed, 13)), y = floorOf(room) + 2.15;
-        if (y + 0.4 < ceil) holes.push({ s0: sc - 0.1, s1: sc + 0.1, y0: y, y1: y + 0.34, through: true, depth: t }); } }
+      // s18 C2 (the reset: the lanes' blank walls): the rooms on the lane take small high windows, a wooden frame and grille in
+      // each (C15's kit, D-802), above a passer's eye (privacy: the lane sees no one inside), about one per 3.5 m on the better
+      // houses' walls, fewer on the poorer (C: the Iranian vernacular's high lane windows)
+      if (w.kind === 'outer' && other.cls === 'open' && len >= 2.4) { const nW = Math.floor(len / 3.5 * (0.45 + 0.55 * L.standing) + hi(seed, 12));
+        for (let k = 0; k < nW; k++) { const ww = 0.34 + 0.14 * hi(seed, k, 13), wh = 0.38 + 0.14 * hi(seed, k, 14), sc = sA + (len * (k + 1)) / (nW + 1) + (hi(seed, k, 15) - 0.5) * 0.5, y = floorOf(room) + 1.9 + 0.25 * hi(seed, k, 16);
+          if (y + wh + 0.15 < ceil && sc - ww / 2 > sA + 0.45 && sc + ww / 2 < sB - 0.45) holes.push({ s0: sc - ww / 2, s1: sc + ww / 2, y0: y, y1: y + wh, through: true, depth: t, grille: hi(seed, k, 17) < 0.5 ? 0 : 1 }); } } }
     return holes;
   }
   /** a wall at full detail: footing, plastered faces (bulge, holes, patches), a worn cap on exposed tops, lintels and
@@ -527,6 +537,17 @@ export class SiteHouses {
       if (we.street && dv.step) { const p = s.plots[we.plot], d = s.doorPoints(p)!; const ou = Math.sign(d.out[0] - d.inside[0]), ov = Math.sign(d.out[1] - d.inside[1]); const st = lin(STONE);
         for (const e of [-0.24, 0.24]) { const su = d.mid[0] + ou * (t / 2 + 0.22) + (ax === 0 ? e : 0), sv = d.mid[1] + ov * (t / 2 + 0.22) + (ax === 0 ? 0 : e), gy = this.gl(su, sv);
           B.stone.set('ao', 0.9); this.stone(B.stone, su, sv, ax === 0 ? 0.23 : 0.2, ax === 0 ? 0.2 : 0.23, gy - 0.06, gy + 0.08 + 0.03 * hi(seed, e > 0 ? 55 : 56), sh(st, 0.85), sh(st, 1.08), this.owner(we.plot, P.door), (hi(seed, e > 0 ? 57 : 58) - 0.5) * 0.25); B.stone.set('ao', 1); } }
+      // s18 C2 (the reset: awnings, C15's kit): a workshop's street door (and some houses' on a square: the stall at the door) on a lane wide enough (2.4 m clear for 2.4 m out) has a
+      // cloth awning on two poles over its front, where the work and the selling spill out (C: the bazaar's shade cloths)
+      if (AWNINGS_ON && we.street && !this.lod && AWNING && AWNING_UNDER && (s.plots[we.plot].kind === 'workshop' ? hi(seed, 171) < 0.7 : hi(seed, 171) < 0.45 && this.onSquare(we.plot))) { const p = s.plots[we.plot], d = s.doorPoints(p)!;
+        const ou = Math.sign(d.out[0] - d.inside[0]), ov = Math.sign(d.out[1] - d.inside[1]), al = ax === 0 ? [1, 0] : [0, 1];
+        const freeAt = (a: number, o: number) => { const u = d.mid[0] + ou * o + al[0] * a, v = d.mid[1] + ov * o + al[1] * a, i = s.ci(u), j = s.cj(v); return s.inb(i, j) && s.cell[s.k(i, j)] < 0; };
+        KIT_STATS.awningTried++; let ok = true; for (const o of [t / 2 + 0.5, t / 2 + 1.4, t / 2 + 2.1]) for (const a of [-1.2, 0, 1.2]) if (!freeAt(a, o)) ok = false;
+        if (ok) { const wa = 2.3 + 0.5 * hi(seed, 172), da = 1.45 + 0.3 * hi(seed, 173), A = this.dirW(al[0], al[1]), Ou = this.dirW(ou, ov), sx = wa / 3, sz = da / 2.05;
+          const O = this.wp(d.mid[0] + ou * (t / 2 + 0.02) - al[0] * wa / 2, d.mid[1] + ov * (t / 2 + 0.02) - al[1] * wa / 2, g0 + 0.05);
+          const X = [A[0] * sx, 0, A[1] * sx], Y = [0, 1, 0], Z = [Ou[0] * sz, 0, Ou[1] * sz], DY = [[0.62, 0.55, 0.42], [0.55, 0.2, 0.12], [0.22, 0.26, 0.42], [0.66, 0.6, 0.48], [0.6, 0.42, 0.18]], dye = lin(DY[Math.floor(hi(seed, 174) * DY.length)] as RGB), pole = sh(lin(POLE), 0.85);
+          KIT_STATS.awnings++; B.timber.set('ao', 0.9); kitFrame(B.timber, AWNING, O, X, Y, Z, dye, this.owner(we.plot, P.fixture), 0.9, 0.3, k => k < 36 ? sh(pole, AWNING!.k[k]) : sh(dye, AWNING!.k[k]));
+          kitFrame(B.timber, AWNING_UNDER, O, X, Y, Z, sh(dye, 0.8), this.owner(we.plot, P.fixture), 0.7, 0.3); B.timber.set('ao', 1); } }
       if (we.street) { const st = lin(STONE); B.stone.set('ao', 0.9);
         // a threshold slab, worn hollow in the middle by feet (two lower strips at the edges: its middle stands 1 cm lower)
         // (D-324: near, the kit's slab, its middle worn 3 cm hollow; beyond NEAR0 the slab and its two edge strips)
@@ -567,7 +588,7 @@ export class SiteHouses {
         // the room's inside up to the ceiling; above the roof the parapet's inner face (exterior)
         const yc = sd.roof - ROOF_T + ROOF.beam, inner = sh(col0, 0.82);
         this.face(B.plaster, { ax, sA: along0, sB: along1, cc, t, sg, yb: () => sp.y0 + 0.3, yt: () => Math.min(top, yc), holes: faceHoles, bulge: 0, seed, col: () => inner, owner: this.owner(we.plot, P.wall), ao: () => 0.16, y0: () => -1000, ytop: 1e4 });
-        for (const h of faceHoles) if (h.through) this.reveal(B, ax, cc, t, sg, h, inner, we.plot); // the window's inner half
+        for (const h of faceHoles) if (h.through && (h.grille === undefined || this.lod)) this.reveal(B, ax, cc, t, sg, h, inner, we.plot); // the window's inner half (a framed window: the kit's frame lines the whole depth)
         if (top > sd.roof + 0.02) this.face(B.plaster, { ax, sA: along0, sB: along1, cc, t, sg, yb: () => sd.roof - 0.13, yt: x => ytopF(x) - bev, holes: [], bulge: 0.006, seed: seed + 3, st2: topSt, col: (_x, y) => sh(col0, 1.0 + 0.03 * smooth((y - sd.roof) / 0.5)), owner: this.owner(we.plot, P.wall), ao: () => 0.85, y0: () => sd.roof, ytop: top });
       } else {
         // exterior: the stone footing, then the plaster
@@ -593,7 +614,7 @@ export class SiteHouses {
         // D-324: where the plaster has fallen off in the damp band over the footing, the brick courses show (the kit's losses,
         // near; the middle ring draws them flat, as the bare-brick decal): more on old walls and poor houses' (the household's bare
         // share), on the lane more than in the court, mostly low (they replace D-234's random bare-brick decals)
-        if (kitOn && we.plot >= 0 && len >= BRICK_W + 0.8) { const rate = (0.025 + 0.09 * L.bare + 0.03 * (L.age / 50)) * (sd.cls === 'open' ? 1 : 0.6) * (house ? 1 : 1.4), n = Math.floor(len * rate + hi(seed, si, 95));
+        if (BRICK_LOSSES && kitOn && we.plot >= 0 && len >= BRICK_W + 0.8) { const rate = (0.025 + 0.09 * L.bare + 0.03 * (L.age / 50)) * (sd.cls === 'open' ? 1 : 0.6) * (house ? 1 : 1.4), n = Math.floor(len * rate + hi(seed, si, 95));
           for (let q = 0; q < Math.min(n, 3); q++) { const s0 = sA + 0.4 + (len - 0.8 - BRICK_W) * hi(seed, si, q, 96), s1 = s0 + BRICK_W, y0 = Math.max(ysoc(s0), ysoc(s1)) + 0.42 + 1.1 * hi(seed, si, q, 97) ** 2, y1 = y0 + BRICK_H;
             if (y1 > Math.min(ytopF(s0), ytopF(s1)) - 0.35 || faceHoles.some(h => s0 < h.s1 + 0.3 && s1 > h.s0 - 0.3 && y0 < h.y1 + 0.3 && y1 > h.y0 - 0.3)) continue;
             if (this.lod) continue; // (s18 C2, D-667: the middle ring's flat bare-brick polygons read as hard-edged pale stickers on the T4: no loss drawn there)
@@ -619,7 +640,7 @@ export class SiteHouses {
         for (const [sgd, d] of decs) if (sgd === sg) this.decal(B, ax, cc, t, sg, d, col0, floor, we.plot, surf, colF);
         decs.length = 0;
         // hole reveals and backs
-        for (const h of faceHoles) if (h.brick === undefined) this.reveal(B, ax, cc, t, sg, h, col0, we.plot);
+        for (const h of faceHoles) if (h.brick === undefined) { if (h.grille !== undefined && !this.lod) this.framedWindow(B, ax, cc, t, sg, h, we.plot); else this.reveal(B, ax, cc, t, sg, h, col0, we.plot); }
       }
     }
     // the cap of an exposed top (D-311): the Blender kit's slumped mud crest, ~4 m modules (three, mirrored by the hash) laid
@@ -722,6 +743,18 @@ export class SiteHouses {
       b.quad(p(ax0, ay0, 0.003), p(ax1, ay1, 0.003), p(bx1, by1, 0.002), p(bx0, by0, 0.002), N, inner(ax0, ay0), inner(ax1, ay1), outer(bx1, by1), outer(bx0, by0), own); }
   }
   /** a hole's reveals (and, for a niche, its back); a window's back opens into the dark room */
+  /** the plot's street door opens on a square (its outside cell) */
+  private onSquare(plot: number) { const s = this.s, d = s.plots[plot]?.door ? s.doorPoints(s.plots[plot])! : null; if (!d) return false; const i = s.ci(d.out[0]), j = s.cj(d.out[1]); return s.inb(i, j) && s.cell[s.k(i, j)] === SQUARE; }
+  /** s18 C2: a window in C15's kit (window0/1: the wooden frame lining the opening through the wall's depth, its grille, the
+   *  sill), drawn from the lane face (sg) across the whole thickness; in the timber batch, the poplar's tone */
+  private framedWindow(B: HB, ax: number, cc: number, t: number, sg: number, h: Hole, plot: number) {
+    const q = tkit(`window${h.grille ?? 0}`); if (!q) return; KIT_STATS.windows++;
+    const P2l = (x: number, off: number): [number, number] => (ax === 0 ? [x, cc + off] : [cc + off, x]);
+    const al = ax === 0 ? this.dirW(1, 0) : this.dirW(0, 1), ac = ax === 0 ? this.dirW(0, sg) : this.dirW(sg, 0), W = h.s1 - h.s0, H = h.y1 - h.y0;
+    B.timber.set('ao', 0.8);
+    kitFrame(B.timber, q, this.wp(...P2l(h.s0, 0), h.y0), [al[0] * W, 0, al[1] * W], [0, H, 0], [ac[0] * t, 0, ac[1] * t], sh(lin(POLE), 0.8 + 0.2 * hi(plot, Math.round(h.s0 * 10), 5)), this.owner(plot, P.window));
+    B.timber.set('ao', 1);
+  }
   private reveal(B: HB, ax: number, cc: number, t: number, sg: number, h: Hole, col: RGB, plot: number) {
     const b = B.plaster, P2l = (x: number, off: number): [number, number] => (ax === 0 ? [x, cc + off] : [cc + off, x]);
     const f0 = sg * (t / 2), f1 = sg * (t / 2 - (h.through ? t / 2 : h.depth)); // the reveals run to the wall's middle (the other face draws its half)
@@ -742,7 +775,7 @@ export class SiteHouses {
   private faceDecals(we: WallEl, sd: Side, sg: number, floor: number, top: number, holes: Hole[], fx: Fixture[], out: [number, Dec][], seed: number) {
     const w = we.w, ax = w.v0 === w.v1 ? 0 : 1, sA = ax === 0 ? w.u0 : w.v0, sB = ax === 0 ? w.u1 : w.v1, cc = ax === 0 ? w.v0 : w.u0, len = sB - sA, L = this.life(we.plot);
     const clear = (a: number, b: number, y0: number, y1: number) => a > sA + 0.15 && b < sB - 0.15 && y0 > floor + 0.05 && y1 < top - 0.12 && !holes.some(h => a < h.s1 + 0.1 && b > h.s0 - 0.1 && y0 < h.y1 + 0.1 && y1 > h.y0 - 0.1);
-    const nP = Math.floor((len * L.patches) / 10 + hi(seed, 21)), nB = kitOn ? 0 : Math.floor((len * L.bare) / 10 + hi(seed, 22) * (sd.cls === 'open' ? 1 : 0.5)); // (D-324: the kit's brick losses stand for the bare brick)
+    const nP = BRICK_LOSSES ? Math.floor((len * L.patches) / 10 + hi(seed, 21)) : 0, nB = kitOn || !BRICK_LOSSES ? 0 : Math.floor((len * L.bare) / 10 + hi(seed, 22) * (sd.cls === 'open' ? 1 : 0.5)); // (D-324: the kit's brick losses stand for the bare brick)
     for (let k = 0; k < nP + nB; k++) { const bare = k >= nP; const wd = 0.3 + 0.9 * hi(seed, k, 31), ht = 0.25 + 0.6 * hi(seed, k, 32); const a = sA + (len - wd) * hi(seed, k, 33);
       const y0 = floor + (bare ? 0.35 + 1.4 * hi(seed, k, 34) ** 1.5 : 0.4 + (top - floor - 1) * hi(seed, k, 34)); if (clear(a, a + wd, y0, y0 + ht)) out.push([sg, { s0: a, s1: a + wd, y0, y1: y0 + ht, kind: bare ? 'bare' : 'patch', seed: seed * 7 + k }]); }
     // soot above the court's hearths, ovens and forges within 1.2 m of this face
@@ -807,6 +840,13 @@ export class SiteHouses {
     const u0 = s.u0 + r.i0, u1 = s.u0 + r.i1, v0 = s.v0 + r.j0, v1 = s.v0 + r.j1;
     const over = ROOF.over[0] + (ROOF.over[1] - ROOF.over[0]) * hi(seed, 1), tf = 0.55;
     const ext = [0, 1, 2, 3].map(sd => (r.eave & (1 << sd) ? tf / 2 + over : 0)); // −v, +v, −u, +u
+    // s18 C2 (the reset: "timbers" on the lanes' blank walls): where a room's side stands on the lane, its roof poles run out
+    // through the wall as vigas, their chopped ends 0.22-0.34 m proud of the lane face (C: the flat-roofed mud-brick house's
+    // pole ends over the street, Iranian and Mesopotamian vernacular; the side's cells beyond the wall are lane or open ground)
+    const laneOut = [0, 1, 2, 3].map(sd => { if (ext[sd] || !HOUSE_KINDS.has(pl.kind)) return 0; let n = 0, o = 0;
+      if (sd < 2) { const j = sd === 0 ? r.j0 - 1 : r.j1; for (let i = r.i0; i < r.i1; i++) { n++; if (s.inb(i, j) && s.cell[s.k(i, j)] < 0) o++; } }
+      else { const i = sd === 2 ? r.i0 - 1 : r.i1; for (let j = r.j0; j < r.j1; j++) { n++; if (s.inb(i, j) && s.cell[s.k(i, j)] < 0) o++; } }
+      return n && o / n > 0.6 ? tf / 2 + 0.22 + 0.12 * hi(seed, sd, 31) : 0; });
     const E0u = u0 - ext[2], E1u = u1 + ext[3], E0v = v0 - ext[0], E1v = v1 + ext[1];
     // the fall: down toward the drain side (2 % of the span, C), the earth at least 4 cm over the brush
     const dr = r.drain % 4, falls = r.drain >= 0;
@@ -834,8 +874,9 @@ export class SiteHouses {
     const gap = ROOF.gap[0] + (ROOF.gap[1] - ROOF.gap[0]) * hi(seed, 2), aLo = acrossU ? v0 : u0, aHi = acrossU ? v1 : u1, nP = Math.max(2, Math.floor((aHi - aLo - 0.2) / gap));
     for (let k = 0; k <= nP; k++) { const a = aLo + 0.12 + ((aHi - aLo - 0.24) * k) / nP, rr = 0.065 + 0.03 * hi(seed, k, 3), y = yb + rr + (hi(seed, k, 4) - 0.5) * 0.015;
       const lo = acrossU ? E0u - 0 : E0v, hi2 = acrossU ? E1u : E1v; // ends into the walls or out over the eaves
-      const e0 = (acrossU ? (ext[2] ? E0u + 0.03 : u0 - 0.2) : (ext[0] ? E0v + 0.03 : v0 - 0.2)), e1 = (acrossU ? (ext[3] ? E1u - 0.03 : u1 + 0.2) : (ext[1] ? E1v - 0.03 : v1 + 0.2)); void lo; void hi2;
-      const out0 = acrossU ? ext[2] > 0 : ext[0] > 0, out1 = acrossU ? ext[3] > 0 : ext[1] > 0;
+      const lo0 = acrossU ? laneOut[2] : laneOut[0], lo1 = acrossU ? laneOut[3] : laneOut[1], vg = 0.96 + 0.08 * hi(seed, k, 32); // (the vigas' ends not in a ruled line)
+      const e0 = (acrossU ? (ext[2] ? E0u + 0.03 : lo0 ? u0 - lo0 * vg : u0 - 0.2) : (ext[0] ? E0v + 0.03 : lo0 ? v0 - lo0 * vg : v0 - 0.2)), e1 = (acrossU ? (ext[3] ? E1u - 0.03 : lo1 ? u1 + lo1 * vg : u1 + 0.2) : (ext[1] ? E1v - 0.03 : lo1 ? v1 + lo1 * vg : v1 + 0.2)); void lo; void hi2;
+      const out0 = acrossU ? ext[2] > 0 || lo0 > 0 : ext[0] > 0 || lo0 > 0, out1 = acrossU ? ext[3] > 0 || lo1 > 0 : ext[1] > 0 || lo1 > 0;
       const A0 = acrossU ? this.wp(e0, a, y) : this.wp(a, e0, y), B0 = acrossU ? this.wp(e1, a, y) : this.wp(a, e1, y);
       // the pole's end that oversails the court is capped (seen); the one buried in the wall is not
       const [A, Bq] = out0 && !out1 ? [B0, A0] : [A0, B0];

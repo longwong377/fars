@@ -1,7 +1,7 @@
 // D-324: the house kit finished and the houses' levels of detail (houses.ts, kit.ts, build.ts, villagehouses.ts). Headless:
 //  - the kit's D-324 pieces exist at their triangle counts (the budgets were set on them), the eave pole keeps its end's relief
 //    in radius units (yr), whatever its length;
-//  - the middle ring (lod 1) is cheaper than the full near level on every tile, the full level holds the brick losses;
+//  - the middle ring (lod 1) is cheaper than the full near level on every tile, the full level held the brick losses until s18 (none now: the reset);
 //  - the far level carries the parts it now draws (dark windows, the eave), for the town and the villages.
 import { describe, it, expect, beforeAll } from 'vitest';
 import { FireSystem } from '../src/world/fire';
@@ -27,13 +27,13 @@ describe('the kit (D-324)', () => {
 });
 
 describe('the near levels (D-324)', () => {
-  it('the middle ring costs less than the full level on every tile of three quarters; the full level lays brick losses', () => {
+  it('the middle ring costs less than the full level on every tile of three quarters; no brick losses on the kept town (s18 reset, D-675)', () => {
     let full = 0, mid = 0, worse = 0; const hsList = town.houses.filter(h => ['q_s1', 'q_s3', 'q_w1'].includes(h.s.id));
     for (const hs of hsList) for (const t of hs.tiles.keys()) { const A = newHB(), B = newHB(); hs.buildTile(t, A, 0, 0); hs.buildTile(t, B, 0, 1);
       const a = Object.values(A).reduce((x, b) => x + b.tris, 0), b = Object.values(B).reduce((x, q) => x + q.tris, 0); full += a; mid += b; if (a > 2000 && b >= a) worse++; }
     const losses = hsList.reduce((x, h) => x + h.losses.size, 0);
     console.log(`[houselod] full ${(full / 1e3).toFixed(0)} k, middle ring ${(mid / 1e3).toFixed(0)} k (${(100 * mid / full).toFixed(0)} %), brick losses ${losses}`);
-    expect(worse).toBe(0); expect(mid / full).toBeLessThan(0.85); expect(losses).toBeGreaterThan(100);
+    expect(worse).toBe(0); expect(mid / full).toBeLessThan(0.85); expect(losses).toBe(0); // (s18 C2: the blind review read the losses as a bug; was > 100)
   }, 600_000);
 });
 

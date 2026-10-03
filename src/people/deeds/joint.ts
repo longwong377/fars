@@ -239,8 +239,12 @@ export class Joint {
     const segs: [number, number, Seg][] = [];
     if (k === 'errand') { segs.push(...this.walkThere(tg, day, h0, h1, place, `${what} for ${other(d.actor)}`, 'talk', home.where)); return { job, segs }; }
     if (k === 'guard') { segs.push([tg, day, { t0: h0, t1: h1, place: home.place, act: 'rest', why: `at home, ${other(d.actor)} keeping watch over the house`, where: home.where }]); return { job, segs }; }
-    const people = [tg, ...(typeof d.actor === 'number' ? [d.actor] : [])];
+    // (D-720: the sick are sat with by those who come: the head of the house the help was brought to goes on with the day's work,
+    // not called home from the field for each who comes (farmer 11543: the plough broken three times in a day))
+    const sick = k === 'work' && job.act === 'tend_body' && typeof d.actor === 'number';
+    const people = sick ? [d.actor as number] : [tg, ...(typeof d.actor === 'number' ? [d.actor] : [])];
     for (const p of people) { const w = p === tg ? other(d.actor) : other(tg);
+      if (sick) { segs.push(...this.walkThere(p, day, h0, h1, place, `tending the sick in the house of ${w}${d.aim ? `: ${d.aim}` : ''}`, job.act, home.where, false, true)); continue; }
       // (the same ground for both: popgeo sets each one's own spot on it)
       segs.push(...this.walkThere(p, day, h0, h1, place, `${what} with ${w}${p !== tg && d.aim ? `: ${d.aim}` : ''}`, job.act, home.where, bow, d.actor !== 'player')); } // (D-461: the doer's own aim, when a goal of theirs it serves)
     return { job, segs };
@@ -474,7 +478,7 @@ const WHAT: Record<JobKind, (j: Job, bow: boolean) => string> = {
   drink: () => 'drinking beer of an evening', meal: () => 'sharing a meal', lesson: j => `learning to ${j.act.replace(/_/g, ' ')}`, teach: () => 'being shown something new', meet: () => 'meeting at the hour named',
   visit: () => 'a visit at the house', pray: () => 'making an offering together', walk: () => 'walking together', errand: j => j.verb === 'send' ? 'carrying a message' : j.verb === 'bring' || j.third !== undefined ? 'going to fetch someone' : 'fetching something', guard: () => 'keeping watch over the house',
 };
-function gerund(a: string): string { const m: Record<string, string> = { reap: 'reaping', thresh: 'threshing', field_work: 'working in the field', plough: 'ploughing', irrigate: 'watering the field', weave: 'weaving', spin: 'spinning', craft: 'at the craft', smith: 'at the forge', work_wood: 'working wood', bake: 'baking', grind: 'grinding', cook: 'cooking', brew: 'brewing', herd: 'herding', draw_water: 'drawing water', gather: 'gathering fuel', mould_brick: 'moulding bricks', lay_brick: 'laying bricks', haul: 'hauling', clean: 'cleaning', garden_work: 'working the garden', pick_fruit: 'picking fruit', tend_animals: 'seeing to the animals', dig_canal: 'digging the channel' }; return m[a] ?? `at the work (${a.replace(/_/g, ' ')})`; }
+function gerund(a: string): string { const m: Record<string, string> = { reap: 'reaping', thresh: 'threshing', field_work: 'working in the field', plough: 'ploughing', irrigate: 'watering the field', weave: 'weaving', spin: 'spinning', craft: 'at the craft', smith: 'at the forge', work_wood: 'working wood', bake: 'baking', grind: 'grinding', cook: 'cooking', brew: 'brewing', herd: 'herding', draw_water: 'drawing water', gather: 'gathering fuel', mould_brick: 'moulding bricks', lay_brick: 'laying bricks', haul: 'hauling', clean: 'cleaning', garden_work: 'working the garden', pick_fruit: 'picking fruit', tend_animals: 'seeing to the animals', dig_canal: 'digging the channel', tend_body: 'tending the sick' }; return m[a] ?? `at the work (${a.replace(/_/g, ' ')})`; }
 export function skillKey(act: string): string { for (const [k, fam] of Object.entries(CRAFT)) if (k === act || fam[0] === act) return k; for (const [k, fam] of Object.entries(CRAFT)) if (fam.includes(act as ActivityId)) return k; return act; }
 function skillWord(s: number) { return s < 0.15 ? 'a beginner' : s < 0.35 ? 'learning' : s < 0.6 ? 'a fair hand' : 'skilled'; }
 function hourWords(h: number) { return h < 7.5 ? 'dawn' : h < 11 ? 'morning' : h < 14 ? 'midday' : h < 17.5 ? 'afternoon' : 'evening'; }
