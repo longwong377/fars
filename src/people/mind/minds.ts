@@ -249,6 +249,11 @@ export class Minds {
   /** the minds' state for a save: feelings that have not faded to nothing by `day` (D-459: a year kept every brush; the late
    *  save was 2.76 MB of deeds), rounded to a millionth, as arrays (D-461). The memories are ids into the deed log, which a
    *  save keeps only for the weighty deeds of ten days (D-720): the rest start afresh */
+  /** D-720: the feelings as a save keeps them (the faded ones dropped, the rest rounded to a millionth): run every day */
+  canon(day: number) { const r = (x: number) => Math.round(x * 1e6) / 1e6;
+    for (const [a, m] of this.feel) { for (const [k, h] of m) { const n = Math.max(0, day - h.day); let big = 0; for (const x of Object.keys(FADE) as (keyof Feel)[]) big = Math.max(big, Math.abs(h.f[x] * Math.pow(FADE[x], n)));
+        if (big < 0.02) m.delete(k); else h.f = { aff: r(h.f.aff), anger: r(h.f.anger), fear: r(h.f.fear), grat: r(h.f.grat), resp: r(h.f.resp) }; }
+      if (!m.size) this.feel.delete(a); } }
   save(day = Infinity, /** D-720: the deeds the save keeps (deeds/engine.ts recentSave): the memories of them are saved */ keep?: ReadonlySet<number>) { const r = (x: number) => Math.round(x * 1e6) / 1e6, f: [number, number[][]][] = [];
     for (const [a, m] of this.feel) { const l: number[][] = [];
       for (const [k, h] of m) { const n = Number.isFinite(day) ? Math.max(0, day - h.day) : 0; let big = 0; for (const x of Object.keys(FADE) as (keyof Feel)[]) big = Math.max(big, Math.abs(h.f[x] * Math.pow(FADE[x], n))); if (big >= 0.02) l.push([k, r(h.f.aff), r(h.f.anger), r(h.f.fear), r(h.f.grat), r(h.f.resp), h.day]); }

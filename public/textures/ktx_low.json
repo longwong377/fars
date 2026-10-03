@@ -1,10 +1,16 @@
 {
  "about": "D-740: ETC1S twins of the KTX2 scans (tools/bake_world/ktx_low.ts), each with the hash of the full KTX2 it stands in for; src/render/lowfirst.ts loads them first",
  "maps": {
+  "Carpet012/arm": "0457b4ba12af6e1c",
+  "Carpet012/diff": "b1a90ca350680291",
+  "Fabric030/arm": "3e40459da4b4af34",
+  "Fabric030/diff": "fc4c482c3949d762",
   "Fabric043/arm": "bfc63a1117932705",
   "Fabric043/diff": "d0925ed268e74211",
   "Leather014/arm": "2ccff55255bb5cbd",
   "Leather014/diff": "7ecd70c15da5f745",
+  "Leather037/arm": "3a787906311c4d07",
+  "Leather037/diff": "943acd9639269524",
   "Metal013/arm": "c81b0ab4bf884780",
   "Metal013/diff": "fa6d33d12d833969",
   "Tatami001/arm": "b74e6b8fd9eb700a",

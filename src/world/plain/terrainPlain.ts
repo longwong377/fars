@@ -284,7 +284,15 @@ export class PlainGround {
       const meanRain = mix(meanRainF, meanRainC, cropYear);
       const irrFar = mix(this.meanIrrFallow, this.meanIrrCrop, irrSc.mul(IRR_CROP)); // the district's own mix (D-223)
       const stFar = irrFar.mul(bI).add(meanRain.mul(bR)).add(meanOrch.mul(bO)).div(bSum);
-      const S = mix(stFar, st, plotKeep), M = mix(bI.add(bR).add(bO).min(1).mul(allowed), mask, plotKeep);
+      // D-670 (the plain from the Terrace "a flat sheet"): past the plots' own fade, the holdings (~180-340 m, wandering edges)
+      // still read apart: one family's strips sown thicker or thinner, watered more or less, greener or paler than the
+      // neighbour's (+-40 % green cover, -25 % straw, +-14 % shade), kept while a holding spans pixels (C; colour only: the
+      // plot hashes, crops and the CPU mirror unchanged)
+      const hq = p.add(vec2(mx_noise_float(vec3(p.x.mul(0.004), 5.1, p.y.mul(0.004))), mx_noise_float(vec3(p.x.mul(0.004), 8.7, p.y.mul(0.004)))).mul(90)).div(260).floor();
+      const hv = unitN(hash2N(cellUN(hq.x), cellUN(hq.y), 48)).mul(2).sub(1), hs = unitN(hash2N(cellUN(hq.x), cellUN(hq.y), 49)).mul(2).sub(1);
+      const hKeep = float(1).sub(plotKeep).mul(float(1).sub(smoothstep(60.0, 200.0, minor))).mul(clamp(sqrt(float(500).div(major)), 0, 1));
+      const sF: any = stFar, stFarH = vec4(sF.x, sF.y.mul(hv.mul(0.4).mul(hKeep).add(1)).clamp(0, 1), sF.z.mul(hv.mul(-0.25).mul(hKeep).add(1)), sF.w);
+      const S = mix(stFarH, st, plotKeep), M =mix(bI.add(bR).add(bO).min(1).mul(allowed), mask, plotKeep);
       // --- colour of the plot from its state
       // D-670 (holes P2-10, Q-603): the soil's moisture by season: the loam dark and damp in spring (the winter rains and the
       // irrigation), pale dry dust in late summer; damper in the low spots and on the irrigated land (C)
@@ -320,8 +328,8 @@ export class PlainGround {
       const soilP = soil0.mul(det(mix(dustC, G.tilled.c, S.w.mul(float(1).sub(wetG.mul(0.5))))));
       const soilT = soilP.mul(float(1).sub(tilled.mul(0.28).mul(furrow.mul(0.6).add(0.4))));
       const speck = mx_noise_float(positionWorld.mul(3.1)).mul(0.12).add(1);
-      // each plot its own shade (sowing density, soil, weeding: +-12 %, C), so neighbouring plots of one crop still read apart
-      const tint = unitN(hash2N(ph, uint(5), 43)).mul(0.34).add(0.83).mul(plotKeep).add(float(1).sub(plotKeep));
+      // each plot its own shade (sowing density, soil, weeding: +-12 %, C; D-670 s18 review: was +-17 %), so neighbouring plots of one crop still read apart
+      const tint = unitN(hash2N(ph, uint(5), 43)).mul(0.24).add(0.88).mul(plotKeep).add(float(1).sub(plotKeep).mul(hs.mul(0.14).mul(hKeep).add(1)));
       let plotAlb: any = soilT.mul(bare).add(green.mul(gCov).mul(speck)).add(straw.mul(sCov).mul(speck)).mul(tint);
       let plotH: any = mix(G.dust.h, G.tilled.h, S.w).mul(bare).add(G.green.h.mul(gCov)).add(G.straw.h.mul(sCov)).mul(0.012);
       // bunds on plot edges (0.35 m) and a track along district edges (2.5 m wide), near only, in fields
@@ -350,6 +358,12 @@ export class PlainGround {
       const track = float(1).sub(smoothstep(float(1.3).sub(fwDd), float(1.3).add(fwDd), dEdge)).mul(clamp(float(1.3).div(fwDd), 0, 1)).mul(near).mul(mask);
       plotAlb = mix(plotAlb, plotAlb.mul(vec3(0.8, 0.84, 0.86)), wetB.mul(0.8));
       const weedC = mix(mix(lin(...SEASON_PALETTE.straw).mul(det(G.straw)), lin(...SEASON_PALETTE.green).mul(det(G.green)), SEASON.green.div(SEASON.green.add(SEASON.dry).max(0.001))), soil, 0.3);
+      // D-670 (blind review, s18: "fields in hard-edged colour strips"): the crop thins toward every edge over 3-8 m (the
+      // plough's turn, poorer seed-bed, weeds coming in), fading into the headland's weeds, so neighbouring plots meet through
+      // one shared weedy band, not a hard step of colour (C)
+      const feather = float(3).add(mx_noise_float(vec3(p.x.mul(0.05), 6.6, p.y.mul(0.05))).mul(0.5).add(0.5).mul(5));
+      const fade = float(1).sub(smoothstep(mw, mw.add(feather), edgeW)).mul(mask).mul(float(1).sub(wOrch)).mul(0.55);
+      plotAlb = mix(plotAlb, mix(plotAlb, weedC, 0.6), fade);
       plotAlb = mix(plotAlb, weedC.mul(float(1).add(vig.mul(0.08))), margin.mul(0.75));
       plotAlb = mix(plotAlb, mix(soil.mul(1.04), weedC, 0.35), ridge.mul(basinOn).mul(0.7));
       plotAlb = mix(plotAlb, mix(soil.mul(1.05), lin(0.36, 0.40, 0.2).mul(det(G.green)), 0.45), bund.mul(0.85));
@@ -375,10 +389,17 @@ export class PlainGround {
       const low = smoothstep(0.7, 0.76, mx_noise_float(positionWorld.mul(0.12)).mul(0.5).add(0.5)).mul(lvl).mul(float(1).sub(wetG)).mul(SEASON.dry.div(SEASON.green.add(SEASON.dry).max(0.001)));
       wildAlb = mix(wildAlb, soil0.mul(0.95).mul(det(G.cracked)), low.mul(0.9)); wildH = mix(wildH, G.cracked.h.mul(0.004), low.mul(0.9));
       { const gs = SEASON.green.div(SEASON.green.add(SEASON.dry).max(0.001)), amount = SEASON.green.add(SEASON.dry).min(1);
-        const q = p, dens = clamp(float(0.5).add(mx_noise_float(q.mul(0.04)).mul(0.3)).add(mx_noise_float(q.mul(0.15).add(5.1)).mul(0.18)), 0, 1);
+        // D-670 (the noon frame from the Terrace: the open ground before it one even sheet to 700 m): the range in patches of
+        // ~100-300 m, grazed down to the soil round the folds and the paths, thick where the flocks seldom go (C)
+        const q = p, range = mx_noise_float(q.mul(0.006).add(vec2(2.3, 8.1))).mul(0.7).add(mx_noise_float(q.mul(0.018).add(vec2(6.6, 1.4))).mul(0.3));
+        const dens = clamp(float(0.5).add(mx_noise_float(q.mul(0.04)).mul(0.3)).add(mx_noise_float(q.mul(0.15).add(5.1)).mul(0.18)).add(range.mul(0.45)), 0, 1);
         const hH = mix(G.straw.h, G.green.h, gs), cov = hblend(dens, hH).mul(amount).mul(float(1).sub(low)).mul(0.9);
         const veg = mix(lin(...SEASON_PALETTE.straw).mul(det(G.straw)), lin(...SEASON_PALETTE.green).mul(det(G.green)), gs); // (V5 D-522: season.ts)
-        wildAlb = mix(wildAlb, veg, cov); wildH = mix(wildH, hH.mul(0.012), cov); }
+        wildAlb = mix(wildAlb, veg, cov); wildH = mix(wildH, hH.mul(0.012), cov);
+        // and the dwarf-shrub steppe (Artemisia, B pollen, SAEIDI2021) in its own stands, grey-green and darker than the herbs
+        // at any season, ~150-400 m across with ragged edges (C)
+        const shrubS = smoothstep(0.15, 0.55, mx_noise_float(q.mul(0.004).add(vec2(4.4, 9.9))).add(mx_noise_float(q.mul(0.03).add(vec2(1.2, 3.3))).mul(0.2)));
+        wildAlb = mix(wildAlb, wildAlb.mul(vec3(0.72, 0.76, 0.7)), shrubS.mul(0.65).mul(float(1).sub(low))); }
       let alb: any = mix(groundLoaded() ? wildAlb : albIn, plotAlb, M);
       let hS: any = mix(groundLoaded() ? wildH : float(0), plotH, M);
       // D-475 (s17 V8): macro variation of the uncultivated and trodden ground at 15-70 m (the 0-60 m ground read as one flat ochre

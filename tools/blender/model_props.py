@@ -1833,6 +1833,33 @@ def a_wo_pontoon():
     ropes = [pathG([(x, 0.2, 0), (x * 1.6, -0.2, 0)], 0.015, 4, 'moor') for x in (-2.4, 2.4)]
     return dict(wood_d=join([hull] + rim, 'wood_d'), wood=join(string + deck + rails, 'wood'), cord=join(ropes, 'cord'))
 
+@woW
+def a_wo_skiff():
+    """D-670: a small plank boat of the rivers, 4.4 m, drawn up on the bank, its punting pole and paddle laid in it (the river
+    boats of the reliefs and of Herodotus 1.194's Armenian craft: B analogy; C form)"""
+    hull = pathG([(0, 0.18, -2.2), (0, 0.08, -1.6), (0, 0.02, 0), (0, 0.08, 1.6), (0, 0.22, 2.2)], [0.08, 0.5, 0.62, 0.5, 0.08], 10, 'hull', scale=(1.0, 0.55))
+    rim = [pathG([(x * 0.05, 0.36, -2.15), (x * 0.6, 0.4, 0), (x * 0.05, 0.38, 2.15)], 0.03, 5, 'gun') for x in (-1, 1)]
+    thw = [boxG(1.1, 0.04, 0.22, 0, 0.3, z, bevel=0.006) for z in (-0.8, 0.7)]
+    pole = [log((0.2, 0.36, -1.9), (-0.15, 0.4, 2.6), 0.025, 0.02, 6, 'pole', seed=611, bark=0.002)]
+    pad = [boxG(0.14, 0.02, 0.5, -0.25, 0.34, 1.1, bevel=0.004), pathG([(-0.25, 0.35, 0.85), (-0.2, 0.36, -0.3)], 0.018, 5, 'shaft')]
+    return dict(wood_d=join([hull] + rim, 'wood_d'), wood=join(thw + pole + pad, 'wood'))
+
+@woW
+def a_wo_net_poles():
+    """D-670: a fishing net hung to dry on three poles at the water's edge, floats along its top (C)"""
+    poles = [log((x, 0, 0), (x, 1.9, 0), 0.04, 0.03, 6, 'pole', seed=620 + i, bark=0.003) for i, x in enumerate((-1.6, 0, 1.6))]
+    net = []
+    for i in range(2):
+        x0, x1 = -1.6 + 1.6 * i, 1.6 * i
+        for k in range(9):
+            y = 1.8 - 0.18 * k - 0.12 * math.sin(math.pi * 0.5) * (k / 8)
+            net.append(pathG([(x0, y, 0), ((x0 + x1) / 2, y - 0.25, 0.04), (x1, y, 0)], 0.006, 3, 'n'))
+        for j in range(7):
+            x = x0 + (x1 - x0) * j / 6; sag = 0.25 * math.sin(math.pi * j / 6)
+            net.append(pathG([(x, 1.8 - sag, 0.02), (x, 0.25 - sag * 0.4, 0.02)], 0.006, 3, 'v'))
+    floats = [xform(lathe([(0.0, -0.05), (0.05, -0.03), (0.05, 0.03), (0.0, 0.05)], 8, 'f'), G((-1.5 + 0.4 * i, 1.82, 0))) for i in range(8)]
+    return dict(wood_d=join(poles, 'wood_d'), cord=join(net, 'cord'), wood=join(floats, 'wood'))
+
 def sledge_parts():
     runners = [pathG([(x, 0.1, -1.55), (x, 0.1, 1.2), (x, 0.14, 1.45), (x, 0.24, 1.58)], 0.1, 4, 'runner') for x in (-0.6, 0.6)]
     cross = [boxG(1.5, 0.12, 0.24, 0, 0.18, z, bevel=0.012) for z in (-1.0, 0, 1.0)]

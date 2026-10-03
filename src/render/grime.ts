@@ -189,9 +189,9 @@ export function grimeSample(): any {
 /** grime classes by surface (what each kind of surface takes) */
 export type GrimeClass = 'stone' | 'plaster' | 'ground' | 'floor' | 'timber' | 'none';
 const CLASS: Record<string, GrimeClass> = {
-  limestone: 'stone', limestone_merlon: 'stone', limestone_carved: 'stone', limestone_dark: 'stone', frame_coat: 'stone', terrace: 'stone', terrace_foot: 'stone', terrace_now: 'stone', stone_rough: 'stone',
+  limestone: 'stone', limestone_merlon: 'stone', limestone_carved: 'stone', limestone_dark: 'stone', frame_coat: 'stone', relief_ground: 'stone', terrace: 'stone', terrace_foot: 'stone', terrace_now: 'stone', stone_rough: 'stone',
   stone_plain: 'stone', takht_stone: 'stone', nr_dressed: 'stone', nr_rock: 'stone', rubble: 'stone', kaba_white: 'stone', house_socle: 'stone',
-  mudbrick: 'plaster', mudbrick_painted: 'plaster', palace_plaster: 'plaster', mudbrick_bare: 'plaster', plaster: 'plaster', mud_plaster: 'plaster', house_plaster: 'plaster', house_brick: 'plaster', baked_brick: 'plaster', village_mud: 'plaster',
+  mudbrick: 'plaster', mudbrick_painted: 'plaster', palace_plaster: 'plaster', palace_crest: 'plaster', mudbrick_bare: 'plaster', plaster: 'plaster', mud_plaster: 'plaster', house_plaster: 'plaster', house_brick: 'plaster', baked_brick: 'plaster', village_mud: 'plaster',
   roof_earth: 'plaster', mud_roof: 'plaster', house_roof: 'plaster', matting: 'plaster',
   earth: 'ground', court_fill: 'ground', road: 'ground', bank: 'ground', refuse: 'ground',
   plaster_red: 'floor', timber: 'timber', roof_timber: 'timber', house_timber: 'timber', door_planks: 'timber', scaffold: 'timber',

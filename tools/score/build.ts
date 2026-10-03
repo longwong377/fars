@@ -95,12 +95,14 @@ function mixCue(cue: Cue) {
   if (existsSync(rec)) { const a = readWav(rec), l = a.ch[0], r = a.ch[1] ?? a.ch[0], norm = (x: Float32Array) => { let e = 0; for (const v of x) e += v * v; const g = 1 / Math.sqrt(e || 1); return x.map(v => v * g); };
     ia = norm(l); ib = norm(r); ic = norm(r); id = norm(l); }
   else [ia, ib, ic, id] = [11, 23, 37, 41].map(s => hallIR(s));
-  const wl = convolve(sendL, ia), wr = convolve(sendR, ib), xl = convolve(sendR, ic), xr = convolve(sendL, id), wet = 0.55;
+  const wl = convolve(sendL, ia), wr = convolve(sendR, ib), xl = convolve(sendR, ic), xr = convolve(sendL, id), wet = existsSync(rec) ? 0.62 : 0.55; // (the measured hall decays faster, ~1.2 s: a touch more of it)
   let L: Float32Array = new Float32Array(len), R: Float32Array = new Float32Array(len);
   for (let k = 0; k < len; k++) { L[k] = dryL[k] + wet * (wl[k] + 0.45 * xl[k]); R[k] = dryR[k] + wet * (wr[k] + 0.45 * xr[k]); }
   // the master: a warm tilt, the glue, the level, the ceiling
   L = biquad(biquad(L, SR, 'lowshelf', 90, 0.7, 1.5), SR, 'highshelf', 9000, 0.7, 1.0); R = biquad(biquad(R, SR, 'lowshelf', 90, 0.7, 1.5), SR, 'highshelf', 9000, 0.7, 1.0);
   L = biquad(L, SR, 'hp', 24, 0.7); R = biquad(R, SR, 'hp', 24, 0.7);
+  // a gentle presence dip (the self-review's harshness check: sampled violins and brass at forte crowd 2.5-6 kHz)
+  L = biquad(L, SR, 'peak', 3600, 0.8, -1.8); R = biquad(R, SR, 'peak', 3600, 0.8, -1.8);
   let ch: Float32Array[] = compress([L, R], SR, { thr: -20, ratio: 1.8, att: 0.03, rel: 0.35, knee: 8 });
   const target = cue.lufs ?? -18, now = lufs(ch, SR), gain = db(target - now);
   ch = ch.map(c => c.map(x => x * gain));

@@ -26,6 +26,7 @@ import { panelText, type PanelText } from '../../arch/inscription_text';
 import CAPTIONS from './naqsh_captions.json';
 import { paintFacadeGeometry, paintedFacadeMaterial, type FacadeFrame } from './naqsh_paint';
 import { buildNaqshLife } from './naqsh_life';
+import { buildWayside } from './wayside';
 import { ReliefSet, type ReliefItem } from '../../arch/reliefs';
 import { texture, uv, vec2, normalMap, normalView } from 'three/tsl';
 import { monument } from '../../render/monuments';
@@ -411,10 +412,12 @@ export function buildNaqsh(terrain: Terrain, ancientFootAsl: number): NaqshBuild
   const ntri = (g: THREE.BufferGeometry) => (g.index ? g.index.count : g.getAttribute('position').count) / 3;
   group.add(kw, kd); tris += ntri(kw.geometry) + ntri(kd.geometry);
   // s18 C15 (D-800): the ground in use: the second tomb's scaffold, spoil and the cutters' lean-to, the keepers' house, the offering table
+  // s18 C15 (D-801): the roadside of the plain, drawn in the same mesh
+  const way = buildWayside(terrain);
   const life = buildNaqshLife({ terrain, toWorld: (x, h, d) => toWorld(f, x, h, d), rockD: (x, h) => faceDepth(x, Math.min(h, crestH(x, H)), H, holes), cut: tombs[1].x, darius: tombs[0].x,
-    top: NR().facade.foot_above_ground_m + NR().facade.height_m, house: KEEPERS_HOUSE });
+    top: NR().facade.foot_above_ground_m + NR().facade.height_m, house: KEEPERS_HOUSE, kaba: feature('nr_kaba').xy as [number, number], extra: way });
   group.add(life.mesh); tris += life.info.tris;
-  group.userData.paint = paintInfo; group.userData.life = life.info;
+  group.userData.paint = paintInfo; group.userData.life = life.info; group.userData.wayside = way.info; group.userData.waysidePlaces = way.places;
   return { group, tris, texts,
     colliders(phys: Physics) {
       const g = cliff.geometry, p = g.getAttribute('position') as THREE.BufferAttribute, idx = new Uint32Array(p.count); for (let i = 0; i < p.count; i++) idx[i] = i;

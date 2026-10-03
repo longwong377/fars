@@ -40,7 +40,7 @@ const ALBEDO: Record<Material, [number, number, number]> = {
   limestone: [0.62, 0.6, 0.56], limestone_dark: [0.28, 0.28, 0.28], mudbrick: [0.66, 0.56, 0.44], mudbrick_painted: [0.58, 0.57, 0.45], plaster: [0.8, 0.76, 0.68],
   plaster_red: [0.5, 0.16, 0.12], bronze: [0.55, 0.4, 0.22],
   timber: [0.36, 0.27, 0.19], glazed: [0.2, 0.4, 0.55], earth: [0.5, 0.42, 0.32], scaffold: [0.45, 0.35, 0.24], rubble: [0.55, 0.52, 0.48],
-  court_fill: [0.5, 0.46, 0.39], terrace: [0.62, 0.6, 0.56], roof_earth: [0.61, 0.54, 0.42], mudbrick_bare: [0.6, 0.52, 0.41], steel: [0.3, 0.3, 0.31], palace_plaster: [0.78, 0.69, 0.54], frame_coat: [0.8, 0.78, 0.72],
+  court_fill: [0.5, 0.46, 0.39], terrace: [0.62, 0.6, 0.56], roof_earth: [0.61, 0.54, 0.42], mudbrick_bare: [0.6, 0.52, 0.41], steel: [0.3, 0.3, 0.31], palace_plaster: [0.9, 0.86, 0.76], frame_coat: [0.8, 0.78, 0.72], palace_crest: [0.6, 0.3, 0.21], relief_ground: [0.33, 0.47, 0.68],
 };
 import { surfaceMaterial, paintedShaftMaterial } from '../render/materials';
 import { pointInPoly } from './parts';
@@ -58,7 +58,7 @@ import { roofEdges, wallFeet, type RoofEdges } from './roofedge';
 import { buildPieces } from './palacekit';
 import { paintedLevel, paintedModelMaterial } from './model_paint';
 /** D-276: parts that are colliders only: the round fittings world/furnish.ts draws (storage jars, querns) */
-export const COLLIDER_ONLY = new Set(['jar', 'quern']);
+export const COLLIDER_ONLY = new Set(['jar', 'quern', 'ramp']); // (D-754: the drums' ramp: stepped colliders, drawn as a smooth slope by drum_road.ts)
 const matCache = new Map<string, THREE.MeshStandardNodeMaterial>();
 /** flat greybox material (plan-overlay tests, tools); the world uses procedural surfaces (render/materials.ts) */
 export function flatMaterial(m: Material) {
@@ -207,11 +207,15 @@ export const renderMaterial = (p: Part): Material => {
   // D-752: the palaces in residence: their walls and towers in the painted, kept plaster; the frames' dark stone under its coat
   if (p.material === 'mudbrick' && PALACE_PLASTER.has(p.building) && PALACE_PLASTER_KINDS.has(p.kind)) return 'palace_plaster';
   if (p.material === 'limestone_dark') return 'frame_coat';
+  // D-755: the crests in red ochre; the Apadana stair façades' relief ground in Egyptian blue
+  if (p.material === 'mudbrick' && PALACE_PLASTER.has(p.building) && PALACE_CREST_KINDS.has(p.kind)) return 'palace_crest';
+  if (p.material === 'limestone' && p.kind === 'facade') return 'relief_ground';
   return p.material;
 };
 /** D-752: the buildings whose mud-brick walls and towers are drawn in palace_plaster (the Treasury keeps its clay paint), and the kinds */
 export const PALACE_PLASTER = new Set(['gate_nations', 'apadana', 'tachara', 'hadish', 'harem', 'tripylon', 'hall100']);
 export const PALACE_PLASTER_KINDS = new Set(['wall', 'tower', 'storerooms', 'pier', 'pilaster']);
+export const PALACE_CREST_KINDS = new Set(['parapet', 'coping', 'string_course']);
 export const PAINTED_INTERIORS = new Set<string>(v<any>('global', 'r_interior_paint').buildings); // SITE_SPEC global.r_interior_paint
 export class PartIndex {
   private cells = new Map<number, number[]>(); private CELL = 4;

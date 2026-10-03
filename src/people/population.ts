@@ -73,6 +73,8 @@ export interface Seg { t0: number; t1: number; place: string; act: ActivityId; w
   with?: number;
   /** the evidence behind the reason (event ids, sources: out-of-world, for the dev overlay), taken out of the reason text */
   ev?: string;
+  /** D-651: laid by the out-of-doors layer (Population.outOfDoors): who is with this person follows it (Population.follow) */
+  od?: 1;
   /** what the person carries in this part of the day (§9.5; C unless the reason says otherwise) */
   carry?: string;
   /** how the person is dressed against the weather in this part of the day (W-03: the face wrapped against the dust; C) */
@@ -161,6 +163,7 @@ const TERRACE_XY: [number, number] = [-52, 118.5];
  *  carries his work to the royal stores on this share of days (C) */
 const TANNERS_GROUP = 7, OIL_EVERY = 25, SMITH_DELIVER = 0.15;
 const S_PLAY = salt('playmates'); // (D-371)
+const S_OUT = salt('out-of-doors'); // (D-651)
 const S = { plan: salt('plan'), sick: salt('sick'), sickd: salt('sickd'), death: salt('death'), birth: salt('birth'), marry: salt('marry'), bday: salt('bday'), disp: salt('disp'),
   dispo: salt('dispo'), econLife: salt('econ-life'), assign: salt('assign'), shear: salt('shear'), carer: salt('carer'), gen: salt('gen'), mourn: salt('mourn'), dbl: salt('dbl'), fam: salt('fam'), draft: salt('draft'), name: salt('name'), nurse: salt('nurse'), kid: salt('kid'), band: salt('band'), sac: salt('sacrifice'), fun: salt('funeral'), birthNext: salt('birth-next'), care: salt('body-care') };
 const AGE: [number, number, number][] = L.age_structure.v;
@@ -1065,6 +1068,8 @@ export class Population {
   /** the day's field task of a farming household (E-40 ... E-50): harvest and threshing, the vintage and the fruit take the
    *  whole household; ploughing, the canal, the water turn and hoeing are the men's. The hours follow the heat (the hotter
    *  the day, the earlier the reapers stop) and the size of the holding (2-4 plots) (C) */
+  // (D-651: the field work begins half an hour earlier than before, from first light: s18 C12's pagecheck found the fields
+  // empty at dawn; the heat of the day is worked round, as in the region's villages, C)
   ptask(h: number, d: number, C: DayCtx): PTask | null {
     const agri = C.agri, u = (k: number) => u01(this.seed, S.assign, 7700 + h, d, k), q = this.households[h].q;
     const plots = 2 + Math.floor(u01(this.seed, S.assign, 9000 + h) * 3); const field = `field:${h}:${Math.floor((d + h) / 3) % plots}`;
@@ -1091,18 +1096,18 @@ export class Population {
     // shadow review r8: 81 % of the winnowing in the calm morning, and on hot days the afternoon's session dropped although
     // the modelled afternoon wind was the stronger on every threshing day)
     if (thresh) { const h1 = end(10.5, 12.5), pmW = windy(C.wx.windPM), a = h1 + 0.8 + lerp(1, 4.5, hot), wa = Math.max(h1 + 1.5, Math.min(a, 16)), we = C.sun.set - 0.5;
-      return { kind: 'thresh', act: 'thresh', place: `threshing:${q}`, why: windy(C.wx.windAM) ? 'threshing and winnowing on the village floor (E-43)' : 'threshing: driving the animals round over the sheaves on the village floor (E-43)', h0: rise + 0.4 + lag / 2, h1, all: true, sheaves: false, late,
+      return { kind: 'thresh', act: 'thresh', place: `threshing:${q}`, why: windy(C.wx.windAM) ? 'threshing and winnowing on the village floor (E-43)' : 'threshing: driving the animals round over the sheaves on the village floor (E-43)', h0: rise - 0.1 + lag / 2, h1, all: true, sheaves: false, late,
         pm: pmW ? (we - wa >= 0.75 ? [wa, we] : null) : pmOf(h1), eveningWind: pmW, pmWhy: pmW ? 'winnowing in the afternoon and evening wind (E-43)' : 'turning the threshed straw; the air is too still to winnow (E-43)' }; }
     if (agri.has('E-50') && (h + C.dom) % 3 === 0) return { kind: 'canal', act: 'dig_canal', place: `canal:${q}`, why: 'clearing the village canal (E-50)', h0: 8, h1: 15, all: false, sheaves: false, late };
-    if (agri.has('E-45') && h % 5 < 2 && u(1) < 0.85) { const h1 = end(11, 13); return { kind: 'vintage', act: 'pick_fruit', place: `vineyard:${q}`, why: 'the vintage: picking grapes (E-45)', h0: rise + 0.5 + lag / 2, h1, all: true, sheaves: false, late, pm: pmOf(h1), pmWhy: 'treading the picked grapes in the press (E-45)' }; }
-    if ((agri.has('E-40') || agri.has('E-44')) && !(C.wx.wet && rainHours(C.wx, C.sun.rise + 0.5, C.sun.rise + 5) > 0) && u(3) < 0.8) return { kind: 'plough', act: 'plough', place: field, why: agri.has('E-44') ? 'sowing the summer crops (E-44)' : 'ploughing and sowing barley and wheat (E-40)', h0: rise + 0.6 + lag, h1: Math.min(16, C.sun.set - 1.2 - 0.3 * u(9)), all: false, sheaves: false, late };
-    if (agri.has('E-46') && h % 2 === 0 && u(2) < 0.7) { const h1 = end(10.5, 12), pm = pmOf(h1); return { kind: 'fruit', act: 'pick_fruit', place: `orchard:${q}`, why: 'picking figs and fruit (E-46)', h0: rise + 0.5 + lag / 2, h1, all: true, sheaves: false, late,
+    if (agri.has('E-45') && h % 5 < 2 && u(1) < 0.85) { const h1 = end(11, 13); return { kind: 'vintage', act: 'pick_fruit', place: `vineyard:${q}`, why: 'the vintage: picking grapes (E-45)', h0: rise + 0.0 + lag / 2, h1, all: true, sheaves: false, late, pm: pmOf(h1), pmWhy: 'treading the picked grapes in the press (E-45)' }; }
+    if ((agri.has('E-40') || agri.has('E-44')) && !(C.wx.wet && rainHours(C.wx, C.sun.rise + 0.5, C.sun.rise + 5) > 0) && u(3) < 0.8) return { kind: 'plough', act: 'plough', place: field, why: agri.has('E-44') ? 'sowing the summer crops (E-44)' : 'ploughing and sowing barley and wheat (E-40)', h0: rise + 0.1 + lag, h1: Math.min(16, C.sun.set - 1.2 - 0.3 * u(9)), all: false, sheaves: false, late };
+    if (agri.has('E-46') && h % 2 === 0 && u(2) < 0.7) { const h1 = end(10.5, 12), pm = pmOf(h1); return { kind: 'fruit', act: 'pick_fruit', place: `orchard:${q}`, why: 'picking figs and fruit (E-46)', h0: rise + 0.0 + lag / 2, h1, all: true, sheaves: false, late,
       pm: pm ? [Math.max(pm[0], late - 1.3), late] : null, pmWhy: 'picking the figs that ripened through the day (E-46)' }; }
-    if ((h + d) % 6 === 0 && [1, 2, 3, 4, 5, 6, 7].includes(C.month)) return { kind: 'turn', act: 'irrigate', place: `canal:${q}`, why: 'the household’s turn of water from the canal (CE-19)', h0: rise + 0.4 + lag, h1: rise + 3.4 + lag + 0.4 * u(9), all: false, sheaves: false, late };
+    if ((h + d) % 6 === 0 && [1, 2, 3, 4, 5, 6, 7].includes(C.month)) return { kind: 'turn', act: 'irrigate', place: `canal:${q}`, why: 'the household’s turn of water from the canal (CE-19)', h0: rise - 0.1 + lag, h1: rise + 3.4 + lag + 0.4 * u(9), all: false, sheaves: false, late };
     // the men's share of the field days (population.json field_fraction_by_sex, S1 of shadow review r4): P5.6's fraction
     // counts the women, who keep the house's work on these days; used as the men's chance it left them idle at home
     const frac = POPD.zones.find((z: any) => z.id === 'plain').field_fraction_by_sex.men[C.season];
-    if (u(5) < frac) return { kind: 'field', act: 'field_work', place: field, why: this.fieldWhy(C, u(10)), h0: rise + 0.8 + lag, h1: end(11.5, 14) - 0.4 * u(9), all: false, sheaves: false, late };
+    if (u(5) < frac) return { kind: 'field', act: 'field_work', place: field, why: this.fieldWhy(C, u(10)), h0: rise + 0.3 + lag, h1: end(11.5, 14) - 0.4 * u(9), all: false, sheaves: false, late };
     // no field today: the season's other men's work (lives.json farm_men_other_work, C); in winter often a day at home
     const OW = L.farm_men_other_work, w: Record<string, number> = { ...OW.by_month[String(C.month)] };
     const toHarvest = this.harvestIn(d); if (!(toHarvest >= 1 && toHarvest <= OW.opts.floor.before_harvest_d)) w.floor = 0;
@@ -1962,7 +1967,88 @@ export class Population {
   /** D-459 (UD-32): the deeds of the minds and the stranger laid over the plans (people/deeds/engine.ts DeedWorld; the sim sets it):
    *  a friend visited, work shared, a wound kept at home. Over the relations' meetings, under the stranger's talk */
   deeds: { touches(pid: number, day: number): boolean; overlay(pid: number, day: number, base: Seg[]): Seg[] } | null = null;
-  plan(pid: number, day: number): Seg[] { let b = this.basePlan(pid, day); const e = this.econ?.touches(pid, day); if (this.wash?.touches(pid, day)) b = this.wash.overlay(pid, day, b); if (e) b = this.econ!.overlay(pid, day, b); if (this.bonds?.touches(pid, day)) b = this.bonds.overlay(pid, day, b); b = this.mindAfter(pid, day, b); if (this.deeds?.touches(pid, day)) b = this.deeds.overlay(pid, day, b); if (this.talk?.touches(pid, day)) b = this.talk.overlay(pid, day, b); b = this.keepFood(pid, day, b); return b === this.basePlan(pid, day) ? b : this.keepDress(day, b); }
+  plan(pid: number, day: number): Seg[] { let b = this.basePlan(pid, day); const e = this.econ?.touches(pid, day); if (this.wash?.touches(pid, day)) b = this.wash.overlay(pid, day, b); if (e) b = this.econ!.overlay(pid, day, b); if (this.bonds?.touches(pid, day)) b = this.bonds.overlay(pid, day, b); b = this.mindAfter(pid, day, b); if (this.deeds?.touches(pid, day)) b = this.deeds.overlay(pid, day, b); if (this.talk?.touches(pid, day)) b = this.talk.overlay(pid, day, b); b = this.outOfDoors(pid, day, b); b = this.keepFood(pid, day, b); return b === this.basePlan(pid, day) ? b : this.keepDress(day, b); }
+  /** D-651 (the out-of-doors day; s18 C12's pagecheck: a town lane at 13:48 with all 144 people at home, 111 of them in walled
+   *  courts, and nobody walking): the life of the lanes. A grown-up of the town or a village (14-65, not minding little ones,
+   *  nursing, ill or in mourning, nor someone a child of the house is with) goes out three to five times a day from a stretch at
+   *  home (resting, at a craft, spinning, talking): to the well for a word with the women there, the quarter's market ground, or
+   *  a neighbour's door to talk, with the walks there and back (walkH). The children of 5-13 play in the lane before their own
+   *  door, not in the court; and half the houses sit out at their door of an evening. Not in the rain; all C */
+  private outOfDoors(pid: number, d: number, segs: Seg[]): Seg[] {
+    const p = this.persons[pid], hid = this.home(pid, d), H = this.households[hid]; if (!H || (H.zone !== 'town' && H.zone !== 'plain') || p.zone === 'transient' || p.agent >= 0) return segs;
+    if (segs.some(x => x.act === 'offmap' || x.act === 'lie_ill') || this.mourning(pid, d)) return segs;
+    const age = this.ageOn(pid, d), home = H.home, W: Where = H.zone === 'plain' ? 'plain' : 'town', wx = this.cal.ctx(d).wx, u = (k: number) => u01(this.seed, S_OUT, pid, d, k);
+    const dry = (a: number, b: number) => rainHours(wx, a - 0.3, b + 0.3) === 0 && !(wx.stormH && a < wx.stormH[1] + 0.5 && b > wx.stormH[0] - 0.5);
+    let out = segs; const own = () => { if (out === segs) out = segs.slice(); };
+    const lane = `lane:${H.q}:${hid}`, step = 0.02;
+    // the others of the house who are "with" this one in their own day (a child with its mother): she does not leave them
+    // (and the house's own "with the household" hours: the household is together then, planCheck's label)
+    // (a house of three or more is still together with one of it out on an errand)
+    const mem = this.membersOn(hid, d), few = mem.length < 3, withMe: [number, number][] = [];
+    const together: [number, number][] = [];
+    for (const m of mem) if (m !== pid) for (const x of this.basePlan(m, d)) { if (x.with === pid) withMe.push([x.t0, x.t1]); if (/with the household/.test(x.why)) together.push([x.t0, x.t1]); }
+    for (const x of segs) if (/with the household/.test(x.why)) together.push([x.t0, x.t1]);
+    const home2 = (a: number, b: number) => mem.filter(m => m !== pid && this.basePlan(m, d).every(y => y.t1 <= a || y.t0 >= b || y.place === home)).length >= 2;
+    const free = (a: number, b: number) => !withMe.some(([x, y]) => x < b && y > a) && (!together.some(([x, y]) => x < b && y > a) || (!few && home2(a, b)));
+    const swap = (x: Seg, parts: Seg[]) => { own(); const i = out.indexOf(x); if (i >= 0) out.splice(i, 1, ...parts.filter(y => y.t1 - y.t0 > 1e-6)); };
+    if (age >= 14 && age <= 65 && !this.nurslings(pid, d).length && !segs.some(x => MIND_WHY.test(x.why))) {
+      const n = 3 + Math.floor(u(1) * 3);
+      const okSeg = (x: Seg) => x.place === home && x.where !== 'road' && x.with === undefined && ['rest', 'craft', 'spin', 'talk'].includes(x.act) && !/nurs|asleep|siesta/.test(x.why) && (!few || !/household/.test(x.why)) && x.t1 > 7.5 && x.t0 < 18.5 && Math.min(x.t1, 18.5) - Math.max(x.t0, 7.5) >= 0.9;
+      for (let k = 0; k < n; k++) { const cand = out.filter(okSeg); if (!cand.length) break; // (among the day's stretches at home that can spare it: an hour picked at random mostly missed them)
+        const x = cand[Math.floor(u(10 + k) * cand.length)], lo = Math.max(x.t0, 7.5), hi = Math.min(x.t1, 18.5), t = lo + u(60 + k) * Math.max(0, hi - lo - 0.8);
+        const v = u(20 + k), nb = H.kin.find(o => this.households[o]?.q === H.q) ?? -1;
+        // (the well: a word with the women there; the house's own water is the planner's, counted jar by jar: planCheck's water)
+        const [place, act, stay, why, back]: [string, ActivityId, number, string, string | undefined] = v < 0.4 ? [`well:${H.q}:${hid}`, 'talk', 0.2 + 0.15 * u(30 + k), 'talking with the neighbours at the well', undefined]
+          : v < 0.65 ? [`market:${H.q}`, 'exchange', 0.3 + 0.4 * u(30 + k), 'at the market ground, buying and selling a little', 'basket']
+          : [nb >= 0 ? `lane:${H.q}:${nb}` : lane, 'talk', 0.3 + 0.5 * u(30 + k), nb >= 0 ? 'talking with kin at their door' : 'talking with the neighbours in the lane', undefined];
+        const w = Math.min(0.4, Math.max(0.08, this.walkH(home, place, d, W, W))), len = 2 * w + stay; // (5 minutes at least: the long way round, through the lanes) if (x.t1 - x.t0 < len + 0.2) continue;
+        const a = Math.min(Math.max(t, x.t0 + 0.05), x.t1 - len - 0.05); if (!dry(a, a + len) || !free(a, a + len)) continue;
+        const heat = /heat/.test(x.why) && x.act === 'rest' ? { why: 'resting at home' } : {}; // (a rest through the heat cut by an errand is a rest at home either side)
+        swap(x, [{ ...x, t1: a, ...heat }, { od: 1, t0: a, t1: a + w, place: `road:${W}`, act: 'walk', why: why.endsWith('at the well') ? 'going down to the well' : why.startsWith('at the market') ? 'going to the market ground' : 'going to see a neighbour', where: 'road' },
+          { od: 1, t0: a + w, t1: a + w + stay, place, act, why, where: W }, { od: 1, t0: a + w + stay, t1: a + len, place: `road:${W}`, act: 'walk', why: 'walking home', where: 'road', ...(back ? { carry: back } : {}) }, { ...x, t0: a + len, ...heat }]); } }
+    // the children's play out in the lane before their door (by day, dry, nobody's charge)
+    // (the play of a house's court goes out as one, the playmates of other houses with it: the draw is the house's and the
+    // day's, so whoever plays there that day is in the lane; never with a little one, or a child someone small is with)
+    const kid = (x: number) => { const a = this.ageOn(x, d); return a >= 5 && a <= 13; };
+    if (age >= 5 && age <= 13) for (const x of [...out]) { const ph = x.place.startsWith('h:') ? +x.place.slice(2) : -1, PH = this.households[ph];
+      if (!PH || x.act !== 'play' || /minding|little|baby/.test(x.why) || (x.with !== undefined && !kid(x.with)) || x.t0 < 7 || x.t1 > 19 || x.t1 - x.t0 < 0.5 || !dry(x.t0, x.t1) || u01(this.seed, S_OUT, ph, d, 40) >= 0.8) continue;
+      if (this.membersOn(ph, d).some(m => !kid(m) && m !== pid && this.basePlan(m, d).some(y => y.with === pid && y.t0 < x.t1 && y.t1 > x.t0))) continue;
+      swap(x, [{ od: 1, t0: x.t0, t1: x.t0 + step, place: `road:${W}`, act: 'walk', why: 'out to the lane', where: 'road' }, { ...x, od: 1, t0: x.t0 + step, t1: x.t1 - step, place: `lane:${PH.q}:${ph}`, why: 'playing in the lane with the other children' }, { od: 1, t0: x.t1 - step, t1: x.t1, place: `road:${W}`, act: 'walk', why: 'back in', where: 'road' }]); }
+    // the heat of the day in the lane's shade and on the doorstep (a house's draw, so the house is together there: its "with the
+    // household" hours, and its little ones with their minders: follow)
+    const keptBy = (a: number, b: number) => this.membersOn(hid, d).some(m => m !== pid && this.basePlan(m, d).some(y => y.with === pid && (y.act === 'sleep' || y.act === 'lie_ill') && y.t0 < b && y.t1 > a));
+    if (u01(this.seed, S_OUT, hid, d, 60) < 0.45) for (const x of [...out]) { const a = Math.max(x.t0, 11), b = Math.min(x.t1, 16.5);
+      if (x.place !== home || x.with !== undefined || !['rest', 'craft', 'spin', 'talk', 'play'].includes(x.act) || /asleep|nurs/.test(x.why) || b - a < 0.6 || !dry(a, b) || keptBy(a, b)) continue;
+      swap(x, [{ ...x, t1: a, ...(/heat/.test(x.why) && x.act === 'rest' ? { why: 'resting at home' } : {}) }, { od: 1, t0: a, t1: a + step, place: `road:${W}`, act: 'walk', why: 'out to the door', where: 'road' }, { ...x, od: 1, t0: a + step, t1: b - step, place: lane, why: x.act === 'rest' ? 'resting in the shade of the lane by the door' : x.act === 'play' ? 'playing in the lane by the door' : x.act === 'talk' ? 'talking with the neighbours on the doorstep in the shade' : `${x.why.replace(/,? ?with the household/, '')}, out on the doorstep in the shade` }, { od: 1, t0: b - step, t1: b, place: `road:${W}`, act: 'walk', why: 'back in', where: 'road' }, { ...x, t0: b, ...(/heat/.test(x.why) && x.act === 'rest' ? { why: 'resting at home' } : {}) }]); }
+    // the evening at the door (half the houses: the household's own draw)
+    if (age >= 14 && u01(this.seed, S_OUT, hid, d, 50) < 0.5) for (const x of [...out]) { const a = Math.max(x.t0, 17.5), b = Math.min(x.t1, 20.5);
+      if (x.place !== home || !['rest', 'talk'].includes(x.act) || x.with !== undefined || /asleep|nurs/.test(x.why) || b - a < 0.6 || !dry(a, b) || !free(a, b)) continue;
+      swap(x, [{ ...x, t1: a }, { od: 1, t0: a, t1: a + step, place: `road:${W}`, act: 'walk', why: 'out to the door', where: 'road' }, { ...x, od: 1, t0: a + step, t1: b - step, place: lane, act: 'talk', why: 'sitting at the door in the evening with the neighbours' }, { od: 1, t0: b - step, t1: b, place: `road:${W}`, act: 'walk', why: 'back in', where: 'road' }, { ...x, t0: b }]); }
+    // (who stays in while the house is out at its door: no longer "with the household", which says the house is there)
+    const doorDay = u01(this.seed, S_OUT, hid, d, 60) < 0.45, eveDay = u01(this.seed, S_OUT, hid, d, 50) < 0.5;
+    for (const x of [...out]) if (x.place === home && /with the household/.test(x.why) && ((doorDay && x.t0 < 16.5 && x.t1 > 11) || (eveDay && x.t0 < 20.5 && x.t1 > 17.5) || (!few && x.t0 < 20.5 && x.t1 > 7.5))) { own(); const i = out.indexOf(x); out[i] = { ...x, why: x.why.replace(/with the household/, 'at home') }; }
+    // (a stretch through the heat cut short by these: no longer said to be through the heat, planCheck's label wants 45 min)
+    if (out !== segs) for (let i = 0; i < out.length; i++) { const x = out[i]; if (!/through the heat/.test(x.why) || heatStretch(out, i) >= 0.75) continue;
+      out[i] = { ...x, why: x.act === 'rest' ? 'resting at home' : x.act === 'sleep' ? 'asleep' : x.why.replace(/,? ?(sleeping |resting )?through the heat( of the day)?/, '') || 'at home' }; }
+    return this.follow(pid, d, out);
+  }
+  /** D-651: who is "with" another (a child with its mother or minder, a baby carried, a playmate) is where that one is in
+   *  their own day as laid out of doors (outOfDoors): the follower's stretch takes the other's place, the lane or the walk to
+   *  it, piece by piece. Guarded against a pair each with the other */
+  private following = new Set<number>();
+  private follow(pid: number, d: number, segs: Seg[]): Seg[] {
+    if (this.following.has(pid) || !segs.some(x => x.with !== undefined && x.with !== pid && x.where !== 'road')) return segs;
+    this.following.add(pid); let out = segs;
+    try {
+      for (const x of [...segs]) { if (x.with === undefined || x.with === pid || x.where === 'road' || !this.persons[x.with] || this.following.has(x.with)) continue;
+        const T = this.plan(x.with, d), parts: Seg[] = []; let moved = false;
+        for (const y of T) { const a = Math.max(x.t0, y.t0), b = Math.min(x.t1, y.t1); if (b - a <= 1e-6) continue;
+          if (y.place === x.place || !y.od) { parts.push({ ...x, t0: a, t1: b }); continue; }
+          moved = true; parts.push(y.where === 'road' ? { ...x, od: 1, t0: a, t1: b, place: y.place, where: 'road', act: 'walk', why: `${x.why.startsWith('carried') ? 'carried' : 'walking'} with them` } : { ...x, od: 1, t0: a, t1: b, place: y.place, where: y.where }); }
+        if (!moved) continue; if (out === segs) out = segs.slice(); const i = out.indexOf(x); if (i >= 0) out.splice(i, 1, ...parts); }
+    } finally { this.following.delete(pid); }
+    return out;
+  }
   /** D-651: the overlays' stretches dressed as the planner's are: the economy's hired day in the cold or the dust (planCheck's
    *  dress: "working for ... (taken on, paid by the day)" undressed in the cold) is dressed again by the planner's own rules
    *  (dustWear, coldWear) over the whole day, on copies (the base day's stretches are shared) */

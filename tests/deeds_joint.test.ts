@@ -55,7 +55,9 @@ describe('D-462 joint deeds in a real town (seed 1, day 60)', () => {
     expect(huntJob.place).toMatch(/^slope:/);
     const plan = Pop.plan(hunt.pid, day + 1), i = plan.findIndex(s => s.act === 'fowl' && /stranger/.test(s.why));
     expect(i).toBeGreaterThan(0); expect(plan[i].why).toMatch(/bow/);
-    expect(plan[i - 1]).toMatchObject({ act: 'walk', where: 'road' }); expect(plan[i + 1]).toMatchObject({ act: 'walk', where: 'road' });
+    // (D-720: the hunt may be split by the meal eaten in the hills: the walk back follows its last stretch)
+    let k = i; while (k + 1 < plan.length && plan[k + 1].place === plan[i].place && plan[k + 1].where !== 'road') k++;
+    expect(plan[i - 1]).toMatchObject({ act: 'walk', where: 'road' }); expect(plan[k + 1]).toMatchObject({ act: 'walk', where: 'road' });
     expect(plan[i].t0 - plan[i - 1].t0).toBeGreaterThan(0.1); // (the hills are a walk away)
   });
   it('the same hour asked again of the same man: already promised, said so', () => {

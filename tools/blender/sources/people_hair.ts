@@ -83,7 +83,7 @@ writeFileSync(`${srcDir}/head.json`, JSON.stringify({ ref: ref.meta.id, pos, nrm
 log(`head: ${renderOf.length} vertices, ${lt.length / 3} triangles; mouth ${mouthY.toFixed(3)}, ears ${earBot.toFixed(3)}..${earTop.toFixed(3)} m`);
 
 // ---------------------------------------------------------------- the job
-const MH = ARGS.makehuman;
+const MH = process.env.FARS_MAKEHUMAN ?? ARGS.makehuman; // (s18 C14: the cloud reads the CC0 hair images from branch s18-face-assets' assets-raw/faces, its hair/makehuman/ linked as hair/)
 const atlas = { ...ARGS.atlas, out_png: `${outDir}/people_hair_atlas.png`, out_normal: `${outDir}/people_hair_normal.png`, seed: ARGS.seed ?? 7,
   rows: ARGS.atlas.rows.map((r: any) => ({ ...r, src: { ...r.src, image: `${MH}/${r.src.image}` } })) };
 writeFileSync(`${srcDir}/job.json`, JSON.stringify({ head: `${srcDir}/head.json`, out_cards: `${outDir}/cards.json`, out_blend: `${srcDir}/groom.blend`, seed: ARGS.seed ?? 7,

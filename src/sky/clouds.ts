@@ -60,6 +60,8 @@ export class VolumetricClouds {
    *  D-153): the clouds' ambient in-scatter (cloudLight.ts) */
   readonly ambient = uniform(new THREE.Color(0.5, 0.6, 0.8)); readonly ambientGround = uniform(new THREE.Color(0.3, 0.25, 0.2));
   readonly time = uniform(0);
+  /** D-680: the season's stratiform share 0..1 (cloudKind.ts): 0 cumulus, 1 a flat even sheet */
+  readonly stratus = uniform(0);
   /** D-480: the opacity's exponent (1 by day; 1 + 3·night: alpha = 1 − T^k, so a deck that dims the sky also hides its stars) */
   readonly nightOpacity = uniform(1);
   /** D-480: the night deck's own glow (renderer radiance, set from the night dome): starlit cloud reads as soft grey-blue just
@@ -105,12 +107,14 @@ export class VolumetricClouds {
       // over the rain cell (world position, not the wind-drifted noise frame): more cover and taller towers
       const dcell = vec2(p.x.add(cameraPosition.x).sub(cell.x), p.z.add(cameraPosition.z).sub(cell.y)).length();
       const boost = float(1).sub(smoothstep(cell.z.mul(0.5), cell.z.mul(1.6), dcell)).mul(cell.w); // edges ascending: a reversed smoothstep is undefined in GLSL/SPIR-V (NaN on SwiftShader)
-      const top = float(0.35).add(lo.mul(0.6)).add(boost.mul(0.35)); // taller towers where the base field is strong
+      // D-680: the season's stratiform share (cloudKind.ts; winter's sheets): a thin flat deck, evenly covered, softly eroded
+      const st = this.stratus;
+      const top = mix(float(0.35).add(lo.mul(0.6)).add(boost.mul(0.35)), float(0.26).add(lo.mul(0.1)).add(boost.mul(0.3)), st); // taller towers where the base field is strong
       const shape = smoothstep(0.0, 0.06, h).mul(float(1).sub(smoothstep(top.mul(0.7), top, h)));
-      const c = clamp(cov.mul(weather.mul(0.8).add(0.6)).add(boost.mul(0.6)), 0, 1);
-      const base = clamp(remap(lo.mul(shape), float(1).sub(c), float(1), float(0), float(1)), 0, 1).mul(c);
+      const c = clamp(cov.mul(mix(weather.mul(0.8).add(0.6), float(1), st)).add(boost.mul(0.6)), 0, 1);
+      const base = clamp(remap(mix(lo, lo.mul(0.5).add(0.5), st).mul(shape), float(1).sub(c), float(1), float(0), float(1)), 0, 1).mul(c);
       const hi = sample3(pw.mul(1 / DETAIL_TILE)); const hf = hi.g.mul(0.625).add(hi.b.mul(0.25)).add(hi.a.mul(0.125));
-      const erode = mix(hf, float(1).sub(hf), clamp(h.mul(4), 0, 1)).mul(0.35);
+      const erode = mix(hf, float(1).sub(hf), clamp(h.mul(4), 0, 1)).mul(0.35).mul(float(1).sub(st.mul(0.6)));
       return clamp(remap(base, erode, float(1), float(0), float(1)), 0, 1).mul(0.02);
     });
     const hg = (c: any, g: number) => float(1 - g * g).div(pow(float(1 + g * g).sub(c.mul(2 * g)), 1.5)).mul(1 / (4 * Math.PI)); // base > 0 for |g| < 1

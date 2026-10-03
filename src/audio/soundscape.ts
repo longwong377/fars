@@ -191,6 +191,16 @@ export const BIRDS: Bird[] = [
     call: (e, o, t, r) => { const d = 4 + 6 * r.next(), f = 1100 + 250 * r.next(); voice(e, o, t, d, f, f * (0.92 + 0.1 * r.next()), [[f, 3]], 0.012, 'square', 38 + 6 * r.next()); } },
   { id: 'reed warbler', months: [3, 4, 5, 6, 7], hours: [[4.8, 11], [16, 20.5]], where: 'water', rate: 0.25, tier: 'C (reed and great reed warblers in the river reeds; expected, not sourced)', far: [6, 60],
     call: (e, o, t, r) => { const n = 6 + r.int(0, 10); for (let k = 0; k < n; k++) { const f = 1800 + 2600 * r.next(); chirp(e, o, t + k * (0.11 + 0.08 * r.next()), f, f * (0.7 + 0.6 * r.next()), 0.06 + 0.05 * r.next(), 0.018); } } },
+  // D-680: the nightingale's song on spring nights in the trees by water and in the gardens (Luscinia megarhynchos breeds in
+  // Iran's wooded valleys: B range / C here): phrases of repeated low 'chook' notes, slow pure whistles swelling up, and a
+  // rattling trill, with pauses; it sings on into the dawn
+  { id: 'nightingale', months: [3, 4, 5], hours: [[21, 24], [0, 5.5]], where: 'trees', rate: 0.06, tier: 'B range (Iran) / C place, call', far: [15, 180],
+    call: (e, o, t, r) => { let at = t; const phrases = 2 + r.int(0, 3);
+      for (let p = 0; p < phrases; p++) { const kind = r.int(0, 3);
+        if (kind === 0) { const n = 4 + r.int(0, 6), f = 1500 + 600 * r.next(); for (let k = 0; k < n; k++) chirp(e, o, at + k * 0.09, f, f * 0.8, 0.05, 0.03); at += n * 0.09; }
+        else if (kind === 1) { const n = 3 + r.int(0, 4), f = 2600 + 900 * r.next(); for (let k = 0; k < n; k++) chirp(e, o, at + k * 0.42, f, f * 1.04, 0.32, 0.012 + k * 0.006); at += n * 0.42; }
+        else { const d = 0.6 + 0.6 * r.next(); trill(e, o, at, 3800 + 900 * r.next(), 3300, d, 28 + 10 * r.next(), 0.02); at += d; }
+        at += 0.3 + 0.7 * r.next(); } } },
   { id: 'wild boar grunting', months: ALL, hours: [[19, 24], [0, 5.5]], where: 'water', rate: 0.02, tier: 'B species (Fars) / C place and call', far: [30, 200],
     call: (e, o, t, r) => grunt(e, o, t, r, 0.5) },
 ];
@@ -304,7 +314,17 @@ export function ambientWeight(b: Bird, ctx: { hour: number; month: number; place
   if (!b.months.includes(ctx.month)) return 0;
   const h = b.rel === 'rise' ? ctx.hour - (ctx.sun?.rise ?? 6) : ctx.hour; if (!b.hours.some(([a, z]) => h >= a && h < z)) return 0;
   if (b.minTemp !== undefined && (ctx.tempC ?? 20) < b.minTemp) return 0;
-  return b.where ? (ctx.place ? ctx.place[b.where] : 0) : 1;
+  return (b.where ? (ctx.place ? ctx.place[b.where] : 0) : 1) * chorusFactor(b.id, ctx);
+}
+/** D-680: the songbirds' day (C, the general pattern of bird song): the dawn chorus swells from first light to ~3x round
+ *  25 min after sunrise and fades over the next hour; in the summer's heat (June-August, over 30 C, 11:30-15:30) the birds
+ *  fall quiet (0.3); the cicadas take the heat */
+export const SONGBIRDS = new Set(['see-see partridge', 'chukar', 'hoopoe', 'bee-eater', 'swallow', 'house sparrow', 'hooded crows', 'common quail', 'reed warbler']);
+export function chorusFactor(id: string, ctx: { hour: number; month: number; sun?: { rise: number; set: number }; tempC?: number }): number {
+  if (!SONGBIRDS.has(id)) return 1;
+  const rise = ctx.sun?.rise ?? 6, x = (ctx.hour - rise - 0.4) / 0.7, dawn = 1 + 2 * Math.exp(-x * x);
+  const hot = ctx.month >= 5 && ctx.month <= 7 && (ctx.tempC ?? 20) > 30 && ctx.hour > 11.5 && ctx.hour < 15.5 ? 0.3 : 1;
+  return dawn * hot;
 }
 /** the tier of an ambient species or layer heard (dev overlay) */
 export const AMBIENT_TIER = (id: string) => id === 'flies' ? 'C (expected at dung and middens: brief section 5.5; not sourced)' : BIRDS.find(b => b.id === id)?.tier ?? '?';

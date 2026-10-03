@@ -768,6 +768,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       pa('w.smoke', tp); tp = pt(); settlement?.update(dt, { camera: ctx.camera, clock: ctx.clock, sky: ctx.sky, skyLight: ctx.skyLight, cond: ctx.cond, player: ctx.player });
       campTents?.update(ctx.player.position.x, ctx.player.position.z, 400, sim.t); // D-199; D-252: the tents standing now
       pa('w.settlement', tp); tp = pt(); fire.setSkyLight(ctx.skyLight);
+      fire.setDay(ctx.clock.dayIndex, seed); // D-680: the court's nights (banquets, residence fires, door torches) follow the world's day
       fire.update(dt, ctx.camera, ctx.sky.sunAlt, ctx.cond.windMs, ctx.cond.windDirDeg, ctx.cond.rain, time, ctx.clock.localHour);
       pa('w.fire', tp); tp = pt(); { // D-220: dust from this frame's emitters (the crowd and its animals were drawn above), and the carts' wheels
         if (!nowView.active) for (const m of movers) if (m.kind === 'cart') dust.emit('cart', m.e, groundAt(m.e, m.n), -m.n, yawOf(m.heading * 180 / Math.PI), 0.9, m.key.length * 131 + Math.round(m.e));

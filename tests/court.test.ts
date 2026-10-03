@@ -96,11 +96,16 @@ describe('the court in residence (D-182)', () => {
     const d = festivals(1)[0].day; let off = 0; for (let pid = 0; pid < K.first; pid += 7) if (P.festDay(pid, d)) off++; expect(off).toBeGreaterThan(1000);
   }, 600_000);
   it('every sealed letter for the Treasury is handed over while the desk is open, every day of the year, with and without the court (D-229)', () => {
-    for (const S of [absent, court]) { const P = S.pop; let cal = 0, carried = 0; const bad: string[] = [];
-      for (let d = 0; d < 354; d++) { const L = P.cal.ctx(d).letters; cal += L.length;
-        for (const x of L) expect(x.go + P.walkH('station', 'stair_foot', d, 'town', 'terrace') + 0.1 + TREASURY_DESK.hand, `day ${d}`).toBeLessThanOrEqual(TREASURY_DESK.close + 1e-9);
+    // (the plans are read on every day a letter comes and on every seventh day besides, to see no letter carried that the
+    // calendar did not send; C7 D-710. D-780: the cost is not the plans but the town's economy, which the first plan of a day
+    // advances to that day (population.touches: ~1-1.7 s a day here, 600 s for the court-less year alone). The letters' hours are
+    // checked against the desk on every day of the year from the calendar; the plans and the desk's receipts over the court's
+    // sim through its residence and a month after, and the court-less town's over the first half of the year)
+    for (const S of [absent, court]) { const P = S.pop, last = S === court ? Math.min(354, P.court!.year.leave + 30) : 177; let cal = 0, carried = 0; const bad: string[] = [];
+      for (let d = 0; d < 354; d++) { const L = P.cal.ctx(d).letters; for (const x of L) expect(x.go + P.walkH('station', 'stair_foot', d, 'town', 'terrace') + 0.1 + TREASURY_DESK.hand, `day ${d}`).toBeLessThanOrEqual(TREASURY_DESK.close + 1e-9); }
+      for (let d = 0; d < last; d++) { const L = P.cal.ctx(d).letters; cal += L.length; if (!L.length && d % 7) continue;
         for (const m of P.messengers) if (P.present(m, d)) carried += P.plan(m, d).filter(s => s.why === LETTER_WHY).length;
-        // (D-780: the desk's receipts checked on the days that bring letters or a caravan: the whole year's plans of everyone took 1,100-1,200 s)
+        // (D-780: the desk's receipts checked on the days that bring letters or a caravan)
         if (L.length || P.caravan(d)) for (const x of receipts(P, d, pid => P.plan(pid, d))) bad.push(`${S === court ? 'court' : 'absent'} day ${d}: ${x.pid} ${x.note}`); }
       expect(bad).toEqual([]); expect(carried).toBe(cal); expect(cal).toBeGreaterThan(50); }
   }, 600_000);

@@ -8,7 +8,7 @@ import { ensureAccess } from './access';
 import { cacheGetSync, cachePutSync } from '../cache/worldCache';
 import { Rng } from '../../core/rng';
 import settlementJson from '../../data/settlement.json';
-import { Site, SiteMeta, Plot, P2, Frame, toGrid, toLocal, OUT, LANE, FREE, RES, ROOM, COURT, YARD, Fitting, snapSite, restoreSite } from './site';
+import { Site, SiteMeta, Plot, P2, Frame, toGrid, toLocal, OUT, LANE, FREE, RES, SQUARE, ROOM, COURT, YARD, Fitting, snapSite, restoreSite } from './site';
 import { generateQuarter, QuarterOpts } from './quarter';
 import { ringCompound, yardCompound, roomBlock, openGround } from './compounds';
 import { HOUSE } from './town_rules';
@@ -29,7 +29,7 @@ export type Mat = 'mud' | 'stone' | 'brick' | 'timber' | 'glaze' | 'refuse';
 /** a box or cylinder prop (grid frame; heights above a base sampled from the terrain: its group's lowest corner) */
 /** (D-325) `model`: a modelled prop drawn in this prop's place (at c, theta, the group's base) when loaded, instead of its
  *  shape; `inModel`: this prop's shape is part of that model (not drawn when it is loaded; its collider stays) */
-export interface Prop { model?: string; inModel?: string; shape: 'box' | 'cyl'; mat: Mat; c: P2; theta: number; hu: number; hv: number; y0: number; y1: number; group: string; collide: boolean; row: string; feature: string; note: string; colour?: [number, number, number]; r1?: number }
+export interface Prop { model?: string; inModel?: string; shape: 'box' | 'cyl'; mat: Mat; c: P2; theta: number; hu: number; hv: number; y0: number; y1: number; group: string; collide: boolean; row: string; feature: string; note: string; colour?: [number, number, number]; r1?: number; bottom?: boolean }
 export interface TreeSpot { c: P2; species: string; size: number; row: string; feature: string }
 export interface WaterPiece { kind: 'pool' | 'channel' | 'well' | 'canal' | 'ditch'; pts: P2[]; width: number; level: number; row: string; feature: string; note?: string }
 export interface Road { id: string; feature: string; row: string; pts: P2[]; width: number; note: string }
@@ -63,9 +63,9 @@ const besideRoad = (pl: P2[], at: number, side: number): { c: P2; theta: number 
   return { c: [o.c[0] - d[1] * side, o.c[1] + d[0] * side], theta: o.theta }; };
 export const QUARTERS: QDef[] = [
   { id: 'q_s1', feature: 'zone_lower_town_south', zone: 'zone_lower_town_south', popZone: 'town', c: qs1c, theta: qs1theta, W: 230, H: 270, mains: 1, crafts: ['metal', 'wood', 'textile', 'bakery', 'brewery'], ws: 0.09, squares: 3, road: 'road_south_tirazzish', note: 'lower town on the road south, its main street (C)' },
-  { id: 'q_s2', feature: 'zone_lower_town_south', zone: 'zone_lower_town_south', popZone: 'town', c: [-815, -1095], theta: -8 * deg, W: 220, H: 220, mains: 2, crafts: ['textile', 'bakery', 'pottery', 'metal'], ws: 0.08, squares: 2, note: 'lower town (C)' },
-  { id: 'q_s3', feature: 'zone_lower_town_south', zone: 'zone_lower_town_south', popZone: 'town', c: [-1195, -880], theta: 12 * deg, W: 210, H: 230, mains: 2, crafts: ['wood', 'bakery', 'textile'], ws: 0.07, squares: 2, note: 'lower town (C)' },
-  { id: 'q_s4', feature: 'zone_lower_town_south', zone: 'zone_lower_town_south', popZone: 'town', c: [-960, -1440], theta: 4 * deg, W: 230, H: 190, mains: 2, crafts: ['pottery', 'brewery', 'textile'], ws: 0.07, squares: 2, note: 'lower town (C)' },
+  { id: 'q_s2', feature: 'zone_lower_town_south', zone: 'zone_lower_town_south', popZone: 'town', c: [-815, -1095], theta: -8 * deg, W: 190, H: 190, mains: 2, crafts: ['textile', 'bakery', 'pottery', 'metal'], ws: 0.08, squares: 2, note: 'lower town (C)' },
+  { id: 'q_s3', feature: 'zone_lower_town_south', zone: 'zone_lower_town_south', popZone: 'town', c: [-1195, -880], theta: 12 * deg, W: 170, H: 190, mains: 2, crafts: ['wood', 'bakery', 'textile'], ws: 0.07, squares: 2, note: 'lower town (C)' },
+  { id: 'q_s4', feature: 'zone_lower_town_south', zone: 'zone_lower_town_south', popZone: 'town', c: [-960, -1440], theta: 4 * deg, W: 160, H: 150, mains: 2, crafts: ['pottery', 'brewery', 'textile'], ws: 0.07, squares: 2, note: 'lower town (C)' },
   { id: 'q_w1', feature: 'pw_area_a', zone: 'zone_persepolis_west', popZone: 'town', c: [-560, 430], theta: 4 * deg, W: 200, H: 180, mains: 2, crafts: ['metal', 'wood', 'bakery'], ws: 0.07, squares: 2, note: 'Persepolis West around Area A (strong geomagnetic anomalies; findings not retrieved): houses (C)' },
   { id: 'q_w2', feature: 'pw_area_b_craft', zone: 'zone_persepolis_west', popZone: 'town', c: [-1075, 560], theta: -6 * deg, W: 210, H: 200, mains: 2, crafts: ['pottery', 'metal', 'textile'], ws: 0.1, squares: 1, note: 'craft quarter around Persepolis West Area B (kiln, bone pits, pigments: B activity; houses C)', reserve: [{ at: FEATURES.pw_area_b_craft.xy, W: 44, H: 34 }] },
   { id: 'q_w3', feature: 'zone_persepolis_west', zone: 'zone_persepolis_west', popZone: 'town', c: [-935, -95], theta: 10 * deg, W: 210, H: 210, mains: 2, crafts: ['textile', 'bakery', 'wood'], ws: 0.07, squares: 2, note: 'Persepolis West (C)' },
@@ -73,11 +73,23 @@ export const QUARTERS: QDef[] = [
   // s18 C2 (D-661): the lower-city belt at the Terrace's foot and along the roads (C: the town that served the court, its
   // workshops, stores, stables and markets, as dense as the quarters further out; Persepolis West's surveys show occupation
   // spread over the plain W of the Terrace, B; its layout C)
-  { id: 'q_b1', feature: 'zone_persepolis_west', zone: 'zone_persepolis_west', popZone: 'town', c: [-522, 235], theta: 2 * deg, W: 105, H: 80, mains: 1, crafts: ['wood', 'bakery', 'brewery'], ws: 0.1, squares: 1, note: 'lower city at the Terrace\'s foot, N of the road west: stores, workshops and houses of those who served the court; kept S of the line from the stair foot to q_w1, the walk from the spawn (C)' },
+  // (q_b1, N of the road west by q_w1, removed in D-675: q_b10 fronts the road there, and q_b1's worn path to the stair ran
+  // through it straight at the stair's camera: tests/plain_d223)
   { id: 'q_b3', feature: 'zone_persepolis_west', zone: 'zone_persepolis_west', popZone: 'town', c: [-742, -40], theta: 6 * deg, W: 200, H: 200, mains: 2, crafts: ['metal', 'textile', 'bakery', 'pottery'], ws: 0.1, squares: 2, note: 'lower city between Persepolis West and the Terrace\'s foot (C)' },
   { id: 'q_b4', feature: 'zone_persepolis_west', zone: 'zone_persepolis_west', popZone: 'town', ...besideRoad(sRoad, 445, -72), W: 130, H: 130, mains: 1, crafts: ['wood', 'bakery', 'brewery', 'textile'], ws: 0.1, squares: 1, note: 'lower city beside the road south, between the stores and the lower town: inns, stables, stores and houses on the road (C)' },
-  { id: 'q_b5', feature: 'zone_persepolis_west', zone: 'zone_persepolis_west', popZone: 'town', c: [-420, 652], theta: 0, W: 160, H: 140, mains: 1, crafts: ['wood', 'bakery'], ws: 0.06, squares: 1, note: 'lower city between Persepolis West and the officials\' houses (C)', shape: { p: 4, noise: 0.08 } },
-  ...(wRoad ? [{ id: 'q_b6', feature: 'zone_persepolis_west', zone: 'zone_persepolis_west', popZone: 'town' as const, ...besideRoad(wRoad, 720, -97), theta: -105 * deg, W: 180, H: 150, mains: 1, crafts: ['metal', 'wood', 'bakery', 'brewery'] as QuarterOpts['crafts'], ws: 0.1, squares: 2, note: 'lower city along the road west, the processional way, its houses fronting the road (C)' }] : []),
+  { id: 'q_b5', feature: 'zone_persepolis_west', zone: 'zone_persepolis_west', popZone: 'town', c: [-420, 652], theta: 0, W: 130, H: 120, mains: 1, crafts: ['wood', 'bakery'], ws: 0.06, squares: 1, note: 'lower city between Persepolis West and the officials\' houses (C)', shape: { p: 4, noise: 0.08 } },
+  ...(wRoad ? [{ id: 'q_b6', feature: 'zone_persepolis_west', zone: 'zone_persepolis_west', popZone: 'town' as const, ...besideRoad(wRoad, 790, -97), theta: -105 * deg, W: 180, H: 140, mains: 1, crafts: ['metal', 'wood', 'bakery', 'brewery'] as QuarterOpts['crafts'], ws: 0.1, squares: 2, note: 'lower city along the road west, the processional way, its houses fronting the road (C)' }] : []),
+  // s18 C2 (D-675, the lead: build_nav takes the town's colliders, D-694): the lower town up to the Terrace's foot and along
+  // (the town's capacity held under population.json's night 10,000 + 10 %: the farthest quarters q_s2, q_s3, q_s4 and q_b5 smaller)
+  // the road to the Gate, inside the old nav box; kept open: the Grand Stair's forecourt (e > −250, n 0…200), the walk from
+  // the stair's foot to Persepolis West, the way along the Terrace's west foot between the two roads (traffic.ts courierOut) and the roads
+  { id: 'q_b8', feature: 'zone_persepolis_west', zone: 'zone_persepolis_west', popZone: 'town', c: [-199, -128], theta: 0, W: 82, H: 210, mains: 1, crafts: ['wood', 'bakery', 'brewery', 'textile'], ws: 0.12, squares: 1, note: 'lower town against the Terrace\'s west wall, S of the Grand Stair: the workshops, stores and houses of those who served the Terrace (C)' },
+  // (q_b9 and q_b11 either side of the court's baggage-train track S off the road west to the west camp, traffic.ts buildTrain;
+  // q_b10 and q_b6 beside the tracks N to the court's and the north camp; q_b8 W of the way round the Terrace's foot to the road
+  // south: the trains' legs are open ground, tests/camp_life)
+  { id: 'q_b9', feature: 'zone_persepolis_west', zone: 'zone_persepolis_west', popZone: 'town', c: [-350, -100], theta: 0, W: 120, H: 180, mains: 1, crafts: ['metal', 'wood', 'textile', 'bakery', 'pottery'], ws: 0.1, squares: 1, note: 'lower town between the road west and the road south, at the Terrace\'s foot (C)' },
+  { id: 'q_b11', feature: 'zone_persepolis_west', zone: 'zone_persepolis_west', popZone: 'town', c: [-563, -100], theta: 0, W: 146, H: 180, mains: 1, crafts: ['metal', 'wood', 'textile', 'bakery', 'pottery'], ws: 0.1, squares: 1, note: 'lower town between the road west and the road south, at the Terrace\'s foot (C)' },
+  ...(wRoad ? [{ id: 'q_b10', feature: 'zone_persepolis_west', zone: 'zone_persepolis_west', popZone: 'town' as const, ...besideRoad(wRoad, 220, -52), theta: -110 * deg + 5 * deg, W: 90, H: 120, mains: 1, crafts: ['bakery', 'brewery', 'wood'] as QuarterOpts['crafts'], ws: 0.12, squares: 1, note: 'lower town fronting the road west, the way to the Gate, below the Terrace (C)' }] : []),
   { id: 'q_f1', feature: 'zone_bagh_e_firuzi', zone: 'zone_bagh_e_firuzi', popZone: 'town', c: [-2140, 2085], theta: -30 * deg, W: 100, H: 90, mains: 1, crafts: ['bakery'], ws: 0.05, squares: 1, note: 'gardeners\' houses of the Bagh-e Firuzi gardens (C)', shape: { p: 2.6, noise: 0.18 } },
   { id: 'q_g1', feature: 'zone_dasht_e_gohar', zone: 'zone_dasht_e_gohar', popZone: 'plain', c: [650, 3800], theta: 8 * deg, W: 90, H: 80, mains: 1, crafts: ['bakery'], ws: 0.05, squares: 1, note: 'gardeners\' houses of the Dasht-e Gohar gardens (C)', shape: { p: 2.6, noise: 0.18 } },
 ];
@@ -92,10 +104,24 @@ function quarterSite(q: QDef): Site {
   generateQuarter(s, { mains: q.mains, mainWidth: 4, laneWidth: 3, alleyWidth: 2, dmax: 16, plotW: HOUSE.plotW, plotD: HOUSE.plotD, workshopShare: q.ws, crafts: q.crafts, squares: q.squares,
     forced: q.road ? [{ axis: 'v', offset: 0, width: q.roadW ?? 7 }] : undefined, reserve, shape: q.shape, row: 'town_houses', feature: q.feature, idPrefix: q.id }, rng);
   if (q.id === 'q_w2') stampAreaB(s, reserve[0], rng);
+  neighbourhoodShrine(s);
   return s;
 }
 
 /** open a lane from a rectangle's side to the nearest lane cell (straight run), returns the side used */
+/** s18 C2 (D-672, C12 row 19; the lead: in the settlement, not the fire precinct): each quarter's neighbourhood shrine (C:
+ *  the town's foreign and local households' small sanctuaries, an offering table under the sky before a little roofed cella;
+ *  no image or words of a named god): the house plot of 50-150 m² whose door opens on a square, else the one nearest the
+ *  quarter's middle, kept as a walled shrine court; its offering table with bowls, clay figurines and a lamp in the court */
+function neighbourhoodShrine(s: Site) {
+  let best: Plot | null = null, bd = 1e9;
+  for (const p of s.plots) { if (p.kind !== 'house' || p.area < 50 || p.area > 150 || !p.door) continue; const [i0, j0, i1, j1] = p.rect, onSq = s.cell[p.door.out] === SQUARE ? 0 : 1e4;
+    const d = onSq + Math.hypot((i0 + i1) / 2 - s.W / 2, (j0 + j1) / 2 - s.H / 2); if (d < bd) { bd = d; best = p; } }
+  if (!best) return; const p = best; p.kind = 'shrine'; p.capacity = 0; p.note = 'the neighbourhood\'s shrine: a walled court with an offering table under the sky before a small roofed cella (C)';
+  const [i0, j0, i1, j1] = p.rect; let su = 0, sv = 0, n = 0; for (let j = j0; j < j1; j++) for (let i = i0; i < i1; i++) { const k = s.k(i, j); if (s.cell[k] === p.idx && s.sub[k] === COURT) { su += s.cu(i); sv += s.cv(j); n++; } }
+  if (!n) for (let j = j0; j < j1; j++) for (let i = i0; i < i1; i++) { const k = s.k(i, j); if (s.cell[k] === p.idx) { su += s.cu(i); sv += s.cv(j); n++; } }
+  s.fittings.push({ kind: 'shrine', u: su / n, v: sv / n, rot: 0, size: 1, plot: p.idx, note: 'the offering table: bread, fruit and a little oil in bowls, clay figurines left by the households, a lamp kept burning (C)' });
+}
 function laneTo(s: Site, rect: [number, number, number, number]): 'S' | 'N' | 'W' | 'E' {
   const [i0, j0, i1, j1] = rect; let best: { side: 'S' | 'N' | 'W' | 'E'; d: number; run: [number, number, number, number] } | null = null;
   const probes: ['S' | 'N' | 'W' | 'E', number, number, number, number][] = [['S', (i0 + i1) >> 1, j0 - 1, 0, -1], ['N', (i0 + i1) >> 1, j1, 0, 1], ['W', i0 - 1, (j0 + j1) >> 1, -1, 0], ['E', i1, (j0 + j1) >> 1, 1, 0]];
