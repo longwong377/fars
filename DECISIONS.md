@@ -9934,3 +9934,17 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
 - Found on the way: the street doors' leaves were never drawn since s15 (eacb1e4 put `m.setMatrixAt(n++, M)` inside a trailing comment): every doorway of the town stood open as a dark hole. Drawn again (door_planks, s17 C1's plank scan).
 - Repairs: the patch's tone step from the wall cut to a third (1.08/1.06 → 1.035/1.025) with a 16-26 cm rim; each brick loss gets an irregular halo of thinned, damp-stained plaster 8-20 cm wide fading into the wall (32 triangles; the 60 k tile budget holds, houses.test.ts).
 - B580: a landlocked house whose only lane contact is a corner cell keeps a 0.02-0.3 m slot between the two crossing 0.7 m walls whatever door is cut (measured at 10 cm). access.ts' last pass cuts up to three connected cells at that corner (the house's own or a neighbour's; never a door cell or a small plot) back to the lane, the door through the cut (a narrow 0.6 m door allowed there), a neighbour's room the cut strands given an inner door, kept when the house is then at least half reached and no other plot loses a reached place; the cut reaching most is kept. q_s4-0074 (100/100 cells), q_s4-0161 (91/141: its inside split by a narrow inner passage), q_w3-0122 and one more entered: shut houses 6 → 2, quarter plot cells reached 99.437 → 99.632 %, lane cells 99.742 → 99.880 % (reach_census.ts). town_plots.json regenerated. Left: q_w2-0077 and q_w2-0082 face a 40-cell lane pocket whose one exit is a one-cell lane (q_w2 cells 131-140, row 96; 0.15 m room) (B690).
+
+## D-690 Crowds, doors and the walk: people standing keep ~1 m apart, never stand in a doorway, and make way for the stranger (s18 cloud C5)
+- popview.ts: standing out of doors SEP 1.0 m (was 0.6; rooms and tents 0.7), spread on slightly uneven rings to 12 m (rooms 5 m) in the same court or open ground; a
+  place fuller than that leaves the rest undrawn (stats.crowded) instead of stacking them on the spot. Doorways and their aprons
+  (DOOR_CLEAR 1.5 m either side, the opening's width + 0.35 m) are kept clear: the Terrace's doorways (setDoorways; built once
+  if world.ts does not hand them over) and the town's and villages' door edges. A group at a social act (talk, rest, game, meal,
+  shelter, mourning, play) faces its middle. Making way (C): within 2.4 m of the stranger (3.2 m by a doorway) a person standing
+  steps up to 0.85 m off the stranger's way, to the side they stand on, never across it unless on it, to a clear place, turned
+  toward the stranger, by an amount that follows the distance (no jumps); posts held turn only; the crowd turns the head (react
+  'turn'). Measured (node, day 25 10:00, people on): door passages blocked by a person 35 -> 0 (Terrace 118 -> 130/130, rooms
+  326 -> 330/330, town street 367 -> 395/399, the 4 left touch only walls: B691); bots Terrace 40/40 (two seeds; s17 36/40),
+  town 40/40 seed 1, 39/40 seed 2 (an animal lying in a lane). The s17 town misses: q_s2's pen 180 holds walled-off ground no
+  body reaches (walkers.ts now samples plot cells reachable from their door), and a person stepping across the walker's way in
+  q_s2's 1.4 m lanes (fixed).
