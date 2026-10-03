@@ -58,6 +58,8 @@ export interface NaqshLifeInput {
   burials?: boolean;
   /** where they were placed (for the overlay and the people) */
   places?: { id: string; e: number; n: number }[];
+  /** more geometry drawn in this mesh (the roadside, wayside.ts: one draw for the plain's budget) */
+  extra?: { parts: THREE.BufferGeometry[]; boxes: { c: THREE.Vector3; h: THREE.Vector3; rot: number }[] };
 }
 export interface NaqshLife { mesh: THREE.Mesh; colliders(phys: Physics): void; info: Record<string, number> }
 
@@ -220,10 +222,11 @@ export function buildNaqshLife(I: NaqshLifeInput): NaqshLife {
         nt++; I.places?.push({ id: `private_rock_tomb_${k + 1}`, e: g.e, n: g.n }); });
       info.privateTombs = nt; } }
 
+  if (I.extra) { parts.push(...I.extra.parts); boxes.push(...I.extra.boxes); }
   const geo = mergeGeometries(parts.map(g => { if (!g.getAttribute('normal')) g.computeVertexNormals(); return g; }))!;
   const mat = surfaceMaterial('nr_works', { vertexColors: true });
   const mesh = new THREE.Mesh(geo, mat); mesh.name = 'nr-life'; mesh.castShadow = mesh.receiveShadow = true;
-  mesh.userData = { tier: 'C', src: 'RECON;D-640;D-033', placeholder: false, note: 'Naqsh-e Rustam in use in 467 (s18 C15, D-800): the scaffold of lashed poles before the second tomb being cut, its spoil of fresh chips and the cutters\' lean-to; the keepers\' whitewashed courtyard house (D-640); the offering table before Darius\' tomb with bowls of flour, wine and water, the barsom and flowers (Arrian 6.29 by analogy). All C' };
+  mesh.userData = { tier: 'C', src: 'RECON;D-640;D-033', placeholder: false, note: 'Naqsh-e Rustam in use in 467 (s18 C15, D-800): the scaffold of lashed poles before the second tomb being cut, its spoil of fresh chips and the cutters\' lean-to; the keepers\' whitewashed courtyard house (D-640); the offering table before Darius\' tomb with bowls of flour, wine and water, the barsom and flowers (Arrian 6.29 by analogy); the keepers\' ground and paths; the rock burials (Akhor Rostam, the private rock tombs); and the roadside of the plain (wells, halts with their carts, field shrines, dung on the roads: wayside.ts, D-801). All C' };
   info.tris = geo.getAttribute('position').count / 3;
   const sp = spoil as Geo | null;
   return { mesh, info, colliders(phys: Physics) {
@@ -232,3 +235,5 @@ export function buildNaqshLife(I: NaqshLifeInput): NaqshLife {
     phys.addTrimesh(new Float32Array(p.array as ArrayLike<number>), idx, { tier: 'C', what: 'naqsh-e-rustam spoil' });
   } };
 }
+/** the drawing helpers and colours, for the roadside (wayside.ts) drawn into this mesh */
+export { box, rod, cyl, hash, C as LIFE_C, L as linRGB };
