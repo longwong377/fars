@@ -1,333 +1,317 @@
 {
  "note": "D-620: the recordings tools/audio/fetch.mjs resolved (re-runs download these; --refresh re-searches)",
  "items": {
-  "town_dawn": [],
-  "town_day": [],
-  "town_dusk": [],
-  "town_night": [],
-  "village_dawn": [],
-  "village_day": [],
-  "village_night": [],
-  "plain_spring_day": [],
-  "plain_summer_day": [],
-  "plain_autumn_day": [],
-  "plain_winter_day": [],
-  "plain_dawn": [],
-  "plain_dusk": [],
+  "town_dawn": [
+   {
+    "key": "town_dawn",
+    "section": "beds",
+    "src": "freesound",
+    "id": "341737",
+    "title": "Dawn chorus - Makvaneti by porporino",
+    "licence": "CC0",
+    "author": "porporino",
+    "page": "https://freesound.org/people/porporino/sounds/341737/",
+    "audio": "https://cdn.freesound.org/previews/341/341737_6105873-hq.mp3",
+    "sha256": "c2f121075615f19fb0186655121bfa629d11f2be4477cfeb8721488864f2ff50",
+    "dur": 191.32,
+    "q": "village dawn birds roosters",
+    "speechiness": 0.669
+   },
+   {
+    "key": "town_dawn",
+    "section": "beds",
+    "src": "freesound",
+    "id": "809219",
+    "title": "Grillons_Chateau_Matin by nicotep",
+    "licence": "CC0",
+    "author": "nicotep",
+    "page": "https://freesound.org/people/nicotep/sounds/809219/",
+    "audio": "https://cdn.freesound.org/previews/809/809219_7529214-hq.mp3",
+    "sha256": "455651a6cff56dfcf28841d508ba869c18a65acfc5c7adabde0b133fbc08b68a",
+    "dur": 453.98,
+    "q": "village dawn birds roosters",
+    "speechiness": 0.873
+   }
+  ],
+  "town_day": [
+   {
+    "key": "town_day",
+    "section": "beds",
+    "src": "freesound",
+    "id": "276946",
+    "title": "morning ambience of a small mountain village in the mountains of Kazakhstan by gladkiy",
+    "licence": "CC0",
+    "author": "gladkiy",
+    "page": "https://freesound.org/people/gladkiy/sounds/276946/",
+    "audio": "https://cdn.freesound.org/previews/276/276946_2364707-hq.mp3",
+    "sha256": "790c4093ff85e10e923a439378989b4024937be38fc4ec3b700db2d57f81b83c",
+    "dur": 924.96,
+    "q": "mountain village ambience",
+    "speechiness": 0.665
+   },
+   {
+    "key": "town_day",
+    "section": "beds",
+    "src": "freesound",
+    "id": "272458",
+    "title": "Nature sounds, bells, goats, cow, birds - Kardzhali, Bulgaria by vonfleisch",
+    "licence": "CC0",
+    "author": "vonfleisch",
+    "page": "https://freesound.org/people/vonfleisch/sounds/272458/",
+    "audio": "https://cdn.freesound.org/previews/272/272458_3658882-hq.mp3",
+    "sha256": "c10b0f4768a070d91a565a6f8e77cf4a38d041f8f3d942eec9e8b1978cc88972",
+    "dur": 216.04,
+    "q": "mountain village ambience",
+    "speechiness": 3.352
+   }
+  ],
+  "town_dusk": [
+   {
+    "key": "town_dusk",
+    "section": "beds",
+    "src": "freesound",
+    "id": "580947",
+    "title": "S_Amb_GrasshoopersBirdsFliesandDogs_Mono_01.wav by yake01",
+    "licence": "CC0",
+    "author": "yake01",
+    "page": "https://freesound.org/people/yake01/sounds/580947/",
+    "audio": "https://cdn.freesound.org/previews/580/580947_12600596-hq.mp3",
+    "sha256": "6490495725fe3f405340dc65a19910849e253a8a1e80bf14ee7513fd496cdb59",
+    "dur": 107.49,
+    "q": "village evening ambience birds dogs",
+    "speechiness": 0.748
+   }
+  ],
+  "town_night": [
+   {
+    "key": "town_night",
+    "section": "beds",
+    "src": "freesound",
+    "id": "47479",
+    "title": "Audiactiva_-_Night_silence.wav by Audiactiva",
+    "licence": "CC BY",
+    "author": "Audiactiva",
+    "page": "https://freesound.org/people/Audiactiva/sounds/47479/",
+    "audio": "https://cdn.freesound.org/previews/47/47479_423354-hq.mp3",
+    "sha256": "639e2aa0b708c2a2da7bc6090c17a6da4b79dda98cba8c29478240853a1cb8a5",
+    "dur": 187.74,
+    "q": "village night ambience crickets dogs distant",
+    "speechiness": 0.655
+   }
+  ],
+  "village_dawn": [
+   {
+    "key": "village_dawn",
+    "section": "beds",
+    "src": "freesound",
+    "id": "482927",
+    "title": "Farm at dawn, roosters and tawny owl by etienne.leplumey",
+    "licence": "CC0",
+    "author": "etienne.leplumey",
+    "page": "https://freesound.org/people/etienne.leplumey/sounds/482927/",
+    "audio": "https://cdn.freesound.org/previews/482/482927_997174-hq.mp3",
+    "sha256": "055c7a2e8c3e1bce422bdc5973e16cca9056987c5fd9b6469d2decaf2c429429",
+    "dur": 223.48,
+    "q": "countryside dawn rooster",
+    "speechiness": 1.584
+   }
+  ],
+  "village_day": [
+   {
+    "key": "village_day",
+    "section": "beds",
+    "src": "freesound",
+    "id": "221675",
+    "title": "Farmyard Sounds - Pig, Sheep, Donkey, Ducks, Chickens by nebulousflynn",
+    "licence": "CC BY",
+    "author": "nebulousflynn",
+    "page": "https://freesound.org/people/nebulousflynn/sounds/221675/",
+    "audio": "https://cdn.freesound.org/previews/221/221675_2962342-hq.mp3",
+    "sha256": "6adf8bd90d9ae85e0c2afdf9e6500c508500ec4354160efb211591d4727e3d01",
+    "dur": 229.12,
+    "q": "countryside farm ambience animals",
+    "speechiness": 2.713
+   }
+  ],
+  "village_night": [
+   {
+    "key": "village_night",
+    "section": "beds",
+    "src": "freesound",
+    "id": "178505",
+    "title": "night.aiff by patobottos",
+    "licence": "CC0",
+    "author": "patobottos",
+    "page": "https://freesound.org/people/patobottos/sounds/178505/",
+    "audio": "https://cdn.freesound.org/previews/178/178505_881494-hq.mp3",
+    "sha256": "393f8032d2cf5c90595623baf92c842480b8f5f399edbfa87d7ebbf3f8ee05a6",
+    "dur": 868.28,
+    "q": "countryside night crickets",
+    "speechiness": 0.89
+   }
+  ],
+  "plain_spring_day": [
+   {
+    "key": "plain_spring_day",
+    "section": "beds",
+    "src": "freesound",
+    "id": "852837",
+    "title": "skylarks and cisticola by bruno.auzet",
+    "licence": "CC0",
+    "author": "bruno.auzet",
+    "page": "https://freesound.org/people/bruno.auzet/sounds/852837/",
+    "audio": "https://cdn.freesound.org/previews/852/852837_11519060-hq.mp3",
+    "sha256": "31d7629d3d33a1f28d92b8c64277b299ad6bdf60ad7007c8dbb9d8f9c33908dd",
+    "dur": 183.62,
+    "q": "skylark field ambience",
+    "speechiness": 0.76
+   },
+   {
+    "key": "plain_spring_day",
+    "section": "beds",
+    "src": "freesound",
+    "id": "733467",
+    "title": "field Spring 719 AM NL EU 240425_0704 by klankbeeld",
+    "licence": "CC BY",
+    "author": "klankbeeld",
+    "page": "https://freesound.org/people/klankbeeld/sounds/733467/",
+    "audio": "https://cdn.freesound.org/previews/733/733467_1648170-hq.mp3",
+    "sha256": "104266bb8bad8af89adc1110f9f0f63aecfec75e252fb61924e1ec43caef0dae",
+    "dur": 79.68,
+    "q": "meadow spring birds skylark",
+    "speechiness": 0.682
+   }
+  ],
+  "plain_summer_day": [
+   {
+    "key": "plain_summer_day",
+    "section": "beds",
+    "src": "freesound",
+    "id": "564166",
+    "title": "Crashing Starship by Aemyn",
+    "licence": "CC0",
+    "author": "Aemyn",
+    "page": "https://freesound.org/people/Aemyn/sounds/564166/",
+    "audio": "https://cdn.freesound.org/previews/564/564166_1445263-hq.mp3",
+    "sha256": "3a1891eb212999283a89cef4da185dd0a91f2754b822ee33fda6c8e4c5b9ffe9",
+    "dur": 307.94,
+    "q": "cicadas field summer ambience",
+    "speechiness": 0.68
+   },
+   {
+    "key": "plain_summer_day",
+    "section": "beds",
+    "src": "freesound",
+    "id": "661435",
+    "title": "Defensible Twister by Brazilio123",
+    "licence": "CC0",
+    "author": "Brazilio123",
+    "page": "https://freesound.org/people/Brazilio123/sounds/661435/",
+    "audio": "https://cdn.freesound.org/previews/661/661435_14509684-hq.mp3",
+    "sha256": "d06687f1b3431e0d944bfa9f83b4aaf1ebe92c89a0a15e0f1d9a31448854cdba",
+    "dur": 432.98,
+    "q": "cicadas field summer ambience",
+    "speechiness": 0.668
+   }
+  ],
+  "plain_autumn_day": [
+   {
+    "key": "plain_autumn_day",
+    "section": "beds",
+    "src": "freesound",
+    "id": "650337",
+    "title": "LateSummer MP3   quiet woods and Leaves and Wind SEPT 13 2022 smaller file.mp3 by kvgarlic",
+    "licence": "CC0",
+    "author": "kvgarlic",
+    "page": "https://freesound.org/people/kvgarlic/sounds/650337/",
+    "audio": "https://cdn.freesound.org/previews/650/650337_1050391-hq.mp3",
+    "sha256": "71ecec23d83e65622f78b9deb63db89279b39836f5baf77851484d807855d806",
+    "dur": 572.11,
+    "q": "autumn field ambience crows",
+    "speechiness": 0.6
+   }
+  ],
+  "plain_winter_day": [
+   {
+    "key": "plain_winter_day",
+    "section": "beds",
+    "src": "freesound",
+    "id": "178136",
+    "title": "pineforest 0-2 bft winter130213_00.flac by klankbeeld",
+    "licence": "CC BY",
+    "author": "klankbeeld",
+    "page": "https://freesound.org/people/klankbeeld/sounds/178136/",
+    "audio": "https://cdn.freesound.org/previews/178/178136_1648170-hq.mp3",
+    "sha256": "7fbabf16186b07946eb3ef82c6936c2849111608e74999bb87672ce01e32615b",
+    "dur": 1927.03,
+    "q": "winter field wind ambience",
+    "speechiness": 1.414
+   }
+  ],
+  "plain_dawn": [
+   {
+    "key": "plain_dawn",
+    "section": "beds",
+    "src": "freesound",
+    "id": "426276",
+    "title": "Early Morning Birds at a Fazenda in Goiás, Brazil by marc.om",
+    "licence": "CC0",
+    "author": "marc.om",
+    "page": "https://freesound.org/people/marc.om/sounds/426276/",
+    "audio": "https://cdn.freesound.org/previews/426/426276_5417386-hq.mp3",
+    "sha256": "6ea09d36614d0839566d988436d0aca43728c167c27449a880d6012a4ab3d184",
+    "dur": 120.58,
+    "q": "dawn chorus countryside field",
+    "speechiness": 0.744
+   }
+  ],
+  "plain_dusk": [
+   {
+    "key": "plain_dusk",
+    "section": "beds",
+    "src": "freesound",
+    "id": "178136",
+    "title": "pineforest 0-2 bft winter130213_00.flac by klankbeeld",
+    "licence": "CC BY",
+    "author": "klankbeeld",
+    "page": "https://freesound.org/people/klankbeeld/sounds/178136/",
+    "audio": "https://cdn.freesound.org/previews/178/178136_1648170-hq.mp3",
+    "sha256": "7fbabf16186b07946eb3ef82c6936c2849111608e74999bb87672ce01e32615b",
+    "dur": 1927.03,
+    "q": "evening field ambience birds crickets",
+    "speechiness": 1.414
+   }
+  ],
   "plain_night_warm": [
    {
     "key": "plain_night_warm",
     "section": "beds",
-    "src": "esc50",
-    "id": "compose:crickets:plain_night_warm",
-    "title": "37 ESC-50 clips crossfaded",
-    "licence": "CC BY-NC",
-    "author": "J - Luc, Zozzy, mystiscool, sunsinger, LS, Christoff45, soundscalpel.com, truflabart, Tito Lahaye, becks77, rfhache, le_abbaye_Noirlac, FreethinkerAnon, ianjuby, thedogryan420, kslagerman, Mark_Ian, Leandros.Ntounis, Znalac, rhapsodize, frus, icuttv, cosmician, adneonlux, arseniiv, rayjensen, tagigobaso, Sclolex, john9, RSilveira_88",
-    "page": "https://github.com/karolpiczak/ESC-50",
-    "audio": "compose",
-    "sha256": "503fc27bff52d504b4969ede8b6f813616ab15c558c2f18d6a4c1ce99364643b",
-    "ext": "wav",
-    "dur": 130.83,
-    "provisional": true,
-    "clips": [
-     {
-      "id": "1-57316-A-13.wav",
-      "title": "Grillons1.WAV",
-      "author": "J - Luc",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/J%20-%20Luc/sounds/57316/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-57316-A-13.wav"
-     },
-     {
-      "id": "1-57318-A-13.wav",
-      "title": "Grillons3.WAV",
-      "author": "J - Luc",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/J%20-%20Luc/sounds/57318/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-57318-A-13.wav"
-     },
-     {
-      "id": "1-59102-A-13.wav",
-      "title": "emmentaler crickets.wav",
-      "author": "Zozzy",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/Zozzy/sounds/59102/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-59102-A-13.wav"
-     },
-     {
-      "id": "1-7456-A-13.wav",
-      "title": "crickets.wav",
-      "author": "mystiscool",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/mystiscool/sounds/7456/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-7456-A-13.wav"
-     },
-     {
-      "id": "1-80840-A-13.wav",
-      "title": "Night Crickets & Bullfrogs.wav",
-      "author": "sunsinger",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/sunsinger/sounds/80840/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-80840-A-13.wav"
-     },
-     {
-      "id": "1-80841-A-13.wav",
-      "title": "Night Crickets at Bosque Del Apache-2.wav",
-      "author": "sunsinger",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/sunsinger/sounds/80841/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-80841-A-13.wav"
-     },
-     {
-      "id": "1-9841-A-13.wav",
-      "title": "crickets near ftn2.mp3",
-      "author": "LS",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/LS/sounds/9841/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-9841-A-13.wav"
-     },
-     {
-      "id": "2-106019-A-13.wav",
-      "title": "crickets.wav",
-      "author": "Christoff45",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/Christoff45/sounds/106019/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-106019-A-13.wav"
-     },
-     {
-      "id": "2-110613-A-13.wav",
-      "title": "animals_insect_cricket_001.wav",
-      "author": "soundscalpel.com",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/soundscalpel.com/sounds/110613/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-110613-A-13.wav"
-     },
-     {
-      "id": "2-125821-A-13.wav",
-      "title": "Crickets in Pont de Gau.wav",
-      "author": "truflabart",
-      "licence": "CC BY-NC",
-      "page": "http://www.freesound.org/people/truflabart/sounds/125821/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-125821-A-13.wav"
-     },
-     {
-      "id": "2-125875-A-13.wav",
-      "title": "Crickets and frogs in Camargue.wav",
-      "author": "truflabart",
-      "licence": "CC BY-NC",
-      "page": "http://www.freesound.org/people/truflabart/sounds/125875/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-125875-A-13.wav"
-     },
-     {
-      "id": "2-80844-A-13.wav",
-      "title": "One Cricket Louder.wav",
-      "author": "sunsinger",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/sunsinger/sounds/80844/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-80844-A-13.wav"
-     },
-     {
-      "id": "2-83270-A-13.wav",
-      "title": "lonely cricket.wav",
-      "author": "Tito Lahaye",
-      "licence": "CC BY-NC",
-      "page": "http://www.freesound.org/people/Tito%20Lahaye/sounds/83270/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-83270-A-13.wav"
-     },
-     {
-      "id": "2-85139-A-13.wav",
-      "title": "crickets.wav.mp3",
-      "author": "becks77",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/becks77/sounds/85139/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-85139-A-13.wav"
-     },
-     {
-      "id": "2-96033-A-13.wav",
-      "title": "FR.AO.CricketsAmbience.3.1.mp3",
-      "author": "rfhache",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/rfhache/sounds/96033/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/2-96033-A-13.wav"
-     },
-     {
-      "id": "3-129338-A-13.wav",
-      "title": "Cricket 5.aif",
-      "author": "le_abbaye_Noirlac",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/le_abbaye_Noirlac/sounds/129338/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-129338-A-13.wav"
-     },
-     {
-      "id": "3-129678-A-13.wav",
-      "title": "crickets",
-      "author": "FreethinkerAnon",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/FreethinkerAnon/sounds/129678/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-129678-A-13.wav"
-     },
-     {
-      "id": "3-134802-A-13.wav",
-      "title": "barrage_of_crickets_chirping.wav",
-      "author": "ianjuby",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/ianjuby/sounds/134802/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-134802-A-13.wav"
-     },
-     {
-      "id": "3-146033-A-13.wav",
-      "title": "Crickets",
-      "author": "thedogryan420",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/thedogryan420/sounds/146033/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-146033-A-13.wav"
-     },
-     {
-      "id": "3-155766-A-13.wav",
-      "title": "Crickets and Other Insects",
-      "author": "kslagerman",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/kslagerman/sounds/155766/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-155766-A-13.wav"
-     },
-     {
-      "id": "3-162786-A-13.wav",
-      "title": "CricketFX.wav",
-      "author": "Mark_Ian",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/Mark_Ian/sounds/162786/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-162786-A-13.wav"
-     },
-     {
-      "id": "3-163607-A-13.wav",
-      "title": "Wind, Soft. Crickets.wav",
-      "author": "Leandros.Ntounis",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/Leandros.Ntounis/sounds/163607/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-163607-A-13.wav"
-     },
-     {
-      "id": "3-163607-B-13.wav",
-      "title": "Wind, Soft. Crickets.wav",
-      "author": "Leandros.Ntounis",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/Leandros.Ntounis/sounds/163607/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/3-163607-B-13.wav"
-     },
-     {
-      "id": "4-163697-A-13.wav",
-      "title": "Crickets Orchestra.flac",
-      "author": "Znalac",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/Znalac/sounds/163697/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-163697-A-13.wav"
-     },
-     {
-      "id": "4-171823-A-13.wav",
-      "title": "crickets_creek.wav",
-      "author": "rhapsodize",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/rhapsodize/sounds/171823/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-171823-A-13.wav"
-     },
-     {
-      "id": "4-172143-A-13.wav",
-      "title": "Crickets",
-      "author": "frus",
-      "licence": "CC BY-NC",
-      "page": "http://www.freesound.org/people/frus/sounds/172143/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-172143-A-13.wav"
-     },
-     {
-      "id": "4-181362-A-13.wav",
-      "title": "Crickets calling at night, UK",
-      "author": "icuttv",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/icuttv/sounds/181362/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-181362-A-13.wav"
-     },
-     {
-      "id": "4-194246-A-13.wav",
-      "title": "meadow, fly, horse, crickets.wav",
-      "author": "cosmician",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/cosmician/sounds/194246/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-194246-A-13.wav"
-     },
-     {
-      "id": "4-195707-A-13.wav",
-      "title": "Evening_crickets.wav",
-      "author": "adneonlux",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/adneonlux/sounds/195707/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-195707-A-13.wav"
-     },
-     {
-      "id": "4-195805-A-13.wav",
-      "title": "crickets-and-bg.wav",
-      "author": "arseniiv",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/arseniiv/sounds/195805/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-195805-A-13.wav"
-     },
-     {
-      "id": "4-202749-A-13.wav",
-      "title": "Soft, Chilled Crickets Field Recording",
-      "author": "rayjensen",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/rayjensen/sounds/202749/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/4-202749-A-13.wav"
-     },
-     {
-      "id": "5-204352-A-13.wav",
-      "title": "crickets.wav",
-      "author": "tagigobaso",
-      "licence": "CC BY-NC",
-      "page": "http://www.freesound.org/people/tagigobaso/sounds/204352/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-204352-A-13.wav"
-     },
-     {
-      "id": "5-204352-B-13.wav",
-      "title": "crickets.wav",
-      "author": "tagigobaso",
-      "licence": "CC BY-NC",
-      "page": "http://www.freesound.org/people/tagigobaso/sounds/204352/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-204352-B-13.wav"
-     },
-     {
-      "id": "5-210540-A-13.wav",
-      "title": "crickets.wav",
-      "author": "Sclolex",
-      "licence": "CC0",
-      "page": "http://www.freesound.org/people/Sclolex/sounds/210540/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-210540-A-13.wav"
-     },
-     {
-      "id": "5-215172-A-13.wav",
-      "title": "Chip and the outdoor cricket.mp3",
-      "author": "john9",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/john9/sounds/215172/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-215172-A-13.wav"
-     },
-     {
-      "id": "5-215179-A-13.wav",
-      "title": "high park crickets.3.wav",
-      "author": "john9",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/john9/sounds/215179/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-215179-A-13.wav"
-     },
-     {
-      "id": "5-216213-A-13.wav",
-      "title": "Crickets_04.wav",
-      "author": "RSilveira_88",
-      "licence": "CC BY",
-      "page": "http://www.freesound.org/people/RSilveira_88/sounds/216213/",
-      "audio": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/5-216213-A-13.wav"
-     }
-    ],
-    "q": "esc50"
+    "src": "freesound",
+    "id": "175020",
+    "title": "AMBIENCE NIGHT FIELD CRICKET 01.wav by sengjinn",
+    "licence": "CC0",
+    "author": "sengjinn",
+    "page": "https://freesound.org/people/sengjinn/sounds/175020/",
+    "audio": "https://cdn.freesound.org/previews/175/175020_2979997-hq.mp3",
+    "sha256": "18da78264ed2ff12e74d1bc6ac17ce539a12568fd04a32c830f117fed31da8ea",
+    "dur": 60.43,
+    "q": "crickets night field",
+    "speechiness": 0.778
+   },
+   {
+    "key": "plain_night_warm",
+    "section": "beds",
+    "src": "freesound",
+    "id": "661435",
+    "title": "Defensible Twister by Brazilio123",
+    "licence": "CC0",
+    "author": "Brazilio123",
+    "page": "https://freesound.org/people/Brazilio123/sounds/661435/",
+    "audio": "https://cdn.freesound.org/previews/661/661435_14509684-hq.mp3",
+    "sha256": "d06687f1b3431e0d944bfa9f83b4aaf1ebe92c89a0a15e0f1d9a31448854cdba",
+    "dur": 432.98,
+    "q": "crickets night field",
+    "speechiness": 0.668
    }
   ],
   "plain_night_cold": [],
