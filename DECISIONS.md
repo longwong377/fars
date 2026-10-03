@@ -9954,6 +9954,8 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   bare or thick (+-45 % herb cover), and grey-green Artemisia stands 150-400 m across (terrainPlain.ts; C).
 - The river drew as sky-blue and bank-brown blotches (riv-a): the long ripple octaves calmer (2.4 m 0.075 -> 0.04, 1 m 0.07 ->
   0.05) and the spring river's ripple scale 1.15 -> 0.85, so the far bank's reflection breaks in streaks, not patches (C).
+- The shallows one even tint (riv-a): the bed under them silt or pale gravel in 10-30 m patches, the riffles the river's own water
+  whitened, and a patchy drift line of foam and chaff at the water's edge (rivers.ts; C).
 - The plain's static triangles went over 2 M (2.009 M: the merged Naqsh relief figures, 0.5 M): the rivers' sections beyond 12 km
   from the Apadana every 20-45 m (were 12-45 m), 1.99 M (C).
 - Millet (W19): a summer crop row after flax, 3 % of the irrigated plots taken from the fallow (17 %), sown June, cut mid-September
