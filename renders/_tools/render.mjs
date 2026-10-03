@@ -28,10 +28,25 @@ for (const v of work) {
     if (k !== key) { await p.evaluate(([d, h, w]) => { const a = window.__parsa; a.setTime(d, h); a.setWeather(w); }, [v.day, v.hour, v.w]); key = k; }
     const a = [v.e, v.n, v.eye, v.az, v.pitch, undefined, { cast: v.cast ?? null, rigClear: 0 }];
     await p.evaluate(a => window.__parsa.view(...a), a); await p.evaluate(() => window.__parsa.tick()); await p.evaluate(a => window.__parsa.view(...a), a);
-    for (let i = 0; i < +(process.env.FRAMES ?? 3); i++) await p.evaluate(() => window.__parsa.renderOnce());
+    // s18 (lead/C12): let a time jump's sliced catch-up (D-650) finish placing people before the frame: tick until the sim
+    // reaches the view's hour and the population view has nothing pending (at most WAITS s)
+    const tw = Date.now(), target = v.day * 24 + v.hour; let wait = null;
+    for (let i = 0; i < 400 && Date.now() - tw < +(process.env.WAITS ?? 240) * 1000; i++) {
+      wait = await p.evaluate(() => { const a = window.__parsa, P = a.people?.(), H = a.humans?.(); return { t: P?.t ?? null, pending: H?.view?.pending ?? null }; });
+      if (wait.t !== null && Math.abs(wait.t - target) < 0.05 && !wait.pending) break;
+      await p.evaluate(() => window.__parsa.tick()); }
+    await p.evaluate(a => window.__parsa.view(...a), a);
+    for (let i = 0; i < +(v.frames ?? process.env.FRAMES ?? 3); i++) await p.evaluate(() => window.__parsa.renderOnce());
+    // people drawn here vs the sim's count for the spot (the lead's ask, s18): skinned + impostors drawn, the population view's
+    // kept/visible/pending, the detailed sim's agents within 60 m and 150 m
+    const life = await p.evaluate(([e, n]) => { const a = window.__parsa, H = a.humans?.(), P = a.people?.(); if (!H) return null;
+      const near = r => (P?.agents ?? []).filter(g => !g.offmap && Math.hypot(g.e - e, g.n - n) < r).length;
+      return { skinned: (H.perf?.drawn ?? []).reduce((x, y) => x + y, 0), imp: H.impPerf?.drawn ?? H.impostors ?? null, popKept: H.view?.candidates ?? null, popVisible: H.view?.visible ?? null, popPending: H.view?.pending ?? null, agents60: near(60), agents150: near(150), simT: P?.t != null ? +P.t.toFixed(3) : null }; }, [v.e, v.n]).catch(e => ({ err: String(e).slice(0, 80) }));
+    life.waitS = +((Date.now() - tw) / 1000).toFixed(0); life.target = +target.toFixed(3);
+    appendFileSync(`${outDir}/life.jsonl`, JSON.stringify({ id: v.id, ...life }) + '\n');
     const tf = Date.now(); await p.screenshot({ path: `${outDir}/${v.id}.png`, timeout: 1800000 }); const tshot = ((Date.now() - tf) / 1000).toFixed(0);
     const st = await p.evaluate(() => { const s = window.__parsa.stats(); return { dc: s.drawCalls, tri: s.triangles, be: s.backend }; }).catch(() => ({}));
-    const line = `${v.id} ${((Date.now() - t1) / 1000).toFixed(0)}s (shot ${tshot}s) ${JSON.stringify(st)}`; console.log(T(), line); appendFileSync(`${outDir}/log.txt`, line + '\n');
+    const line = `${v.id} ${((Date.now() - t1) / 1000).toFixed(0)}s (shot ${tshot}s) ${JSON.stringify(st)} life ${JSON.stringify(life)}`; console.log(T(), line); appendFileSync(`${outDir}/log.txt`, line + '\n');
   } catch (e) { console.log(T(), v.id, 'FAILED', String(e).slice(0, 300)); if (/closed|destroyed|crash/i.test(String(e))) break; }
 }
 console.log('page errors (unique):'); for (const [k, n] of errs) console.log(n, k);
