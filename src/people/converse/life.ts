@@ -16,7 +16,7 @@ import { marksOf, marksWords } from '../marks';
 import { aimsOf } from '../aims';
 import type { Economy } from '../economy/world';
 import { personaOf } from '../persona';
-import { numWords, ageWords, ordWords, countWords, spellDigits } from './words';
+import { numWords, ageWords, ordWords, countWords, spellDigits, daysAgoWords } from './words';
 import { toYou } from '../deeds/lately';
 
 export interface Kin { pid: number; name: string; rel: string; age: number; job: string; alive: boolean }
@@ -185,7 +185,7 @@ export function lifeRecord(pop: Population, cal: EventCalendar, pid: number, day
   if (age < 12) for (const o of pop.playmatesOf(pid, day)) if (friends.length < 4 && spokenName(pop, o)) friends.push({ name: spokenName(pop, o)!, how: `plays with them in the ${pop.households[pop.home(o, day)].zone === 'plain' ? 'village' : 'lane'}, a ${pop.persons[o].sex === 'm' ? 'boy' : 'girl'} of ${ageWords(pop.ageOn(o, day))}`, feeling: 'close' });
   // the year so far (the regnal year starts at day 0, the month of Nisanu: sim facts only)
   const year: string[] = [], quarrels: string[] = [];
-  const when = (d: number) => { const k = day - d; return k === 0 ? 'today' : k === 1 ? 'yesterday' : k < 8 ? `${numWords(k)} days ago` : k < 45 ? (Math.round(k / 7) === 1 ? 'about a week ago' : `about ${numWords(Math.round(k / 7))} weeks ago`) : `in the month ${MONTHS[dateOf(d).month - 1].op}`; };
+  const when = (d: number) => { const k = day - d; return k < 45 ? daysAgoWords(k) : `in the month ${MONTHS[dateOf(d).month - 1].op}`; }; // (D-720, W5: no weeks in Persis)
   // (D-720: the court's people came with the court, not with a work group sent to the Terrace)
   const cm = pop.court && pid >= pop.court.first && pid < pop.court.end ? pop.court.member(pid) : null;
   if (cm && p.arrive > 0 && p.arrive <= day) year.push(cm.role === 'petitioner' ? `came to Parsa ${when(p.arrive)} to put a petition before the king` : cm.role === 'delegate' ? `came to Parsa ${when(p.arrive)} with a delegation of their people bearing gifts for the king` : `came to Parsa with the king’s household from Šušan ${when(p.arrive)}`);
@@ -265,7 +265,7 @@ const NEWS_WORDS: Record<string, string> = { death: 'a death in', illness: 'sick
   wrong: 'a wrong done by', insult: 'an insult given by', curse: 'a cursing by', threaten: 'threats made by', assault: 'a beating given by', damage: 'damage done by', slander: 'slander spread by', threat_to_child: 'a child threatened by',
   feud: 'a feud with', fine: 'a fine laid on', fined: 'a fine laid on', hearing: 'a hearing for',
   // (D-375: the town's talk of the stranger)
-  hosted: 'the stranger taken in as a guest by', guest_sent_away: 'the stranger sent away by', ingrate: 'the stranger leaving without a word of thanks to', guest_repaid: 'the stranger\'s gift in thanks to',
+  hosted: 'the stranger taken in as a guest by', trespass: 'the stranger walking uninvited into', guest_sent_away: 'the stranger sent away by', ingrate: 'the stranger leaving without a word of thanks to', guest_repaid: 'the stranger\'s gift in thanks to',
   claim_denied: 'the stranger\'s lie found out by', claim_doubted: 'the stranger\'s tale doubted by', hired_stranger: 'the stranger hired as a hand by', dismissed: 'the stranger dismissed by', ruling_for: 'a ruling for the stranger against', ruling_against: 'a ruling against the stranger, in a matter of', joined_house: 'the stranger taken into', learned_tongue: 'the stranger speaking the tongue of' };
 function talkOf(pop: Population, hh: number, day: number, age: number): { needs: string[]; news: string[] } {
   const A = age >= 12 ? pop.asksNow?.(`h:${hh}`, day) ?? null : null; if (!A) return { needs: [], news: [] };

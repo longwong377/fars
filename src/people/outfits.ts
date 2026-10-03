@@ -341,11 +341,11 @@ export const PIECES: Record<string, PieceMeta> = {
   quiver: { id: 'quiver', label: 'quiver on the back', tier: 'B', src: 'SUSA-ARCH', note: 'large quiver on the back (glazed-brick archers); form and lid C' },
   akinaka: { id: 'akinaka', label: 'short sword (akinakes) at the right thigh', tier: 'B', src: 'ISAC-FINDS', note: 'scabbard hung at the right thigh with a lobed top and a chape (scabbard tips in the Treasury); proportions C' },
   kandys: { id: 'kandys', label: 'kandys: sleeved coat over the shoulders, sleeves empty', tier: 'B', src: 'IR-CAND', note: 'Median dress: full-length sleeved coat slung over the shoulders with empty sleeves hanging; cut, length and colour C; follows the shoulders and hips, not the arms' },
-  gorytos: { id: 'gorytos', label: 'bow case (gorytos) at the left hip', tier: 'C', src: 'RECON', note: 'Median guards on the reliefs (MATERIAL_CULTURE: NOT SEEN, C)' },
+  gorytos: { id: 'gorytos', label: 'combined bow case and quiver (gorytos) at the left hip, lappeted', tier: 'C', src: 'RECON', note: 'the gorytos of the Median guards on the reliefs, a combined bow case and quiver hung at the left hip with its lappeted flap (MATERIAL_CULTURE: NOT SEEN, C)' },
   // D-199 (court setting only): the delegations' headgear on the Apadana reliefs and the king's crown
   cap_pointed: { id: 'cap_pointed', label: 'tall pointed felt cap', tier: 'B', src: 'APA-RELIEF;DB-SKUNXA', note: 'the “pointed-cap Saka” (Old Persian Sakā tigraxaudā, the royal lists: A for the name) on the Apadana E stair and the Bisitun relief (B for the form); height 0.26 m, lean and felt C; ear flaps not modelled' },
   cap_low: { id: 'cap_low', label: 'low rounded cap / wrapped headcloth', tier: 'C', src: 'APA-RELIEF;WALSER1966', note: 'the rounded or conical caps of the lowland delegations (Babylonians, Assyrians/Syrians, Lydians, Cilicians) on the Apadana reliefs (B for “a cap”; recollection of the plates, NOT SEEN: the tassels and lappets are not modelled; C form)' },
-  crown: { id: 'crown', label: 'the king’s tall crown with a dentate rim', tier: 'B', src: 'APA-RELIEF;TREAS-AUD;HADISH-JAMB', note: 'the king’s tall cylindrical headdress on the Treasury audience relief and the palace door jambs (B); the dentate (crenellated) rim, height 0.2 m, the gold band and the cloth under it C' },
+  crown: { id: 'crown', label: 'the king’s tall plain crown (kidaris)', tier: 'B', src: 'APA-RELIEF;TREAS-AUD;HADISH-JAMB', note: 'the king’s tall plain cylindrical headdress on the Treasury audience relief and the palace door jambs (B; D-780: no crenellated rim at Persepolis); height 0.2 m, the gold band and the cloth under it C' },
   brows: { id: 'brows', label: 'eyebrows (strand cards)', tier: 'C', src: 'MH-CC0', note: 'D-307: short strand cards along the brow (tools/blender people_hair), textured from the strand atlas (MakeHuman CC0 hair); at full detail only (beyond it, the skin map\'s brows)' },
   body: { id: 'body', label: 'MakeHuman body (variant)', tier: 'C', src: 'RECON', note: 'MakeHuman CC0 base mesh with macro/face morphs; skin albedo procedural (D-020)' },
   // D-215 (gap audit items 21, 22; D-207): jewellery by rank, the wicker shield, the court women's crown and veil
@@ -381,7 +381,7 @@ export const COSTUMES: Record<Dress, CostumeDef> = {
   envoy_short: { dress: 'envoy_short', always: ['brows', 'tunic_upper', 'tunic_skirt', 'belt'], opt: ['trousers', 'shoes', 'boots', 'hair', 'bun', 'beard_long', 'beard_short', 'cap_pointed', 'cap_low', 'headband', 'akinaka', 'hair_crown'] },
   envoy_bare: { dress: 'envoy_bare', always: ['brows', 'tunic_skirt', 'belt'], opt: ['shoes', 'hair', 'bun', 'beard_long', 'beard_short', 'headband', 'hair_crown'] },
   median: { dress: 'median', always: ['brows', 'tunic_upper', 'tunic_skirt', 'trousers', 'belt', 'boots'], opt: ['hair', 'bun', 'beard_long', 'beard_short', 'cap_soft', 'akinaka', 'gorytos', 'kandys', 'earrings', 'bracelets', 'mouth_cover', 'hair_crown'] },
-  worker: { dress: 'worker', always: ['brows', 'work_upper', 'work_skirt', 'belt'], opt: ['hair', 'beard_long', 'beard_short', 'work_trousers', 'shoes', 'headband', 'cap_soft', 'hair_crown'] },
+  worker: { dress: 'worker', always: ['brows', 'work_upper', 'work_skirt', 'belt'], opt: ['hair', 'beard_long', 'beard_short', 'work_trousers', 'shoes', 'headband', 'cap_soft', 'hair_crown', 'earrings_b', 'bracelets_b'] }, // (D-780: bronze rings, last: the earlier bits unchanged)
   woman: { dress: 'woman', always: ['brows', 'dress_upper', 'dress_skirt', 'belt'], opt: ['hair', 'hair_bob', 'headcloth', 'shoes', 'earrings_b', 'bracelets_b', 'hair_crown'] },
   child: { dress: 'child', always: ['brows', 'child_upper', 'child_skirt'], opt: ['hair', 'shoes', 'hair_crown'] },
 };
@@ -832,12 +832,21 @@ function headRingFrame(c: Ctx, dy: number, tilt: number): Frame {
   const u: V3 = [0, Math.sin(tilt), Math.cos(tilt)], v: V3 = [1, 0, 0];
   return { o: [0, y, h[2] + 0.055], u, v, w: cross(u, v) };
 }
-/** support radius of the head in a rim plane, per θ bin (cached per variant) */
+/** the head's radius in a rim plane, per θ bin (cached per variant). D-780 (C14's close-ups: a porter's headband ~2 cm off the
+ *  scalp): the radial distance of the head's surface in each bin, not the support function (which stood 12 mm off the head on
+ *  average over the variants and up to 36 mm on the oblique sides); bins the thin slab leaves empty are interpolated round the
+ *  ring, and a 3-bin mean smooths the facets without going inside the surface */
 function headRim(c: Ctx, F: Frame, slab: number, cache: { v: HumanVariant | null; r: number[] }) {
-  if (cache.v === c.v) return cache.r; const B = 64, r = new Array(B).fill(0.05);
+  if (cache.v === c.v) return cache.r; const B = 64, r = new Array(B).fill(0);
   for (const i of partVerts(c.A, [P.head])) { const d = sub([c.v.pos[i * 3], c.v.pos[i * 3 + 1], c.v.pos[i * 3 + 2]], F.o); if (Math.abs(dot(d, F.w)) > slab) continue; const x = dot(d, F.u), y = dot(d, F.v);
-    for (let b = 0; b < B; b++) { const th = (b / B) * 2 * Math.PI, h = x * Math.cos(th) + y * Math.sin(th); if (h > r[b]) r[b] = h; } }
-  cache.v = c.v; cache.r = r; return r;
+    const b = Math.floor(((((Math.atan2(y, x) / (2 * Math.PI)) % 1) + 1) % 1) * B) % B, h = Math.hypot(x, y); if (h > r[b]) r[b] = h; }
+  const full = new Set(r.map((_, b) => b).filter(b => r[b] > 0)), r0 = [...r];
+  if (!full.size) r.fill(0.05);
+  else for (let b = 0; b < B; b++) if (!full.has(b)) { // between the nearest filled bins either side, round the ring
+    let lo = b, hi = b, kl = 0, kh = 0; do { lo = (lo + B - 1) % B; kl++; } while (!full.has(lo)); do { hi = (hi + 1) % B; kh++; } while (!full.has(hi));
+    r[b] = r0[lo] + (r0[hi] - r0[lo]) * kl / (kl + kh); }
+  const m = r.map((x, b) => Math.max(x, (r[(b + B - 1) % B] + x + r[(b + 1) % B]) / 3));
+  cache.v = c.v; cache.r = m; return m;
 }
 const rimAt = (r: number[], th: number) => { const B = r.length, f = ((((th / (2 * Math.PI)) % 1) + 1) % 1) * B, b0 = Math.floor(f) % B, a = f - Math.floor(f); return r[b0] * (1 - a) + r[(b0 + 1) % B] * a; };
 /** fitted fluted hat: rim radius from the head at the rim plane + 5 mm, flaring 8 % to the top, fluted */
@@ -892,13 +901,14 @@ function lowCap(L: Lib, key: string, lod: number) {
 /** D-199: the king's crown: a tall cylinder fitted to the head, flaring a little, its rim cut into steps (the dentate
  *  top: C) with a gold band at the brow (the band C) */
 function crownGeo(L: Lib, key: string, lod: number) {
-  const segs = lod === 0 ? 24 : lod === 1 ? 12 : 6, rings = lod === 0 ? 5 : 2, H = 0.2, teeth = 12; // (D-307: 24 columns at full detail, was 36: two per tooth still cut the notches, and the costume's budget took the strand cards) // (the court setting's king only: lean at the far LODs, which every Persian-dress person carries collapsed)
+  const segs = lod === 0 ? 24 : lod === 1 ? 12 : 6, rings = lod === 0 ? 5 : 2, H = 0.2; // (D-307: 24 columns at full detail, was 36: two per tooth still cut the notches, and the costume's budget took the strand cards) // (the court setting's king only: lean at the far LODs, which every Persian-dress person carries collapsed)
   const cache = { v: null as HumanVariant | null, r: [] as number[] };
   const F0 = (c: Ctx) => headRingFrame(c, 0.045, 0.1);
   const body = tubeGeo(L.A, `${key}_body`, { segs, rings, lining: 0.004, capEnd: true,
     frame: (c, t) => { const F = F0(c); return { ...F, o: add(F.o, scl(F.w, -0.012 + (H + 0.012) * t)) }; },
-    // the dentate rim: in the top eighth the gaps between the teeth are drawn in (a notch seen against the sky; C)
-    radius: (c, t, th) => { const r = headRim(c, F0(c), 0.008, cache), tooth = Math.cos(th * teeth) > 0 ? 1 : 0; return rimAt(r, th) + 0.007 + 0.014 * t - (1 - tooth) * 0.018 * sstep(0.86, 0.9, t); },
+    // D-780 (C12 pass 4): a plain cylinder widening a little upward, the kidaris of the Persepolis reliefs (the dentate rim it had
+    // is the crown of other monuments, not Persepolis's)
+    radius: (c, t, th) => rimAt(headRim(c, F0(c), 0.008, cache), th) + 0.007 + 0.014 * t,
     weights: () => [W('head', 1)], mat: MAT.felt, col: COL.felt, prm: 1 });
   if (lod > 0) return body; // (the band only close up)
   const band = headBand(L, `${key}_band`, lod, { dy: 0.05, w: 0.03, t: 0.004, twisted: false, col: COL.fixed, gap: 0.009 });

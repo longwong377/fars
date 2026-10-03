@@ -62,9 +62,13 @@ export function lowFirstKTX2(loader: any, base: string) {
   // they would differ and the swap could not go into the same texture, so the full file loads at once there)
   // (?twins=1 forces them, the cloud's measure of the T4's bytes: the swap is then refused where the formats differ; ?twins=0 never)
   const tw = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('twins') : null;
+  // (?twins=0: the full UASTC files at once, A/B)
   const sameTarget = () => { if (tw) return tw === '1'; const c = loader.workerConfig ?? {}; return !!c.bptcSupported && !c.astcSupported && !c.etc2Supported && !c.etc1Supported; };
   loader.loadAsync = async (url: string, onProgress?: any) => {
-    const low = sameTarget() ? await lowKtxOf(base, url).catch(() => null) : null; if (!low) return load(url, onProgress);
+    const twin = await lowKtxOf(base, url).catch(() => null);
+    // (no twin usable here: the full file at once; the built site has no jpgs for the listed maps, build_site.mjs)
+    if (twin && !sameTarget()) return load(url, onProgress);
+    const low = twin; if (!low) return load(url, onProgress);
     let t: any; try { t = await load(low, onProgress); } catch { return load(url, onProgress); }
     lowFirstStats.low++;
     UPG.push(async () => { const f: any = await load(url);

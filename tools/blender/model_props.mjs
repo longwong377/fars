@@ -22,6 +22,7 @@ export const TARGETS = {
   hanging: { cloth: [2400, 800], band: [1600, 500], rod: [700, 250] },
   canopy: { gilt: [1200, 400], cloth: [2400, 800], band: [4000, 1400] },
   mat: { matting: [2600, 900, 60] }, roll: { textile: [2152, 752, 64] }, rug_folded: { textile: [400, 150, 24] }, lamp: { clay: [308, 106, 40] },
+  gift_amphora: { metal: [2400, 800] }, gift_armlets: { gold: [900, 300] }, gift_tusk: { ivory: [400, 140] }, gift_daggers: { leather: [500, 180], metal: [500, 180] }, gift_bows: { wood: [600, 200] }, gift_cloth: { cloth: [700, 240], band: [200, 80] }, // D-780: the delegations' gifts
   jar_store: { clay: [1472, 514, 90] }, jar_water: { clay: [1272, 444, 90] }, jar_neck: { clay: [884, 308, 80] }, bowl: { clay: [960, 336, 60] }, cookpot: { clay: [992, 346, 90] },
   manger: { straw: [300, 120, 50], mud: [600, 250, 80] }, cradle: { wood: [796, 278, 110], cloth: [1256, 438, 70] }, hung_cloth: { cloth: [2104, 736, 50] }, peg: { wood: [38, 12, 12] },
   hearth: { stone: [2200, 700, 240], ash: [300, 100, 40] },

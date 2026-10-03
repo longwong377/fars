@@ -7,7 +7,8 @@ import { createHash } from 'node:crypto';
 import * as THREE from 'three/webgpu';
 import { buildTerrace } from '../src/arch/terrace';
 import { partsKey } from '../src/arch/partsKey';
-import { terraceFireLights } from '../src/world/firePlaces';
+import * as FP from '../src/world/firePlaces';
+const { terraceFireLights } = FP;
 import { octEncode, octDecode, occAt, bakeTile, tileOf, OCC_TILE, type FireOcc, type OccTracer } from '../src/world/fireOcc';
 
 let occ: FireOcc; let T: ReturnType<typeof buildTerrace>;
@@ -29,7 +30,9 @@ describe('fire-light occlusion (D-222)', () => {
   it('the bake is current: parts hash, tile size and the fires list match the tree (else rerun tools/build_fire_occ.ts)', () => {
     expect(occ.partsHash).toBe(createHash('sha1').update(partsKey(T.parts)).digest('hex').slice(0, 16));
     expect(occ.tile).toBe(OCC_TILE);
-    expect(occ.fires).toEqual(terraceFireLights(T.manifest, T.parts, T.doorways));
+    // (D-740: then the occasional fires the bake takes too, e.g. the banquet lights, when firePlaces.ts lists them)
+    const extra = (FP as any).banquetFireLights?.(T.manifest, T.parts, T.doorways) ?? [];
+    expect(occ.fires).toEqual([...terraceFireLights(T.manifest, T.parts, T.doorways), ...extra]);
     expect(occ.data.length).toBe(occ.cols * occ.tile * occ.rows * occ.tile);
     // the scribes' room lamp (session 8) is one of them, on the bench by its place in SITE_SPEC
     expect(occ.fires.some(f => f.kind === 'lamp' && Math.hypot(f.pos[0] - 188.9, -f.pos[2] - -80.95) < 0.01)).toBe(true);

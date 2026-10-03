@@ -17,7 +17,7 @@ import { HumanGPU } from '../src/people/humanGPU';
 import { Crowd, CARRIED_MAX, THINGS_DIST, IN_PLACE_RATE, yawOf } from '../src/people/crowd';
 import { ACTIVITIES, ABSTRACT_PLACEHOLDERS, performanceFor, type ActivityId, type Performance } from '../src/people/activities';
 import { activityLint } from '../src/people/activityLint';
-import { PROPS, PROP_CLASSES, PROP_NOTES, propGeometry, propUnionGeometry, propSlot } from '../src/people/props';
+import { PROPS, PROP_CLASSES, PROP_NOTES, propGeometry, propUnionGeometry, propSlot, CARRY_POSE } from '../src/people/props';
 import { propOf, type ViewPerson } from '../src/people/popview';
 import { WORK_NOTES, workGeometry, type WorkKind } from '../src/people/workObjects';
 import { SPECIES, ANIMAL_BUILD, animalGeometry, animalFrame, deformAnimal, animalsFor, lieDrop, grazeReach } from '../src/people/animals';
@@ -316,12 +316,12 @@ describe('population people perform too (the D-142 × D-143 merge)', () => {
       const act = v.moving && !ACTIVITIES[v.act].moving ? 'walk' : v.act, want = performanceFor(act, v.why, Math.round(p.animK * 159));
       expect(p.drawnFrame, `p${v.pid} drawn`).toBe(frame());
       expect(p.act, `p${v.pid}`).toBe(act); expect(p.why, `p${v.pid}`).toBe(v.why);
-      expect((p.perf as { variant?: number } | null)?.variant, `p${v.pid}`).toBe(want.variant); expect(p.anim, `p${v.pid}`).toBe(want.anim); expect(p.actPlaceholder).toBe(false);
+      expect((p.perf as { variant?: number } | null)?.variant, `p${v.pid}`).toBe(want.variant); expect(p.anim, `p${v.pid}`).toBe(v.moving && v.prop && want.anim === 'walk' && !want.prop && CARRY_POSE[v.prop] ? CARRY_POSE[v.prop] : want.anim); expect(p.actPlaceholder).toBe(false); // (D-691: a walker with goods walks in the carrying pose)
     }
     const get = (pid: number) => crowd.persons.get(`p${pid}`)!;
     expect(get(1).anim).toBe('drive'); expect(get(1).prop).toBe('goad');
     expect(get(2).anim).toBe('winnow'); expect(get(2).prop).toBe('fork');
-    expect(get(3).anim).toBe('walk'); expect(get(3).prop).toBe('sack'); // the plan's goods, carried as D-142's prop
+    expect(get(3).anim).toBe('carry_shoulder'); expect(get(3).prop).toBe('sack'); // the plan's goods, carried as D-142's prop (D-691: on the shoulder, the carrying pose)
     expect(get(4).anim).toBe('pat'); expect(get(4).prop, 'a variant that leaves the prop out keeps the hands free').toBeNull();
     expect(get(5).act).toBe('walk'); expect(get(5).prop, 'stepping aside on arriving, the reaper carries the sickle he came to reap with').toBe('sickle');
     expect(get(6).anim).toBe('hoe'); expect(get(6).prop).toBe('hoe');

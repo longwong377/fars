@@ -179,7 +179,12 @@ export class Minds {
 
   // ---------------------------------------------------------------- initiative: what a mind does of its own accord
   /** the deeds the town's minds take up on a day (with or without the stranger): drawn over the state, at most `max` */
-  deeds(day: number, max = 300, held?: (pid: number, other: number) => boolean): Deed[] { const out: Deed[] = []; for (const _ of this.deedParts(day, out, max, held)); return out; }
+  /** D-720: the day's own deeds: how many people are looked at (a seeded share of the town; its turn comes round) and the most
+   *  deeds a day (D-462's cost). Measured (tools/dev/minds_rate.ts, seed 1, days 55-60, node, a busy box): 4000/300 509 deeds and
+   *  666 people a day for 226 ms; 12000/900 629 and 862 for 255 ms (taken: +8 % of the minds' day); 20000/1500 743 and 1036 for
+   *  301 ms; 40000/3000 1045 and 1462 for 361 ms (the day's catch-up would grow by ~40 %: when the budget allows) */
+  daily = { sample: 12000, max: 900 };
+  deeds(day: number, max = this.daily.max, held?: (pid: number, other: number) => boolean): Deed[] { const out: Deed[] = []; for (const _ of this.deedParts(day, out, max, held)); return out; }
   /** the same, in slices (D-461: a generator yielding every few hundred people, for the living world's sliced days); first the
    *  deeds the world's events called for (observe) */
   *deedParts(day: number, out: Deed[], max = 300, held?: (pid: number, other: number) => boolean): Generator<void> {
@@ -201,7 +206,7 @@ export class Minds {
       } }
     // (2) needs and ties: a sample of the town each day (a seeded tenth), so every house's turn comes round
     const n = P.persons.length, start = Math.floor(u01(this.seed, S.pick, day) * n), step = 7919;
-    for (let i = 0, x = start; i < Math.min(n, 4000) && out.length < max; i++, x = (x + step) % n) { if (i % 500 === 499) yield;
+    for (let i = 0, x = start; i < Math.min(n, this.daily.sample) && out.length < max; i++, x = (x + step) % n) { if (i % 500 === 499) yield;
       const p = P.persons[x]; if (!P.present(x, day) || P.ageOn(x, day) < 16) continue;
       const u = rng(x, 0), nd = this.ctx.need(x, day);
       // a hungry house borrows from a friend or kin; the desperate and the hard, rarely, steal (C)

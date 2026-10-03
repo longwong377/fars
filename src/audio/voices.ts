@@ -38,6 +38,8 @@
 import type { AudioEngine } from './engine';
 import { FormantBackend, clipToBuffer, voiceBase, type VoiceParams, type Intonation, type Vec3 } from './speech';
 import { tokenizeIpa } from './phonemes';
+import { tongueOf, tongueUnits, EVERYDAY } from './tongues';
+import { reconstructedUnit } from '../lang/reconstruct';
 import { LEXICON, LANG_IDS, murmurEligible, spokenForm, type LangId } from '../lang/lexicon';
 import { LINES } from '../people/speech_lines';
 import { HOME_LANG } from '../people/exchanges';
@@ -100,6 +102,9 @@ export function unitsFor(lang: LangId): { lines: Unit[]; words: Unit[] } {
   const words = LEXICON[lang].filter(murmurEligible).filter(e => speakable(e.ipa!)).map(e => ({ id: e.id, ipa: e.ipa!, intonation: (hashString(e.id) % 5 === 0 ? 'rise' : hashString(e.id) % 3 === 0 ? 'level' : 'fall') as Intonation, kind: 'word' as const, parts: [e.id], tier: e.tier, gloss: e.gloss, translit: spokenForm(e) }));
   u = { lines, words }; UNITS.set(lang, u); return u;
 }
+const RC = new Map<LangId, Unit[]>();
+/** D-720: the town's everyday sentences in a lexicon language as reconstructed period speech (lang/reconstruct.ts; tier C) */
+export function rcLines(lang: LangId): Unit[] { let u = RC.get(lang); if (!u) RC.set(lang, u = EVERYDAY.map((en, i) => reconstructedUnit(en, lang, i)).filter(x => speakable(x.ipa) && x.ipa.split(' ').length >= 2)); return u; }
 /** sim language labels with a lexicon (Iranian: the sim's label for Persians named from the Iranian pool; Medes are voiced
  *  in Old Persian through HOME_LANG, as the sim does: C) */
 export const LEX_LABEL: Readonly<Record<string, LangId>> = { 'Old Persian': 'op', Iranian: 'op', Elamite: 'el', Aramaic: 'arc', Babylonian: 'bab', Greek: 'grc' };
@@ -135,9 +140,11 @@ const wrap = (v: number, lo: number, w: number) => lo + ((((v - lo) % w) + w) % 
 interface Slot { key: string; p: NearPerson; voice: VoiceParams; /** D-336: their own natural voice, and the unit waiting for its render */ nv: NeuralVoice; want?: { u: Unit; lang: LangId | null }; rng: Rng; loud: number; recent: Map<string, number>; busyUntil: number; nextAt: number; seen: number; n: number; spoke: number; /** a baby's cries left in this bout */ bout?: number; /** D-292: the lullaby's phrase: notes left, its length, the scale step */ lull?: { left: number; n: number; step: number } }
 interface Group { busyUntil: number; nextAt: number; speaker: string | null; turnLeft: number; last: string | null; /** a listener's laugh after the turn */ laughAt?: number; laughBy?: string }
 /** one utterance or grain started (the offline measurement reads these: tools/dev/audio_render.ts) */
-export interface Uttered { key: string; kind: 'voice' | 'bed'; t0: number; t1: number; unit: string; lang: LangId | 'wordless'; src: AudioBufferSourceNode; pan: PannerNode; buf: AudioBuffer; voice: VoiceParams }
+/** D-720: a language spoken: a lexicon's, a tongue's (tongues.ts: `tg:Lydian`), or no words */
+export type SpokenLang = LangId | 'wordless' | `tg:${string}`;
+export interface Uttered { key: string; kind: 'voice' | 'bed'; t0: number; t1: number; unit: string; lang: SpokenLang; src: AudioBufferSourceNode; pan: PannerNode; buf: AudioBuffer; voice: VoiceParams }
 /** what the translation layer may show for an utterance heard near (out of world; T-K3c) */
-export interface Caption { key: string; unit: string; lang: LangId | 'wordless'; translit: string; gloss: string; tier: string; t0: number; t1: number }
+export interface Caption { /** D-720: a tongue's speech has `tongue` (tongues.ts) and lang 'wordless' (no lexicon) */ tongue?: string; key: string; unit: string; lang: LangId | 'wordless'; translit: string; gloss: string; tier: string; t0: number; t1: number }
 
 export interface VoicesOptions { seed?: number; clearR?: number; bedR?: number; maxVoices?: number; hrtfN?: number; bedStreams?: number; level?: number; bedLevel?: number; renderBudget?: number; renderMs?: number; sampleRate?: number }
 
@@ -148,7 +155,8 @@ export class PopulationVoices {
   private slots = new Map<string, Slot>(); private groups = new Map<string, Group>();
   private bedNext: number[] = []; private recentAll = new Map<string, number>();
   /** who speaks now (context time): the crowd moves their jaw from `from` to `to` (world.ts) */
-  readonly speaking = new Map<string, { from: number; to: number }>();
+  /** who is speaking now (audio clock), and D-720 (C14's visemes, D-790): the words being said (their IPA and transliteration) */
+  readonly speaking = new Map<string, { from: number; to: number; ipa?: string; text?: string }>();
   /** the talkers voiced this update (individually or by the bed): the crowd lets only the voice move their jaw */
   readonly claimed = new Set<string>();
   /** when set, every utterance and grain started is appended (the offline measurement) */
@@ -185,7 +193,11 @@ export class PopulationVoices {
   script: ((key: string, group: string | null, lang: LangId | null) => Unit | null) | null = null;
   private pickUnit(s: Slot, lang: LangId | null, now: number): Unit | null {
     const sc = this.script?.(s.p.key, s.p.group, lang); if (sc) return sc;
-    const U = lang ? unitsFor(lang) : { lines: [] as Unit[], words: WORDLESS }, fresh = (u: Unit) => u.parts.every(id => (s.recent.get(id) ?? -1e9) < now - 60) && (s.recent.get(u.id) ?? -1e9) < now - 60;
+    // D-720 (UD-24; the holes audit #15): a people without a lexicon speaks its own tongue in reconstructed sentences (tongues.ts),
+    // no longer only hums; a people with one says the town's everyday sentences in reconstructed period speech as well as its
+    // published lines and words (lang/reconstruct.ts): fluent talk, not single words (tier C both)
+    const tg = lang ? null : tongueOf(s.p.lang);
+    const U = lang ? { lines: [...unitsFor(lang).lines, ...rcLines(lang)], words: unitsFor(lang).words } : tg ? { lines: tongueUnits(tg), words: tongueUnits(tg) } : { lines: [] as Unit[], words: WORDLESS }, fresh = (u: Unit) => u.parts.every(id => (s.recent.get(id) ?? -1e9) < now - 60) && (s.recent.get(u.id) ?? -1e9) < now - 60;
     for (let k = 0; k < 16; k++) {
       const pool = U.lines.length && s.rng.chance(0.3) ? U.lines : U.words; if (!pool.length) continue;
       const u = pool[Math.floor(s.rng.next() * pool.length)];
@@ -246,9 +258,9 @@ export class PopulationVoices {
     g.connect(pan); e.route(pan, 'voices', t0 + dur); src.start(t0); src.stop(t0 + dur + 0.01);
     s.n++; for (const id of [tune.id, ...tune.parts]) s.recent.set(id, now); this.recentAll.set(`${lang}|${tune.id}`, now);
     if (s.recent.size > 64) for (const [k, t] of s.recent) if (t < now - 61) s.recent.delete(k);
-    this.speaking.set(s.key, { from: t0, to: t0 + dur }); s.busyUntil = t0 + dur; s.spoke = t0 + dur; this.stats.utterances++;
-    const L = tune.kind === 'wordless' ? 'wordless' : (lang ?? 'wordless'); this.log?.push({ key: s.key, kind, t0, t1: t0 + dur, unit: tune.id, lang: L, src, pan, buf, voice: s.voice });
-    if (this.onCaption && d <= this.captionR) this.onCaption({ key: s.key, unit: tune.id, lang: L, translit: tune.translit, gloss: tune.gloss, tier: tune.tier, t0, t1: t0 + dur });
+    this.speaking.set(s.key, { from: t0, to: t0 + dur, ipa: tune.ipa, text: tune.translit || tune.gloss }); s.busyUntil = t0 + dur; s.spoke = t0 + dur; this.stats.utterances++;
+    const L: SpokenLang = tune.kind === 'wordless' ? 'wordless' : lang ?? (tune.id.startsWith('tg:') ? `tg:${tune.id.split(':')[1]}` : 'wordless'); this.log?.push({ key: s.key, kind, t0, t1: t0 + dur, unit: tune.id, lang: L, src, pan, buf, voice: s.voice });
+    if (this.onCaption && d <= this.captionR) this.onCaption({ key: s.key, unit: tune.id, lang: L.startsWith('tg:') ? 'wordless' : L as LangId | 'wordless', ...(L.startsWith('tg:') ? { tongue: L.slice(3) } : {}), translit: tune.translit, gloss: tune.gloss, tier: tune.tier, t0, t1: t0 + dur });
     return t0 + dur;
   }
   /** Call once a frame with everyone the crowd places near the listener. `hold(key)`: a person speaking a scripted line

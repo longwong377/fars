@@ -31,8 +31,16 @@ const man = JSON.parse(readFileSync(MAN, 'utf8'));
 const q = [...list]; const errs = [];
 await Promise.all(Array.from({ length: JOBS }, async () => { while (q.length) { const sp = q.shift(); try {
   const e = REG.species[sp], C = REG.classes[e.class], b = BUILD[sp], w = `${WORK}/${sp}`; mkdirSync(w, { recursive: true });
-  const glb = `${WORK}/_src/${e.uid}.glb`; mkdirSync(`${WORK}/_src`, { recursive: true });
-  if (!existsSync(glb)) { const r = await fetch(`https://huggingface.co/datasets/allenai/objaverse/resolve/main/glbs/${e.shard}/${e.uid}.glb`); if (!r.ok) throw new Error(`fetch ${r.status}`); writeFileSync(glb, Buffer.from(await r.arrayBuffer())); }
+  const glb = e.derive ? `${w}/source.glb` : `${WORK}/_src/${e.uid}.glb`; mkdirSync(`${WORK}/_src`, { recursive: true });
+  // s18 C14 (D-790): a species derived from another's built library body (its processed lod0 and maps; animals_derive.py)
+  if (e.derive) { const D = e.derive, dm = man.assets[D.from]; if (!dm?.real) throw new Error(`derive: ${D.from} is not a built library model`);
+    const { ktx2rgba } = await import('./lib/ktx2png.mjs'), sharp = (await import('sharp')).default;
+    for (const k of ['albedo', 'nrm']) { const { w: W, h: Hh, data } = await ktx2rgba(`${OUT}/${D.from}_${k}.ktx2`); await sharp(Buffer.from(data), { raw: { width: W, height: Hh, channels: 4 } }).png().toFile(`${w}/donor_${k}.png`); }
+    const dj = { recipe: D.recipe, glb: `${OUT}/${D.from}.glb`, albedo: `${w}/donor_albedo.png`, nrm: `${w}/donor_nrm.png`, out: `${w}/derived.glb`, rig: dm.rig };
+    writeFileSync(`${w}/derive.json`, JSON.stringify(dj, null, 1));
+    log(await run(BLENDER, ['-b', '--factory-startup', '--python', 'tools/blender/animals_derive.py', '--', `${w}/derive.json`]).then(o => o.split('\n').filter(l => l.includes('[animals_derive]')).join('\n')));
+    copyFileSync(`${w}/derived.glb`, glb); }
+  else if (!existsSync(glb)) { const r = await fetch(`https://huggingface.co/datasets/allenai/objaverse/resolve/main/glbs/${e.shard}/${e.uid}.glb`); if (!r.ok) throw new Error(`fetch ${r.status}`); writeFileSync(glb, Buffer.from(await r.arrayBuffer())); }
   // the gear of a pack or riding animal, from the anatomy (tools/blender/sources/animal_gear.ts)
   let gear = null; if (e.gear) { await run(process.platform === 'win32' ? 'npx.cmd' : 'npx', ['tsx', 'tools/blender/sources/animal_gear.ts', w, sp, '0.006']); gear = `${w}/gear.ply`; }
   const job = { sp, gear, glb, out_dir: w, tris: C.tris, tex: C.tex, len: b.len, h: b.h, girth: b.girth, biped: b.biped, head: b.head, rot: e.rot ?? null, kz: e.kz ?? null, drop: e.drop ?? [], tint: e.tint ?? null, tail_r: e.tail_r ?? null, no_udder: !!e.no_udder, device: 'GPU' };
@@ -44,7 +52,7 @@ await Promise.all(Array.from({ length: JOBS }, async () => { while (q.length) { 
   const files = {}; for (const f of [`${sp}.glb`, `${sp}_albedo.ktx2`, `${sp}_nrm.ktx2`]) { const bb = readFileSync(`${w}/${f}`); copyFileSync(`${w}/${f}`, `${OUT}/${f}`); files[f] = { bytes: bb.length, sha256: sha(bb) }; }
   const r4 = v => Array.isArray(v) ? v.map(r4) : typeof v === 'object' && v ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, r4(x)])) : typeof v === 'number' ? +v.toFixed(4) : v;
   man.assets[sp] = { inHash: realHash(sp), class: e.class, real: true, files, tris: [st.lod0, st.lod1], tex: st.tex, lod1At: +(REG.lod1_per_len * b.len).toFixed(1), ao_mean: +st.ao_mean.toFixed(3), mask_mean: 1,
-    rig: r4(rig), source: { uid: e.uid, name: e.name, author: e.author, licence: e.licence, url: `https://sketchfab.com/3d-models/${e.uid}` }, device: st.device, tier: 'C', src: 'LIBRARY' };
+    rig: r4(rig), source: { uid: e.uid, name: e.name, author: e.author, licence: e.licence, url: `https://sketchfab.com/3d-models/${e.uid}`, ...(e.derive ? { derived: `${e.derive.recipe} from ${e.derive.from} (modified: tools/blender/animals_derive.py)` } : {}) }, device: st.device, tier: 'C', src: 'LIBRARY' };
   log(`${sp}: lod0 ${st.lod0} / lod1 ${st.lod1}, ${Object.values(files).reduce((a, f) => a + f.bytes, 0)} B, ${st.seconds} s; scale ${rig.scale.toFixed(3)} kz ${rig.kz.toFixed(3)}`);
 } catch (err) { errs.push(sp); console.error(`[animals_real] ${sp} FAILED: ${err.message}`); } } }));
 const sorted = Object.fromEntries(Object.keys(man.assets).sort().map(k => [k, man.assets[k]]));

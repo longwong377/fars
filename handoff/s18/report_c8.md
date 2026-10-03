@@ -12,14 +12,62 @@ do you do, what has happened to you this year, what troubles you). The full repl
   question asks for), not a reader's judgement; its two misses are "a toy of my own" (a three-letter word), i.e. grounded.
 - **Not mine, asked of the lead:** a court servant of a retinue camp (seed 1, pid 59405) spends the whole day at rest, talk and
   knucklebones (court.ts): the job is a label that day (she worked the day before: kneading, water, sweeping the tents).
-- **By design, not changed:** the minds' deeds touch ~600 people a day of 81,000 (initiative.ts: feeling-driven deeds capped at
-  300 a day, D-462's cost). None of the thirty had a townsfolk deed in the five live days; 8 of 30 (the road folk, children of the
+- **Raised, then capped by cost:** the minds' own deeds now look at 12,000 people a day (was 4,000), up to 900 deeds: 862 people a
+  day touched (was 666) for +29 ms of the minds' day (tools/dev/minds_rate.ts; 40,000/3,000 would reach 1,462 a day for +135 ms,
+  ~40 % more catch-up: when the budget allows). None of the thirty had a townsfolk deed in the five live days; 8 of 30 (the road folk, children of the
   Treasury, a mother at the field) still have nothing done by or to them this year that they could tell (they now have yesterday).
   Raising deed volume is a cost question for the budget (asked as a next step).
 - **Road folk** (hinterland register) live off the map all day (3 plan parts, 2 reasons): they pass through; their day off the map
   is a label. Their talk is grounded (home, kin, past, hopes).
 - aims.ts phrasing ("a trade for Manuš") reads oddly (not mine).
 - The own lines are English (translation layer); the heard voice is the person's own language as before (voice.ts heardReply).
+
+## The lead's asks (after wave 1)
+- **C1's sliced day:** `EconPlans.stepsSliced(day, ms)` works a day's economy steps out a few hundred houses at a time (the
+  market day's buyers were the ~0.8 s); `steps(day)` gives the same steps whole. **Not yet called**: sim.ts (C1) should call
+  `this.econPlans.stepsSliced(day, end - performance.now())` before warmPlans in jumpTo's sliced branch. Not measured on the page.
+- **No wall-clock in the save:** the minds' stats in the deeds' save are the game's counts only (days, deeds, sources, chains).
+- **Holes #9 (talk hidden):** E speaks with whoever is faced within reach (anyone of the population; a greeting first, then type
+  or say); the panel shows the keys, never the notes, the verdicts or why the model is absent (F3 or ?debug shows them); every
+  reply voice goes through the world's mixer. **Not mine:** the shell's hint (shell.ts "E a door, a person") and the Controls
+  screen (C11) should list T and V; main.ts's E still falls back to world.address's canned line when no one is faced.
+- **Holes #15 (speech):** the eight peoples without a lexicon (Egyptian, Lydian, Carian, Lycian, Cappadocian, Bactrian, Sogdian,
+  Thracian) speak reconstructed sentences built from their own sounds (audio/tongues.ts: a hand-set profile per tongue, its
+  sources named, tier C) where they hummed; every lexicon language adds forty everyday sentences in reconstructed period speech
+  (lang/reconstruct.ts) to its published lines and words; the reply heard in a talk says the reply itself (reconstructed); an
+  overheard pair says its own life's fact in reconstructed speech, the other answering. **Unseen/unheard:** no listening test in
+  the cloud (formant or neural); songs with words and the magi's recitation are not done (music, not mine).
+- **Pre-existing, not mine:** tests/econ_plans.test.ts "nobody moves without a walk" fails on clean s17-int too (49 market
+  stall stretches without a walk, days 120-123).
+
+## The lead's later asks (C12's fourth pass, C7's root cause)
+- **C7 (market):** the court's people, travellers and herders are never sent to keep or buy at a market stall (plans.ts pick); the
+  deeds world lays no stretch on a court person's day. **Still failing, not mine:** tests/court_fill audience (the king's day 15
+  has an `offer` and two enthronements: the court's own schedule after the merge) and a court-camp tent (52162: no tent).
+- **4-12:** the stranger buys bread, beer or a meal from a house (only from its spare) or the market's sellers, eats it there,
+  pays weighed silver or barley (barter), at the market's price of the day (season and shortage) with the seller's margin.
+  **Not mine:** the market ground's seasonal goods and fewer squares (fillPlan.ts, C2).
+- **4-1:** sight.ts takes where the stranger is (`inside`: a house, a palace hall, the women's palace, a store): an uninvited
+  stranger is shouted out of a house, stopped by a place's keepers; once a place and day the deeds world lays it (anger, the
+  house's trust down, a trespass rumour on the lane). **Not wired:** the render side must pass `inside` to strangerSeen (sim.ts,
+  world.ts), and react.ts plays a challenge as a stare until a shout and a pointing arm are added.
+- **Cheap fixes:** no weeks (W5); the day's hire paid in barley worth the hire (W6); hums, not bare nouns, as padding (W13);
+  "my lord" and the king named as Xšayaršā son of Dārayavauš in his nineteenth year (W14); coins puzzle the person ("silver is
+  weighed here"), Asia and Europe allowed, modern talk fenced in replies only (W15); loan interest a fifth a year by the months
+  it runs (W17); src/data/lives_baked_s1.json deleted (W22).
+- **Kokoro accents:** no regional colour pool; four style voices of four trained languages, near-even. **Unheard** (no
+  listening in the cloud): PLACEHOLDER-QUALITY until the T4 hears it; voices_eval's uniqueness should be re-measured on Vagon.
+
+## Later still
+- **C7's planCheck (land_work):** a hearing is half an hour waiting to be heard and the hearing itself; the deeds' laid stretches
+  are dressed against cold and dust. Re-run of the land_work sample: the wait and dress issues are gone; left (not mine): meal
+  gaps (C1) and base-plan labels ("with the household" with no one home; a short "through the heat" sleep).
+- **C14's visemes:** voices.speaking entries carry the words said (ipa, text); the talk reply passes {ipa, text} as sayPcm's fifth
+  argument. world.ts must pass them on to crowd.voice (routed by the lead).
+- **4-8:** the talk panel shows what happened in plain words (no verb names, rule reasons or debug; F3/?debug keeps them).
+- **Tests:** tests/talk_prompt.test.ts did not finish in 45 min on this box (it builds a year's world after every source change):
+  left to CI. One run of day_slice "a jump across frames is the jump at once" failed under load and passed three times after
+  (unexplained; flagged).
 
 ## The thirty, before → after (replies grounded of 5; thin spots)
 | seed/pid | kind | person | replies | thin before | thin after |

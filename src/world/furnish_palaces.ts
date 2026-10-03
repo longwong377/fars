@@ -25,6 +25,7 @@ import { surfaceMaterial, SURFACES, type SurfaceDef } from '../render/materials'
 import type { Part, Manifest, Doorway, Column, Box } from '../arch/parts';
 import type { Physics } from '../player/physics';
 import courtJson from '../data/court.json';
+import { FEAST_TABLES } from '../people/ceremony';
 import { scanShape, modelParts, modelFit, aoFactor, propTexture } from '../render/scanProps';
 import { texture, positionWorld, vec3, normalWorld, smoothstep } from 'three/tsl';
 
@@ -34,7 +35,9 @@ export type FurnKind = 'carpet' | 'carpet_rolls' | 'mat' | 'hanging' | 'hanging_
   | 'incense_burner' | 'lamp_stand' | 'chest' | 'jar' | 'canopy';
 /** one piece: grid position of its floor centre (e, n), floor y, heading theta (its length axis, CCW from grid east),
  *  footprint half sizes along / across that axis, height; `metal` for the gilded or silvered pieces */
-export interface FurnItem { kind: FurnKind; building: string; room: string; state: FurnState; e: number; n: number; y: number; theta: number; hu: number; hv: number; h: number; solid: boolean; metal?: 'gilt' | 'silver'; count?: number; variant: number; note: string }
+export interface FurnItem { kind: FurnKind; building: string; room: string; state: FurnState; e: number; n: number; y: number; theta: number; hu: number; hv: number; h: number; solid: boolean; metal?: 'gilt' | 'silver'; count?: number; variant: number; note: string;
+  /** D-780: drawn at this model level whatever the distance (the banquet's 38 tables at the lowest: the court's triangle budget) */
+  lod?: number }
 
 /** the furnishings' surfaces (shared surface model, materials.ts): dyed wool, gold leaf, silver, fired clay (C) */
 export const FURNISH_SURFACES: Record<string, SurfaceDef> = {
@@ -161,6 +164,7 @@ function canopyGeo(P: Parts) { // after the canopy over the king on the audience
 }
 /** the local geometry of a piece, per material */
 export function itemGeometry(it: FurnItem): Parts {
+  if (it.lod !== undefined && it.lod > FURNISH_LOD.lod) { const l0 = FURNISH_LOD.lod; FURNISH_LOD.lod = it.lod; try { return itemGeometry({ ...it, lod: undefined }); } finally { FURNISH_LOD.lod = l0; } }
   const P: Parts = {}, metal: Mat = it.metal === 'silver' ? 'furn_silver' : 'furn_gilt', R = F();
   switch (it.kind) {
     case 'carpet': carpetGeo(P, it.variant, 2 * it.hu, 2 * it.hv); break;
@@ -316,6 +320,15 @@ export function palaceFurnishingPlan(parts: Part[], manifest: Manifest, doorways
       const cp = place(A, 'use', 'canopy', cc[0], cc[1], 0, CN.w / 2 + CN.pole_r, CN.d / 2 + CN.pole_r, CN.h, {}, false); if (cp) cp.solid = false; // posts: their own colliders (below)
       for (const k of [-1, 1]) place(A, 'use', 'incense_burner', te + k * 0.45, tn + 1.4, 0, IB.r, IB.r, IB.h, {}, false);
       hangings(A, 'use', 'S', e => Math.abs(e - te) < R.apadana_hangings_reach); // on the S wall behind the throne only
+      // D-780 (holes #14): the court in residence, the hall laid for its banquets: a carpet and a low table in each bay between
+      // the columns where the diners sit (people/ceremony.ts FEAST_TABLES: the seats round them) (Herodotus 9.80, 9.82: B claim; Heracleides: B claim; C)
+      // (each table at the model's lowest level, and no carpet or lamp stand of its own: with them the court's state was 600 k
+      // triangles against its 450 k budget; the lamp stands at the hall's corners and the torches on its walls light it)
+      FEAST_TABLES.forEach(([e, n], k) => { place(A, 'use', 'table', e, n, 0, R.table.len / 2, R.table.w / 2, R.table.h, { metal: k % 3 ? 'gilt' : 'silver', lod: 2 }, false); });
+      // (no hangings on the W, E and N walls: at ~4.7 k triangles each the 72 of them took the court's state over its 450 k budget)
+      // D-780 (holes #14): with the court away the hall is not bare: the hangings behind the throne's place stay up, the keeper's
+      // corner inside the N door and lamp stands at the corners (C)
+      hangings(A, 'stored', 'S', e => Math.abs(e - te) < R.apadana_hangings_reach);
     }
   }
   function carpetsAt(room: Room, state: FurnState, e: number, n: number) { const [L, W] = R.carpet.size as number[]; out.push({ kind: 'carpet', building: room.building, room: room.id, state, e, n, y: room.fl, theta: 0, hu: L / 2, hv: W / 2, h: R.carpet.thick, solid: false, variant: Math.round(e + n), note: KIND_NOTE.carpet }); }
@@ -374,6 +387,9 @@ export function palaceFurnishingPlan(parts: Part[], manifest: Manifest, doorways
     alongWalls(HM, 'stored', 'carpet_rolls', CR.len / 2, CR.r * 3.2, CR.r * 5, 1, 'E', { count: 6 }); alongWalls(HM, 'stored', 'chest', CH.len / 2, CH.w / 2, CH.h, 1, 'E');
     keeperCorner(HM);
   }
+  if (A) { keeperCorner(A); corners(A, 'stored', 'lamp_stand', LS.r, LS.h, 1.0); } // (D-780)
+  // D-780: the Tachara, the Hadish and the Harem keep their hangings up while the court is away (the doors shut; C)
+  for (const room of [T('hall'), HD]) if (room) hangings(room, 'stored'); // (the Harem's stay rolled: the stored state's 300 k triangle budget)
   // s17 C7 (D-610): a hall shut while the court is away still holds the palace's stores along its walls (chests of plate and
   // cloth, jars of oil and wine, stools stacked, carpets rolled), and the Tachara's side rooms in use their everyday pieces (a
   // lamp stand, stools, a chest, a jar): as the halls' stored state above, by analogy (C)
