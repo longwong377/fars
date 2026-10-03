@@ -34,6 +34,8 @@ await p.waitForFunction(() => window.__ready, null, { timeout: 1500000 });
 console.log('ready', await p.evaluate(() => window.__ready), (Date.now() - t0) / 1000, 's');
 if (process.env.SITES) console.log(JSON.stringify(await p.evaluate(() => window.__sites)));
 for (const v of V) { if (ONLYV && !ONLYV.includes(v.n)) continue;
+  // (AB=1: each view also with window.__parsaSurf.v9 = 0, the earthen walls before D-477, to <view>-<tag>-off.png)
+  if (process.env.AB) { await p.evaluate(() => { window.__parsaSurf.v9.value = 0; }); await p.evaluate(v => window.__shot(v), v); await p.screenshot({ timeout: 600000, path: `${process.env.OUT ?? 'shots'}/houselab-${v.n}-${TAG}-off.png` }); await p.evaluate(() => { window.__parsaSurf.v9.value = 1; }); }
   const res = await p.evaluate(v => window.__shot(v), v);
   await p.screenshot({ timeout: 600000, path: `${process.env.OUT ?? 'shots'}/houselab-${v.n}-${TAG}.png` }); console.log(v.n, JSON.stringify(res), (Date.now() - t0) / 1000); if (process.env.LOGS) console.log(logs.splice(0).slice(0, 8).join('\n')); }
 console.log(logs.slice(0, 12).join('\n')); await b.close();
