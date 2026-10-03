@@ -9705,3 +9705,9 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   relief_atlas.ts, baked on the CPU in slot batches (tools/dev/gpu_slot.mjs; ~4 s a figure at 6 jobs), packed and KTX2-encoded
   as before; the atlas also takes D-510's polychromy change into its input hash. No new asset (the atlas is the project's own,
   ASSET_LEDGER row "Carved-relief atlas" unchanged in kind). Tier C.
+- **D-513 status at the 01:45 cut-off (not shipped):** 177 of 221 figures re-baked with the deeper undercut (T:/fars-blender/
+  reliefs, volatile). The last 44 figures and the packing waited ~45 min for the shared slot and did not run before the cut-off,
+  so public/models/reliefs/*.ktx2 and src/data/relief_atlas.json are the D-320 atlas, unchanged. The game looks as before. The
+  new parameters stay in relief_atlas.ts: the atlas test reads "not current", as it already did since D-510's polychromy
+  change. To finish: `RELIEF_WORK=T:/fars-blender/reliefs node C:/Users/Administrator/fars/tools/dev/gpu_slot.mjs v4 -- npx tsx
+  tools/blender/relief_atlas.ts --jobs=5 --reuse` (~8 min bake + pack), then commit the two KTX2 files and the index.
