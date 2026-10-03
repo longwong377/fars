@@ -58,7 +58,7 @@ export const PLAIN_QUALITY: Record<Quality, { r3: number; maxNear: number; cropR
 /** trees that cast shadows: the nearest SHADOW_N within SHADOW_R m of the camera; at most MAX_LOD0 at full detail */
 const SHADOW_N = 400, SHADOW_R = 120, MAX_LOD0 = 300;
 /** D-670: the field-edge trees and the fallow scrub within this distance of the Apadana are placed once (the static far set) */
-export const FIELD_FAR_R = 8000;
+export const FIELD_FAR_R = 6500; // D-670: 6.5 km (was 8: the plain's static triangles under 1.9 M; a tree beyond is under a pixel)
 /** species the player pushes through (no trunk collider) */
 const SHRUBS = new Set(['tamarisk', 'almond', 'pomegranate', 'vine']);
 /** Phase 6 owns the four settlement.json roads (D-040): the plain draws them only if this is switched on at merge */
@@ -146,7 +146,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   const far = new ImpostorSet(kit, lineTrees.length, { c: nearC, r: nearR }, 20000, 'plain-trees-far'); group.add(far.mesh);
   far.set(lineTrees.map(q => instOf(q.t, terrain, q.where)));
   const plots = baked.plots ?? orchardPlots(zones, villages);
-  const orch = orchardRows(kit, plots, terrain, { c: midC, r: midR }, nearR, 16000); group.add(orch);
+  const orch = orchardRows(kit, plots, terrain, { c: midC, r: midR }, nearR, 16000, 10000); group.add(orch);
   const mid = new ImpostorSet(kit, Q.maxMid, { c: nearC, r: nearR }, 1e6, 'plain-trees-mid'); group.add(mid.mesh);
   // the nearest trees (within SHADOW_R, at most SHADOW_N) cast shadows; the rest of the 3D set does not (shadow passes cost
   // their triangles once per cascade, D-040)

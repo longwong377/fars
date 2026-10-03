@@ -9,7 +9,9 @@
 import { Fn, vec3, float, mat3, max, log2, clamp, pow, dot, mix, uniform } from 'three/tsl';
 
 /** the fitted look (tools/dev/tone_fit.mjs, D-309) */
-export const TONE_LOOK = { slope: 1.0, power: 1.25, sat: 1.15, exposure: 3.2, warm: 0.04, split: 0.6, lift: 0.8 };
+// D-680 (the reset's #1: "a filmic grade with real contrast, warm sun, cool shade"): power 1.25 -> 1.32, lift 0.8 -> 0.45 (the
+// toe lifted shade toward grey), sat 1.15 -> 1.25, split 0.6 -> 0.9 (C)
+export const TONE_LOOK = { slope: 1.0, power: 1.32, sat: 1.25, exposure: 3.2, warm: 0.04, split: 0.9, lift: 0.45 };
 /** D-480 (light v1, the art direction): `warm` a white balance toward the Fars sun (scene-linear gains 1 + warm on red, 1 −
  *  warm on blue, renormalised to luminance 1); `split` a split tone in the look's display domain, the shade toward a cool
  *  blue-teal and the light toward amber (each weighted by (1 − y)² and y², so the mid grey keeps its luminance to < 1 level);

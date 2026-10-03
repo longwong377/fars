@@ -13,6 +13,8 @@ import { sunHorizon, moonHorizon, moonPhase, azAltToWorld, j2000ToHorizonMatrix,
 import { VolumetricClouds } from './clouds';
 import { Meteors } from './meteors';
 import { Planets } from './planets';
+import { Comet, gameDay } from './comet';
+import { cloudKind, cirrusToday, doyOf } from './cloudKind';
 import { skyCalibration, twilightWeight, TW_HI } from './horizon';
 import { Atmosphere, aerosolTauFor, OBSERVER_ALT, SUN_ANGULAR_RADIUS, xyToRenderer, daylightXY, type SkyView, type SkyViewJob } from './atmosphere';
 import { sunNormalLux, skyLux, moonLux, elongationFromFraction, extinctionK, NIGHT_LUX, REN_PER_LUX_SUN, REN_PER_LUX_SKY } from './illuminance';
@@ -47,6 +49,12 @@ export const SNOW_RHO: [number, number, number] = [0.82, 0.83, 0.86];
  *  skylight that reaches the ground and the walls is raised by up to this factor in full darkness (the eye's adaptation is already at its
  *  limit there: the camera does not compensate), so a starlit lane reads as dim shapes, while the dome, the stars and the fires
  *  keep their values (it is applied after the dome's calibration, the air and the clouds) */
+/** D-680 (s18 reset: the blind reviewers' "flat grey-beige everywhere"): the sky's share of the renderer's light (x the
+ *  session-3 calibration). That calibration put the clear noon sky at ~1/3 of the sun on the ground (sun/hemi 2.9 at 69 deg),
+ *  where USNO's clear-sky lux give ~1/7; shade, lanes and wall faces away from the sun drew nearly as bright as the sunlit
+ *  ones. 0.65 sets ~1/4.5 (the dry season's dust and the ground's bounce between the two; C): sun and shade read apart. By day
+ *  only (eased in from -4 to 8 deg of sun): twilight and the night keep their perceptual fill */
+export const SKY_AMBIENT = 0.65;
 export const NIGHT_FILL = 10;
 /** D-480 (light v2): the fill is a floor, not a fixed factor: the skylight is raised until a grey ground under it would be shown at
  *  NIGHT_GREY of the daylight grey (at most NIGHT_FILL times), so the evening falls monotonically from civil twilight to
@@ -59,7 +67,8 @@ export const NIGHT_GREY = 0.05;
 // on the land (NIGHT_GREY) the moonless land drew ~5x brighter than the sky at the horizon, so Kuh-e Rahmat and the Terrace
 // stood lit flat brown against a black sky (C6's pre-dawn frame); now the sky at the horizon is about as bright as the land
 // and ridges, walls and trees stand as silhouettes against a luminous deep-blue night (the art direction's night). C
-export const NIGHT_SKY_ZENITH: [number, number, number] = [0.00105, 0.0012, 0.00172], NIGHT_SKY_HORIZON: [number, number, number] = [0.0036, 0.0039, 0.005], NIGHT_MOON_SKY = 2.5;
+// (and bluer at about the same luminance: through AgX the weaker tint read lavender-grey, the comet frames of day 125)
+export const NIGHT_SKY_ZENITH: [number, number, number] = [0.0006, 0.001, 0.0026], NIGHT_SKY_HORIZON: [number, number, number] = [0.002, 0.003, 0.005], NIGHT_MOON_SKY = 2.5;
 const nightSkyAt = (y: number, k: number): [number, number, number] => { const t = Math.sqrt(Math.max(0, Math.min(1, y))); return [0, 1, 2].map(i => k * (NIGHT_SKY_HORIZON[i] + (NIGHT_SKY_ZENITH[i] - NIGHT_SKY_HORIZON[i]) * t)) as [number, number, number]; };
 export const groundRho = (snowCover: number): [number, number, number] => { const s = Math.min(1, Math.max(0, snowCover)); return [0, 1, 2].map(c => GROUND_RHO[c] + (SNOW_RHO[c] - GROUND_RHO[c]) * s) as [number, number, number]; };
 const _mdir = new THREE.Vector3();
@@ -108,6 +117,8 @@ export class SkySystem {
   private uKP = uniform(1); private uKT = uniform(0); private uDW = uniform(0);
   /** D-480: the night dome's zenith and horizon radiance (weight and moonlight included) */
   private uNZ = uniform(new THREE.Color(0, 0, 0)); private uNH = uniform(new THREE.Color(0, 0, 0));
+  /** D-680: the cirrus veil's strength, light and drift (km) */
+  private uCirrus = uniform(0); private uCirCol = uniform(new THREE.Color(0, 0, 0)); private uCirOff = uniform(new THREE.Vector2(0, 0));
   /** the overcast part of the dome (D-224): its zenith radiance × the cover, drawn with the CIE overcast gradation where the
    *  volumetric layer is off (test quality); where it is on, the layer draws the cloud and the dome between is clear sky */
   private uOv = uniform(new THREE.Color(0, 0, 0));
@@ -142,6 +153,7 @@ export class SkySystem {
   state: SkyState = { sunDir: new THREE.Vector3(0, 1, 0), sunAlt: 45, moonDir: new THREE.Vector3(0, -1, 0), moonAlt: -10, moonFraction: 0, daylight: 1, nightFactor: 0 };
 
   readonly clouds: VolumetricClouds;
+  readonly comet: Comet;
   /** Milky Way + airglow layer (night only; additive, between the sky and the stars) */
   readonly milkyWay: THREE.Mesh;
   private uGal = uniform(new THREE.Matrix3()); // world direction → galactic (l, b) unit vector, per epoch and sidereal time
@@ -243,7 +255,14 @@ export class SkySystem {
       const dogRGB = vec3(dog(-0.3), dog(0), dog(0.3)).mul(exp(de.div(0.9).pow(2).negate())).mul(float(1).sub(smoothstep(40, 55, this.uSunAlt)));
       const halo = float(1).add(ringRGB.mul(0.45).add(dogRGB.mul(2.2)).mul(this.uHalo));
       const nightDome = mix(this.uNH as any, this.uNZ as any, sqrt(clamp(d.y, 0, 1)));
-      (skyMat as any).colorNode = vec4(cn.xyz.mul(this.uKP).add(nightDome).add(T.mul(this.uKT)).mul(halo).add((this.uDisc as any).mul(disc.mul(this.uDW))).add((this.uOv as any).mul(ovG)), 1); }
+      // D-680: the cirrus veil (cloudKind.ts: commonest in autumn): ice-crystal streaks on a plane ~9 km up, stretched along the
+      // upper wind, lit by the high sun (white by day, rose at sunset after the ground's sun has gone: the clouds' top light)
+      const cq = vec2(d.x, d.z).div(max(d.y, 0.03)).mul(9).add(this.uCirOff as any); // (km on the 9 km plane)
+      const cRot = vec2(cq.x.mul(0.8).sub(cq.y.mul(0.6)), cq.x.mul(0.6).add(cq.y.mul(0.8)));
+      const cN = mx_fractal_noise_float(vec3(cRot.x.mul(0.05), cRot.y.mul(0.6), 0.37), int(4), float(2.2), float(0.55));
+      const cMask = smoothstep(0.08, 0.42, cN).mul(smoothstep(0.02, 0.14, d.y)).mul(this.uCirrus);
+      const cirrus = (this.uCirCol as any).mul(cMask);
+      (skyMat as any).colorNode = vec4(cn.xyz.mul(this.uKP).add(nightDome).add(T.mul(this.uKT)).add(cirrus).mul(halo).add((this.uDisc as any).mul(disc.mul(this.uDW))).add((this.uOv as any).mul(ovG)), 1); }
     scene.add(this.sky);
     this.sun.castShadow = true;
     this.sun.shadow.mapSize.set(shadowMapSize, shadowMapSize);
@@ -330,6 +349,7 @@ export class SkySystem {
     scene.add(this.stars);
     this.meteors = new Meteors(DOME * 0.88); scene.add(this.meteors.group);
     this.planets = new Planets(DOME * 0.9); scene.add(this.planets.points);
+    this.comet = new Comet(DOME * 0.89); scene.add(this.comet.group); // D-680: the comet of 467 (comet.ts, C)
     this.clouds = new VolumetricClouds(DOME * 0.85, quality, this.air); scene.add(this.clouds.mesh);
     EYE_SKY.sunVisibilityAt = (x, y, z) => this.sunVisibilityAt(x, y, z);
   }
@@ -431,6 +451,7 @@ export class SkySystem {
       this.uLimMag.value = starLimitMag(s.altitude) - 2.2 * moonUpS * ph.fraction * this.eclipse.light; this.uStarK.value = 1 - 0.85 * cloudCover; }
     this.meteors.update(jdUT, camPos, this.uNight.value);
     this.planets.update(jdUT, camPos, s.altitude, cloudCover);
+    this.comet.update(jdUT, camPos, this.state.sunDir, this.uLimMag.value, 1 - 0.9 * cloudCover);
     // faint diffuse light (Milky Way, airglow): only in full darkness, washed out by moonlight, hidden by cloud (C)
     const moonUp = smoothstepJS(-2, 8, mo.altitude);
     GRADE.nightLift = 1 - 0.75 * moonUp * Math.min(1, ph.fraction * 1.5) * this.eclipse.light;
@@ -451,7 +472,7 @@ export class SkySystem {
     // shadow the eye adapts to the skylight)
     const vS = this.eyeSunVisibility, vM = eyeMoon;
     this.lux = sunN * sinA * vS + skyL + moonN * sinM * vM; this.skyLux = skyL;
-    const sunI = sunN * REN_PER_LUX_SUN, hemiI = skyL * REN_PER_LUX_SKY, moonI = moonN * REN_PER_LUX_SUN;
+    const sunI = sunN * REN_PER_LUX_SUN, hemiI = skyL * REN_PER_LUX_SKY * (1 - (1 - SKY_AMBIENT) * smoothstepJS(-4, 8, s.altitude)), moonI = moonN * REN_PER_LUX_SUN;
     this.gain = skyGain(sunI * sinA * vS + hemiI * 0.8 + moonI * 0.3 * vM, this.lux, skyL); // the exposure estimate's weights (main.ts)
     const G = this.gain; this.fireScale = fireLightScale(G);
     // ---- the physical atmosphere (D-116): sun colour, cloud light at the cloud's height, twilight dome ----------------------
@@ -574,7 +595,12 @@ export class SkySystem {
     // solved for the drifted field around the camera (recomputed when the observer or the field has moved > 500 m)
     { const cx = camPos.x + C.wind.value.x * C.time.value, cz = camPos.z + C.wind.value.y * C.time.value;
       if (!this.coverAt || Math.hypot(cx - this.coverAt[0], cz - this.coverAt[1]) > 500) { this.coverAt = [cx, cz]; this.coverFactor = C.mesh.visible ? localWeatherFactor(cx, cz) : 1; }
-      C.coverage.value = localCoverageUniform(cloudCover, (coverTable as any).dome, this.coverFactor); } // the weather's cover is the observed DOME cover (D-145)
+      C.coverage.value = localCoverageUniform(cloudCover, (coverTable as any).dome, this.coverFactor); }
+    { // D-680: the season's cloud types (cloudKind.ts): the deck's stratiform share and the cirrus veil
+      const doy = doyOf(gameDay(jdUT)); C.stratus.value = cloudKind(doy).stratus; this.uCirrus.value = cirrusToday(doy, cloudCover, 0);
+      const top = C.sunColorTop.value as THREE.Color, hc = this.hemi.color, hI = this.hemi.intensity;
+      this.uCirCol.value.setRGB(top.r * 0.035 + hc.r * hI * 0.08, top.g * 0.035 + hc.g * hI * 0.08, top.b * 0.035 + hc.b * hI * 0.08);
+      this.uCirOff.value.set(C.wind.value.x * C.time.value * 0.004, C.wind.value.y * C.time.value * 0.004); } // the weather's cover is the observed DOME cover (D-145)
     // (the floor is taken on the moonless sky's light, so moonlight still adds on top: a moonlit night stays brighter)
     const nightBase = (skyLux(alt) + NIGHT_LUX) * (1 - 0.3 * cloudCover) + sunN * sinA;
     this.hemi.intensity *= Math.min(NIGHT_FILL, Math.max(1, NIGHT_GREY / Math.max(displayedGrey(nightBase, nightBase), 1e-9))); // D-480: the night fill (after everything that reads the physical skylight)
