@@ -8,10 +8,11 @@ import opentype from 'opentype.js';
 import sharp from 'sharp';
 import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { carvedLines } from '../../src/lang/oldPersian';
 
 const ROOT = resolve(import.meta.dirname, '../..');
-const font = (f: string) => opentype.parse(readFileSync(join(ROOT, 'public/fonts', f)).buffer as ArrayBuffer);
+const font = (f: string) => { const b = readFileSync(join(ROOT, 'public/fonts', f)); return opentype.parse(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) as ArrayBuffer); };
 
 /** fill polygons (nonzero winding) into a mask w x h */
 function fill(polys: [number, number][][], w: number, h: number): Uint8Array {
@@ -114,7 +115,7 @@ export async function rosettes(out: string, w: number, h: number, n: number) {
 }
 
 // ------------------------------------------------------------------------------------------------------------------- main
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const out = process.argv[2] ?? join(ROOT, 'tools/film/work'); mkdirSync(out, { recursive: true });
   const ins = JSON.parse(readFileSync(join(ROOT, 'src/data/inscriptions.json'), 'utf8'));
   const op = font('NotoSansOldPersian-Regular.ttf'), cun = font('NotoSansCuneiform-Regular.ttf');
