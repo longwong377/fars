@@ -10,7 +10,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
 const a = process.argv.slice(2), opt = (k, d) => { const i = a.indexOf(k); return i >= 0 ? a[i + 1] : d; };
-const dist = resolve(a[0] ?? 'dist'), out = a[1] ?? 'census.json', mbps = opt('--mbps', '100'), extra = opt('--params', 'seed=1'), port = +opt('--port', 4190);
+const dist = resolve(a[0] ?? 'dist'), out = a[1] ?? 'census.json', mbps = opt('--mbps', '100'), extra = opt('--params', 'seed=1'), port = +opt('--port', 4182);
 const here = new URL('.', import.meta.url).pathname;
 const srv = spawn(process.execPath, [join(here, '../deploy/serve.mjs'), dist, String(port), '/fars/'], { env: { ...process.env, MBPS: mbps }, stdio: 'ignore' });
 process.on('exit', () => { try { srv.kill(); } catch {} });
