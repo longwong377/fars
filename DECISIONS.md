@@ -9741,3 +9741,24 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
 - animals.ts: a library model's coat darkens to ~0.6 of its albedo with the weather's surface wetness (WEATHER.wetness, the
   ground's own uniform), loses its fuzz rim and takes a duller sheen. Probe: shots/wx-rain-spring-w7.png, wx-herd-30m-w7.png
   (the spring green of D-522 reads on the plain at 30 m).
+
+## D-530 (s17, V6 interior light and fire): daylight through the town's doorways, night spill, flames, coals, fire shadows, camp hearths
+- Daylight ports (fire.ts lightPorts, firePlaces.ts townPorts; world.ts one-line hook fire.setPorts): the town's ~9,100 doorways
+  between a roofed room and the open each become a daylight source standing 1 m outside the opening, lit only on the room's side
+  (a half-space mask added to the composite's deferred term, fireGlow.ts D.w), of intensity daylight x 0.55 (sunlit ground and
+  walls with the sky) x 3 m2 / pi, cut off at 9 m; the nearest ports within 30 m take the deferred slots the fires leave free
+  (by day all twelve). The light-probe field has no town room interiors, so a doorway into a house read as a black hole by day
+  (fire-lab frames house-day-b vs lanedoor-day-d). At night a port whose room has its lamp or hearth lit spills that light out
+  onto the lane or court before the door (x 3 the plain estimate, C). Specular and SSGI bounce of these lights: none (C).
+- House lamps 0.08 -> 0.22 power, range 3.5 -> 5 m (one saucer lamp left the living rooms black at night; C, UD-29).
+- Flames of tongues (two octaves of rising turbulence, narrowing column, blackbody ramp from a yellow-white core to deep red
+  tips) replace the soft noise blob; a glowing coal bed (breathing ember patches) under every hearth, brazier and altar within 60 m.
+- Fire shadows: at high/ultra the 2 nearest fire lights cast soft cube-map shadows (radius 6 texels, 30 m reach), drawn when a
+  light takes another fire and refreshed in turn every 24 frames (fires and walls stand still), only where the adapter binds >= 32
+  sampled textures (B24's 16-texture failure); ?fireshadows=0 turns them off. NOT yet seen in a frame (the box crashed twice
+  under the lab runs): the lead's train must confirm, or set FIRE_SHADOW_LIGHTS = 0.
+- Court camp hearths (C3's ask): addCampHearths(fire, campItems(tents), ground, ti => tentStands(tents[ti], sim.t)) after the
+  court's tents exist (fire.extend() re-makes the flames for the new count); lit at the 'home' meal hours while the tent stands.
+  Not wired: a one-line call in world.ts after CourtCampTents is made (the lead's or C3's).
+- tools/dev/fire_lab.{ts,html,mjs}: the light lab plus fires, ports, the Terrace (?terrace=0 leaves it out), eye/look views.
+- fire_occ re-baked for the current Terrace (the parts hash had moved with V4's work; re-bake after V4's last change).
