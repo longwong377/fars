@@ -245,8 +245,11 @@ function spread(rng: Rng, n: number, gen: () => P2 | null, minD: number, tries =
 }
 const pickHeading = (rng: Rng, run: (b: number) => number) => {
   const cands = Array.from({ length: 16 }, (_, i) => { const b = i * 22.5 + rng.range(-5, 5); return { b, r: run(b) }; }).sort((a, b) => b.r - a.r);
+  // (holes row 22, D-710: no heading at random any more: 40 % of the views faced a wall at a metre. Every view looks down one
+  // of the three most open of the 16 bearings, or the most open of all where the draw was random; the draws are the same
+  // (one each), so every point, its time and weather stay where they were)
   if (rng.chance(0.6)) { const c = cands[rng.int(0, 2)]; return { b: c.b, why: 'open' as const, open: c.r }; }
-  const b = rng.range(0, 360); return { b, why: 'random' as const, open: run(b) };
+  rng.range(0, 360); const c = cands[0]; return { b: c.b, why: 'open' as const, open: c.r };
 };
 
 export function samplePoints(seed = 1, commit: string | null = null): CovFile {
@@ -351,7 +354,7 @@ export function samplePoints(seed = 1, commit: string | null = null): CovFile {
     const got = spread(R, want, gen, 90);
     strata['rahmat:slopes'] = { area: -1, n: got.length };
     for (const [e, n] of got) { const down = Array.from({ length: 16 }, (_, i) => i * 22.5).map(b => ({ b, d: above(W, e, n) - above(W, e + 200 * Math.sin(b * deg), n + 200 * Math.cos(b * deg)) })).sort((a, b) => b.d - a.d);
-      const h = R.chance(0.6) ? { b: down[R.int(0, 2)].b + R.range(-10, 10), why: 'open' as const, open: 200 } : { b: R.range(0, 360), why: 'random' as const, open: 200 };
+      const h = R.chance(0.6) ? { b: down[R.int(0, 2)].b + R.range(-10, 10), why: 'open' as const, open: 200 } : (R.range(0, 360), { b: down[0].b, why: 'open' as const, open: 200 }); // (D-710: down the slope, not into it; one draw as before)
       add('rahmat', 'rahmat:slopes', e, n, 4.0, h, R.range(-8, 2)); }
   }
 
