@@ -69,7 +69,7 @@ export const P = { whole: 0, wall: 1, socle: 2, roof: 3, eave: 4, ceiling: 5, do
 const MUD: RGB = [0.56, 0.47, 0.36], POLE: RGB = [0.5, 0.43, 0.34], BRUSH: RGB = [0.52, 0.45, 0.31], MAT: RGB = [0.5, 0.43, 0.3], STONE: RGB = [0.53, 0.51, 0.47];
 const sh = (c: RGB, k: number): RGB => [c[0] * k, c[1] * k, c[2] * k];
 /** s18 C2 (D-660): the roofs' straw-and-clay finish coat, sun-bleached (linear; C) */
-const ROOF_COAT: RGB = lin([0.74, 0.64, 0.5]);
+const ROOF_COAT: RGB = lin([0.8, 0.64, 0.44]); // (s18 C2, D-672: warmer: at dawn the roofs read cold grey on C6's intro frame)
 /** s18 C2 (D-661): the washes (sRGB): gypsum and lime whites (never pure: the loam shows through), yellow ochres, red ochres */
 const WASH = { white: [[0.9, 0.88, 0.82], [0.86, 0.84, 0.78], [0.92, 0.89, 0.8]] as RGB[], ochre: [[0.82, 0.62, 0.32], [0.78, 0.58, 0.32], [0.84, 0.68, 0.4]] as RGB[], red: [[0.66, 0.4, 0.28], [0.6, 0.36, 0.26], [0.7, 0.46, 0.33]] as RGB[], cream: [[0.9, 0.82, 0.64], [0.87, 0.78, 0.58]] as RGB[], pink: [[0.86, 0.64, 0.56], [0.82, 0.58, 0.5]] as RGB[] };
 const mixc = (a: RGB, b: RGB, t: number): RGB => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
@@ -322,7 +322,7 @@ export class SiteHouses {
   }
   /** s18 C2 (D-660): a roof's top colour on every level: the plot's earth under a straw-and-clay coat, sun-bleached paler and
    *  warmer than the walls' plaster, each roof renewed at its own time (C) */
-  roofCol(r: RoomEl): RGB { return sh(mixc(this.pcol[r.plot], ROOF_COAT, 0.45 + 0.25 * hi(r.room, this.si, 8)), 0.92 + 0.18 * hi(r.room, this.si, 7)); }
+  roofCol(r: RoomEl): RGB { return sh(mixc(this.pcol[r.plot], ROOF_COAT, 0.65 + 0.2 * hi(r.room, this.si, 8)), 0.92 + 0.18 * hi(r.room, this.si, 7)); }
   /** the plot of a site-local point (−1 outside any) */
   private plotOf(u: number, v: number) { const k = this.cellAt(u, v); return k >= 0 ? this.s.cell[k] : -1; }
   /** D-324: an exposed wall top on the far level: both faces up to the worn line (stations ~3 m apart and at the rain's deeper
