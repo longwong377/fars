@@ -71,7 +71,9 @@ describe('dawn, dusk and night do not look like noon (exposure on the SkySystem 
     expect(rise.b, `sunrise (${rise.alt.toFixed(1)}°)`).toBeLessThan(0.85);
     expect(dawn.b, `dawn (${dawn.alt.toFixed(1)}°)`).toBeLessThan(0.55);
     expect(civil.b, `civil twilight (${civil.alt.toFixed(1)}°)`).toBeLessThan(0.15);
-    expect(night.b, 'a moonless night (day 1, 03:30)').toBeLessThan(0.03);
+    // D-480 (light v1, the art direction: a starlit night reads as dim shapes, not black): the night fill (skySystem NIGHT_FILL)
+    // raises the skylight on the ground 10x in full darkness (light v2); still below the end of civil twilight
+    expect(night.b, 'a moonless night (day 1, 03:30)').toBeLessThan(0.13);
     expect(dawn.b).toBeGreaterThan(civil.b); expect(civil.b).toBeGreaterThan(night.b);
   });
   it('fire light is pre-exposed for night: unchanged at night, a small addition at dawn, nothing by day', () => {
