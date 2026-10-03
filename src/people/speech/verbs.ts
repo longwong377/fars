@@ -50,6 +50,11 @@ export function strangerAsk(words: string, c: VerbCtx): SAct | null {
   const goodOf = (w: string) => /\b(barley|grain|bread|flour|wheat)\b/.test(w) ? 'grain' as const : /\b(fuel|firewood|wood|dung|brushwood)\b/.test(w) ? 'fuel' as const : /\b(cloth|jar|pot|goods|wares|basket|tools?)\b/.test(w) ? 'goods' as const : null;
   if (hh && /\b(sell me|i('d| would)? (want|like) to buy|can i buy|could i buy|how much (for|is)|what do you want for|i('ll| will) buy)\b/.test(w)) { const g = goodOf(w); if (g) return { a: 'buy', day, hh, good: g, qty: g === 'goods' ? 1 : qtyOf(w) }; }
   if (hh && /\b(i('ll| will) sell you|will you buy|do you want to buy|buy (my|this|these)|i have .{1,20} to sell)\b/.test(w)) { const g = goodOf(w); if (g) return { a: 'sell', day, hh, good: g, qty: g === 'goods' ? 1 : qtyOf(w) }; }
+  // D-720 (D-358's port): a loan of silver offered ("I can lend you half a shekel"), and the stranger asking a house for help
+  const lend = /\b(lend|loan) (you|your house|them)\b(?:[^.?!]*?\b(\d+(?:\.\d+)?|a|one|half a|a third of a|a tenth of a)\s*(shekels?|silver))?/.exec(w);
+  if (lend && (c.named ?? hh)) { const q = lend[3] ?? 'a', n = /\d/.test(q) ? Number(q) : q === 'half a' ? 0.5 : q === 'a third of a' ? 1 / 3 : q === 'a tenth of a' ? 0.1 : 1;
+    return { a: 'lend', day, hh: (c.named ?? hh)!, cash: Math.min(5, n) }; }
+  if (hh && /\b(help me|i have no (food|bread|barley)|i am starving|i have nothing to eat|i have not eaten)\b/.test(w) && !/\b(can|may|could) i help\b/.test(w)) return { a: 'ask_help', day, hh };
   // gifts (amounts in the translation layer's words: a shekel of silver, a measure of grain; C)
   const gift = /\b(take|accept|here is|have) (this|these|a|some|my)? ?(\d+(?:\.\d+)?|a|one|some)? ?(shekels?|silver|coins?|grain|barley|bread|measures?)\b/.exec(w);
   if (gift && (c.named ?? hh)) { const n = gift[3] && /\d/.test(gift[3]) ? Number(gift[3]) : 1, silver = /shekel|silver|coin/.test(gift[4]);

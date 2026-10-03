@@ -59,7 +59,7 @@ const R: [IntentKind, RegExp][] = [
   ['lead_to', new RegExp(String.raw`\b(?:${ASK}(?:lead|take|bring|guide|show|walk) me(?: the way)? (?:to|towards?|round to|over to)\s+(.{2,50}?)[?.!]*$|${ASK}show me (?:the way to|where)\s+(.{2,50}?)(?: is| are)?[?.!]*$|where is\s+(.{2,40}?)[?.!]*$|(?:which|what) is the way to\s+(.{2,40}?)[?.!]*$|how do i (?:get|go) to\s+(.{2,40}?)[?.!]*$)`, 'i')],
   ['fetch', new RegExp(String.raw`\b${ASK}(?:fetch|call|bring|get|go and get|go for|find)\s+(?!me\b)(.{2,40}?)(?: for me| here| to me)?[?.!]*$`, 'i')],
   ['trade', new RegExp(String.raw`\b(?:trade|exchange|swap|barter)\b(?: (?:you|with you))?\s*(.{0,50}?)[?.!]*$|\bi(?:'ll| will) give you\s+(.{2,40}?)\s+for\s+(.{2,40}?)[?.!]*$`, 'i')],
-  ['give', new RegExp(String.raw`\b(?:${ASK}(?:give|spare|share|hand|lend)(?: me)?\s+(.{2,40}?)[?.!]*$|(?:may|can|could) i (?:have|get|take)\s+(.{2,40}?)[?.!]*$|i (?:am|'m) (?:hungry|thirsty)\b)`, 'i')],
+  ['give', new RegExp(String.raw`\b(?:${ASK}(?:(?:give|spare|share|hand)(?: me)?|lend me)\s+(.{2,40}?)[?.!]*$|(?:may|can|could) i (?:have|get|take)\s+(.{2,40}?)[?.!]*$|i (?:am|'m) (?:hungry|thirsty)\b)`, 'i')],
   ['stop_work', new RegExp(String.raw`\b${ASK}(?:stop (?:working|work|your work|what you are doing|for a while)|leave (?:your|the) work|take a rest|rest a while|put (?:that|it|your work) down)\b`, 'i')],
   ['wait_here', new RegExp(String.raw`\b${ASK}(?:wait (?:here|for me|a (?:moment|while))|stay (?:here|where you are)|don't go|do not go|stand here)\b`, 'i')],
   ['go_home', new RegExp(String.raw`\b${ASK}(?:go (?:back )?home|go back to your (?:house|home|family)|return home)\b`, 'i')],

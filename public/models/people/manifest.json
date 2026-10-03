@@ -1107,7 +1107,7 @@
    "src": "IR-CAND;IR-WOMEN;RELIEF-R",
    "blender": "5.0.1",
    "ktx": "ktx version: v4.4.2-compatible (ktx2-encoder, Basis Universal WASM)",
-   "build_s": 370,
+   "build_s": 362,
    "reproduced": {
     "files": {
      "people_cloth.json": "6029db181659d9b99bfd7cc8e9acbdd9b518a686af08eff26bc8b16af20d8af7",
@@ -1136,7 +1136,7 @@
      "bytes": 1930800
     }
    },
-   "inHash": "25e637fe3a397034ad533e6aabfbf4bbae69d35190fe0e0bc266b8a0de362503",
+   "inHash": "03dc0c67c839340b38c3271bd6af877cacb9226c72c3aee19b2de24f01283907",
    "bytes": 9679412,
    "gpuBytes": 13981014,
    "stats": {
@@ -1190,7 +1190,7 @@
    "src": "RELIEF-R;IR-WOMEN;MH-CC0",
    "blender": "5.0.1",
    "ktx": "ktx version: v4.4.2-compatible (ktx2-encoder, Basis Universal WASM)",
-   "build_s": 213,
+   "build_s": 228,
    "reproduced": {
     "files": {
      "people_hair.json": "5436abedd6dae45921763a6bf3ee50db969d419beb1c3a8d8bdd549bbde2ea40",

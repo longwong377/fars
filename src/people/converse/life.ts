@@ -40,8 +40,11 @@ export interface LifeRecord {
   yesterday?: string[];
   /** D-720: what was lately done by and to them among the townsfolk, in their words (the minds' deeds: deeds/lately.ts) */
   lately?: string[];
-  /** quarrels and small obligations (disputes: sim facts; debts: seeded, C) */
+  /** quarrels (the calendar's disputes) and debts owed and owing (the economy's, D-371; none invented: D-358)*/
   quarrels: string[]; debts: string[];
+  /** D-720 (D-358's port, s14-simtalk): the house's means as it would say them, from the running economy (its barley in days of
+   *  bread, its silver, the market's price of barley; a group's ration for a member of a work group); empty without the economy */
+  means?: string[];
   temperament: string; speech: string[];
   /** today: the date as they would say it, the season and weather, what they are doing now and next, what happened earlier */
   today: { date: string; season: string; weather: string; now: string; place: string; next: string | null; earlier: string[]; events: string[] };
@@ -215,7 +218,15 @@ export function lifeRecord(pop: Population, cal: EventCalendar, pid: number, day
   // D-372: the byname: a married woman by her husband, everyone else by the father (in the house, the mother's husband, or the
   // absent father's name drawn once per mother); A for the practice in the Babylonian and Persepolis documents, C for the father
   const byname = bynameOf(pop, pid, day, household.find(k => k.rel === 'father')?.pid ?? -1);
-  if (real) debts = real.debts; // (the seeded draws are still made: the speech and oath draws after them stay as they were)
+  // (D-358, ported: without the economy nothing of a house's means is invented: the seeded draws are still made, so the speech and
+  // oath draws after them stay as they were, but their words are not kept)
+  debts = real ? real.debts : [];
+  const means: string[] = []; const EH = E?.hh.get(`h:${hh}`);
+  if (E && EH) { const days = EH.grain / Math.max(0.55, EH.eaters * 0.55);
+    means.push(`the house has ${EH.grain < 0.5 ? 'no barley left' : days >= 60 ? `barley for ${numWords(Math.round(days / 30))} months` : days >= 2 ? `barley for ${countWords(Math.round(days), "day")}` : 'barley for a day or less'}, ${EH.cash < 0.01 ? 'and no silver' : `and ${silverWords(EH.cash)}`}${EH.fuel < 5 ? ', little fuel' : ''}`); }
+  else if (p.group >= 0) { const sh = cal.shortfalls.filter(s => s.group === p.group && s.day <= day && s.day > day - 90).pop();
+    means.push(`eats from the barley ration the tablets give the group${sh ? `; it came short ${when(sh.day)}${sh.paidSilver ? ', part paid in silver' : ''}` : ', and lately it has come in full'}`); }
+  if (E) { const d = Math.min(day, E.day), rel = E.price('grain', d) / 0.02; means.push(`barley at the market is ${rel > 2 ? 'very dear' : rel > 1.3 ? 'dear' : rel < 0.75 ? 'cheap' : 'at its usual price'}`); }
   // D-382: the person's own facets (persona.ts, its own seeded stream: the draws of `r` here are unchanged)
   const P = personaOf(pop, pid, day), temper = P.temperament;
   const oaths = OATHS[p.origin] ?? ['by the gods'];
@@ -242,7 +253,7 @@ export function lifeRecord(pop: Population, cal: EventCalendar, pid: number, day
     otherLanguages: [...new Set([p.origin !== 'Persian' && age >= 12 ? 'some Persian' : '', p.job === 'scribe' ? 'Elamite and Aramaic (writes them)' : '', p.group >= 0 && lang !== 'Elamite' ? 'a little Elamite (the language of the ration tablets)' : ''].filter(Boolean))],
     job: jobWords(p), work: cur?.place ?? '', group: p.group >= 0 ? groupWords(pop.groups[p.group].label) : null,
     rank: p.job === 'guard' && p.rank === 1 ? 'leader of a file of ten' : p.rank > 1 ? 'a leader of the group' : null,
-    home: homeWords(pop, hh) + (others > 0 ? ` (a household of ${numWords(all.length + 1)} with the others of the ${p.job === 'herder' ? 'band' : 'group'})` : ''), zone: H.zone, household, kinHouses, friends, year, past: pastWords(pastOf(pop, pid, day, household)).map(spellDigits), marks: marksWords(marksOf(pop, pid, day)).map(spellDigits), ...aimsOf(pop, cal, pid, day, E), ...talkOf(pop, hh, day, age), lately: LATELY.get(pop)?.(pid, day) ?? [], quarrels, debts, temperament: temper, speech,
+    home: homeWords(pop, hh) + (others > 0 ? ` (a household of ${numWords(all.length + 1)} with the others of the ${p.job === 'herder' ? 'band' : 'group'})` : ''), zone: H.zone, household, kinHouses, friends, year, past: pastWords(pastOf(pop, pid, day, household)).map(spellDigits), marks: marksWords(marksOf(pop, pid, day)).map(spellDigits), ...aimsOf(pop, cal, pid, day, E), ...talkOf(pop, hh, day, age), lately: LATELY.get(pop)?.(pid, day) ?? [], quarrels, debts, means, temperament: temper, speech,
     yesterday, today: { date: `the ${ordWords(dt.dom)} day of the month ${M.op.replace(/\s*\(\?\)/, '')} (Babylonian ${M.bab}), the nineteenth year of King Xerxes`, season: seasonOf(C.month), weather, now: cur ? `${cur.act.replace(/_/g, ' ')}: ${unparen(cur.why)}` : 'away from Parsa', place: cur ? cur.where : 'away', next: next ? unparen(next.why) : null, earlier, events },
     knows, tier: 'C',
   };
@@ -294,11 +305,12 @@ export function econFacts(pop: Population, E: Economy, hh: number, day: number):
     debt_labour: () => 'one of the house was bound to work off a debt', hunger: () => 'the house went hungry', animal_lost: () => 'the ox was lost', house_fire: () => 'there was a fire in the house',
     relief: () => 'grain came from the king\'s stores after a petition', given: o => o ? `${o} gave them grain when the house ran short` : null, kin_help: o => o ? `${o}, kin, helped them` : null,
     lent_by_neighbour: o => o ? `${o} lent them silver` : null, loan: o => o ? `borrowed silver from ${o}` : null, repaid: o => o ? `paid back ${o}` : null, robbed: () => 'they were robbed',
+    lent_by_stranger: () => 'the stranger lent them silver', helped_stranger: () => 'they gave the stranger bread when he asked',
     hired_by_neighbour: o => o ? `worked for ${o} for grain` : null, acquitted: () => 'the judge found for them', petition_refused: () => 'a petition of theirs was refused',
   };
   const year: string[] = [], seen = new Set<string>();
   for (let i = E.events.length - 1; i >= 0 && year.length < 3; i--) { const v = E.events[i]; if (!v) continue; if (v.day < day - 60) break; if (v.day > day) continue;
-    if (v.actor !== id && !(v.kind === 'theft' && v.other === id)) continue; const k = v.kind === 'theft' ? 'robbed' : v.kind; if (seen.has(k)) continue;
+    if (v.actor !== id && !((v.kind === 'theft' || v.kind === 'lent_by_stranger') && v.other === id)) continue; const k = v.kind === 'theft' ? 'robbed' : v.kind; if (seen.has(k)) continue;
     const w = WORDS[k]?.(v.other ? houseOf(pop, v.other, day) : null); if (w) { seen.add(k); year.push(w); } }
   return { debts: debts.slice(0, 3), year };
 }
@@ -340,7 +352,7 @@ export function lifeBriefShort(L: LifeRecord, prose?: string | null): string {
     // (D-720: the deeds done by and to them among the townsfolk, the weightiest first: the line's first item is the one kept when the budget cuts it)
     lateLine(L),
     L.yesterday?.length ? `Yesterday: ${L.yesterday.slice(0, 2).join('; ')}.` : '',
-    L.needs.length ? `Your house needs: ${L.needs.join('; ')}.` : '',
+    L.means?.length ? `Means: ${L.means[0]}.` : '', L.needs.length ? `Your house needs: ${L.needs.join('; ')}.` : '',
     L.news.length ? `Talk of the quarter: ${L.news.join('; ')}.` : '',
     L.past.length ? `Before this year: ${L.past.slice(0, 2).join('; ')}.` : '',
     L.marks?.length ? `Plain to see on you: ${L.marks[0]}.` : '',
@@ -363,7 +375,7 @@ export function lifeBrief(L: LifeRecord, prose?: string | null): string {
     `Home: ${L.home}. Household: ${kin}.`,
     L.kinHouses.length ? `Kin in other houses: ${L.kinHouses.join('; ')}.` : '',
     L.friends.length ? `People you know: ${L.friends.map(f => `${f.name} (${f.how}; ${f.feeling})`).join('; ')}.` : '',
-    L.needs.length ? `The house needs: ${L.needs.join('; ')}.` : '', L.news.length ? `Talk of the quarter: ${L.news.join('; ')}.` : '',
+    L.means?.length ? `Means: ${(L.means ?? []).join('; ')}.` : '', L.needs.length ? `The house needs: ${L.needs.join('; ')}.` : '', L.news.length ? `Talk of the quarter: ${L.news.join('; ')}.` : '',
     L.past.length ? `Before this year: ${L.past.join('; ')}.` : '',
     L.marks?.length ? `Plain to see on you: ${L.marks.join('; ')}.` : '',
     L.worries.length ? `Worries: ${L.worries.join('; ')}.` : '', L.hopes.length ? `Hopes: ${L.hopes.join('; ')}.` : '',

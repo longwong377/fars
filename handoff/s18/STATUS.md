@@ -12,7 +12,7 @@ Updated 12:05 UTC, s17-int fd762af7 (C2 decals off + C10 kit merged) (= cloud-s1
 - UNSEEN: nothing since the morning has been seen on a real GPU (the Vagon box is off).
 
 ## Live
-https://longwong377.github.io/fars/ = s14-int e8e271e8 (D-811, 09:58): black-screen fixes, opening film and score.
+https://longwong377.github.io/fars/ = s14-int fd762af7 (D-812, 12:38): over e8e271e8 adds daytime light, decals off, Terrace kit, gift-day crowds. Next: ab009bc8 (C9 checking).
 
 ## Agents (9 working)
 | agent | job now |

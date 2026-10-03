@@ -10,7 +10,7 @@
      "public/generated/humans/humans.bin",
      "public/generated/humans/skin.png",
      "src/people/humanAssets.ts",
-     "src/people/outfits.ts",
+     "src/people/faceRegions.ts",
      "tools/humans/png.ts",
      "tools/blender/hair_atlas.py"
     ],
