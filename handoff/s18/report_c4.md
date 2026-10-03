@@ -15,6 +15,22 @@
 - The night clouds' "hard round edges": not judged (Q=low frames are grainy). The clouds at Q=low in SwiftShader with 2 frames are grainy (no TRAA convergence): their edge softness cannot be judged in
   the cloud. The T4's final cov-000 (01:55) also shows white dots over the ground and sky at night (particles?), unidentified.
 
+## Daytime light (leads 3-4, after the blind reviews: 3/10)
+- **Broken/unseen first.** No before/after frame at 10:00: the cloud's crude render takes ~10 min a view and the freeze came
+  first; the effect on screen is unseen, measured node-side only. cov-204 (the reviewers' black room) reads OPEN-roofed in
+  the baked outdoor field (vis 0.60), so its black is not the eye: likely a roof C2 added after the bake, or the room's own
+  shadowing; re-bake the field (`npx tsx src/render/probes/outdoor_bake.ts`) once C2's roofs land, then re-measure. Sparkle
+  noise in interiors and the banquet walls' flat black: not looked at. Haze and town smoke: not done. town_glow stays red
+  (day 14's hearths 236 lit vs < 60 is the people sim's schedule; the dusk smoke tau 0.21 < 0.3 needs hearthSmoke's emission
+  constants, which smoke_dust and smoke_light pin: my change there, 956cbe05, broke them and was reverted).
+- Step 1 (d059ec66): sky ambient ~1/4.5 of the sun by day (was ~1/3), a filmic grade with contrast (power 1.32, toe lift
+  0.45, sat 1.25, warm/cool split 0.9), contact AO pow 2.4, the outdoor field re-baked for today's town (27 regions).
+- Step 2 (1a3ccd5c): the eye adapts inside town rooms. Its sky rays tested only the Terrace's architecture, so every house
+  kept the open court's exposure. Outside the halls' volumes the outdoor field now answers where the eye is enclosed
+  (vis < 0.55). On the baked field: 39 of 95 town coverage points enclosed; rooms +5.7..+7.9 EV (cov-090 +5.7, cov-070 +7.3,
+  cov-002 +7.9 at the 0.01 floor), lanes under roofs +1..+3.5 EV, open courts +0.
+  tests/eye_outdoor_d680.test.ts.
+
 ## The black screen (the lead's urgent ask, mid-session)
 - Fixed on the cloud's live path (da893241): progressive compile deferred the full-screen quads drawn last in a frame (the
   post pipeline's at high, the renderer's own output quad at low) every frame while the world streamed in: black canvas,
