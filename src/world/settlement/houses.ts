@@ -250,7 +250,7 @@ export class SiteHouses {
       const ax = along ? 0 : 1, cc = ax === 0 ? w.v0 : w.u0, sA = ax === 0 ? w.u0 : w.v0, sB = ax === 0 ? w.u1 : w.v1, t = w.thick;
       const P3 = (x: number, off: number, y: number) => this.wp(...((ax === 0 ? [x, cc + off] : [cc + off, x]) as [number, number]), y);
       const nrm = (sg: number) => { const d = ax === 0 ? this.dirW(0, sg) : this.dirW(sg, 0); return [d[0], 0, d[1]]; };
-      if (w.door) { const yl = Math.max(sp.doorBase, sp.gmax) + DOOR_H; if (sp.top - yl > 0.05) b.box(sp.gm[0], sp.gm[1], th, hu, hv, yl, sp.top, sh(c, 0.9), c, this.owner(we.plot, P.door));
+      if (w.door) { const yl = Math.max(sp.doorBase, sp.gmax) + DOOR_H; if (sp.top - yl > 0.05) b.box(sp.gm[0], sp.gm[1], th, hu, hv, yl, sp.top, sh(c, 0.9), c, this.owner(we.plot, P.door), false, along ? 1 | 8 | 16 : 1 | 2 | 4); // (s18 C2: its ends abut the walls)
         // the street doorway's dark: the vestibule behind the opening (the leaf, when shut, stands in front of it)
         if (we.street) { const p = s.plots[we.plot], d = s.doorPoints(p); if (d) { const og = Math.sign(ax === 0 ? d.out[1] - d.inside[1] : d.out[0] - d.inside[0]), off = -og * (t / 2 + 0.14), y0 = sp.gmin - 0.05, dk = sh(c, 0.1);
           b.set('ao', 0.15); b.quad(P3(sA, off, y0), P3(sB, off, y0), P3(sB, off, yl), P3(sA, off, yl), nrm(og), dk, dk, dk, dk, this.owner(we.plot, P.door)); b.set('ao', 1); } }
@@ -274,7 +274,7 @@ export class SiteHouses {
       // (s18 C2, D-660: the top in the roof's own straw-and-clay coat, paler and warmer than the walls' plaster and more
       // varied roof to roof: from the Terrace and 20 m up the roofs read as the plaster of the walls, the town as boxes)
       const c = this.roofCol(r), g = s.grid(s.u0 + (r.i0 + r.i1) / 2, s.v0 + (r.j0 + r.j1) / 2);
-      b.box(g[0], g[1], th, (r.i1 - r.i0) / 2, (r.j1 - r.j0) / 2, r.R - ROOF_T, r.R - r.fall - 0.012, sh(c, 0.8), c, this.owner(r.plot, P.roof)); }
+      b.box(g[0], g[1], th, (r.i1 - r.i0) / 2, (r.j1 - r.j0) / 2, r.R - ROOF_T, r.R - r.fall - 0.012, sh(c, 0.8), c, this.owner(r.plot, P.roof), false, r.full ? 1 : 31); } // (s18 C2: a full room's roof its top only: its sides lie in the walls' middle)
     // D-324b: the court things that show from afar: each ladder's rails against the eave (a thin slab each), the firewood and
     // fodder stacks (a low block), from the near level's own fixtures
     for (let fi = 0; fi < this.fixtures.length; fi++) { const f = this.fixtures[fi], own = this.fixDesc[fi] * 32 + P.fixture; if (f.kind !== 'ladder' && f.kind !== 'firewood' && f.kind !== 'fodder') continue;
@@ -296,7 +296,7 @@ export class SiteHouses {
     for (const it of this.roofFill()) { if (it.m === 'fill_line') continue; const q = toLocal(s.frame, it.e, it.n), t = this.tileAt(q[0], q[1]); b.set('tileId', (this.big[this.plotOf(q[0], q[1])] ? t : this.plotTile[this.plotOf(q[0], q[1])] ?? t) + 1).set('y0', -1000).set('ytop', 1e4).set('ao', 0.9);
       const jar = it.m.startsWith('jar'), k = it.s[0], cl: RGB = jar ? lin([0.6, 0.42, 0.3]) : it.m === 'mat' ? lin([0.74, 0.64, 0.44]) : it.m === 'wo_fleece' ? lin(it.col?.wool ?? [0.8, 0.75, 0.64]) : lin([0.36, 0.3, 0.22]);
       const [hx, hz, hy] = jar ? [0.22 * k, 0.22 * k, 0.62 * k] : it.m === 'mat' ? [0.62 * k, 0.48, 0.015] : it.m === 'wo_fleece' ? [0.5, 0.42, 0.04] : [0.2, 0.2, 0.03];
-      b.box(it.e, it.n, it.rot, hx, hz, it.y - 0.02, it.y + hy, sh(cl, 0.7), cl, this.owner(this.plotOf(q[0], q[1]), P.fixture)); }
+      b.box(it.e, it.n, it.rot, hx, hz, it.y - 0.02, it.y + hy, sh(cl, 0.7), cl, this.owner(this.plotOf(q[0], q[1]), P.fixture), false, jar ? 31 : 1); }
     b.set('ao', 1);
   }
   /** s18 C2 (D-660): a roof's top colour on every level: the plot's earth under a straw-and-clay coat, sun-bleached paler and
@@ -311,8 +311,10 @@ export class SiteHouses {
     const P3 = (x: number, off: number, y: number) => this.wp(...((ax === 0 ? [x, cc + off] : [cc + off, x]) as [number, number]), y);
     const dir = (du: number, dv: number) => { const d = this.dirW(du, dv); return [d[0], 0, d[1]]; };
     const N = (sg: number) => ax === 0 ? dir(0, sg) : dir(sg, 0), A = ax === 0 ? dir(1, 0) : dir(0, 1);
-    const st = [sA, sB]; const n = Math.max(1, Math.round(len / 3)); for (let i = 1; i < n; i++) st.push(sA + (len * i) / n);
-    for (const [cn, wd, dp] of T.notches) if (dp > 0.1) for (const k of [-1, 0, 1]) { const x = cn + k * wd; if (x > sA + 0.05 && x < sB - 0.05) st.push(x); }
+    // (s18 C2, D-661: stations ~6 m apart and each deep notch's centre only, was ~3 m and three a notch: the belt's 739 plots
+    // kept the town under its 1.2 M triangles; beyond 72 m a notch reads as its dip)
+    const st = [sA, sB]; const n = Math.max(1, Math.round(len / 6)); for (let i = 1; i < n; i++) st.push(sA + (len * i) / n);
+    for (const [cn, , dp] of T.notches) if (dp > 0.12 && cn > sA + 0.05 && cn < sB - 0.05) st.push(cn);
     const S = [...new Set(st.map(x => +x.toFixed(3)))].sort((p, q) => p - q), cT = sh(c, 1.04), cB = sh(c, 0.8);
     for (let i = 0; i + 1 < S.length; i++) { const x0 = S[i], x1 = S[i + 1], y0 = ytopF(x0), y1 = ytopF(x1);
       for (const sg of [-1, 1]) { const f = sg * t / 2; b.quad(P3(x0, f, sp.y0), P3(x1, f, sp.y0), P3(x1, f, y1), P3(x0, f, y0), N(sg), cB, cB, c, c, own); }
