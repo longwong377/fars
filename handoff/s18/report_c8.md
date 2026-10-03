@@ -21,6 +21,24 @@ do you do, what has happened to you this year, what troubles you). The full repl
 - aims.ts phrasing ("a trade for Manuš") reads oddly (not mine).
 - The own lines are English (translation layer); the heard voice is the person's own language as before (voice.ts heardReply).
 
+## The lead's asks (after wave 1)
+- **C1's sliced day:** `EconPlans.stepsSliced(day, ms)` works a day's economy steps out a few hundred houses at a time (the
+  market day's buyers were the ~0.8 s); `steps(day)` gives the same steps whole. **Not yet called**: sim.ts (C1) should call
+  `this.econPlans.stepsSliced(day, end - performance.now())` before warmPlans in jumpTo's sliced branch. Not measured on the page.
+- **No wall-clock in the save:** the minds' stats in the deeds' save are the game's counts only (days, deeds, sources, chains).
+- **Holes #9 (talk hidden):** E speaks with whoever is faced within reach (anyone of the population; a greeting first, then type
+  or say); the panel shows the keys, never the notes, the verdicts or why the model is absent (F3 or ?debug shows them); every
+  reply voice goes through the world's mixer. **Not mine:** the shell's hint (shell.ts "E a door, a person") and the Controls
+  screen (C11) should list T and V; main.ts's E still falls back to world.address's canned line when no one is faced.
+- **Holes #15 (speech):** the eight peoples without a lexicon (Egyptian, Lydian, Carian, Lycian, Cappadocian, Bactrian, Sogdian,
+  Thracian) speak reconstructed sentences built from their own sounds (audio/tongues.ts: a hand-set profile per tongue, its
+  sources named, tier C) where they hummed; every lexicon language adds forty everyday sentences in reconstructed period speech
+  (lang/reconstruct.ts) to its published lines and words; the reply heard in a talk says the reply itself (reconstructed); an
+  overheard pair says its own life's fact in reconstructed speech, the other answering. **Unseen/unheard:** no listening test in
+  the cloud (formant or neural); songs with words and the magi's recitation are not done (music, not mine).
+- **Pre-existing, not mine:** tests/econ_plans.test.ts "nobody moves without a walk" fails on clean s17-int too (49 market
+  stall stretches without a walk, days 120-123).
+
 ## The thirty, before → after (replies grounded of 5; thin spots)
 | seed/pid | kind | person | replies | thin before | thin after |
 |---|---|---|---|---|---|

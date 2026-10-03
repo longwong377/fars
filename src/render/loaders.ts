@@ -3,6 +3,7 @@
 // the decodes queued behind ~70 workers' start-up. Now one pool per decoder, sized to the cores less the main thread. The
 // transcoder's target format: the renderer's when the first caller has one, else the WebGPU adapter's features (as before,
 // render/models.ts D-306: the world loads before it has a renderer). Never dispose them (shared).
+import { LinearFilter, TextureLoader } from 'three/webgpu';
 import { BASE } from '../core/base';
 import { lowFirstKTX2 } from './lowfirst';
 
@@ -49,4 +50,22 @@ export function sharedDraco(base = BASE): Promise<any> {
       () => { if (d.workerPool.length) { for (const w of d.workerPool) w.terminate(); d.workerPool.length = 0; loaderStats.dracoReaped++; } });
     wrap(d, 'decodeGeometry', arm); return keep(d);
   }));
+}
+// D-740 (s18 C9): an image listed in public/ktx_maps.json (tools/bake_world/ktx_maps.ts) loads as its KTX2 (BC7 on the T4: a
+// quarter of RGBA8's memory, its mips in the file), in the orientation its own loader would give it; its 128-px thumbnail is
+// texture.userData.thumb for code that reads the image's colours (a compressed texture has no pixels to draw). Otherwise, or
+// if the KTX2 fails, the image itself through `tl` (three's TextureLoader). ?scanjpg: the images (A/B).
+let mapsP: Promise<Set<string>> | null = null;
+export async function loadMap(url: string, tl?: { loadAsync(u: string): Promise<any> }, base = BASE): Promise<any> {
+  const key = url.startsWith(base) ? url.slice(base.length) : url;
+  const listed = typeof location === 'undefined' || new URLSearchParams(location.search).has('scanjpg') ? new Set<string>()
+    : await (mapsP ??= fetch(`${base}ktx_maps.json`).then(r => (r.ok && (r.headers.get('content-type') ?? '').includes('json') ? r.json() : null)).then(j => new Set(Object.keys(j?.maps ?? {}))).catch(() => new Set<string>()));
+  if (listed.has(key)) try {
+    const stem = url.replace(/\.(jpg|png|webp)$/, ''), K = await sharedKTX2(base);
+    const [t, thumb] = await Promise.all([K.loadAsync(stem + '.ktx2'), fetch(stem + '.thumb.jpg').then(r => (r.ok ? r.blob() : null)).then(b => (b ? createImageBitmap(b) : null)).catch(() => null)]);
+    t.magFilter = LinearFilter; // (the transcoder's textures come nearest-magnified)
+    if (thumb) t.userData.thumb = thumb;
+    return t;
+  } catch (e) { console.warn(`[loadMap] ${key}: ${(e as Error).message}; the image`); }
+  return (tl ?? new TextureLoader()).loadAsync(url);
 }

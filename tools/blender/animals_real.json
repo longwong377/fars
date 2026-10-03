@@ -1,5 +1,5 @@
 {
- "about": "V5 D-520: species drawn from ready-made, realistically textured library models (Objaverse = Sketchfab, each under its own licence; ASSET_LEDGER.md) by tools/blender/animals_real.mjs. Per species: uid and shard (huggingface.co/datasets/allenai/objaverse glbs/<shard>/<uid>.glb), name, author, licence, class; optional rot (deg about up, overrides the head-end search), kz (height factor), drop (object-name substrings left out).",
+ "about": "V5 D-520: species drawn from ready-made, realistically textured library models (Objaverse = Sketchfab, each under its own licence; ASSET_LEDGER.md) by tools/blender/animals_real.mjs. Per species: uid and shard (huggingface.co/datasets/allenai/objaverse glbs/<shard>/<uid>.glb), name, author, licence, class; optional rot (deg about up, overrides the head-end search), kz (height factor), drop (object-name substrings left out). s18 C14 (D-790): derive {from, recipe}: the body made from another species' built library model by tools/blender/animals_derive.py (the library is not reachable from the cloud: B820).",
  "classes": {
   "large": {
    "tris": [
@@ -117,7 +117,7 @@
    "name": "Dromader",
    "author": "hendrikReyneke",
    "licence": "CC-BY-4.0",
-   "tail_r": 0
+   "tail_r": 0.07
   },
   "hen": {
    "class": "fowl",
@@ -330,6 +330,46 @@
    "author": "dinomaster",
    "licence": "CC-BY-4.0",
    "gear": true
+  },
+  "camel": {
+   "class": "large",
+   "uid": "3a62c9769cf84eef82560b64f87f829a",
+   "shard": "000-015",
+   "name": "Dromader",
+   "author": "hendrikReyneke",
+   "licence": "CC-BY-4.0",
+   "tail_r": 0.06,
+   "derive": {
+    "from": "dromedary",
+    "recipe": "bactrian"
+   }
+  },
+  "camel_pack": {
+   "class": "large",
+   "uid": "3a62c9769cf84eef82560b64f87f829a",
+   "shard": "000-015",
+   "name": "Dromader",
+   "author": "hendrikReyneke",
+   "licence": "CC-BY-4.0",
+   "tail_r": 0.06,
+   "derive": {
+    "from": "dromedary",
+    "recipe": "bactrian_pack"
+   },
+   "gear": true
+  },
+  "zebu": {
+   "class": "large",
+   "uid": "dc8185e4e21747fb8b394e40d3ec125a",
+   "shard": "000-121",
+   "name": "Cow",
+   "author": "hendrikReyneke",
+   "licence": "CC-BY-4.0",
+   "no_udder": true,
+   "derive": {
+    "from": "cow",
+    "recipe": "zebu"
+   }
   }
  }
 }

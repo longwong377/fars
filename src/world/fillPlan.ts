@@ -37,7 +37,9 @@ function strHash(s: string) { let h = 2166136261 >>> 0; for (let i = 0; i < s.le
 
 // the cloths' colours (sRGB): undyed wool and linen most, then the period's dyes (madder red, woad/indigo blue, weld and
 // pomegranate-rind yellows, walnut browns; the dyes: PF and the Pazyryk textiles, B; the shares C)
-export const CLOTHS: RGB[] = [[0.8, 0.74, 0.62], [0.74, 0.68, 0.56], [0.86, 0.82, 0.72], [0.58, 0.22, 0.16], [0.5, 0.18, 0.14], [0.28, 0.32, 0.46], [0.72, 0.58, 0.3], [0.46, 0.36, 0.26], [0.66, 0.4, 0.26]];
+export const CLOTHS: RGB[] = [[0.8, 0.74, 0.62], [0.74, 0.68, 0.56], [0.86, 0.82, 0.72], [0.58, 0.22, 0.16], [0.5, 0.18, 0.14], [0.28, 0.32, 0.46], [0.72, 0.58, 0.3], [0.46, 0.36, 0.26], [0.66, 0.4, 0.26],
+  // s18 C2 (D-661: the town read all buff): weld over woad green, madder over woad purple, a strong weld yellow, a bright madder, deep woad (C)
+  [0.36, 0.44, 0.3], [0.42, 0.22, 0.3], [0.82, 0.66, 0.24], [0.68, 0.26, 0.18], [0.22, 0.3, 0.52]];
 const cloth = (u: number): RGB => pick(CLOTHS, u);
 const FRUIT: RGB[] = [[0.55, 0.13, 0.1], [0.62, 0.2, 0.12], [0.72, 0.62, 0.22], [0.6, 0.48, 0.16], [0.42, 0.28, 0.16]]; // pomegranates, quinces, apples, dates
 

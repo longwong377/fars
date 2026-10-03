@@ -30,7 +30,7 @@ Machine-readable file: `src/data/plain.json`, with the same frame and fields as 
 | Named Achaemenid hydraulic traces: Sang-e Dokhtar, Bard-e Burideh II, Rud-i Main aqueduct, Band-e Bas I/II, Asiyab dam, Qondashloo canal | names only; Band-e Dokhtar and Bard Burideh are dated by carved blocks and dovetail clamps | KURHYDRO2024; BOUCHARLAT2012 | SX | B | yes |
 | Sang-i Dokhtar dam | 30.1725, 52.43611 (51 km NW, **outside the extent**), Classical | PLEIADES-FARS | FT | B | yes |
 | Band-e Amir weir (10th c. CE), Doroodzan and Mulla Sadra dams, Sivand dam | – | brief §12; KOR-HSJ2023 | – | – | **no (blocklist)** |
-| Qanats | no dated Achaemenid qanat | QANAT-WH2018 | SX | – | **not placed** (Q-052) |
+| Qanats | no dated Achaemenid qanat here; Persian-period qanats dated elsewhere in the empire (Ayn Manawir, B) | QANAT-WH2018 | SX | C | **s18 D-771 (C):** place a few at the piedmont villages (Q-052); was **not placed** |
 
 ## 3. Fields and crops (JSON `crops`)
 | Crop | Evidence for Fars / PF | Calendar | Height (m) | Source | Access | Tier |

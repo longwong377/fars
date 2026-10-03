@@ -50,7 +50,7 @@ Access column: `SX` = search extract (page not verified); `NS` = not seen (model
 ### 1c. Other people at Persepolis in 467
 | Who | Evidence | Tier |
 |---|---|---|
-| Xerxes | No text places him at Persepolis in yr 19 (CHRONOLOGY Q-005). Absent by default. D-199: with the court setting (C) he is a person, in the reliefs' ceremonial dress (B), giving audience in the Apadana on about two mornings in five and otherwise unseen in the Hadish (research/COURT.md 5b) | — |
+| Xerxes | No text places him at Persepolis in yr 19 (CHRONOLOGY Q-005). Resident with the court in spring by default (D-236, C; **s18 D-771 (C):** this said 'absent by default'). D-199: he is a person, in the reliefs' ceremonial dress (B), giving audience in the Apadana on about two mornings in five and otherwise unseen in the Hadish (research/COURT.md 5b) | — |
 | Satrap/governor of Persis in 467 | **No name found.** Persis may have been administered directly (as under Parnakka), not as an ordinary satrapy (NS) | GAP |
 | Megabyzus, Artabanus and others | Not found in any PT extract. **Do not use** | — |
 
@@ -124,7 +124,7 @@ over-represented among craftsmen, spearmen and scribes (search summary; C).
 |---|---|---|---|---|---|
 | Sedentary population of the Persepolis (Marvdasht) plain, Achaemenid period | ≤ 44,000 (43,600) | SUMNER1986 | SX | B | 39 habitation sites; a 5-level settlement hierarchy around Persepolis |
 | King's table "feeds 15,000 a day"; the dinner costs 400 talents | **claim** | ATH4 (Ctesias and Dinon, via Athenaeus) | SX | claim | A Greek literary claim, not a count. Relevant only if the court is resident |
-| Zones in 467, court absent (default) | Terrace: 300–600 (garrison, treasury staff, scribes, builders by day); town and palace zone: 3,000–6,000 (C) | reconstruction from the above | — | C | |
+| Zones in 467, court absent (outside the spring residence; s18 D-771) | Terrace: 300–600 (garrison, treasury staff, scribes, builders by day); town and palace zone: 3,000–6,000 (C) | reconstruction from the above | — | C | |
 | Court resident (setting) | + several thousand on and around the Terrace | brief §9.2 guidance | — | C | |
 
 ## 4. Guards
@@ -287,7 +287,7 @@ spread over several km², among gardens, parks, fields and orchards. **Plain** =
 Seasons follow the Babylonian months: spring 12, 1, 2 (8 Mar–14 Jun); summer 3–5 (15 Jun–11 Sep); autumn 6–8
 (12 Sep–8 Dec); winter 9–11 (9 Dec–7 Mar).
 
-### Court absent (default, D-003)
+### Court absent (outside the spring residence; the default until D-236: s18 D-771)
 | zone | time | spring | summer | autumn | winter | derivation |
 |---|---|---|---|---|---|---|
 | Terrace | day | 290–930 (≈ 575) | 260–830 (≈ 515) | 290–930 (≈ 575) | 210–680 (≈ 425) | garrison 50–150 + Treasury building staff 50–150 + building gangs 150–500 (factor: summer 0.8 for harvest and heat, winter 0.5 for frost and rain; C) + porters 20–60 + palace caretakers 10–40 + officials, couriers, visitors 5–30 |
