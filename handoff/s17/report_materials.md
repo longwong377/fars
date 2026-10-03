@@ -4,8 +4,8 @@
 - Not judged in a full-world render: all judging was on house_lab, terrace_probe and light_lab (under light v1). Nothing I did has been seen through the full pipeline yet.
 - The houses' oval repair patches and rectangular brick-loss decals (houses.ts `decal`, owned by C1) still read as hard-edged stickers. The material can't fix that; the geometry needs feathered edges.
 - In the plain probe, the near ground shows a pixel-blocky dark speckle and black, unlit flora cards (camelthorn/thistle). These are in terrainPlain.ts and groundFlora.ts (C2), not my files; my last A/B run was lost in the crash, so I haven't confirmed the cause.
-- The palace walls are still close to flat past 20 m (the bays are now stronger); the Terrace limestone reads as grey-cream stone in the probe; ground tiling at 20-80 m has not been re-checked; doors, wood and cloth are untouched.
-- The new scans ship as 2K JPEG, not yet in the KTX2 set (C4's ktx_scans list needs: dirt_floor, raked_dirt, stone_wall, clay_block_wall).
+- The palace walls are still close to flat past 20 m (the bays are now stronger); the Terrace limestone reads as grey-cream stone in the probe; doors, wood and cloth are untouched.
+- The new scans now ship as KTX2 (public/textures/ktx.json, loaded through sharedKTX2; the jpgs remain as the fallback). Doors and wood are unchanged: rough_wood on every timber part (a door-only plank scan would need towndoors.ts to use its own surface, C1's file).
 
 **What a player now sees differently**
 - Town and village house walls show an earthen coat of pores, grit and chaff (Dirt Floor scan), with darker damp feet and stronger rain streaks.
