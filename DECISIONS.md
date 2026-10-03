@@ -9745,3 +9745,9 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
 - animals.ts: a library model's coat darkens to ~0.6 of its albedo with the weather's surface wetness (WEATHER.wetness, the
   ground's own uniform), loses its fuzz rim and takes a duller sheen. Probe: shots/wx-rain-spring-w7.png, wx-herd-30m-w7.png
   (the spring green of D-522 reads on the plain at 30 m).
+- D-472 addendum (00:31 crash, the second): Windows logged "low virtual memory": COMMIT ran out (limit 71.5 GB = 63 GB RAM
+  + 8 GB page file) with 35 GB of RAM still free: Chrome GPU processes commit 5-10 GB each (9.8 + 8.2 + 5.5 GB at the event)
+  and the lead had started a full vitest run (up to 16 workers) beside the train and the agents' probes. The Claude app died
+  again and stopped every agent. Fix: boxguard.freeGB = min(free RAM, free commit) from perf counters; gpu slots start only
+  with >= 12 GB and end their job under 6 GB; scoreboard refuses under 24 GB. No full test suite on the Vagon box while
+  agents build (the cloud CI runs npm test on every s17-int push); targeted vitest files only.
