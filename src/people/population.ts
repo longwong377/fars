@@ -1850,7 +1850,7 @@ export class Population {
     const ev = this.rel.get(this.relKey(a, b)); if (ev) for (const [x, dv] of ev) if (x < d) v += dv * Math.exp(-(d - x) / L.affinity.tau_days);
     return Math.max(-1, Math.min(1, v));
   }
-  relationsSnapshot() { return [...this.rel.entries()]; }
+  relationsSnapshot() { return [...this.rel.entries()].sort((a, b) => a[0] - b[0]).map(([k, v]) => [k, [...v].sort((x, y) => x[0] - y[0])] as [number, [number, number][]]); } // (D-720: in key and day order: a day made ready ahead relates in another order, the same relations)
   relationsRestore(s: [number, [number, number][]][]) { this.rel.clear(); for (const [k, v] of s) this.rel.set(k, v.slice()); this.planCache.clear(); this.planCount = 0; this.rawCache.clear(); this.rawCount = 0; }
   /** E-74: disputes today in their real contexts; both parties' plans include them; the relationship sours */
   drawDisputes(d: number, C: DayCtx) {
@@ -1979,7 +1979,7 @@ export class Population {
     const p = this.persons[pid], hid = this.home(pid, d), H = this.households[hid]; if (!H || (H.zone !== 'town' && H.zone !== 'plain') || p.zone === 'transient' || p.agent >= 0) return segs;
     if (segs.some(x => x.act === 'offmap' || x.act === 'lie_ill') || this.mourning(pid, d)) return segs;
     const age = this.ageOn(pid, d), home = H.home, W: Where = H.zone === 'plain' ? 'plain' : 'town', wx = this.cal.ctx(d).wx, u = (k: number) => u01(this.seed, S_OUT, pid, d, k);
-    const dry = (a: number, b: number) => rainHours(wx, a - 0.3, b + 0.3) === 0 && !(wx.stormH && a < wx.stormH[1] + 0.5 && b > wx.stormH[0] - 0.5);
+    const dry = (a: number, b: number) => rainHours(wx, a - 0.3, b + 0.3) === 0 && !(wx.stormH && a < wx.stormH[1] + 0.5 && b > wx.stormH[0] - 0.5) && !(wx.dustH && a < wx.dustH[1] && b > wx.dustH[0]);
     let out = segs; const own = () => { if (out === segs) out = segs.slice(); };
     const lane = `lane:${H.q}:${hid}`, step = 0.02;
     // the others of the house who are "with" this one in their own day (a child with its mother): she does not leave them
@@ -2015,7 +2015,7 @@ export class Population {
     // day's, so whoever plays there that day is in the lane; never with a little one, or a child someone small is with)
     const kid = (x: number) => { const a = this.ageOn(x, d); return a >= 5 && a <= 13; };
     if (age >= 5 && age <= 13) for (const x of [...out]) { const ph = x.place.startsWith('h:') ? +x.place.slice(2) : -1, PH = this.households[ph];
-      if (!PH || x.act !== 'play' || /minding|little|baby/.test(x.why) || (x.with !== undefined && !kid(x.with)) || x.t0 < 7 || x.t1 > 19 || x.t1 - x.t0 < 0.5 || !dry(x.t0, x.t1) || u01(this.seed, S_OUT, ph, d, 40) >= 0.8) continue;
+      if (!PH || x.act !== 'play' || /minding|little|baby/.test(x.why) || (x.with !== undefined && !kid(x.with)) || x.t0 < 7 || x.t1 > 19 || x.t1 - x.t0 < 0.5 || !dry(x.t0, x.t1) || u01(this.seed, S_OUT, ph, d, 40) >= 0.8 || !free(x.t0, x.t1)) continue;
       if (this.membersOn(ph, d).some(m => !kid(m) && m !== pid && this.basePlan(m, d).some(y => y.with === pid && y.t0 < x.t1 && y.t1 > x.t0))) continue;
       swap(x, [{ od: 1, t0: x.t0, t1: x.t0 + step, place: `road:${W}`, act: 'walk', why: 'out to the lane', where: 'road' }, { ...x, od: 1, t0: x.t0 + step, t1: x.t1 - step, place: `lane:${PH.q}:${ph}`, why: 'playing in the lane with the other children' }, { od: 1, t0: x.t1 - step, t1: x.t1, place: `road:${W}`, act: 'walk', why: 'back in', where: 'road' }]); }
     // the heat of the day in the lane's shade and on the doorstep (a house's draw, so the house is together there: its "with the
