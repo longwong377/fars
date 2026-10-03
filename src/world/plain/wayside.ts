@@ -6,7 +6,7 @@
 //    jars, a tethering post, an ox-cart stood by it (two solid wheels, the bed, the shafts, sacks) and the beasts' dung;
 //  - FIELD SHRINES every ~3.1 km, on the far side: a stepped altar of the Naqsh-e Rustam reliefs' form, small, its ash heap and
 //    stacked wood (the fire is an action the people perform, not drawn here; no altar of the later "fire temple" kind);
-//  - the road's use: dung of the oxen, asses and camels dropped along it (flat pats).
+//  (the road's droppings and sherds are world/roadLitter.ts's, session 10: not repeated here)
 // The Achaemenid roads had stations and their keepers (the Persepolis Fortification texts' way-stations and travel rations, B);
 // wells, shelters and shrines at these intervals are reconstruction (C). Nothing in a settlement zone or on steep ground.
 // Drawn in Naqsh-e Rustam's 'nr-life' mesh (one draw: the plain's mesh budget); colliders as boxes.
@@ -30,7 +30,7 @@ function pat(e: number, y: number, n: number, r: number, c: RGB, rot: number): G
 }
 
 export function buildWayside(terrain: Terrain): WaysideOut {
-  const out: WaysideOut = { parts: [], boxes: [], info: { wells: 0, halts: 0, carts: 0, shrines: 0, pats: 0, roads: 0 }, places: [] };
+  const out: WaysideOut = { parts: [], boxes: [], info: { wells: 0, halts: 0, carts: 0, shrines: 0, roads: 0 }, places: [] };
   const H = (e: number, n: number) => terrain.heightAt(e, -n), zones = settlementZones();
   const slope = (e: number, n: number) => Math.hypot(H(e + 3, n) - H(e - 3, n), H(e, n + 3) - H(e, n - 3)) / 6;
   const clear = (e: number, n: number, m: number) => slope(e, n) < 0.12 && !zones.some(z => pointInPolygon(e, n, z) || z.some(p => Math.hypot(p[0] - e, p[1] - n) < m));
@@ -77,9 +77,6 @@ export function buildWayside(terrain: Terrain): WaysideOut {
       out.parts.push(cyl(e + 1.2, y - 0.05, -n, 0.5, 0.18, ASH, 6, 0.15)); // the ash heap
       for (let q = 0; q < 3; q++) out.parts.push(rod(new THREE.Vector3(e - 1.0, y + 0.08 + q * 0.12, -(n - 0.6)), new THREE.Vector3(e - 1.0, y + 0.08 + q * 0.12, -(n + 0.6)), 0.06, C.poleOld, 5)); // stacked wood
       out.info.shrines++; out.places.push({ id: `shrine:${r.id}:${k}`, e, n }); }
-    // the road's dung
-    for (let s = 20, k = 0; s < end; s += K.pat, k++) { const p = at(s), off = (hash(k, 3) - 0.5) * W * 1.2, e = p.e + p.side[0] * off, n = p.n + p.side[1] * off; if (!clear(e, n, 0)) continue;
-      out.parts.push(pat(e, H(e, n) + 0.08, n, 0.12 + 0.08 * hash(k, 5), DUNG, hash(k, 7) * 3)); out.info.pats++; }
   }
   return out;
 }
