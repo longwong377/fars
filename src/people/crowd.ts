@@ -660,7 +660,8 @@ export class Crowd {
       const a = p.agent; let x: number, y: number, z: number, yaw: number;
       const vp = p.vpFrame === this.frame ? p.vp : null; // the view's place for a population person or an agent off the Terrace
       if (a && !a.offmap) { x = a.pos[0]; y = a.y; z = -a.pos[1]; yaw = yawOf(a.heading); }
-      else if (vp) { x = vp.e; y = vp.y; z = -vp.n; yaw = yawOf(vp.heading); }
+      else if (vp) { x = vp.e; y = vp.y; z = -vp.n; yaw = yawOf(vp.heading);
+        if (vp.glance && vp.glance > 0.3 && vp.pid >= 0) this.reactions.play(vp.pid, 'turn', time, [cam.x, cam.y, cam.z]); } // (D-690: making way, the head turned to the stranger)
       else if (p.extra) { const e = p.extra; x = e.x; y = e.y; z = e.z; yaw = e.yaw; }
       else { p.shown = false; continue; }
       const b = p.base; b[0] = x; b[1] = y; b[2] = z; b[3] = yaw;

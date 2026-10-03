@@ -24,7 +24,7 @@ import { writeFileSync, readFileSync, mkdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import * as THREE from 'three/webgpu';
 import { buildOfflineWorld } from './lib/offline_world';
-import { TownWalk, passable } from '../../src/world/settlement/walk';
+import { TownWalk, passable, reachFromDoor } from '../../src/world/settlement/walk';
 import { PRECINCT, BURIAL } from '../../src/world/settlement/precinct';
 import { AJORI } from '../../src/world/settlement/plan';
 import { CAMPS } from '../../src/people/camps';
@@ -75,8 +75,13 @@ type Router = 'nav' | 'town' | 'village' | 'open';
 interface Area { id: string; router: Router; sample(): P2 | null; vi?: (p: P2) => number }
 const navCell = (keep: (e: number, n: number, h: number) => boolean): P2 | null => { for (let q = 0; q < 400; q++) { const k = Math.floor(rnd() * NAV.w * NAV.h); const v = nav.hcm[k]; if (v === NAV.blocked) continue;
   const e = NAV.e0 + ((k % NAV.w) + 0.5) * NAV.cell, n = NAV.n0 + (Math.floor(k / NAV.w) + 0.5) * NAV.cell; if (nav.walkable(e, n) && keep(e, n, v / 100)) return [e, n]; } return null; };
+// (s18 C5, D-690: a plot's cell only when a body reaches it from the plot's door: q_s2's pen 180 holds leftover ground
+// walled off from its door, no place a player can walk to; the bots' 2 "no route" misses of s17 were those cells)
+const reachMemo = new Map<string, Set<number> | null>();
+const reached = (st: Site, c: number, k: number) => { const key = `${st.meta.id}:${c}`; let R = reachMemo.get(key);
+  if (R === undefined) { const d = st.plots[c]?.door; R = d ? reachFromDoor(st, c, d.cell) : null; reachMemo.set(key, R); } return !!R?.has(k); };
 const siteCell = (sites: Site[], open: boolean): P2 | null => { for (let q = 0; q < 200; q++) { const st = sites[Math.floor(rnd() * sites.length)], k = Math.floor(rnd() * st.W * st.H), c = st.cell[k];
-  const ok = open ? c === LANE || c === SQUARE : c >= 0; if (!ok) continue; const loc = townWalk.locate(...st.cellGrid(k)); if (loc) return st.cellGrid(k); } return null; };
+  const ok = open ? c === LANE || c === SQUARE : c >= 0 && reached(st, c, k); if (!ok) continue; const loc = townWalk.locate(...st.cellGrid(k)); if (loc) return st.cellGrid(k); } return null; };
 const inCircle = (c: P2, r: number): P2 => { const a = rnd() * 2 * Math.PI, d = r * Math.sqrt(rnd()); return [c[0] + d * Math.cos(a), c[1] + d * Math.sin(a)]; };
 const inTownSite = (e: number, n: number) => { const l = townWalk.locate(e, n); return !!l && townWalk.boxes[l.si].s.cell[l.k] !== OUT; };
 const quarters = plan.sites.filter(q => q.meta.kind === 'quarter' && Math.hypot(q.frame.c[0], q.frame.c[1]) < 3000), comps = plan.sites.filter(q => q.meta.kind === 'compound' && Math.hypot(q.frame.c[0], q.frame.c[1]) < 3500);
