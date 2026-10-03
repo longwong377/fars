@@ -86,7 +86,7 @@ for (const v of visits) {
     res(Object.fromEntries(Object.entries(m).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]))); }));
   // D-580: the page's JS heaps at ready: the main thread's and each live worker's (by script), and how many workers there are
   // (and after a full garbage collection: how much of it is garbage not yet collected)
-  try { const c = await ctx.newCDPSession(page); await c.send('HeapProfiler.collectGarbage'); await page.waitForTimeout(1500); r.memAfterGC = await memByType(); r.heapAfterGCMB = await page.evaluate(() => Math.round((performance.memory?.usedJSHeapSize ?? 0) / 1048576)); await c.detach(); } catch (e) { r.memAfterGC = String(e).slice(0, 80); }
+  try { const c = await ctx.newCDPSession(page); r.heapUsage = await c.send('Runtime.getHeapUsage').then(h => Object.fromEntries(Object.entries(h).map(([k, v]) => [k, Math.round(v / 1048576)]))).catch(e => String(e).slice(0, 80)); await c.send('HeapProfiler.collectGarbage'); await page.waitForTimeout(1500); r.memAfterGC = await memByType(); r.heapAfterGCMB = await page.evaluate(() => Math.round((performance.memory?.usedJSHeapSize ?? 0) / 1048576)); await c.detach(); } catch (e) { r.memAfterGC = String(e).slice(0, 80); }
   // D-580: what the scene holds in typed arrays at ready (geometry attributes and indices, textures' data), by the world's
   // top-level groups (each buffer counted once, where first met)
   r.sceneMB = await page.evaluate(() => { const seen = new Set(), by = {}; let tex = 0; const S = window.__parsa.scene;

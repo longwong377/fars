@@ -44,7 +44,7 @@ const child = spawn(cmd[0], cmd.slice(1), { stdio: ['inherit', 'pipe', 'pipe'], 
 pipeWithProgress(child, slot); recordChild(slot, child);
 // Runtime memory ceiling (session 15: a full-world page grew to 10 GB after its start-time check and froze the box twice):
 // if free memory falls under KILL_FREE_GB while this job runs, the slot ends its own job tree at once and frees the slot.
-const KILL_FREE_GB = +(process.env.KILL_FREE_GB ?? 2);
+const KILL_FREE_GB = +(process.env.KILL_FREE_GB ?? 6); // s17: free = min(RAM, commit); Windows fails allocations near 0 commit
 const ceiling = setInterval(() => { if (freeGB() < KILL_FREE_GB) {
   console.error(`[slot] ${label}: free memory ${freeGB().toFixed(1)} GB < ${KILL_FREE_GB} GB: ending this job to keep the box alive`);
   try { spawn('taskkill', ['/T', '/F', '/PID', String(child.pid)], { stdio: 'ignore' }); } catch {} } }, 2000);

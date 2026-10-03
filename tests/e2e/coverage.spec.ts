@@ -53,13 +53,18 @@ async function shoot(page: Page, v: any, day: number, hour: number, w: string, s
   // one update lets the plain build its lazy colliders around the eye (river corridor, villages); view again so the eye
   // stands on what is drawn (plain.spec)
   await page.evaluate(() => (window as any).__parsa.tick()); await page.evaluate((a) => (window as any).__parsa.view(...a), args);
+  const tt = [Date.now()], lap = () => tt.push(Date.now());
   for (let i = 0; i < FRAMES; i++) await page.evaluate(() => (window as any).__parsa.renderOnce());
-  const png = await page.screenshot();
+  lap(); const png = await page.screenshot();
   const st = await page.evaluate(() => { const p = (window as any).__parsa, s = p.stats(); return { drawCalls: s.drawCalls, triangles: s.triangles, backend: s.backend, sky: p.sky() }; });
-  const fm = await page.evaluate((b64) => (window as any).__parsa.flagMask({ frame: b64, mask: true }), png.toString('base64'));
-  const rep = await page.evaluate(() => (window as any).__parsa.coverageRepeat(30));
-  const life = process.env.LIFE === '0' ? null : await page.evaluate(() => (window as any).__parsa.coverageLife(2)); // last: it advances the world 2 s
-  const th = await thumb(page, png);
+  // s17 (D-471): MEASURE=0 is a pictures-only train (the scoreboard's frames): the id-mask pass, the repetition count and the
+  // life census are skipped (the baseline train spent 20+ min a view on the T4 with them)
+  const meas = process.env.MEASURE !== '0';
+  lap(); const fm = meas ? await page.evaluate((b64) => (window as any).__parsa.flagMask({ frame: b64, mask: true }), png.toString('base64')) : { shares: {}, gate: null };
+  lap(); const rep = meas ? await page.evaluate(() => (window as any).__parsa.coverageRepeat(30)) : { maxIdentical: '-' };
+  lap(); const life = !meas || process.env.LIFE === '0' ? null : await page.evaluate(() => (window as any).__parsa.coverageLife(2)); // last: it advances the world 2 s
+  lap(); const th = await thumb(page, png);
+  console.log(`  steps s: frames ${(tt[1] - tt[0]) / 1000} shot ${(tt[2] - tt[1]) / 1000} mask ${(tt[3] - tt[2]) / 1000} rep ${(tt[4] - tt[3]) / 1000} life ${(tt[5] - tt[4]) / 1000}`);
   return { png, st, fm, rep, life, th };
 }
 

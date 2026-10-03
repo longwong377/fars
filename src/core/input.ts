@@ -52,7 +52,9 @@ export class Input {
   lock() {
     const c = this.canvas as any; if (!c.requestPointerLock) return;
     // raw mouse where the browser offers it; the plain request otherwise (and where the option is refused)
-    try { const r = c.requestPointerLock({ unadjustedMovement: true }); if (r?.catch) r.catch(() => c.requestPointerLock()); } catch { c.requestPointerLock(); }
+    // (every request's promise is caught: without a user gesture the browser rejects it, an uncaught pageerror on Enter)
+    const plain = () => { try { c.requestPointerLock()?.catch?.(() => {}); } catch { /* no lock: the menu stays */ } };
+    try { const r = c.requestPointerLock({ unadjustedMovement: true }); if (r?.catch) r.catch(plain); } catch { plain(); }
   }
   private keyOf(action: string) { return this.settings().keys[action] ?? DEFAULT_KEYS[action]; }
   /** the player is driven by this input (pointer locked, or a gamepad in use) rather than by the bots' channel */

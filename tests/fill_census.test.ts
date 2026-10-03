@@ -54,12 +54,12 @@ describe('house variety (s17 C1)', () => {
 
 import { plotCells, siteSearch } from '../src/world/settlement/walk';
 describe('every plot\'s spots reachable from its street door (C9 walk bots; B580)', () => {
-  it('no plot spot behind a neck narrower than a body; at most the three shut houses of B580', () => {
+  it('no plot spot behind a neck narrower than a body; at most the two shut houses of B580', () => {
     const sites = buildTownPlan().sites, bad: string[] = [];
     for (const s of sites) { if (s.meta.kind !== 'quarter') continue; for (const p of s.plots) { if (!p.door) continue; const c = plotCells(s, p.idx), all = [...c.open, ...c.rooms];
       if (all.filter((k, i) => i % 7 === 0).some(k => !siteSearch(s, p.door!.out, k))) bad.push(p.id); } }
     console.log('[reach] plots with a spot not reached from their door:', bad.join(' ') || 'none');
-    expect(bad).not.toContain('q_s2-0181'); expect(bad.length).toBeLessThanOrEqual(3);
+    expect(bad).not.toContain('q_s2-0181'); expect(bad.length).toBeLessThanOrEqual(2);
   }, 300_000);
 });
 
@@ -74,5 +74,17 @@ describe('the year in the lanes (s17 C1)', () => {
     console.log(`[seasons] sheaves drawn: harvest ${harvest}, warm ${warm}, cold ${cold}; seasonal items ${items.filter(i => i.seas !== undefined).length}`);
     expect(harvest).toBeGreaterThan(0); expect(warm).toBe(0); expect(cold).toBe(0);
     const c = census(sites, items); expect(c.lane.longestBare).toBeLessThanOrEqual(3);
+  }, 300_000);
+});
+
+import { LANE as LN, SQUARE as SQ } from '../src/world/settlement/site';
+describe('no wall stands in a lane (C9\'s lane colliders)', () => {
+  it('no wall box reaches into a lane or square cell deeper than its own half thickness at the cell\'s edge', () => {
+    const sites = buildTownPlan().sites; let bad = 0;
+    for (const s of sites) { if (s.meta.kind !== 'quarter') continue;
+      for (const w of s.walls()) { if (w.door) continue; const along = w.v0 === w.v1, L = along ? w.u1 - w.u0 : w.v1 - w.v0, t = w.thick / 2;
+        outer: for (let a = 0.05; a < L; a += 0.1) for (const o of [-t + 0.02, 0, t - 0.02]) { const u = along ? w.u0 + a : w.u0 + o, v = along ? w.v0 + o : w.v0 + a, i = s.ci(u), j = s.cj(v), c = s.at(i, j);
+          if (c !== LN && c !== SQ) continue; const fu = u - (s.u0 + i), fv = v - (s.v0 + j); if (Math.min(fu, 1 - fu, fv, 1 - fv) > t + 0.02) { bad++; break outer; } } } }
+    expect(bad).toBe(0);
   }, 300_000);
 });

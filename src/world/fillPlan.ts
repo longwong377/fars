@@ -88,7 +88,12 @@ export function townFill(sites: Site[], seed = 1, villages: Site[] = [], markets
   const mk = new Map<Site, [number, number][]>(); for (const xy of markets) { const s = sites.find(x => { const [u, v] = toLocal(x.frame, xy[0], xy[1]); return x.inb(x.ci(u), x.cj(v)); }); if (s) (mk.get(s) ?? mk.set(s, []).get(s)!).push(toLocal(s.frame, xy[0], xy[1])); else openMarket(xy, sites, seed, items, st); }
   for (const s of sites) siteFill(s, seed, items, st, false, mk.get(s));
   for (const s of villages) siteFill(s, seed, items, st, true);
-  detwin(items);
+  // (s17 C1: the plan is cached as JSON in the baked world, 21-25 MB with the villages (C4): positions to the centimetre, turns
+  // and sizes to the thousandth, the sale hour to the minute's hundredth; nothing the eye or the colliders can tell)
+  const r2 = (x: number) => Math.round(x * 100) / 100, r3 = (x: number) => Math.round(x * 1000) / 1000;
+  for (const it of items) { it.e = r2(it.e); it.n = r2(it.n); it.dy = r3(it.dy); it.rot = r3(it.rot); it.s = [r3(it.s[0]), r3(it.s[1]), r3(it.s[2])]; if (it.tilt !== undefined) it.tilt = r3(it.tilt); if (it.until !== undefined) it.until = r2(it.until); }
+  detwin(items); // (after the rounding: a twin is judged on what is stored)
+  for (const it of items) { it.s = [Math.round(it.s[0] * 1000) / 1000, Math.round(it.s[1] * 1000) / 1000, Math.round(it.s[2] * 1000) / 1000]; it.rot = Math.round(it.rot * 1000) / 1000; if (it.tilt !== undefined) it.tilt = Math.round(it.tilt * 1000) / 1000; }
   return { items, stats: st };
 }
 
@@ -268,7 +273,7 @@ export function siteFill(s: Site, seed: number, items: FillItem[], st: FillStats
     for (let t = 0; t < L.length; t++) { const m = L[(k0 + t) % L.length][0]; if (fits(m) && !nearB(e, n, 6, m)) return m; } return null; };
   for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) { const k = j * W + i, c = s.cell[k]; if (c !== LANE && !(outside && c === OUT)) continue;
     for (const [di, dj] of DIRS) { const pc = s.at(i + di, j + dj); if (pc < 0 || !s.plots[pc] || doorEdge(i, j, di, dj)) continue;
-      const wu = s.cu(i) + di * 0.5, wv = s.cv(j) + dj * 0.5, [fe, fn] = toG(wu - di * 0.4, wv - dj * 0.4); if (nearB(fe, fn, GAP_R) || nearB(fe, fn, 2.9, 'peg')) continue; // (nor under a tethered animal)
+      const wu = s.cu(i) + di * 0.5, wv = s.cv(j) + dj * 0.5, [fe, fn] = toG(wu - di * 0.4, wv - dj * 0.4); if (nearB(fe, fn, outside ? GAP_R_VILLAGE : GAP_R) || nearB(fe, fn, 2.9, 'peg')) continue; // (nor under a tethered animal; a village's long compound walls more sparsely)
       const w = clear(i, j, di, dj), key = [sid, k, di + 2 * dj + 3, 77];
       const along = (u01(...key, 1) - 0.5) * 0.6, fits = (m: string) => { const d = LITTLE_D[m] ?? 0.5; return w - d - 0.3 >= 1.6 || (w >= 2 && d <= 0.45); };
       const m = pickNot(LITTLE, u01(...key, 2), fe, fn, fits); if (!m) continue;
@@ -302,7 +307,7 @@ const COLD_W: [string, number][] = [['fill_bundle', 3], ['brush_pile', 1.5], ['f
 /** s17 C1: the sim's market ground: spreads within this of the quarter's point (m; popgeo stands sellers within 30 cells) */
 const MARKET_R = 14;
 /** the gap fill: within this of the wall's foot nothing stands -> one thing (m): ~5 m between things along a wall at most */
-const GAP_R = 1.9;
+const GAP_R = 1.9, GAP_R_VILLAGE = 3.0;
 const LITTLE: [string, number][] = [['jar_water', 3], ['tool_broom', 1.6], ['sack', 2], ['wo_dung_cakes', 1.6], ['cookpot', 1.2], ['fill_bundle', 2], ['basin', 1], ['tool_hoe', 1.4], ['firewood_lean', 2],
   ['stool', 1], ['roll', 1], ['dung_stack', 1.4], ['wo_mud_heap', 0.9], ['tool_fork', 0.7], ['sack_lying', 1], ['wo_fodder', 0.8], ['wo_brick_stack', 0.6],
   ['tool_staff', 0.7], ['brush_pile', 0.8], ['quern', 0.5], ['fill_rubble', 0.6], ['jar_neck', 0.6],

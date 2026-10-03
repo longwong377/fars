@@ -1,6 +1,6 @@
 // One-command agent worktree (session 14): a branch off the integration tip in ../fars-wt/<name>, node_modules linked
 // (a junction to the main tree's: no npm ci, no 1 GB copy) and models linked, its own Vite port written to .wtport.
-//   node tools/dev/mkwt.mjs <name> [base]       base defaults to s14-int (else HEAD)
+//   node tools/dev/mkwt.mjs <name> [base]       base defaults to s17-int, else s14-int (else HEAD); branch s<N>-<name> from base s<N>-int
 //   node tools/dev/mkwt.mjs --done <name>       the agent finished: clear its .agent mark (frees one of MAX_AGENTS)
 // Session 15: refuses a new agent tree while MAX_AGENTS (4) are active (.agent marks); the 16 GB box froze at 9.
 // Prints the path and the port; the agent then works only there (CLAUDE.md: never edit a tree a render is serving).
@@ -16,7 +16,7 @@ if (name === '--done') { rmSync(resolve('..', 'fars-wt', baseArg, '.agent'), { f
   if (freeGB() < MIN_FREE_GB) { console.error(`refused: ${freeGB().toFixed(1)} GB free < ${MIN_FREE_GB}`); process.exit(3); } }
 const main = resolve('.'), wt = resolve(main, '..', 'fars-wt', name), git = (...a) => execFileSync('git', a, { cwd: main, encoding: 'utf8' }).trim();
 const has = b => { try { git('rev-parse', '--verify', '--quiet', b); return true; } catch { return false; } };
-const base = baseArg ?? (has('s14-int') ? 's14-int' : 'HEAD'), branch = `s14-${name}`;
+const base = baseArg ?? (has('s17-int') ? 's17-int' : has('s14-int') ? 's14-int' : 'HEAD'), branch = `${(/^(s\d+)-int$/.exec(base) ?? [, 's14'])[1]}-${name}`;
 if (existsSync(wt)) { if (existsSync(join(wt, '.git'))) { writeFileSync(join(wt, '.agent'), new Date().toISOString()); console.log(`${wt} exists; marked active again`); process.exit(0); } console.error(`${wt} exists`); process.exit(1); }
 mkdirSync(resolve(main, '..', 'fars-wt'), { recursive: true });
 git('worktree', 'add', ...(has(branch) ? [wt, branch] : ['-b', branch, wt, base]));

@@ -16,14 +16,16 @@ import { Planets } from './planets';
 import { skyCalibration, twilightWeight, TW_HI } from './horizon';
 import { Atmosphere, aerosolTauFor, OBSERVER_ALT, SUN_ANGULAR_RADIUS, xyToRenderer, daylightXY, type SkyView, type SkyViewJob } from './atmosphere';
 import { sunNormalLux, skyLux, moonLux, elongationFromFraction, extinctionK, NIGHT_LUX, REN_PER_LUX_SUN, REN_PER_LUX_SKY } from './illuminance';
-import { skyGain, fireLightScale } from './exposure';
+import { skyGain, fireLightScale, displayedGrey } from './exposure';
 import { CLOUD_BASE, CLOUD_TOP, cellShadowNode } from './clouds';
 import { reliefShadowNode } from '../render/reliefShadow';
 import { localCoverageUniform, localWeatherFactor } from './cloudCover';
 import coverTable from '../data/cloud_cover_table.json';
 import { HorizonMap, HORIZON_LAYOUT, loadHorizonMap } from '../terrain/horizonMap';
 import { horizonAtlasTexture, horizonVisibility, type HorizonAtlases } from '../terrain/horizonShadow';
-import { Air, AIR_ALBEDO, EYE_SKY } from './aerial';
+import { Air, AIR_ALBEDO, EYE_SKY, seasonalDust } from './aerial';
+import { jdnToJulian } from '../core/calendar';
+import { GRADE } from '../render/toneLook';
 import { domeRadiance, overcastChroma, OVERCAST_CCT } from './horizon';
 /** the measured mean overcast colour (6358 K daylight, Lee & Hernández-Andrés 2005) in the renderer's colour (D-224) */
 const OVERCAST_RGB = xyToRenderer(...daylightXY(OVERCAST_CCT));
@@ -41,8 +43,25 @@ export const GROUND_SUNLIT = 0.85;
  *  cover). The ground's reflectance under a snow cover s (weather 0..1) is mix(GROUND_RHO, SNOW_RHO, s): the skylight
  *  from below, the clouds' base and the air's in-scatter all take it (D-219: the snow render's brown sky and brown fill) */
 export const SNOW_RHO: [number, number, number] = [0.82, 0.83, 0.86];
+/** D-480 (light v1, the art direction: night dark and readable, never black or blue-grey soup): a game's night fill (C): the
+ *  skylight that reaches the ground and the walls is raised by up to this factor in full darkness (the eye's adaptation is already at its
+ *  limit there: the camera does not compensate), so a starlit lane reads as dim shapes, while the dome, the stars and the fires
+ *  keep their values (it is applied after the dome's calibration, the air and the clouds) */
+export const NIGHT_FILL = 10;
+/** D-480 (light v2): the fill is a floor, not a fixed factor: the skylight is raised until a grey ground under it would be shown at
+ *  NIGHT_GREY of the daylight grey (at most NIGHT_FILL times), so the evening falls monotonically from civil twilight to
+ *  the floor and never dips below the night. C */
+export const NIGHT_GREY = 0.05;
+/** D-480 (light v2, night): the night dome (renderer radiance, drawn at the dark-adapted exposure X_MAX): a deep blue zenith and a
+ *  paler blue-grey horizon, replacing the Preetham dome's night tail (D-047), which drew a brown-grey sky brighter than the
+ *  land (the baseline train's cov-000). Moonlight brightens it (×(1 + NIGHT_MOON_SKY · up · phase)). Perceptual, C (RDR2 nights) */
+export const NIGHT_SKY_ZENITH: [number, number, number] = [0.00042, 0.00048, 0.00069], NIGHT_SKY_HORIZON: [number, number, number] = [0.0009, 0.00098, 0.00126], NIGHT_MOON_SKY = 2.5;
+const nightSkyAt = (y: number, k: number): [number, number, number] => { const t = Math.sqrt(Math.max(0, Math.min(1, y))); return [0, 1, 2].map(i => k * (NIGHT_SKY_HORIZON[i] + (NIGHT_SKY_ZENITH[i] - NIGHT_SKY_HORIZON[i]) * t)) as [number, number, number]; };
 export const groundRho = (snowCover: number): [number, number, number] => { const s = Math.min(1, Math.max(0, snowCover)); return [0, 1, 2].map(c => GROUND_RHO[c] + (SNOW_RHO[c] - GROUND_RHO[c]) * s) as [number, number, number]; };
 const _mdir = new THREE.Vector3();
+/** D-473: the sun kept in the scene at intensity 0 while down (on: the default); off is the old switch (A/B: __parsaSunKept) */
+export const SUN_KEPT = { on: true };
+if (typeof window !== 'undefined') (window as any).__parsaSunKept = SUN_KEPT;
 export class SkySystem {
   readonly sky = new SkyMesh();
   readonly sun = new THREE.DirectionalLight(0xffffff, 3);
@@ -70,6 +89,8 @@ export class SkySystem {
   readonly horizon = new THREE.Color(0.6, 0.63, 0.68);
   // dome (D-060, D-116): kP · Preetham + kT · twilight table + disc weight · physical sun disc
   private uKP = uniform(1); private uKT = uniform(0); private uDW = uniform(0);
+  /** D-480: the night dome's zenith and horizon radiance (weight and moonlight included) */
+  private uNZ = uniform(new THREE.Color(0, 0, 0)); private uNH = uniform(new THREE.Color(0, 0, 0));
   /** the overcast part of the dome (D-224): its zenith radiance × the cover, drawn with the CIE overcast gradation where the
    *  volumetric layer is off (test quality); where it is on, the layer draws the cloud and the dome between is clear sky */
   private uOv = uniform(new THREE.Color(0, 0, 0));
@@ -157,7 +178,7 @@ export class SkySystem {
       const alt = max(d.y, 0.0);
       const ext = exp(float(0.25).negate().div(alt.add(0.035))); // extinction by air mass (C)
       const vanRhijn = float(1).div(sqrt(float(1).sub(float(0.972).mul(float(1).sub(alt.mul(alt)))))); // (R/(R+90 km))² = 0.972
-      const airglow = vec3(0.0005, 0.00068, 0.00051).mul(vanRhijn).mul(smoothstep(-0.02, 0.03, d.y));
+      const airglow = vec3(0.00022, 0.00028, 0.00034) /* D-480: was (0.0005, 0.00068, 0.00051), a green-grey veil; the night dome carries the sky's glow */.mul(vanRhijn).mul(smoothstep(-0.02, 0.03, d.y));
       const warm = mix(vec3(0.85, 0.88, 1.0), vec3(1.0, 0.93, 0.8), alongC);
       // session 10 (WORLD_INVENTORY GB1): the zodiacal light, sunlight scattered by the interplanetary dust along the ecliptic (A
       // physics): a cone leaning along the ecliptic from the hidden Sun, brightest near it (∝ elongation^-2.3 from 25° out, C fit),
@@ -204,7 +225,8 @@ export class SkySystem {
       const dog = (o: number) => mix(exp(deg.sub(dd.add(o)).div(2.5).pow(2).negate()), exp(deg.sub(dd.add(o)).div(0.5).pow(2).negate()), step(deg, dd.add(o)));
       const dogRGB = vec3(dog(-0.3), dog(0), dog(0.3)).mul(exp(de.div(0.9).pow(2).negate())).mul(float(1).sub(smoothstep(40, 55, this.uSunAlt)));
       const halo = float(1).add(ringRGB.mul(0.45).add(dogRGB.mul(2.2)).mul(this.uHalo));
-      (skyMat as any).colorNode = vec4(cn.xyz.mul(this.uKP).add(T.mul(this.uKT)).mul(halo).add((this.uDisc as any).mul(disc.mul(this.uDW))).add((this.uOv as any).mul(ovG)), 1); }
+      const nightDome = mix(this.uNH as any, this.uNZ as any, sqrt(clamp(d.y, 0, 1)));
+      (skyMat as any).colorNode = vec4(cn.xyz.mul(this.uKP).add(nightDome).add(T.mul(this.uKT)).mul(halo).add((this.uDisc as any).mul(disc.mul(this.uDW))).add((this.uOv as any).mul(ovG)), 1); }
     scene.add(this.sky);
     this.sun.castShadow = true;
     this.sun.shadow.mapSize.set(shadowMapSize, shadowMapSize);
@@ -327,7 +349,10 @@ export class SkySystem {
     pos.needsUpdate = true;
   }
 
-  update(jdUT: number, camPos: THREE.Vector3, cloudCover: number, haze: number, wind?: { ms: number; fromDeg: number; tSeconds: number }, view?: THREE.Vector3) {
+  update(jdUT: number, camPos: THREE.Vector3, cloudCover: number, haze0: number, wind?: { ms: number; fromDeg: number; tSeconds: number }, view?: THREE.Vector3) {
+    // D-480: the dry season's dust (aerial.ts seasonalDust) whitens the dome and dims the sun as haze would (C: 0.4 haze per dust)
+    { const j = jdnToJulian(Math.floor(jdUT + 0.5)); this.air.seasonDust = seasonalDust(j.m, j.d); }
+    const haze = haze0 + 0.4 * this.air.seasonDust;
     const s = sunHorizon(jdUT), mo = moonHorizon(jdUT), ph = moonPhase(jdUT);
     const sd = azAltToWorld(s.azimuth, s.altitude), md = azAltToWorld(mo.azimuth, mo.altitude);
     this.state.sunDir.set(sd[0], sd[1], sd[2]); this.state.sunAlt = s.altitude;
@@ -364,6 +389,8 @@ export class SkySystem {
     this.planets.update(jdUT, camPos, s.altitude, cloudCover);
     // faint diffuse light (Milky Way, airglow): only in full darkness, washed out by moonlight, hidden by cloud (C)
     const moonUp = smoothstepJS(-2, 8, mo.altitude);
+    GRADE.nightLift = 1 - 0.75 * moonUp * Math.min(1, ph.fraction * 1.5) * this.eclipse.light;
+    const nightK = night * (1 + NIGHT_MOON_SKY * moonUp * ph.fraction * this.eclipse.light) * (1 - 0.6 * cloudCover);
     this.uMW.value = night * Math.pow(1 - cloudCover, 1.5) * (1 - 0.92 * moonUp * Math.min(1, ph.fraction * 1.6) * this.eclipse.light); // (the Milky Way comes back as an eclipse darkens the moon)
     this.milkyWay.position.copy(camPos); this.milkyWay.visible = this.uMW.value > 0.002;
     // ---- light levels (D-115, D-117) -----------------------------------------------------------------------------------
@@ -407,10 +434,14 @@ export class SkySystem {
     if (!this.sunYZ || this.sunYZ.tau !== A.aerosolTau) { const z = A.sunColorAt(OBSERVER_ALT, 90), m = Math.max(z[0], z[1], z[2]); this.sunYZ = { tau: A.aerosolTau, y: (0.2126 * z[0] + 0.7152 * z[1] + 0.0722 * z[2]) / m }; }
     { const scY = 0.2126 * sc[0] + 0.7152 * sc[1] + 0.0722 * sc[2];
       if (scM > 1e-6 && scY > 1e-9) { const f = this.sunYZ.y / scY; this.sun.color.setRGB(Math.max(0, sc[0]) * f, Math.max(0, sc[1]) * f, Math.max(0, sc[2]) * f); } }
-    this.sun.intensity = G * sunI;
+    // D-473: the sun stays in the scene below the horizon at intensity 0 (was visible = false): the set of visible lights is
+    // part of every lit material's shader key, so sunset and sunrise rebuilt and recompiled every lit pipeline (minutes on the
+    // T4; a night view after a day view paid it again). Its shadow maps are not redrawn while it is down (sunShadows.ts).
+    const sunUp = alt > -1;
+    this.sun.intensity = sunUp || !SUN_KEPT.on ? G * sunI : 0;
     this.sun.position.copy(camPos).addScaledVector(this.state.sunDir, 800);
     this.sun.target.position.copy(camPos);
-    this.sun.visible = alt > -1;
+    this.sun.visible = SUN_KEPT.on || sunUp; this.sun.shadow.autoUpdate = sunUp;
     this.moonLight.intensity = G * moonI; // colour: a perceptual blue (Purkinje shift, C)
     this.moonLight.position.copy(camPos).addScaledVector(this.state.moonDir, 800); this.moonLight.target.position.copy(camPos);
     this.twilight = smoothstepJS(-14, 4, alt);
@@ -466,7 +497,10 @@ export class SkySystem {
       const p0 = (x: number) => Math.max(0, x) * cf;
       C.sunColor.value.setRGB(p0(b[0]), p0(b[1]), p0(b[2])).add(moonC); C.sunColorTop.value.setRGB(p0(t[0]), p0(t[1]), p0(t[2])).add(moonC); }
     // the clouds' ambient: the mean radiance of the sky above and of the sunlit ground below (irradiance / π; D-156)
-    C.ambient.value.copy(this.hemi.color).multiplyScalar(this.hemi.intensity / Math.PI); C.ambientGround.value.copy(this.hemi.groundColor).multiplyScalar(this.hemi.intensity / Math.PI);
+    C.ambient.value.copy(this.hemi.color).multiplyScalar(this.hemi.intensity / Math.PI);
+    // D-480: at night the deck is lit by the night dome (a soft grey-blue just under the sky, not black blobs), and it is opaque
+    // enough to hide the stars behind it (its opacity raised to 1 − T^(1 + 3·night))
+    { const z = nightSkyAt(0.5, nightK); C.ambient.value.r += 1.6 * z[0]; C.ambient.value.g += 1.6 * z[1]; C.ambient.value.b += 1.6 * z[2]; C.nightOpacity.value = 1 + 3 * night; const g = nightSkyAt(0.35, night * (1 - 0.6 * cloudCover)); C.nightGlow.value.setRGB(1.1 * g[0], 1.1 * g[1], 1.1 * g[2]); } C.ambientGround.value.copy(this.hemi.groundColor).multiplyScalar(this.hemi.intensity / Math.PI);
     // dome calibration and the horizon radiance (D-060, D-116): fog, far cloud haze and rain shafts converge to it
     { const sk = this.sky, P = { turbidity: sk.turbidity.value as number, rayleigh: sk.rayleigh.value as number, mieCoefficient: sk.mieCoefficient.value as number, mieDirectionalG: sk.mieDirectionalG.value as number };
       const hc = this.hemi.color, hemiE = this.hemi.intensity * (0.2126 * hc.r + 0.7152 * hc.g + 0.0722 * hc.b);
@@ -475,9 +509,10 @@ export class SkySystem {
       // the dome shader (D-224): with the volumetric layer drawn, the dome between its clouds is the clear sky (kP0, kT0);
       // without it (test quality) the dome is the cover-weighted blend with the overcast sky, as the fog and the air are
       const drawnClouds = this.clouds.mesh.visible, ovS = drawnClouds ? 0 : cal.wo;
-      this.uKP.value = drawnClouds ? cal.kP0 : cal.kP; this.uKT.value = tw ? (drawnClouds ? cal.kT0 : cal.kT) * this.view!.irradianceY : 0;
+      this.uKP.value = Math.max(0, (drawnClouds ? cal.kP0 : cal.kP) - night); // D-480: the night dome replaces the Preetham night tail
+      { const z = nightSkyAt(1, nightK), h = nightSkyAt(0, nightK); this.uNZ.value.setRGB(z[0], z[1], z[2]); this.uNH.value.setRGB(h[0], h[1], h[2]); } this.uKT.value = tw ? (drawnClouds ? cal.kT0 : cal.kT) * this.view!.irradianceY : 0;
       this.uOv.value.setRGB(ovS > 0 ? cal.ovL[0] : 0, ovS > 0 ? cal.ovL[1] : 0, ovS > 0 ? cal.ovL[2] : 0);
-      this.horizon.setRGB(cal.horizon[0], cal.horizon[1], cal.horizon[2]);
+      { const h = nightSkyAt(0.03, nightK); this.horizon.setRGB(cal.horizon[0] * (1 - night) + h[0], cal.horizon[1] * (1 - night) + h[1], cal.horizon[2] * (1 - night) + h[2]); }
       // the physical sun disc (with the table): the sun's radiance, E / Ω, capped below the half-float range
       const disc = Math.min(30000, this.sun.visible ? this.sun.intensity / (Math.PI * SUN_ANGULAR_RADIUS * SUN_ANGULAR_RADIUS) : 0);
       this.uDisc.value.copy(this.sun.color).multiplyScalar(disc); this.uDW.value = tw ? w * (1 - night) * (1 - ovS) : 0; // no disc painted on an overcast dome (D-224)
@@ -488,7 +523,7 @@ export class SkySystem {
       const hI = this.hemi.intensity, gc = this.hemi.groundColor, sv: [number, number, number] = [this.state.sunDir.x, this.state.sunDir.y, this.state.sunDir.z];
       const amb: [number, number, number] = [0, 1, 2].map(i => (AIR_ALBEDO * 0.5 * hI * ([hc.r, hc.g, hc.b][i] + [gc.r, gc.g, gc.b][i])) / Math.PI) as [number, number, number];
       const twv = tw?.view ?? null;
-      const ovL = cal.ovL; this.air.setInscatter(d => domeRadiance(d, sv, P, cal.kP, cal.kT, twv, ovL), sv, amb);
+      const ovL = cal.ovL; this.air.setInscatter(d => { const r = domeRadiance(d, sv, P, Math.max(0, cal.kP - night), cal.kT, twv, ovL), h = nightSkyAt(d[1], nightK); return [r[0] + h[0], r[1] + h[1], r[2] + h[2]]; }, sv, amb);
       this.air.vEye.value = EYE_SKY.sunVisibility = this.eyeSunVisibility; this.air.sunUp.value = this.sun.visible ? smoothstepJS(-0.5, 0.5, alt) : 0; }
     if (wind) { const a = ((wind.fromDeg + 180) * Math.PI) / 180; C.wind.value.set(Math.sin(a) * wind.ms * 2.5, -Math.cos(a) * wind.ms * 2.5); C.time.value = wind.tSeconds; } // winds aloft ~2.5 × surface (C)
     // cover over THIS observer (D-064): the weather field scales the cover by 0.6–1.4 across its tile, so the uniform is
@@ -496,6 +531,9 @@ export class SkySystem {
     { const cx = camPos.x + C.wind.value.x * C.time.value, cz = camPos.z + C.wind.value.y * C.time.value;
       if (!this.coverAt || Math.hypot(cx - this.coverAt[0], cz - this.coverAt[1]) > 500) { this.coverAt = [cx, cz]; this.coverFactor = C.mesh.visible ? localWeatherFactor(cx, cz) : 1; }
       C.coverage.value = localCoverageUniform(cloudCover, (coverTable as any).dome, this.coverFactor); } // the weather's cover is the observed DOME cover (D-145)
+    // (the floor is taken on the moonless sky's light, so moonlight still adds on top: a moonlit night stays brighter)
+    const nightBase = (skyLux(alt) + NIGHT_LUX) * (1 - 0.3 * cloudCover) + sunN * sinA;
+    this.hemi.intensity *= Math.min(NIGHT_FILL, Math.max(1, NIGHT_GREY / Math.max(displayedGrey(nightBase, nightBase), 1e-9))); // D-480: the night fill (after everything that reads the physical skylight)
     if (Math.abs(jdUT - this.lastStarJD) > 10 / 86400) { this.updateStars(jdUT); this.updateGalactic(jdUT); this.lastStarJD = jdUT; }
   }
 }
