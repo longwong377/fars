@@ -10187,6 +10187,12 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   'recline', measured on the rig); UD-27 at the court (court.json houses): the Persians of rank as 55 great houses married into
   one another and into the king's house, with rivals, and the king's favour drifting by the season, shown in the banquet's
   seats, the audience's places and who talks with whom (all C); court.test's sealed-letter test cut to the court's residence.
+- Fifth pass (the lead's ambientCG sets, branch s18-face-assets): the court's textiles take CC0 scans in bulk: Fabric 030's tabby
+  for the woven wool of couches, cushions, hangings and covers (furn_textile; Fabric 043 was a felt), Carpet 012's cut pile for
+  the carpets (a furn_carpet surface of their own), Leather 037 for leather props; the people's wool and leather layers
+  (build_humans_scans.py --cloth, for the dress weave and the guards' gear) rebuilt from Fabric 030 and Leather 037, the dyes
+  unchanged; KTX2 baked with KTX-Software 4.4.2 on Linux. people_drape's far-mean test on a plain robe (the rosettes' far mean
+  is the impostor's, people_look).
 
 ## D-760 An original score, out of world: recorded orchestra, a main theme, an hour for the world, and a director that leaves silence (session 18, cloud C11; UD-38, UD-39)
 - The user's words (UD-38, UD-39) add non-diegetic music to the out-of-world layer, at a Hollywood bar and never recognisable as AI: the brief's "no background score" (§11) gives way to them; its ban on the "ancient Persia" cliché stands and binds the score (blocklist 'music-cliche': no duduk, oud or santur, no augmented-second "exotic" modes, no bent ethnic solo as the theme's identity; after C12's fourth pass the first draft's cor-anglais "duduk", alto-flute "ney" and Phrygian/Hijaz cues were rewritten for solo cello, horn, clarinet and flute in minor, Dorian and Aeolian). Majesty comes from harmony, brass, choir and rhythm; the period's colour (harp, frame drum) is used lightly. Equal temperament is the orchestra's own: the brief's tuning rule governs the world's players (src/audio/music.ts), not the out-of-world score. C.

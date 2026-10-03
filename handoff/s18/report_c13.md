@@ -177,6 +177,24 @@ See handoff/s18/c13_frames/ (if present): the forecourt and N stair at 09:12 on 
     (165 such talks that morning). Rivals' places are avoided, and 48 men talk low about their rival house.
 - **Sealed-letter test:** see the first section. Combined with C7's letter-day sampling (D-710) in the merge of s17-int.
 
+## Fifth pass: textiles from the lead's CC0 sets, and the dress test
+- **The court's textiles take ambientCG scans** (from branch s18-face-assets):
+  - Fabric 030's tabby weave for the woven wool: couch mattresses and bolsters, cushions, hangings and covers (`furn_textile`;
+    it was the felt Fabric 043);
+  - Carpet 012's cut pile for the palaces' carpets, the banquet's among them (a `furn_carpet` surface of their own);
+  - Leather 037 for leather props;
+  - the people's wool layer (the dress weave) now Fabric 030, measured at 700 threads per metre as the weave asks, and their
+    leather layer (the guards' belts, gorytoi and shoes) Leather 037.
+  The dyes are unchanged: each scan is laid over its own mean, at low chroma so the scans' grey-blue fibres do not speckle the
+  madder. KTX2 baked here with KTX-Software 4.4.2 (Linux). ASSET_LEDGER rows added. **Not seen in any frame.**
+- **What was not used:** Fabric 061, 062 and 083 (modern knits and a checker), 028 (velvet) and 019/081C/082A (plain white).
+  Concrete, plaster, tiles, wood and wicker are other owners' surfaces.
+- **people_drape's red** ("keeps its mean at a distance", ΔE 12): the test's official, seed 11, has worn rosettes since the
+  court's dyes. The rosettes' far mean is already carried by the impostor (people_look checks it within ΔE 3, and fails at
+  ΔE 16 if the motif is faded out with distance), so there is no near-to-far pop. The noise test now runs on a plain robe.
+- **people_belly times out alone here** (360 s against its 240 s). Like the sealed-letter test, it reads plans across the whole
+  year, so the town's economy runs a year. Not my change; reported.
+
 ## Tests
 - tests/court_ceremony.test.ts (new, 5 tests): the programme, the seats, the people on the programme's days, well-formed plans.
 - tests/palace_furnish.test.ts: updated for the stored state (hangings stay up).
