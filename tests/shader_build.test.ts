@@ -87,7 +87,7 @@ describe('surface shaders build (WGSL, node)', () => {
     if (!renderer.backend.device) renderer.backend.device = { limits: { maxUniformBufferBindingSize: 65536, maxStorageBufferBindingSize: 134217728 } }; // (the instanced meshes ask the device's limits; no device in node)
     const fails: string[] = [], meshes: THREE.Mesh[] = [];
     shafts.group.traverse((o: any) => { if (o.isMesh) meshes.push(o); }); vfx.group.traverse((o: any) => { if (o.isMesh) meshes.push(o); });
-    expect(meshes.length).toBe(9);
+    expect(meshes.length).toBe(10); // (V5 D-521: + the splashes)
     for (const m of meshes) { try { const b = build(renderer, scene, camera, m); if (!b.fragment.includes('output')) fails.push(m.name + ': no output'); } catch (e: any) { fails.push(`${m.name}: ${String(e?.message ?? e).slice(0, 300)}`); } }
     expect(fails).toEqual([]);
     expect(shafts.stats().shafts.filter(s => s.vis).length).toBe(7);

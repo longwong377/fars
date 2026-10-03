@@ -26,7 +26,8 @@ import { placeVillages } from '../../src/world/plain/villages';
 import { bakeTerrainDetail } from '../../src/terrain/terrainDetail';
 import { PlainGround } from '../../src/world/plain/terrainPlain';
 import { WeatherVfx } from '../../src/world/weatherVfx';
-import { DustSystem } from '../../src/world/dust';
+import { skyEnv } from '../../src/render/envmap';
+import { DustSystem, DUST } from '../../src/world/dust';
 import { BreathFx } from '../../src/world/breath';
 import { Animals, animalsFor, type Species } from '../../src/people/animals';
 import { loadAnimalModels } from '../../src/people/animalModels';
@@ -56,7 +57,8 @@ void cropState;
   const cover = new GroundCover({ ground: (x, z) => terrain.surfaceAt(x, z), zones, blocked: () => false }, 1); scene.add(cover.group);
   const A = new Animals(128, 'animals:wx'); scene.add(A.group);
   const dust = new DustSystem(); scene.add(dust.group);
-  const rain = new WeatherVfx(+(P.get('drops') ?? 6000)); scene.add(rain.group);
+  if (P.get('dustk')) for (const k of Object.keys(DUST)) (DUST as any)[k].tau *= +P.get('dustk')!; // (debug: thicker dust)
+  const rain = new WeatherVfx(+(P.get('drops') ?? 6000)); scene.add(rain.group); rain.ground = (x, z) => terrain.surfaceAt(x, z);
   const breath = new BreathFx(); scene.add(breath.group);
   A.onPush = (a, M) => { const e = M.elements; if (a.walk > 0.2) dust.emit(/^(sheep|goat)$/.test(a.sp) ? 'flock' : 'animal', e[12], e[13], e[14], Math.atan2(e[8], e[10]), 1.1 * a.walk, (a.coat * 997) | 0); };
   const cam = new THREE.PerspectiveCamera(70, 16 / 9, 0.1, 60000);
@@ -88,10 +90,17 @@ void cropState;
     const windMs = v.wind ?? 3, windDir = v.windDir ?? 300;
     dust.update(t, cam, { wetness: wet, snowCover: 0, rain: rn, windMs, windDirDeg: windDir });
     rain.setLight(hemi, sun);
+    const fake: any = { horizon: sky, sun, hemi, state: { sunDir: d.clone() } }; dust.setSkyLight(fake); breath.setSkyLight(fake);
     for (let i = 0; i < 4; i++) rain.update(0.05, cam, { rain: rn, snowFall: 0, windMs, windDirDeg: windDir, lightning: false }, 0);
     breath.update(t, cam, [], { moving: false }, { tempC: v.tempC ?? 15, rh: 70 });
+    // the sky in the surfaces' reflections (the game captures its sky dome: envmap.ts; here a sphere in the probe's sky and
+    // ground colours, so the wet sheen and the puddles have something to reflect)
+    { const es = new THREE.Scene(), sm = new THREE.MeshBasicNodeMaterial({ side: THREE.BackSide, vertexColors: true }), sg = new THREE.SphereGeometry(10, 32, 16), c = new THREE.Color(), cols: number[] = [];
+      const P2 = sg.getAttribute('position'); for (let i = 0; i < P2.count; i++) { const y = P2.getY(i) / 10; c.copy(sky); if (y < 0) c.multiplyScalar(0.25); else c.multiplyScalar(1 - 0.25 * y); cols.push(c.r, c.g, c.b); }
+      sg.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3)); es.add(new THREE.Mesh(sg, sm));
+      new THREE.PMREMGenerator(r).fromScene(es, 0, 0.1, 100, { renderTarget: skyEnv.target } as any); }
     for (let i = 0; i < 3; i++) await r.renderAsync(scene, cam);
-    return { errs: errs.slice(), month, animals: A.stats(), dust: dust.stats, rain: rn };
+    return { errs: errs.slice(), month, animals: A.stats(), dust: dust.stats, rain: rn, splash: (rain as any).splash.count, drops: (rain as any).rain.count };
   };
   (window as any).__ready = true;
 })().catch(e => { (window as any).__ready = String(e); console.error(e); });
