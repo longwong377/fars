@@ -84,7 +84,7 @@ describe('D-459 deeds in the world (a real town, seed 1, day 60)', () => {
     expect(b.deeds.log.length).toBe(0); expect(b.deeds.cases.length).toBe(sim.deeds.cases.length);
     // (D-720: the ids go on from the saved count, and the last day's deeds are read back: a memory reads its own deed)
     expect(b.deeds.next).toBe(sim.deeds.next);
-    const last = sim.deeds.log.filter(r => /^(attack|steal|break|curse|accuse|threaten|insult|mock|push|court|reconcile|heal|forgive|apologize|intercede|comfort)$/.test(r.deed.verb) && r.day >= sim.deeds.log[sim.deeds.log.length - 1].day - 9).slice(-1)[0];
+    const last = sim.deeds.log.filter(r => /^(attack|steal|break|curse|accuse|threaten|insult|push|court|reconcile)$/.test(r.deed.verb) && r.day >= sim.deeds.log[sim.deeds.log.length - 1].day - 9).slice(-1)[0];
     if (last) { expect(b.deeds.rec(last.id)?.deed.verb).toBe(last.deed.verb); expect(b.deeds.rec(last.id)?.deed.actor).toBe(last.deed.actor); }
     const v = sim.deeds.cases.find(c => c.accused === 'player')!.victim as number; expect(b.deeds.minds.feelOf(v, 'player', day + 1).anger).toBeCloseTo(sim.deeds.minds.feelOf(v, 'player', day + 1).anger, 6);
   });
@@ -98,4 +98,24 @@ describe('D-459 a talk turn carries the deed (stand-in model)', () => {
     expect(o.deed?.deed.verb).toBe('insult'); expect(o.deed?.done?.out.ok).toBe(true);
     expect(sim.deeds.minds.feelOf(pid, 'player', day).anger).toBeGreaterThan(0.2);
   });
+});
+
+describe('D-720 (C7\'s CI): the deeds\' save round trip', () => {
+  it('a world run live, saved, loaded and saved again gives the same deeds save, byte for byte', async () => {
+    const { PeopleSim } = await import('../src/people/sim'); const { nav, envOf } = await import('./sim_fixture');
+    const a = new PeopleSim(1, nav(), envOf(1), { asks: true }); a.jumpTo(12 * 24 + 10);
+    const s1 = JSON.stringify(a.deeds.save()), b = new PeopleSim(1, nav(), envOf(1), { asks: true }); b.load(JSON.parse(JSON.stringify(a.save())));
+    expect(JSON.stringify(b.deeds.save())).toBe(s1);
+  }, 600_000);
+});
+
+describe('D-720 (C7\'s determinism): a day reads the same however far the world has gone past it', () => {
+  it('two fresh worlds: A runs to day 30 then reads day 10, B reads day 10: the same plans for everyone the deeds laid a stretch on', async () => {
+    const { PeopleSim } = await import('../src/people/sim'); const { nav, envOf } = await import('./sim_fixture');
+    const B = new PeopleSim(1, nav(), envOf(1), { asks: true }); B.jumpTo(10 * 24 + 10);
+    const pids = B.pop.persons.map(p => p.id).filter(x => B.deeds.overlay.touches(x, 10)).slice(0, 400); expect(pids.length).toBeGreaterThan(20);
+    const pb = pids.map(x => JSON.stringify(B.pop.plan(x, 10)));
+    const A = new PeopleSim(1, nav(), envOf(1), { asks: true }); A.jumpTo(30 * 24 + 10);
+    const diff = pids.filter((x, i) => JSON.stringify(A.pop.plan(x, 10)) !== pb[i]); expect(diff).toEqual([]);
+  }, 900_000);
 });

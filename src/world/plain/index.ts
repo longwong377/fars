@@ -19,6 +19,7 @@ import { FieldFill } from './fieldFill';
 import { VillageHouses } from './villagehouses';
 import type { FireSystem } from '../fire';
 import { buildZones, ZoneMap, ZONE, landUseAt } from './fields';
+import { fieldWorkNear, type FieldPlotWork } from './fieldWork';
 import { cachedSync } from '../cache/worldCache';
 import { PlainGround } from './terrainPlain';
 import { buildRivers } from './rivers';
@@ -31,6 +32,7 @@ import { buildNaqsh } from './naqsh';
 import { buildQuarries, quarrySites } from './quarries';
 import { Qanats } from './qanats';
 import { Works } from './works';
+import { Waterworks, waterworksLayout } from './waterworks';
 import { setWindField } from './windField';
 import { buildCrossings, keepOffChannels, roadRiverCrossings, type FordDetailSites } from './crossings';
 import { doyOf, riverState, marginState } from './seasonal';
@@ -67,6 +69,8 @@ export interface PlainBuild {
   update(dt: number, ctx: any): void;
   /** D-254: the villages as built (their sites, houses, gates, colliders) */
   villageHouses: VillageHouses;
+  /** D-670: the field plots within r m of (e, n) with work on this day: village, crop, stage and the workers' spots (fieldWork.ts) */
+  fieldWork(e: number, n: number, r: number, dayIndex: number, max?: number): FieldPlotWork[];
   stats(): Record<string, number>; summary(): string;
   /** dev: every plain tree within R of grid (e, n), as [e, n, crown width] */
   treesAround(e: number, n: number, R: number): number[][];
@@ -157,6 +161,8 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   const qb = buildQuarries(terrain, opts.seed); group.add(qb.group); scene.add(qb.extra); // (D-600: the quarries' drums and rock beside the plain's group)
   // the fords where the roads meet the Pulvar and the Kur (D-257, C)
   const fords = buildCrossings(terrain, rivers.rivers, opts.seed, trackObjs, (qb.group.children.find(o => (o as THREE.Mesh).isMesh) as THREE.Mesh | undefined) ?? null); group.add(fords.group);
+  // D-670: shadufs on the river and canal banks, the bridge of boats on the royal road over the Kur (waterworks.ts)
+  const waterworks = new Waterworks(waterworksLayout(rv.profiles, rivers.rivers, canals, fords.crossings, (e, n) => terrain.surfaceAt(e, -n)), (e, n) => terrain.surfaceAt(e, -n), terrain.meta.court_asl); scene.add(waterworks.group);
   // Naqsh-e Rustam's meshes cast shadows near the cliff, except the relief sets', which manage their own (their shadow proxies are the only relief
   // draws in the shadow passes, D-048: switching every mesh under the group drew the carved figures into all 4 cascades, D-228)
   const nrCasters: THREE.Mesh[] = []; nr.group.traverse(o => { if ((o as THREE.Mesh).isMesh && !o.name.startsWith('relief:')) nrCasters.push(o as THREE.Mesh); });
@@ -249,7 +255,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     if (Math.hypot(cam.x - lastMid.x, cam.z - lastMid.z) > (Q.rMid - Q.r3) * 0.25) { lastMid = cam.clone(); rebuildMid(cam); }
     if (Math.hypot(cam.x - lastNear.x, cam.z - lastNear.z) > Q.r3 * 0.08) { lastNear = cam.clone(); rebuildNear(cam); }
     cullNear(ctx.camera);
-    fieldFill.update([cam.x, -cam.z], doyOf(day)); qanats.update(cam.x, -cam.z); crops.update(cam, terrain); margins.update(cam); (margins as any).wind.value = kit.wind.value;
+    fieldFill.update([cam.x, -cam.z], doyOf(day)); qanats.update(cam.x, -cam.z); waterworks.update(day); crops.update(cam, terrain); margins.update(cam); (margins as any).wind.value = kit.wind.value;
     // shadow casting only near the camera (the CSM cascades end at 600 m; a far caster would still be drawn into every
     // cascade its bounding sphere touches): village cells, Naqsh-e Rustam and the quarries
     for (const c of vb.cells) c.mesh.castShadow = c.centres.some(([x, z]) => Math.hypot(x - cam.x, z - cam.z) < 900);
@@ -277,6 +283,6 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     for (const t of fieldTrees(zones, e, -n, R)) if (Math.hypot(t.x, t.y) > FIELD_FAR_R) add(t);
     return out;
   };
-  return { group, data: { rivers, canals, villages, zones, fords: fords.detail }, update, villageHouses: vb, stats, treesAround, nearTrees: () => ({ placed: [placed.a, placed.b, placed.c], sets: [lod0, lod1s, lod1n], models: kit.models }),
+  return { group, data: { rivers, canals, villages, zones, fords: fords.detail }, update, villageHouses: vb, fieldWork: (e: number, n: number, r: number, d: number, max?: number) => fieldWorkNear(zones, villages, e, n, r, d, max), stats, treesAround, nearTrees: () => ({ placed: [placed.a, placed.b, placed.c], sets: [lod0, lod1s, lod1n], models: kit.models }),
     summary: () => { const s = stats(); return `plain: ${s.villages} villages (${s.compounds} compounds), ${s.canals} canals, ${s.lineTrees} river/canal trees, ${s.orchardPlots} orchard plots, near trees ${s.nearTrees} (LOD0 ${s.lod0Trees}), mid-ring impostors ${s.midTrees}, crop tufts ${s.crops}, built in ${s.buildMs} ms`; } };
 }

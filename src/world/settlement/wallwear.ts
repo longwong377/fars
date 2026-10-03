@@ -68,13 +68,14 @@ export class WallWear {
     const mk = (g: THREE.BufferGeometry, cap: number, name: string, rough: number) => { const m = new THREE.InstancedMesh(g, mat(rough), cap); m.count = 0; m.frustumCulled = false; m.receiveShadow = true; m.name = `wallwear:${name}`;
       m.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3); m.userData = this.group.userData; m.renderOrder = 2; this.group.add(m); return m; };
     // (the smoke: narrow at the lintel, widening as it rises; the splash: a low wide band; the fresh coat: a band, sharp-edged at its foot)
-    this.meshes = { soot: mk(plume(t => 0.45 + 0.35 * t, false), 400, 'soot', 0.95), splash: mk(plume(() => 1, false), 400, 'splash', 0.7), fresh: mk(plume(() => 1, true), 300, 'fresh', 0.9) };
+    // (s18 C2, D-667: the splash drawn in the soot's mesh, one draw fewer: tests/settlement_build's 45 meshes)
+    const soot = mk(plume(t => 0.45 + 0.35 * t, false), 1200, 'soot', 0.9); this.meshes = { soot, splash: soot, fresh: mk(plume(() => 1, true), 300, 'fresh', 0.9) };
   }
   /** the simulation's roofs (RoofWear.source): a roof replastered this year brings a fresh coat over the door and the facade's top */
   setSource(roofOf: (plot: string) => number) { this.roofOf = roofOf; this.lastDay = -1; }
   update(day: number, eye: { x: number; z: number }, force = false): boolean {
     const ce = eye.x, cn = -eye.z; if (!force && day === this.lastDay && Math.hypot(ce - this.last[0], cn - this.last[1]) < 15) return false;
-    this.lastDay = day; this.last = [ce, cn]; const { soot, splash, fresh } = this.meshes; let ns = 0, nw = 0, nf = 0;
+    this.lastDay = day; this.last = [ce, cn]; const { soot, splash, fresh } = this.meshes; let ns = 0, nw = 0, nf = 0; const later: (() => void)[] = [];
     const put = (M: THREE.InstancedMesh, k: number, f: DoorFace, y: number, w: number, h: number, rgb: [number, number, number], along = 0) => {
       this.q.setFromAxisAngle(this.up, f.yaw); const ax = Math.cos(f.yaw), az = -Math.sin(f.yaw); // (the wall's along direction in three's x, z)
       this.m4.compose(this.v.set(f.e + ax * along, y, -f.n + az * along), this.q, this.sc.set(w, h, 1)); M.setMatrixAt(k, this.m4); M.setColorAt(k, this.c.setRGB(rgb[0], rgb[1], rgb[2], THREE.SRGBColorSpace)); };
@@ -82,9 +83,11 @@ export class WallWear {
       const isFresh = this.roofOf ? this.roofOf(f.plot) > FRESH : false;
       if (isFresh && nf < fresh.instanceMatrix.count) { put(fresh, nf++, f, f.lintel - 0.12, 1.1, Math.max(0.3, f.top - f.lintel + 0.12), [0.86, 0.78, 0.65]); continue; } // (the new coat hides the old smoke)
       if (f.soot > 0.05 && ns < soot.instanceMatrix.count) { const g = 0.16 + 0.1 * (1 - f.soot); put(soot, ns++, f, f.lintel - 0.06, 0.55 + 0.35 * f.soot, 0.6 + 0.9 * f.soot, [g, g * 0.92, g * 0.85]); }
-      if (f.splash > 0 && nw < splash.instanceMatrix.count) for (const sd of [-1, 1]) { if (nw >= splash.instanceMatrix.count) break; put(splash, nw++, f, f.floor + 0.02, 0.45, 0.28 + 0.2 * f.splash, [0.34, 0.27, 0.2], sd * 1.05); } }
-    for (const [M, n] of [[soot, ns], [splash, nw], [fresh, nf]] as const) { M.count = n; M.visible = n > 0; if (n) { M.instanceMatrix.needsUpdate = true; M.instanceColor!.needsUpdate = true; } }
+      if (f.splash > 0) for (const sd of [-1, 1]) { later.push(() => put(splash, ns + nw++, f, f.floor + 0.02, 0.45, 0.28 + 0.2 * f.splash, [0.34, 0.27, 0.2], sd * 1.05)); } }
+    // (the splash right after the soot in the same mesh)
+    for (const f of later) { if (ns + nw >= soot.instanceMatrix.count) break; f(); } ns += nw;
+    for (const [M, n] of [[soot, ns], [fresh, nf]] as const) { M.count = n; M.visible = n > 0; if (n) { M.instanceMatrix.needsUpdate = true; M.instanceColor!.needsUpdate = true; } }
     // (soot's alpha: the plume's attribute times the instance's strength is carried by its colour's darkness: a lighter soot is paler, not thinner)
-    this.stats.soot = ns; this.stats.splash = nw; this.stats.fresh = nf; return true;
+    this.stats.soot = ns - nw; this.stats.splash = nw; this.stats.fresh = nf; return true;
   }
 }

@@ -130,11 +130,11 @@
     "bar53": 220.763
    },
    "bytes": {
-    "webm": 2969503,
-    "m4a": 3196217
+    "webm": 2917414,
+    "m4a": 3172018
    },
    "lufs": -19,
-   "tp": -4.4
+   "tp": -5
   },
   "the_road": {
    "title": "The Road",
@@ -243,10 +243,10 @@
     "bar97": 183.139
    },
    "bytes": {
-    "webm": 2132871
+    "webm": 2104203
    },
    "lufs": -19,
-   "tp": -3.9
+   "tp": -3.5
   },
   "long_shadow": {
    "title": "The Long Shadow",
@@ -302,10 +302,10 @@
     "bar45": 206.048
    },
    "bytes": {
-    "webm": 2183133
+    "webm": 2147963
    },
    "lufs": -20,
-   "tp": -4.8
+   "tp": -6.4
   },
   "kings_terrace": {
    "title": "The King's Terrace",
@@ -367,10 +367,10 @@
     "bar49": 181.513
    },
    "bytes": {
-    "webm": 2125569
+    "webm": 2078661
    },
    "lufs": -19,
-   "tp": -5
+   "tp": -4.3
   },
   "night_sky": {
    "title": "Night Sky",
@@ -424,10 +424,10 @@
     "bar43": 228.444
    },
    "bytes": {
-    "webm": 2546738
+    "webm": 2477100
    },
    "lufs": -22,
-   "tp": -8.9
+   "tp": -9
   },
   "the_watch": {
    "title": "The Watch",
@@ -481,10 +481,10 @@
     "bar43": 175.938
    },
    "bytes": {
-    "webm": 1986560
+    "webm": 1932911
    },
    "lufs": -21,
-   "tp": -5.4
+   "tp": -5.9
   },
   "rain_on_stone": {
    "title": "Rain on Stone",
@@ -536,10 +536,10 @@
     "bar41": 152.017
    },
    "bytes": {
-    "webm": 1736002
+    "webm": 1678271
    },
    "lufs": -21,
-   "tp": -7.7
+   "tp": -7.8
   },
   "golden_hour": {
    "title": "Golden Hour",
@@ -596,10 +596,10 @@
     "bar45": 198.977
    },
    "bytes": {
-    "webm": 2251354
+    "webm": 2212107
    },
    "lufs": -20,
-   "tp": -6.9
+   "tp": -7
   },
   "market_morning": {
    "title": "Market Morning",
@@ -688,10 +688,10 @@
     "bar77": 158.705
    },
    "bytes": {
-    "webm": 1867341
+    "webm": 1824003
    },
    "lufs": -19,
-   "tp": -4
+   "tp": -5
   },
   "theme_remembered": {
    "title": "Theme Remembered",
@@ -740,10 +740,10 @@
     "bar40": 159.746
    },
    "bytes": {
-    "webm": 1968400
+    "webm": 1917821
    },
    "lufs": -20,
-   "tp": -7.4
+   "tp": -6.1
   },
   "wind_over_the_plain": {
    "title": "Wind over the Plain",
@@ -813,10 +813,10 @@
     "bar57": 194.026
    },
    "bytes": {
-    "webm": 2129633
+    "webm": 2081907
    },
    "lufs": -19,
-   "tp": -3.1
+   "tp": -3.8
   },
   "dawn_chorale": {
    "title": "Dawn Chorale",
@@ -867,10 +867,10 @@
     "bar39": 176.475
    },
    "bytes": {
-    "webm": 1980294
+    "webm": 2006083
    },
    "lufs": -20,
-   "tp": -6
+   "tp": -6.5
   },
   "evening_road": {
    "title": "Evening Road",
@@ -943,10 +943,10 @@
     "bar61": 140.342
    },
    "bytes": {
-    "webm": 1668951
+    "webm": 1638662
    },
    "lufs": -20,
-   "tp": -6.6
+   "tp": -7.1
   },
   "court_at_night": {
    "title": "Court at Night",
@@ -1000,10 +1000,10 @@
     "bar41": 172.89
    },
    "bytes": {
-    "webm": 1991475
+    "webm": 1930289
    },
    "lufs": -20,
-   "tp": -4.9
+   "tp": -5.5
   },
   "stars_over_rahmat": {
    "title": "Stars over Rahmat",
@@ -1051,10 +1051,10 @@
     "bar37": 179.892
    },
    "bytes": {
-    "webm": 2068196
+    "webm": 2021398
    },
    "lufs": -21,
-   "tp": -8.8
+   "tp": -8.7
   },
   "harvest": {
    "title": "Harvest",
@@ -1139,10 +1139,10 @@
     "bar73": 160.809
    },
    "bytes": {
-    "webm": 1878903
+    "webm": 1833066
    },
    "lufs": -19,
-   "tp": -4.4
+   "tp": -4.5
   },
   "smoke_and_embers": {
    "title": "Smoke and Embers",
@@ -1193,10 +1193,10 @@
     "bar39": 153.727
    },
    "bytes": {
-    "webm": 1837339
+    "webm": 1778933
    },
    "lufs": -20,
-   "tp": -6.6
+   "tp": -6.7
   },
   "the_gate": {
    "title": "The Gate",
@@ -1257,10 +1257,10 @@
     "bar49": 158.945
    },
    "bytes": {
-    "webm": 1794797
+    "webm": 1757791
    },
    "lufs": -18,
-   "tp": -3.3
+   "tp": -2.6
   },
   "midday_heat": {
    "title": "Midday Heat",
@@ -1313,10 +1313,10 @@
     "bar41": 174.892
    },
    "bytes": {
-    "webm": 2144320
+    "webm": 2118427
    },
    "lufs": -21,
-   "tp": -7.9
+   "tp": -8.1
   },
   "before_dawn": {
    "title": "Before Dawn",
@@ -1364,10 +1364,10 @@
     "bar37": 180.545
    },
    "bytes": {
-    "webm": 2020238
+    "webm": 1971320
    },
    "lufs": -22,
-   "tp": -9.6
+   "tp": -8.9
   },
   "after_the_rain": {
    "title": "After the Rain",
@@ -1416,10 +1416,10 @@
     "bar38": 132.58
    },
    "bytes": {
-    "webm": 1551824
+    "webm": 1522039
    },
    "lufs": -20,
-   "tp": -7.2
+   "tp": -7
   }
  }
 }

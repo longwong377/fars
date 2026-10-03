@@ -11,6 +11,7 @@
 //    analogy with the magi at Cyrus' tomb, Arrian 6.29, C): a white stone table with bowls, a wine jar, the flour, a barsom
 //    bundle and flowers, a reed mat before it (no inscription, no altar of the later "fire altar" type).
 // One vertex-coloured mesh (one draw), colliders as boxes and one trimesh for the spoil. Everything tier C.
+// s18 C15 also: the Akhor Rostam burial niches and the private rock tombs of the people of Pārsa (see buildNaqshLife).
 import * as THREE from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { Terrain } from '../../terrain/heightfield';
@@ -22,7 +23,7 @@ SURFACES.nr_works = { albedo: [0.6, 0.55, 0.47], roughness: 0.88, porosity: 0.6,
 
 const L = (c: RGB): RGB => c.map(srgbToLinear) as RGB;
 const C = { pole: L([0.55, 0.47, 0.37]), poleOld: L([0.48, 0.43, 0.37]), plank: L([0.62, 0.53, 0.41]), rope: L([0.66, 0.6, 0.45]), mat: L([0.7, 0.62, 0.42]),
-  chips: L([0.8, 0.77, 0.7]), chipsDust: L([0.74, 0.7, 0.62]), block: L([0.72, 0.69, 0.62]), wash: L([0.86, 0.83, 0.75]), mud: L([0.6, 0.51, 0.39]), roof: L([0.66, 0.58, 0.45]),
+  chips: L([0.9, 0.88, 0.82]), chipsDust: L([0.82, 0.79, 0.72]), path: L([0.62, 0.55, 0.44]), green: L([0.36, 0.45, 0.22]), green2: L([0.5, 0.52, 0.28]), tilled: L([0.45, 0.37, 0.28]), dung: L([0.36, 0.3, 0.22]), block: L([0.72, 0.69, 0.62]), wash: L([0.86, 0.83, 0.75]), mud: L([0.6, 0.51, 0.39]), roof: L([0.66, 0.58, 0.45]),
   dark: L([0.08, 0.07, 0.06]), ochre: L([0.72, 0.42, 0.28]), clay: L([0.66, 0.46, 0.33]), stone: L([0.82, 0.8, 0.74]), wine: L([0.3, 0.07, 0.1]), flour: L([0.9, 0.88, 0.82]),
   barsom: L([0.42, 0.45, 0.25]), flower: L([0.85, 0.3, 0.25]), flower2: L([0.92, 0.82, 0.35]), basket: L([0.62, 0.5, 0.3]), wool: L([0.86, 0.82, 0.72]) } as const;
 
@@ -51,6 +52,14 @@ export interface NaqshLifeInput {
   cut: number; darius: number; top: number;
   /** the keepers' house (grid e, n) */
   house: [number, number];
+  /** the Ka'ba's foot (grid e, n): the paths join it */
+  kaba?: [number, number];
+  /** draw the rock burials (Akhor Rostam, the private rock tombs) in this mesh (default true) */
+  burials?: boolean;
+  /** where they were placed (for the overlay and the people) */
+  places?: { id: string; e: number; n: number }[];
+  /** more geometry drawn in this mesh (the roadside, wayside.ts: one draw for the plain's budget) */
+  extra?: { parts: THREE.BufferGeometry[]; boxes: { c: THREE.Vector3; h: THREE.Vector3; rot: number }[] };
 }
 export interface NaqshLife { mesh: THREE.Mesh; colliders(phys: Physics): void; info: Record<string, number> }
 
@@ -133,6 +142,38 @@ export function buildNaqshLife(I: NaqshLifeInput): NaqshLife {
     parts.push(box(he - 3, rt + 0.33, -(hn + WY - 0.4), 0.7, 0.02, 0.5, C.wool));
     info.keepersHouse = 1; }
 
+  // ---- s18 C15 (D-800): the keepers' working ground (C): a sheepfold of mud walls with a reed-roofed shelter E of the house (the
+  // tomb's sheep, D-640: their flock is the people's), a well with its stone kerb and a trough, a kitchen garden of beds by the
+  // well, a stack of brushwood and dung cakes; and the paths the keepers, the cutters and the visitors tread (draped strips of
+  // bare earth): from the house W along the foot to the offering table and on to the Ka'ba, from the house to the works
+  { const [he, hn] = I.house, g = (e: number, n: number) => H(e, n);
+    // the fold: 12 x 9 m, walls 1.3 m, the gate W; the shelter along its N wall
+    const fe = he + 17, fn = hn - 1, w2 = (e0: number, n0: number, e1: number, n1: number, h: number, c: RGB) => { const ce = (e0 + e1) / 2, cn = (n0 + n1) / 2, y0 = g(ce, cn) - 0.3, hx = Math.abs(e1 - e0) / 2 + 0.15, hz = Math.abs(n1 - n0) / 2 + 0.15;
+      solid(box(ce, y0 + (h + 0.3) / 2, -cn, hx, (h + 0.3) / 2, hz, c), new THREE.Vector3(ce, y0 + (h + 0.3) / 2, -cn), new THREE.Vector3(hx, (h + 0.3) / 2, hz)); };
+    w2(fe - 6, fn - 4.5, fe + 6, fn - 4.5, 1.3, C.mud); w2(fe - 6, fn + 4.5, fe + 6, fn + 4.5, 1.3, C.mud); w2(fe + 6, fn - 4.5, fe + 6, fn + 4.5, 1.3, C.mud);
+    w2(fe - 6, fn - 4.5, fe - 6, fn - 1, 1.3, C.mud); w2(fe - 6, fn + 1, fe - 6, fn + 4.5, 1.3, C.mud);
+    { const y = g(fe, fn + 3.4); parts.push(box(fe, y + 1.9, -(fn + 3.4), 5.8, 0.05, 1.1, C.mat)); for (const x of [-5.5, 0, 5.5]) parts.push(rod(new THREE.Vector3(fe + x, y - 0.2, -(fn + 2.3)), new THREE.Vector3(fe + x, y + 1.85, -(fn + 2.3)), 0.06, C.pole)); }
+    parts.push(box(fe, g(fe, fn) + 0.02, -fn, 5.8, 0.025, 4.3, C.dung)); // the trodden, dunged floor
+    // the well and its trough, the garden beds W of the house's S wall
+    const we = he - 12, wn = hn - 9, wy = g(we, wn);
+    solid(cyl(we, wy - 0.2, -wn, 0.85, 0.75, C.block, 12, 0.8), new THREE.Vector3(we, wy + 0.2, -wn), new THREE.Vector3(0.85, 0.4, 0.85)); parts.push(cyl(we, wy + 0.5, -wn, 0.55, 0.02, C.dark, 10, 0.55));
+    parts.push(rod(new THREE.Vector3(we - 0.9, wy, -wn), new THREE.Vector3(we - 0.9, wy + 2.1, -wn), 0.06, C.pole)); parts.push(rod(new THREE.Vector3(we + 0.9, wy, -wn), new THREE.Vector3(we + 0.9, wy + 2.1, -wn), 0.06, C.pole)); parts.push(rod(new THREE.Vector3(we - 1.0, wy + 2.05, -wn), new THREE.Vector3(we + 1.0, wy + 2.05, -wn), 0.05, C.pole));
+    parts.push(box(we + 2.2, wy + 0.25, -wn, 1.0, 0.25, 0.35, C.block)); parts.push(box(we + 2.2, wy + 0.47, -wn, 0.85, 0.02, 0.22, C.dark)); // the water in it
+    for (let k = 0; k < 6; k++) { const be = he - 19 + k * 1.6, bn = hn - 14, by = g(be, bn); parts.push(box(be, by + 0.05, -bn, 0.6, 0.06, 3.2, C.tilled)); for (let r = 0; r < 5; r++) parts.push(box(be, by + 0.14, -(bn - 2.6 + r * 1.3), 0.35, 0.09, 0.3, k % 2 ? C.green : C.green2)); }
+    // the fuel stack by the house's E wall
+    { const e = he + 9.2, n = hn - 2, y = g(e, n); parts.push(box(e, y + 0.6, -n, 0.7, 0.6, 1.6, C.poleOld)); for (let k = 0; k < 8; k++) parts.push(cyl(e - 0.9, y + k * 0.09, -(n - 1.2 + (k % 4) * 0.7), 0.17, 0.08, C.dung, 8)); }
+    // the trodden paths (2 m strips draped on the ground, 3 cm over it)
+    const strip = (pts: [number, number][], w: number) => { const pos: number[] = [], col: number[] = [];
+      for (let i = 0; i + 1 < pts.length; i++) { const [a, b] = [pts[i], pts[i + 1]], L2 = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.max(1, Math.ceil(L2 / 3)), nx = -(b[1] - a[1]) / L2 * w / 2, ny = (b[0] - a[0]) / L2 * w / 2;
+        for (let k = 0; k < n; k++) { const P = (t: number, sd: number) => { const e = a[0] + (b[0] - a[0]) * t + nx * sd, nn = a[1] + (b[1] - a[1]) * t + ny * sd; return [e, g(e, nn) + 0.03, -nn]; };
+          const q = [P(k / n, -1), P(k / n, 1), P((k + 1) / n, 1), P((k + 1) / n, -1)]; for (const v of [q[0], q[1], q[2], q[0], q[2], q[3]]) { pos.push(...v); col.push(...C.path); } } }
+      const gg = new THREE.BufferGeometry(); gg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); gg.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); gg.computeVertexNormals(); parts.push(gg); };
+    const tbl = W(I.darius, 0, -14.2), tE = tbl.x, tN = -tbl.z, cutE = I.cut + 13, cutN = -W(I.cut, 0, rows[1] - 6).z;
+    strip([[he - 1, hn - 7], [he - 30, hn - 2], [tE + 2, tN - 1.5], [tE - 1, tN - 1.6]], 1.8);
+    if (I.kaba) strip([[tE - 1, tN - 2], [(tE + I.kaba[0]) / 2 + 4, (tN + I.kaba[1]) / 2], [I.kaba[0] + 1, I.kaba[1] + 12]], 1.6);
+    strip([[he - 1, hn - 7], [cutE + 3, cutN - 3]], 1.4); strip([[he + 1, hn - 7], [he + 2, hn - 40]], 2.2); // to the works; S toward the road
+    info.keepersGround = 1; }
+
   // ---- the offering table before Darius' tomb (the keepers' daily offering, D-640; C)
   { const p = W(I.darius, 0, -15.5), y = H(p.x, -p.z);
     solid(box(p.x, y + 0.42, p.z, 0.75, 0.42, 0.42, C.stone), new THREE.Vector3(p.x, y + 0.42, p.z), new THREE.Vector3(0.75, 0.42, 0.42));
@@ -143,10 +184,49 @@ export function buildNaqshLife(I: NaqshLifeInput): NaqshLife {
     for (let k = 0; k < 9; k++) parts.push(box(p.x - 0.6 + k * 0.15, y + 0.9, p.z + 0.25 + hash(k, 41) * 0.08, 0.035, 0.03, 0.035, k % 2 ? C.flower : C.flower2)); // flowers along the front edge
     parts.push(box(p.x, y + 0.012, p.z - 1.4, 0.9, 0.012, 0.6, C.mat)); info.offering = 1; }
 
+  // ---- s18 C15 (D-800; the lead's add, holes.md P2-9; Q-085, D-771): the living city's dead in the rock, drawn in this mesh (the
+  // plain's draw budget): the Akhor Rostam burial niches on the nearest steep rock to the map point (Q-085: ~3 km), and the
+  // private rock tombs (Herzfeld; positions not retrieved: placed on the steepest rock of Kuh-e Rahmat's W foot, 0.4-1.6 km E of
+  // the Terrace, C). Each stands on its measured slope as a dressed face (a block whose front is vertical, its back in the
+  // slope), plastered white round the openings (C); the niches small and in rows (ossuary niches), some closed by plastered
+  // slabs; the tombs a doorway closed by a large slab (the source's 'closed by large slabs', B), a lamp and a bowl of offerings
+  // before a few (C)
+  if (I.burials !== false) { const T = I.terrain, hz = (e: number, n: number) => T.heightAt(e, -n);
+    const slope = (e: number, n: number) => { const dx = (hz(e + 6, n) - hz(e - 6, n)) / 12, dy = (hz(e, n + 6) - hz(e, n - 6)) / 12; return { s: Math.hypot(dx, dy), dx, dy }; };
+    const find = (cx: number, cy: number, R: number, step: number, sMin: number, ok: (e: number, n: number) => boolean) => { const out: { e: number; n: number; s: number; d: number }[] = [];
+      for (let y = cy - R; y <= cy + R; y += step) for (let x = cx - R; x <= cx + R; x += step) { const d = Math.hypot(x - cx, y - cy); if (d > R || !ok(x, y)) continue; const q = slope(x, y); if (q.s >= sMin) out.push({ e: x, n: y, s: q.s, d }); }
+      return out; };
+    const spaced = (c: { e: number; n: number; s: number; d: number }[], k: number, gap: number) => { const pick: typeof c = []; for (const q of c) { if (pick.length >= k) break; if (pick.every(p => Math.hypot(p.e - q.e, p.n - q.n) >= gap)) pick.push(q); } return pick; };
+    /** a dressed face of w x h on the slope at (e, n), facing downhill; `cut` draws the openings on its front (local x across, y up) */
+    const face = (e: number, n: number, w: number, h: number, cut: (P: (x: number, y: number, z: number) => THREE.Vector3, rot: number) => void) => {
+      const q = slope(e, n), ox = -q.dx / (q.s || 1), oy = -q.dy / (q.s || 1), rot = Math.atan2(ox, oy); // the downhill direction (grid)
+      const g0 = hz(e + ox * 0.6, n + oy * 0.6), depth = Math.min(4, h / Math.max(0.3, q.s) + 0.6), ce = e - ox * (depth / 2 - 0.6), cn = n - oy * (depth / 2 - 0.6);
+      solid(box(ce, g0 - 0.4 + (h + 0.4) / 2, -cn, w / 2, (h + 0.4) / 2, depth / 2, C.block, rot), new THREE.Vector3(ce, g0 - 0.4 + (h + 0.4) / 2, -cn), new THREE.Vector3(w / 2, (h + 0.4) / 2, depth / 2), rot);
+      const P = (x: number, y: number, z: number) => new THREE.Vector3(e + ox * (0.6 + z) + oy * x, g0 + y, -(n + oy * (0.6 + z) - ox * x)); cut(P, rot); };
+    const plate = (P: (x: number, y: number, z: number) => THREE.Vector3, rot: number, x: number, y: number, w: number, h: number, z: number, c: RGB, t = 0.02) => { const p = P(x, y + h / 2, z + t / 2); parts.push(box(p.x, p.y, p.z, w / 2, h / 2, t / 2, c, rot)); };
+    // Akhor Rostam: the nearest steep rock to the map point (2889, -9151), its niche groups along it
+    { const cand = find(2889, -9151, 4500, 40, 0.75, () => true).sort((a, b) => a.d - b.d); let n0 = 0, n1 = 0;
+      const P0 = cand[0]; if (P0) { const near = find(P0.e, P0.n, 120, 8, 0.7, () => true).sort((a, b) => Math.hypot(a.e - P0.e, a.n - P0.n) - Math.hypot(b.e - P0.e, b.n - P0.n));
+        for (const [gi, g] of spaced(near, 6, 9).entries()) face(g.e, g.n, 4.2, 2.6, (P, rot) => { plate(P, rot, 0, 0.35, 4.0, 2.1, 0, C.wash, 0.015); // the plastered field
+          for (let r = 0; r < 2; r++) for (let k = 0; k < 4; k++) { const x = -1.5 + k * 1.0, y = 0.6 + r * 0.95, shut = hash(gi * 8 + r * 4 + k, 51) < 0.45;
+            plate(P, rot, x, y, 0.62, 0.52, 0.016, C.ochre, 0.01); plate(P, rot, x, y + 0.04, 0.5, 0.42, 0.027, shut ? C.wash : C.dark, 0.01); n0++; } });
+        // the visitors' offering before the first group: a lamp and a bowl (C)
+        { const q = slope(P0.e, P0.n), ox = -q.dx / (q.s || 1), oy = -q.dy / (q.s || 1), e = P0.e + ox * 2.2, n = P0.n + oy * 2.2, y = hz(e, n); parts.push(cyl(e, y, -n, 0.12, 0.05, C.clay, 10, 0.15)); parts.push(cyl(e + 0.35, y, -n, 0.07, 0.04, C.clay, 8, 0.09)); n1++; }
+        info.akhorNiches = n0; info.akhorAt = Math.round(P0.d); I.places?.push({ id: 'akhor_rostam_niches', e: P0.e, n: P0.n }); } }
+    // the private rock tombs on Kuh-e Rahmat's W foot (E of the Terrace: e 400-1600, n -900-900; clear of the Terrace's ground)
+    { const cand = find(1000, 0, 1000, 25, 0.85, (e, n) => e > 420 && Math.abs(n) < 950).sort((a, b) => b.s - a.s || a.d - b.d); let nt = 0;
+      for (const [k, g] of spaced(cand, 7, 70).entries()) face(g.e, g.n, 2.6, 2.4, (P, rot) => { plate(P, rot, 0, 0.2, 2.4, 2.0, 0, C.wash, 0.015);
+        plate(P, rot, 0, 0.45, 0.95, 1.25, 0.016, C.ochre, 0.01); plate(P, rot, 0, 0.5, 0.8, 1.12, 0.026, C.dark, 0.01); // the doorway, an ochre frame
+        plate(P, rot, 0.06, 0.45, 0.98, 1.2, 0.06, C.block, 0.14); // the closing slab, set before the doorway
+        if (k % 3 === 0) { const p = P(-0.7, 0, 0.7); parts.push(cyl(p.x, p.y, p.z, 0.07, 0.04, C.clay, 8, 0.09)); const b = P(0.7, 0, 0.75); parts.push(cyl(b.x, b.y, b.z, 0.12, 0.05, C.clay, 10, 0.15)); }
+        nt++; I.places?.push({ id: `private_rock_tomb_${k + 1}`, e: g.e, n: g.n }); });
+      info.privateTombs = nt; } }
+
+  if (I.extra) { parts.push(...I.extra.parts); boxes.push(...I.extra.boxes); }
   const geo = mergeGeometries(parts.map(g => { if (!g.getAttribute('normal')) g.computeVertexNormals(); return g; }))!;
   const mat = surfaceMaterial('nr_works', { vertexColors: true });
   const mesh = new THREE.Mesh(geo, mat); mesh.name = 'nr-life'; mesh.castShadow = mesh.receiveShadow = true;
-  mesh.userData = { tier: 'C', src: 'RECON;D-640;D-033', placeholder: false, note: 'Naqsh-e Rustam in use in 467 (s18 C15, D-800): the scaffold of lashed poles before the second tomb being cut, its spoil of fresh chips and the cutters\' lean-to; the keepers\' whitewashed courtyard house (D-640); the offering table before Darius\' tomb with bowls of flour, wine and water, the barsom and flowers (Arrian 6.29 by analogy). All C' };
+  mesh.userData = { tier: 'C', src: 'RECON;D-640;D-033', placeholder: false, note: 'Naqsh-e Rustam in use in 467 (s18 C15, D-800): the scaffold of lashed poles before the second tomb being cut, its spoil of fresh chips and the cutters\' lean-to; the keepers\' whitewashed courtyard house (D-640); the offering table before Darius\' tomb with bowls of flour, wine and water, the barsom and flowers (Arrian 6.29 by analogy); the keepers\' ground and paths; the rock burials (Akhor Rostam, the private rock tombs); and the roadside of the plain (wells, halts with their carts, field shrines, dung on the roads: wayside.ts, D-801). All C' };
   info.tris = geo.getAttribute('position').count / 3;
   const sp = spoil as Geo | null;
   return { mesh, info, colliders(phys: Physics) {
@@ -155,3 +235,5 @@ export function buildNaqshLife(I: NaqshLifeInput): NaqshLife {
     phys.addTrimesh(new Float32Array(p.array as ArrayLike<number>), idx, { tier: 'C', what: 'naqsh-e-rustam spoil' });
   } };
 }
+/** the drawing helpers and colours, for the roadside (wayside.ts) drawn into this mesh */
+export { box, rod, cyl, hash, C as LIFE_C, L as linRGB };

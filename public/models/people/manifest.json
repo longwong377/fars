@@ -1160,16 +1160,16 @@
      "bytes": 508928
     },
     "people_hair_atlas.ktx2": {
-     "sha256": "cd527ee5909be611b5a914c0a5af6a4963016928e171deb871ce82a68de73f7d",
-     "bytes": 6912654
+     "sha256": "14362e7b04c1832fb9a616643059b98ed6317a6d071dde5aebbb86e82772ed0e",
+     "bytes": 7707339
     },
     "people_hair_normal.ktx2": {
-     "sha256": "66e0fcc1f07056787ef82fc2ff699f4d3e27434c0690d8d315b65bd8a4672366",
-     "bytes": 1815142
+     "sha256": "51136f053715db2824354f26a30615d1d57ee0a6b07201057aceadab12c52663",
+     "bytes": 2035606
     }
    },
-   "inHash": "a28e812e6bbf2bb2e133979c9e254b61038f66653f79e642e40157b66e03dfa3",
-   "bytes": 9242532,
+   "inHash": "ccc899e407aa54c4195392774c68c33da9af4826eb3ae6b993fc529bf0e0d1b9",
+   "bytes": 10257681,
    "gpuBytes": 13981014,
    "stats": {
     "head": {
@@ -1237,14 +1237,14 @@
    "tier": "C",
    "src": "RELIEF-R;IR-WOMEN;MH-CC0",
    "blender": "5.0.1",
-   "ktx": "ktx version: v4.4.2",
-   "build_s": 171,
+   "ktx": "ktx version: v4.4.2-compatible (ktx2-encoder, Basis Universal WASM)",
+   "build_s": 229,
    "reproduced": {
     "files": {
      "people_hair.json": "452908a9c04dd4fcfd9561c07420da024379dfdba837b37c8103cf59e64034fd",
      "people_hair.bin": "126daec552994bda7025cd40e03e362f863771ffc1001e21c2bcd01be28cec77",
-     "people_hair_atlas.ktx2": "cd527ee5909be611b5a914c0a5af6a4963016928e171deb871ce82a68de73f7d",
-     "people_hair_normal.ktx2": "66e0fcc1f07056787ef82fc2ff699f4d3e27434c0690d8d315b65bd8a4672366"
+     "people_hair_atlas.ktx2": "14362e7b04c1832fb9a616643059b98ed6317a6d071dde5aebbb86e82772ed0e",
+     "people_hair_normal.ktx2": "51136f053715db2824354f26a30615d1d57ee0a6b07201057aceadab12c52663"
     },
     "blender": "5.0.1"
    }

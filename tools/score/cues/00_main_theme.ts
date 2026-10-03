@@ -68,7 +68,7 @@ const parts: Part[] = [
   { id: 'vn_shimmer', inst: 'vn1', art: 'trem', notes: chords([[bar(4), 12, 'A5 D6']]), dyn: [[bar(4), 0.0], [bar(5), 0.12], [bar(6) + 3, 0.2], [bar(7), 0.05]], gain: -6 },
   { id: 'flute_call', inst: 'afl', art: 'leg', notes: line('D5:1.5 A4:.5 G4:1 F4:.5 E4:.5 | F4:2.5 E4:.5 D4:1', bar(3)).concat(line('D5:1 C5:.5 A4:.5 | G4:3', bar(5) + 1)),
     dyn: [[bar(3), 0.25], [bar(3) + 2, 0.5], [bar(4) + 3, 0.3], [bar(5) + 1, 0.4], [bar(6) + 1, 0.5], [bar(6) + 4, 0.15]], depth: 0.75, pan: -0.35 },
-  { id: 'kit_night', inst: 'kit', art: 'hit', notes: [{ b: 0, d: 4, p: KIT.rumble }, { b: bar(1) + 0.02, d: 4, p: KIT.gong }, { b: bar(6), d: 2, p: KIT.bigDrum }, { b: bar(7) - KIT_LEAD(KIT.swellMid), d: 4, p: KIT.swellMid }], dyn: [] },
+  { id: 'kit_night', inst: 'kit', art: 'hit', notes: [{ b: 0, d: 4, p: KIT.rumble }, { b: bar(1) + 0.02, d: 4, p: KIT.gong }, { b: bar(6), d: 2, p: KIT.bigDrum }, { b: bar(7) - KIT_LEAD(KIT.swellMid), d: 4, p: KIT.swellMid }], dyn: [], gain: -4 },
 
   // ---------------------------------------------------------------- theme (7-14): the solo cello
   { id: 'cello_A', inst: 'vcSolo', art: 'leg', vib: 0.6, notes: line(A, bar(7)),

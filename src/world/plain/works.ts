@@ -126,7 +126,7 @@ const PART: Record<string, [string, RGB]> = {
   wicker: ['reed', [0.64, 0.54, 0.36]], wattle: ['wood', [0.5, 0.42, 0.31]], wood: ['wood', [0.47, 0.37, 0.27]], wood_d: ['wood', [0.38, 0.3, 0.22]], mud_roof: ['mud', [0.55, 0.46, 0.35]],
   pot: ['mud', [0.64, 0.46, 0.33]], clay: ['mud', [0.66, 0.46, 0.32]], stone: ['wood', [0.7, 0.66, 0.58]], water: ['mud', [0.25, 0.27, 0.25]], hide: ['reed', [0.62, 0.48, 0.34]],
   hide_d: ['reed', [0.48, 0.36, 0.25]], hide_w: ['reed', [0.74, 0.66, 0.54]], stain: ['mud', [0.36, 0.3, 0.24]], lime: ['mud', [0.86, 0.84, 0.78]], cord: ['reed', [0.58, 0.5, 0.36]],
-  cloth: ['reed', [0.72, 0.64, 0.5]], grape: ['mud', [0.35, 0.16, 0.24]], paste: ['mud', [0.5, 0.42, 0.22]], ash: ['mud', [0.42, 0.4, 0.38]], fodder: ['reed', [0.78, 0.67, 0.42]],
+  cloth: ['reed', [0.72, 0.64, 0.5]], grape: ['mud', [0.35, 0.16, 0.24]], paste: ['mud', [0.5, 0.42, 0.22]], ash: ['mud', [0.42, 0.4, 0.38]], fodder: ['reed', [0.78, 0.67, 0.42]], beam: ['wood', [0.45, 0.36, 0.26]], leather: ['reed', [0.5, 0.36, 0.24]],
 };
 const KINDS = [...new Set(Object.values(PART).map(p => p[0]))];
 
@@ -145,12 +145,26 @@ export class Works {
       phys?.addBox({ x: mid[0], y: (top + g0) / 2, z: -mid[1] }, { x: (len + w.t) / 2, y: (top - g0) / 2, z: w.t / 2 }, ang); }
     if (boxes.length) { const m = new THREE.Mesh(mergeGeometries(boxes)!, surfaceMaterial('mudbrick')); m.name = 'works-walls'; m.castShadow = m.receiveShadow = true; m.userData = this.group.userData; this.group.add(m); }
     // things
-    const mat = propMaterialMulti(KINDS), col = new THREE.Color(), byM = new Map<string, WorkItem[]>();
+    const byM = new Map<string, WorkItem[]>();
     for (const it of L.items) { let a = byM.get(it.m); if (!a) byM.set(it.m, a = []); a.push(it); }
-    const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), p = new THREE.Vector3(), sc = new THREE.Vector3();
     for (const [mName, list] of byM) {
-      if (!model(mName)) { this.missing.push(mName); continue; }
-      const parts = modelParts(mName, 2) ?? modelParts(mName, 1); if (!parts) { this.missing.push(mName); continue; }
+      const mesh = kitMesh(mName, list, ground); if (!mesh) { this.missing.push(mName); continue; }
+      mesh.castShadow = !/brick_field|hides|mud_heap/.test(mName); mesh.userData = this.group.userData; this.group.add(mesh);
+    }
+    if (this.missing.length) this.group.userData = { ...this.group.userData, note: `${this.group.userData.note}; not loaded (not drawn): ${this.missing.join(', ')}` };
+  }
+  stats() { return { yards: this.layout.yards.length, items: this.layout.items.length, spots: this.layout.spots.length, walls: this.layout.walls.length, missing: this.missing }; }
+}
+
+/** one InstancedMesh of a kit model (its far level, parts merged in the one multi-kind material) at the items (grid e, n;
+ *  rot about up; scale; y from `ground`, or the item's own `y` when given); null when the model did not load */
+export function kitMesh(mName: string, list: (WorkItem & { y?: number })[], ground: (e: number, n: number) => number, level: 1 | 2 = 2): THREE.InstancedMesh | null {
+  {
+    const mat = propMaterialMulti(KINDS), col = new THREE.Color();
+    const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), p = new THREE.Vector3(), sc = new THREE.Vector3();
+    {
+      if (!model(mName)) return null;
+      const parts = modelParts(mName, level) ?? modelParts(mName, 1); if (!parts) return null;
       const P: number[] = [], N: number[] = [], C: number[] = [], K: number[] = [], R: number[] = [], I: number[] = [];
       for (const [part, g0] of Object.entries(parts)) { const def = PART[part] ?? ['mud', [0.6, 0.5, 0.4]] as [string, RGB], pos = g0.getAttribute('position'), nor = g0.getAttribute('normal') ?? (g0.computeVertexNormals(), g0.getAttribute('normal')), base = P.length / 3;
         col.setRGB(def[1][0], def[1][1], def[1][2], THREE.SRGBColorSpace); const ki = Math.max(0, KINDS.indexOf(def[0]));
@@ -159,10 +173,9 @@ export class Works {
       const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(N, 3));
       g.setAttribute('color', new THREE.Float32BufferAttribute(C, 3)); g.setAttribute('aKind', new THREE.Float32BufferAttribute(K, 1)); g.setAttribute('aRough', new THREE.Float32BufferAttribute(R, 1)); g.setIndex(I);
       const mesh = new THREE.InstancedMesh(g, mat, list.length);
-      list.forEach((it, i) => { q.setFromAxisAngle(up, it.rot); m4.compose(p.set(it.e, ground(it.e, it.n) - 0.02, -it.n), q, sc.set(it.s[0], it.s[1], it.s[2])); mesh.setMatrixAt(i, m4); });
-      mesh.computeBoundingSphere(); mesh.receiveShadow = true; mesh.castShadow = !/brick_field|hides|mud_heap/.test(mName); mesh.name = `works:${mName}`; mesh.userData = this.group.userData; this.group.add(mesh);
+      list.forEach((it, i) => { q.setFromAxisAngle(up, it.rot); m4.compose(p.set(it.e, it.y ?? ground(it.e, it.n) - 0.02, -it.n), q, sc.set(it.s[0], it.s[1], it.s[2])); mesh.setMatrixAt(i, m4); });
+      mesh.computeBoundingSphere(); mesh.receiveShadow = true; mesh.name = `works:${mName}`;
+      return mesh;
     }
-    if (this.missing.length) this.group.userData = { ...this.group.userData, note: `${this.group.userData.note}; not loaded (not drawn): ${this.missing.join(', ')}` };
   }
-  stats() { return { yards: this.layout.yards.length, items: this.layout.items.length, spots: this.layout.spots.length, walls: this.layout.walls.length, missing: this.missing }; }
 }

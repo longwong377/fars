@@ -1,5 +1,12 @@
 # s18 C9 (the budget, D-740): report
 
+## Round 2, broken first
+- **The T4 black screen:** fixed at its cause (the jpg ground array re-uploaded null after release) with a safety net; seen in the cloud (0 page errors, 0 skips) but NOT yet on the T4: Vagon's player_probe on 1c288a99 or later.
+- **The 'writeMask' pipeline error:** not fixed; ?shaderlog now records the failing pipeline's targets and outputs (window.__pipeFail) for the next T4 run.
+- **Frame time (135-170 ms on the T4): no cut made.** The cloud could not profile it (SwiftShader compiles one view's pipelines in > 40 min).
+- **The leaf atlases (~90 MB RGBA8):** still uncompressed (computed on the page).
+- **Dist ~915-931 MB** of the 950 MB ceiling (the score and film included).
+
 ## Broken, unseen or not done first
 - **No T4 run yet.** Every number here is the cloud's: SwiftShader WebGPU, no GPU. Memory is a relative signal, and frame time and shader-compile seconds cannot be measured here. The T4 run is asked (below).
 - **The UASTC swap into the ETC1S twin's texture has never run on a real GPU.** In the cloud the formats differ (ETC2 exposed), so the swap is refused there by design. The T4 run must confirm `__parsa.lowFirst().upgraded` reaches 46 with no "[lowfirst] … does not match" warning, and that the scans look sharp a minute after ready.

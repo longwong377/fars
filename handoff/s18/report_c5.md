@@ -1,4 +1,15 @@
-# C5 crowds, doors and the walk (s18 cloud), D-690
+# C5 crowds, doors and the walk (s18 cloud), D-690; props D-691; life drawn D-692
+
+**Second round (D-691, D-692), broken or unseen first**
+- The empty frames' cause (C12 hole C1): no drop between the view and the screen. Most near people at midday are inside their
+  walled courts (hidden by the walls), the coverage cameras face away from the people, and the court is away on many coverage
+  days. pagecheck.mjs compares a 60 m disc with frustum-culled draws: it overstates a drop. Fixed: the first second after a page
+  load or a jump (cov-266 72 -> 104 of 116 placed), and the lanes (people in the lane by their door: about doubled). Not yet
+  seen on the T4; one cloud frame of the q_s1 lane shows one person in the lane (before the doorstep change).
+- Props: tools/dev/prop_clip.ts over every held prop: deeper than 3 cm in the body 10 -> 0 (two bodies, 8 phases; not the
+  children's or the elders' bodies, not the impostors). Goods held in a pose not made for them are set down beside the body;
+  walkers with goods use the carrying pose. Unseen in a frame.
+
 
 **Broken, placeholder or unseen first**
 - Not seen in a browser. Every number is from node runs on the offline world (tools/dev/lib/offline_world.ts), day 25 10:00, people on.

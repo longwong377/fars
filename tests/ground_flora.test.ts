@@ -13,7 +13,7 @@ describe('ground flora (session 9)', () => {
     const f = mk(); f.update(4, [180, 0]); const rock = n(f); f.update(4, [50, 300]); const steppe = n(f); f.update(4, [-50, 300]); const field = n(f); f.update(4, [-200, 0]); const water = n(f);
     expect(rock.cushion).toBeGreaterThan(steppe.cushion); expect(rock.camelthorn).toBe(0);
     expect(steppe.camelthorn).toBeGreaterThan(field.camelthorn); expect(steppe.thistle).toBeGreaterThan(field.thistle);
-    expect(Object.values(water).reduce((a, b) => a + b, 0)).toBeLessThan(steppe.cushion + steppe.camelthorn + steppe.thistle); // (the steppe cells at its edge only)
+    expect(water.cushion + water.camelthorn + water.thistle).toBeLessThan(steppe.cushion + steppe.camelthorn + steppe.thistle); // (the steppe cells at its edge only; D-670: grasses and flowers grow at the water)
   });
   it('each plant is within the radius, sized in its range, and the same every time (static)', () => {
     const a = mk(), b = mk(); a.update(4, [50, 0]); b.update(4, [50, 0]); const M = new THREE.Matrix4(), p = new THREE.Vector3(), q = new THREE.Quaternion(), s = new THREE.Vector3();

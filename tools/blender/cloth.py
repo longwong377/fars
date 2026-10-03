@@ -77,7 +77,9 @@ if one is not None:
     simulate(next(S for S in job['sims'] if S['name'] == one))
 else:
     T0 = time.time(); report = []
-    par = int(job.get('parallel', 8)); thr = str(int(job.get('threads', 2)))
+    par = int(os.environ.get('CLOTH_PARALLEL', job.get('parallel', 8))); thr = str(int(job.get('threads', 2)))
+    # (s18 C14: under the cloud's pip bpy there is no blender binary: the workers run through bpy_cli.py)
+    EXE = [bpy.app.binary_path] if bpy.app.binary_path else [sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'bpy_cli.py')]
     for stage in sorted(set(S.get('stage', 1) for S in job['sims'])):
         todo = [S for S in job['sims'] if S.get('stage', 1) == stage]
         # the heaviest first (the stage ends with its slowest simulation)
@@ -86,7 +88,7 @@ else:
         while todo or running:
             while todo and len(running) < par:
                 S = todo.pop(0)
-                cmd = [bpy.app.binary_path, '-b', '--factory-startup', '-t', thr, '--python', os.path.abspath(__file__), '--', job_path, '--sim', S['name']]
+                cmd = [*EXE, '-b', '--factory-startup', '-t', thr, '--python', os.path.abspath(__file__), '--', job_path, '--sim', S['name']]
                 st = settled_path(S).replace('.settled.f32', '.stats.json')
                 if os.path.exists(st): os.remove(st)
                 lf = open(settled_path(S).replace('.settled.f32', '.log'), 'w')

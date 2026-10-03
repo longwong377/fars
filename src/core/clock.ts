@@ -25,7 +25,8 @@ export class WorldClock {
     const j = jdnToJulian(this.jdn); const b = babylonianDate(this.jdn);
     const mon = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][j.m - 1];
     const h = Math.floor(this.localHour), mi = Math.floor((this.localHour - h) * 60);
-    const bab = b ? `${b.day} ${b.month.name}${OP_MONTH[b.month.monthNo] ? ' (' + OP_MONTH[b.month.monthNo] + ')' : ''}` : '';
+    // (D-651, W10: the Persian month first, the Babylonian in brackets)
+    const bab = b ? `${b.day} ${OP_MONTH[b.month.monthNo] ? OP_MONTH[b.month.monthNo] + ' (' + b.month.name + ')' : b.month.name}` : '';
     return `${bab}, Xerxes yr 19 · ${j.d} ${mon} ${1 - j.y} BCE (Julian) · ${String(h).padStart(2, '0')}:${String(mi).padStart(2, '0')} local mean time`;
   }
 }
