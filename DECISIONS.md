@@ -10233,6 +10233,12 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   tabby), in about a sixth of the town's house yards (fauna.json cat; lying by day, about the yard at dusk and dawn, off
   over the yard when someone comes within 4 m); the anatomy's boar and hare rebuilt for the species list; the mother's
   held hand 7 cm back to the child's under the skirted gait (people_children's palms within 12 cm again).
+- D-790 round 3 (the lead's must-lands): toddlers toddle (anim Gait.toddler, the plop) and children's stature varies ±3 %
+  (popview); vehicle wheels are a separate instanced mesh rolled by distance/R (workObjects splitWheels); reins and lead ropes
+  (people/reins.ts, animals.bitAt); the royal chariot driven by the king standing (anim 'charioteer', animals kind 'chariot':
+  four horses abreast, CHARIOT_YOKE 2.95 m, the car's floor 0.55 m); the royal women's curtained litter (workObjects 'litter',
+  carry_bier on a why naming it; Plutarch Them. 26, HDT 7.83 claims B, the form C); household donkeys tied at lane doors by
+  day and hens out at the door (fauna.json donkey 0.08 of lane-door houses; all C).
 
 ## D-691 Carried props sit on the body, seated poses clear their props (s18 cloud C5)
 - tools/dev/prop_clip.ts: every activity and variant that holds a prop, and the goods in the plan's words (basket, sack, jar,
