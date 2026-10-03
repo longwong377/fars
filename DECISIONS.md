@@ -10165,3 +10165,9 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   set down beside the seated (it sank into the chest and calves); the hip basket rides outside the hip at the hand's height
   (6.6 cm into the pelvis before); the sack sits out over the shoulder's point; the hauling rope ends in the rear hand and
   bows round the body between the hands (8 cm into the belly before); the towel hangs on the hand's outer side. All C.
+  hangings on the W, E and N walls: dropped in the second pass for the 450 k budget, the tables then drawn at the model's lowest
+  level); with the court away the halls keep their hangings, and the Apadana a keeper's corner and lamps.
+- Second pass (the lead's go-ahead and C12's passes 2-4): the asks applied in activities.ts, calendar.ts (E-28, E-29) and
+  performers.ts (the banquet's music); the proskynesis pose; the crown prince and the weapon-bearer behind the throne, the parasol
+  furled indoors; the plain kidaris; guards in the court robe; head pieces fitted by the head's radius, not its support function;
+  the delegations' gifts modelled (tools/blender/model_props.py gift_*); the stale 'court absent by default' texts rewritten.
