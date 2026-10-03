@@ -10084,6 +10084,12 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   town from the Terrace 0.23 -> 0.34); (f) the soundscape: the nightingale on spring nights, the dawn chorus, the summer noon
   hush; (g) ledges.ts disposes a swapped strip geometry two updates later. Dusk measured: sunset 18.36 h on day 0, the sun
   sinks 12.6 deg/h (30 N), so 19.25 h is the end of nautical twilight. All C.
+- (h) the comet of 467 (comet.ts): Plutarch (Lysander 12, after Daimachus) has a fiery body seen 75 days before the stone of
+  Aegospotami (Pliny NH 2.149: Ol. 78.2, 467/466); here a great comet for 75 evenings from game day 88 (mid-July 467), east
+  of the sun (elongation 35-62-40 deg), magnitude 4.5 -> 0.2 -> 4.5, tail 6-24 deg away from the sun, drawn in the world frame
+  from the sun and the ecliptic pole; C (dates, place, brightness). (i) The season's clouds (cloudKind.ts): the deck's
+  stratiform share by month (winter 0.7: thin, flat, even, softly eroded), a cirrus veil in the dome (autumn 0.55, summer
+  0.15), lit by the high sun. C.
 - Unseen: the cloud cannot draw Q=high (WebGL2: program validation failures and a lost device with the cascade on AND off;
   WebGPU: SwiftShader's 16-texture cap), so the far cascade is verified node-side only; it needs a T4 frame.
 
