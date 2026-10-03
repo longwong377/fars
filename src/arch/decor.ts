@@ -146,7 +146,16 @@ export function crownPlan(parts: Part[]): Crown[] {
     for (let i = 0; i < n; i++) { const s = a0 + i * CR.pitch;
       out.push({ building: 'terrace', e: b.c[0] + Math.cos(r) * s, n: b.c[1] + Math.sin(r) * s, y: b.y1, az: r, depth: Math.min(T, CR.max_depth) }); }
   }
-  return out;
+  // one merlon where two parapets coincide (a wall's exposed top flush with a roof's edge draws both lines): the first kept
+  const C = 0.5, cell = new Map<string, Crown[]>(), kept: Crown[] = [];
+  for (const q of out) {
+    const gx = Math.floor(q.e / C), gy = Math.floor(q.n / C); let clash = false;
+    for (let dx = -2; dx <= 2 && !clash; dx++) for (let dy = -2; dy <= 2 && !clash; dy++) for (const o of cell.get(`${gx + dx},${gy + dy}`) ?? [])
+      if (Math.abs(o.y - q.y) < 0.5 && Math.hypot(o.e - q.e, o.n - q.n) < 0.85) { clash = true; break; }
+    if (clash) continue;
+    kept.push(q); const k = `${gx},${gy}`; (cell.get(k) ?? cell.set(k, []).get(k)!).push(q);
+  }
+  return kept;
 }
 /** D-330: the depth (m) of the merlon the Blender model is built at (the Apadana's: apadana crenellations; the stair
  *  merlons scale it to their parapet, as the procedural merlon's unit depth was) */

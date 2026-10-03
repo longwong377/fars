@@ -36,7 +36,9 @@ export interface Piece { kind: 'dentil' | 'spout'; building: string; e: number; 
 export interface Crown { building: string; e: number; n: number; y: number; az: number; depth: number }
 /** D-750: a wall run's face under its string course (grid centre on the face line, outward normal, length, the band's top) */
 export interface BandFace { building: string; c: [number, number]; n: [number, number]; length: number; y1: number }
-export interface RoofEdges { boxes: Box[]; pieces: Piece[]; crowns: Crown[]; bands: BandFace[]; stats: { edges: number; free: number; wall: number; open: number; metres: number; tops: number } }
+/** D-750: a portico's open front under a roof's edge (grid end points along the edge, outward normal, the slab's underside) */
+export interface Porch { building: string; a: [number, number]; b: [number, number]; n: [number, number]; y: number }
+export interface RoofEdges { boxes: Box[]; pieces: Piece[]; crowns: Crown[]; bands: BandFace[]; porches: Porch[]; stats: { edges: number; free: number; wall: number; open: number; metres: number; tops: number } }
 
 /** D-750 (C): which roofs carry the stepped merlons. The stone stepped merlons found on the Terrace (the Apadana's, the stair
  *  parapets') crowned the palaces' roof lines in every reconstruction since Chipiez and Krefter (the Naqsh-e Rustam facades
@@ -100,7 +102,7 @@ function runBox(base: Omit<Box, 'type' | 'kind' | 'c' | 'size' | 'y0' | 'y1' | '
 export function roofEdges(parts: Part[]): RoofEdges {
   const hit = CACHE.get(parts); if (hit) return hit;
   const CR = row<any>('global', 'r_stair_crenellation').v as { width: number; height: number; pitch: number; max_depth: number };
-  const R = ROOFEDGE, boxes: Box[] = [], pieces: Piece[] = [], crowns: Crown[] = [], bands: BandFace[] = [], stats = { edges: 0, free: 0, wall: 0, open: 0, metres: 0, tops: 0 };
+  const R = ROOFEDGE, boxes: Box[] = [], pieces: Piece[] = [], crowns: Crown[] = [], bands: BandFace[] = [], porches: Porch[] = [], stats = { edges: 0, free: 0, wall: 0, open: 0, metres: 0, tops: 0 };
   const solid = parts.filter(p => p.type === 'box' && !p.door && !p.sculpt && p.kind !== 'floor_finish' && p.kind !== 'frieze' && !(p.kind || '').startsWith('ceiling')) as Box[];
   const grid = new Grid(solid);
   const roofs = solid.filter(p => p.kind === 'roof');
@@ -172,6 +174,7 @@ export function roofEdges(parts: Part[]): RoofEdges {
               crowns.push({ building: b.building, e: sd.a[0] + ux * s + sd.n[0] * off, n: sd.a[1] + uy * s + sd.n[1] * off, y: topY + P.h + P.coping.h, az: Math.atan2(uy, ux), depth: Math.min(T, CR.max_depth) }); }
           }
         }
+        if (k === 'open' && roof) porches.push({ building: b.building, a: [sd.a[0] + ux * s0, sd.a[1] + uy * s0], b: [sd.a[0] + ux * s1, sd.a[1] + uy * s1], n: [sd.n[0], sd.n[1]], y: b.y0 });
         // D-750: the glazed band's face on a palace's wall run
         if (k === 'wall' && roof && BAND_BUILDINGS.includes(b.building) && s1 - s0 > 2) {
           const m = (s0 + s1) / 2;
@@ -180,7 +183,7 @@ export function roofEdges(parts: Part[]): RoofEdges {
       }
     }
   }
-  const out = { boxes, pieces, crowns, bands, stats }; CACHE.set(parts, out);
+  const out = { boxes, pieces, crowns, bands, porches, stats }; CACHE.set(parts, out);
   return out;
 }
 
