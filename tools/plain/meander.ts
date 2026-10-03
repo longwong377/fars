@@ -191,6 +191,22 @@ for (const [rid, r] of Object.entries<any>(riversJ.rivers)) {
   r.x = c.x.map(v => Math.round(v * 10) / 10); r.y = c.y.map(v => Math.round(v * 10) / 10);
   r.bank = bank.map(v => Math.round(v * 100) / 100); r.floodplain = flood.map(v => Math.round(v * 100) / 100);
 }
+// the seam (C7: a 53 m step where the mid ring met the far after the carve): build_terrain.py blends the mid ring into the far
+// over its outer 12 cells (w = smoothstep((d - 1) / 11), d the distance from the edge in cells; the edge itself = the far).
+// The far ring changed under that band, so the band is blended again: each mid sample's own (unblended) height, from this
+// tool's carve where it wrote one, else recovered from the old blend, mixed with the far ring as it is now
+{ const [MID, FAR] = rings, H = MID.half, priorFar = prior.get(FAR)!, priorMid = prior.get(MID)!;
+  const farOld = (x: number, y: number) => { const gx = (x + FAR.half) / FAR.cell, gy = (FAR.half - y) / FAR.cell, c = Math.floor(gx), r = Math.floor(gy), fx = gx - c, fy = gy - r;
+    const at = (rr: number, cc: number) => { const i = rr * FAR.n + cc, raw = priorFar.get(i); return raw === undefined ? FAR.h[i] : FAR.asl_min + raw * FAR.step; };
+    return (at(r, c) * (1 - fx) + at(r, c + 1) * fx) * (1 - fy) + (at(r + 1, c) * (1 - fx) + at(r + 1, c + 1) * fx) * fy; };
+  let fixed = 0;
+  for (let r = 0; r < MID.n; r++) for (let c = 0; c < MID.n; c++) {
+    const x = c * MID.cell - H, y = H - r * MID.cell, d = Math.min(x + H, H - x, y + H, H - y) / MID.cell; if (d >= 12) continue;
+    const t = Math.min(1, Math.max(0, (d - 1) / 11)), w = t * t * (3 - 2 * t), fNew = sample(FAR, x, y), fOld = farOld(x, y);
+    if (Math.abs(fNew - fOld) < 0.005 && !priorMid.has(r * MID.n + c)) continue;
+    const i = r * MID.n + c, mu = priorMid.has(i) ? MID.h[i] : w > 0.05 ? (MID.h[i] - (1 - w) * fOld) / w : MID.h[i];
+    const v = w * mu + (1 - w) * fNew; if (Math.abs(v - MID.h[i]) > 0.005) { setH(MID, i, v); fixed++; } }
+  console.log('mid samples re-blended into the far ring at the seam:', fixed); }
 for (const R of rings) { const raw = new Uint16Array(R.h.length); for (let i = 0; i < raw.length; i++) raw[i] = Math.max(0, Math.min(65535, Math.round((R.h[i] - R.asl_min) / R.step)));
   writeFileSync('public/' + R.file, Buffer.from(raw.buffer)); }
 // the prior samples, per ring: index deltas (u16; 0 = escape, then the delta as two u16) and the raw u16 values, base64

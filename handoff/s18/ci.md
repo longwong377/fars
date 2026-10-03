@@ -7,7 +7,7 @@ the previous head, with the commit that broke it (bisected) and its owner. OLD =
 | head | date (UTC) | files / tests | failed | tsc | lint:all | NEW failures (commit, owner) |
 |---|---|---|---|---|---|---|
 | 0ff7edef | 10-03 02:42 | (killed at ~100 min for memory when the head moved twice; no table) | | | | |
-| ca471bef | 10-03 04:43- | running | | | | court_fill tents on a road (bd141ed7 D-730 road reroute: lead / C1 camps); plain village frame 2.05 M > 2.0 M (64d8f0c1 C2 D-660); language image registry, 83 KTX2 (f7dbff60/854afde4 C9 D-740: fixed by C7 6d40f45f) |
+| ca471bef | 10-03 04:43- | running | | | | court_fill tents on a road (bd141ed7 D-730: fixed by the lead cdaeaf78); plain village frame 2.05 M > 2.0 M (64d8f0c1 C2 D-660); language image registry, 83 KTX2 (C9 D-740: fixed by C7 6d40f45f); horizonmap stale after the meander (ef9df75f C3 D-670: re-baked by C7 2e8b302d); terrain ring seams 53 m apart + terrain_walk mid/far gap (ef9df75f C3 D-670); settlement_build walk to q_w1 blocked at (-451.9, 265.6) (5819c8ef C2 D-661) |
 
 ## OLD failures: root cause, owner, state
 | test | root cause | owner | state |
@@ -26,3 +26,8 @@ the previous head, with the commit that broke it (bisected) and its owner. OLD =
 | reliefs (1.57 M > 1.5 M) | D-320 round 4b (693da7b7): the cypress crown 2.5x wider (half-width 0.075 -> 0.185); worst E façade a=-16.8 off 1.2 m: L0 683 k | C10 | ask sent |
 | people_children (palms 13.2 > 12 cm) | s17 V3 D-500 SKIRT_KNEE (41deb6f7; keep 1 -> passes): the skirted mother's hand-hold no longer meets the child's | C14 (anim.ts) | ask sent |
 | land_work (planCheck) | 16 issues in plain days, most in economy-inserted steps: hired day labour 'in the cold undressed' (dress not applied to econ steps), 1.5 h queues before the quarter's elder, meal gaps of 8-11 h, 'with the household' with nobody there | C8 (economy), C13 (dress), C1 (meals) | to send |
+| people_days_r3 (water drawn) | a road-folk girl's jar of buttermilk (roadFolk.ts, s17 C10 D-640) read as the house's water | C7 | fixed 24f22d89 |
+| person_census (one-sided spouses, 3 seeds) | the census asked kin only of people present that day: s17 C10's road-folk wives at home off the map (5e875732) counted one-sided | C7 | fixed 52472425 |
+| settlement_build (meshes ≤ 45) | 48 at d1adeedf (s17 C1 D-550 six door forms), 51 by s17's end, 55 with s18 C2 | C2 | ask sent |
+| persistence (save-load-save) | `npc.people.deeds.z` re-saves smaller after a load (831,583 vs 808,059 chars): the deeds engine does not restore all it saves | C8 (deeds) | to send |
+| exchanges (gate_check 0 in 8 days) | no guard at a check post meets a courier/official/porter among the agents; bisecting 2c2180f1..63d26b45 | C8 / C1 | in progress |

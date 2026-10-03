@@ -1,0 +1,64 @@
+# ORACC ARIo (R. Schmitt 2009), CC0, as published in https://github.com/oracc/catf/blob/master/ario.catf (sha256 eb8de252ea79c76e…; retrieved 2026-10-03 by s18 C15, D-800): the Old Persian captions of the tomb of Darius I, DNc (Q007154), DNd (Q007155), DNe (Q007156), verbatim
+&Q007154 = Darius I 21
+#atf: lang peo
+#From Oracc. See http://oracc.org/ario/Q007154
+@tablet 
+@obverse
+
+@h1 Old Persian version
+
+@m=locator Persian 
+1. g-u-b-ru-u-v : p-a-t-i-sz-u-v-r-i-sz : d-a-r-;
+2. -y-v-h-u-sz : x-sz-a-y-θ-i-y-h-y-a : <a>-r-<sz>-t-i-b-r
+
+&Q007155 = Darius I 22
+#atf: lang peo
+#From Oracc. See http://oracc.org/ario/Q007155
+@tablet 
+@obverse
+
+@h1 Old Persian version
+
+@m=locator Persian 
+1. a-s-p-c-n-a : v-ç-b-r : d-a-r-y-v-h-u-sz : x#-[sz]-;
+
+&Q007156 = Darius I 23
+#atf: lang peo
+#From Oracc. See http://oracc.org/ario/Q007156
+@tablet 
+@obverse
+
+@h1 Old Persian version
+
+@m=locator Persian 
+1. i-y-disz : p-a-r-s
+2. i-y-disz : disz#-a#-[d]
+3. i#-y-disz : u-v-j
+4. i-y-disz : p-r-[θ]-v
+5. i-y-disz : h-r-i-v
+6. [i-y]-disz : b-a#-x#-[t-r-i-y]
+7. [...]
+8. [i-y]-disz# [: u-v-a]-r#-z#-mi#-i#-[y]
+9. i-y-disz : z#-r#-k
+10. i-y-disz : h#-r#-u-v#-t#-i-y#
+11. [...]
+12. [...]
+13. i-y#-disz# [: h-i-du-u-y]
+14. [...]
+15. i-y-disz : s-k-a : t-i-g-r-x-u#-[d-a]
+16. i-y-disz : b-a#-b-i-ru-u-sz
+17. i-y-disz : a-θ-u-r-i-y
+18. [...]
+19. [...]
+20. i#-y#-disz : a-r-[mi-i-n]
+21. [...]
+22. i#-y#-disz : s#-p#-r#-[di-i-y]
+23. [i-y-disz : y]-u-n
+24. [...]
+25. [...]
+26. [...]
+27. [...]
+28. [...]
+29. i-y-disz : disz-c-i-y-a
+30. i-y-disz# [:] k-r#-[k-a]
+

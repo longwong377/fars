@@ -36,7 +36,7 @@ export function roomIn(h: HouseView, r: RoomRect): RoomIn | null {
   let back = (r.drain >= 0 && r.drain < 4 ? [1, 0, 3, 2][r.drain] : 1) as Side;
   // the vestibule's things face the street door (what the lane sees through it): its back is the wall across from that door
   if (use === 'vestibule' && p.door) { const a = p.door.cell, b = p.door.out, di = (b % s.W) - (a % s.W), dj = ((b / s.W) | 0) - ((a / s.W) | 0); back = (dj < 0 ? 1 : dj > 0 ? 0 : di < 0 ? 3 : 2) as Side; }
-  return { id: `${s.id}:${p.id}:${r.room}`, u0: s.u0 + r.i0, u1: s.u0 + r.i1, v0: s.v0 + r.j0, v1: s.v0 + r.j1, doors: roomDoors(s, r), back, use, inset: 0.3, ceil: Math.max(2.0, p.height - 0.45) };
+  return { id: `${s.id}:${p.id}:${r.room}`, u0: s.u0 + r.i0, u1: s.u0 + r.i1, v0: s.v0 + r.j0, v1: s.v0 + r.j1, doors: roomDoors(s, r), back, use, inset: 0.3, ceil: Math.max(2.0, p.height - 0.45), hearth: use === 'kitchen' || (use === 'living' && ![...usesOf(h, r.plot).values()].includes('kitchen')) };
 }
 /** the household of a house plot (population or plot), in the house's season */
 export function plotProfile(h: HouseView, plot: number): Profile {

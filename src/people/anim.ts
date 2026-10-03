@@ -75,13 +75,37 @@ export const RIDE = { drop: 0, back: -0.04, thigh: [-0.55, 0.58] as [number, num
 export interface Gait { v: number; style: GaitStyle;
   /** s17 V3 (D-500): a skirt to the ankle (the women's dress, the Persian robe): the knee folds less in the swing, so the
    *  heel kicked up behind does not come out through the back of the skirt */
-  skirt?: boolean }
+  skirt?: boolean;
+  /** s18 C14 (D-790): a toddler's walk, 0 none .. 1 a child of one or two (the crowd sets it from the age: ledger u4) */
+  toddler?: number }
+/** s18 C14: the toddler's walk (C, from the common picture of early walking: a wide base, the arms held up and out for
+ *  balance ("high guard"), short quick flat-footed steps, the trunk swaying side to side, now and then a plop down to sit
+ *  and up again) */
+export const TODDLER = { abduct: 0.2, armsUp: 0.9, armsOut: 0.55, stepK: 0.55, sway: 0.09, lean: 0.12, fallEvery: [35, 80] as [number, number], fallS: 2.4 };
 /** s17 V3: knee flexion (rad) above which a skirted walker's swing is compressed, and the share kept above it (C) */
 export const SKIRT_KNEE = { from: 0.32, keep: 0.45 };
 export const GAIT0: Gait = { v: 1.2, style: 'man' };
 /** D-333: the animations whose body is motion capture (whole, or under the authored arms of a held thing); the rest are
  *  hand-authored (PLACEHOLDER; the dev overlay's flag) */
 export const MOCAP_ANIMS = new Set<string>(['idle', 'inspect', 'walk', 'carry_shoulder', 'carry_head', 'carry_front', 'guard', 'guard_walk', 'talk', 'sit', 'play']);
+/** s18 C14 (D-790): a walk made a toddler's (w 0..1): the legs wider and the steps shorter, the arms up and out, the trunk
+ *  rocking over each step, leaning a little forward; every 35-80 s (by the seed) a plop down onto the bottom for ~2.4 s and
+ *  up again (the carer's picking up is the crowd's: ledger u4) */
+export function toddle(p: Pose, t: number, ph: number, k: number, w: number) {
+  const r = p.rot, T = TODDLER, mix3 = (a: [number, number, number] | undefined, b: [number, number, number]): [number, number, number] => { const q = a ?? [0, 0, 0]; return [q[0] + (b[0] - q[0]) * w, q[1] + (b[1] - q[1]) * w, q[2] + (b[2] - q[2]) * w]; };
+  for (const [key, sd] of [['l_thigh', 1], ['r_thigh', -1]] as const) { const q = r[key] ?? [0, 0, 0]; r[key] = [q[0] * (1 - (1 - T.stepK) * w), q[1], q[2] + sd * T.abduct * w]; }
+  for (const key of ['l_shin', 'r_shin'] as const) { const q = r[key] ?? [0, 0, 0]; r[key] = [q[0] * (1 - 0.4 * w), q[1], q[2]]; }
+  r.l_upper = mix3(r.l_upper, [-T.armsUp, 0, T.armsOut]); r.r_upper = mix3(r.r_upper, [-T.armsUp, 0, -T.armsOut]);
+  r.l_fore = mix3(r.l_fore, [-0.9, 0, -0.2]); r.r_fore = mix3(r.r_fore, [-0.9, 0, 0.2]);
+  const hp = r.hips ?? [0, 0, 0]; r.hips = [hp[0], hp[1], hp[2] + T.sway * w * Math.sin(ph)];
+  const sp = r.spine ?? [0, 0, 0]; r.spine = [sp[0] + T.lean * w, sp[1], sp[2] - 0.5 * T.sway * w * Math.sin(ph)];
+  // the plop: down onto the bottom, a moment sitting, up again
+  const P = T.fallEvery[0] + (T.fallEvery[1] - T.fallEvery[0]) * fr(k * 3.17), u = (t + fr(k * 7.1) * P) % P;
+  if (u < T.fallS) { const a = Math.sin(Math.PI * Math.min(1, u / T.fallS)) ** 0.5 * w;
+    p.hips = [p.hips[0], p.hips[1] - 0.22 * a, p.hips[2]];
+    for (const key of ['l_thigh', 'r_thigh'] as const) { const q = r[key]!; r[key] = [q[0] + (-1.3 - q[0]) * a, q[1], q[2]]; }
+    for (const key of ['l_shin', 'r_shin'] as const) { const q = r[key]!; r[key] = [q[0] + (0.4 - q[0]) * a, q[1], q[2]]; } }
+}
 export function pose(id: AnimId, t: number, ph: number, k: number, g: Gait = GAIT0): Pose {
   if (WORK.has(id)) return workPose(id as WorkAnim, t, ph, k, g);
   let p: Pose = { rot: {}, hips: [0, 0, 0] }; let r = p.rot;
@@ -99,6 +123,7 @@ export function pose(id: AnimId, t: number, ph: number, k: number, g: Gait = GAI
       // captures); the arms that hold a load are set over them below
       p = gaitPose(id === 'carry_front' ? 'carry' : g.style, ph, k, g.v); r = p.rot;
       if (g.skirt) for (const sh of [r.l_shin, r.r_shin]) if (sh && sh[0] > SKIRT_KNEE.from) sh[0] = SKIRT_KNEE.from + (sh[0] - SKIRT_KNEE.from) * SKIRT_KNEE.keep;
+      if (g.toddler && id === 'walk') toddle(p, t, ph, k, g.toddler);
       // the right arm raised out to the side and over the load (D-217: searched with tools/dev/jar_search.ts so the shoulder
       // jar's neck lies in the hand and the arm and head stay clear of it; was [-2.7, 0, -0.35] / -1.1: the hand over the
       // crown, the jar through the forearm; C)
@@ -119,7 +144,12 @@ export function pose(id: AnimId, t: number, ph: number, k: number, g: Gait = GAI
     case 'guard': {
       // standing at his post (D-333): the quietest standing captures, the spear and shield arms held as authored
       p = loopAt(['idle_a', 'idle_c'][pickOf(k, 2, 6)], t, k, 0.8); r = p.rot;
-      r.r_upper = [-0.25, 0, -0.1]; r.r_fore = [-1.25, 0, 0]; r.l_upper = [-0.15, 0, 0.12]; r.l_fore = [-1.1, 0, -0.35]; r.r_hand = [0, 0, 0]; r.l_hand = [0, 0, 0];
+      // (s18 C14, D-790: not one held pose for every guard (cov-042): each guard his own way of holding the spear and the
+      // shield-side arm (three carriages: the spear well forward, nearer the body, the elbow out), the arms easing and
+      // re-gripping on their own slow clock; C)
+      const gv = pickOf(k, 3, 7), ease = 0.05 * S(t * 0.11 + 7 * k) + 0.03 * S(t * 0.37 + 3 * k);
+      const RU = [[-0.25, -0.1], [-0.12, -0.16], [-0.32, -0.04]][gv], RF = [-1.25, -1.1, -1.38][gv], LU = [[-0.15, 0.12], [-0.05, 0.2], [-0.22, 0.08]][gv], LF = [-1.1, -0.85, -1.2][gv];
+      r.r_upper = [RU[0] + ease, 0, RU[1]]; r.r_fore = [RF - 0.6 * ease, 0, 0]; r.l_upper = [LU[0] - 0.7 * ease, 0, LU[1]]; r.l_fore = [LF, 0, -0.35 + 0.08 * S(t * 0.07 + k)]; r.r_hand = [0, 0, 0]; r.l_hand = [0, 0, 0];
       break;
     }
     case 'chisel': {
@@ -177,9 +207,13 @@ export function pose(id: AnimId, t: number, ph: number, k: number, g: Gait = GAI
     // reins (not drawn); a small rise and fall with the mount's walk. Not planted and not seated on the ground: the crowd
     // lifts the root so the seat (RIDE.seat, measured on the rig: tests/fauna.test.ts) rests on the mount's back
     case 'ride': {
-      const b = Math.abs(S(t * 3.3 + k)); p.hips = [0, RIDE.drop + 0.012 * b, RIDE.back]; r.hips = [-0.06, 0, 0];
+      // (s18 C14, D-790: the seat follows the mount's gait from the rider's own speed (crowd gaitStep): a walk sways, a trot
+      // bounces at the trot's beat, a gallop sits forward and rides the swing; C)
+      const tr = Math.min(1, Math.max(0, (g.v - 1.6) / 0.5)), gl = Math.min(1, Math.max(0, (g.v - 2.2) / 0.2));
+      const b = Math.abs(S(t * (3.3 + 2.2 * tr) + k)), lean = 0.22 * gl;
+      p.hips = [0, RIDE.drop + (0.012 + 0.025 * tr * (1 - gl)) * b + 0.03 * gl, RIDE.back]; r.hips = [-0.06 + lean * 0.5, 0, 0];
       r.l_thigh = [RIDE.thigh[0], 0, RIDE.thigh[1]]; r.r_thigh = [RIDE.thigh[0], 0, -RIDE.thigh[1]]; r.l_shin = [RIDE.shin, 0, -RIDE.shinIn]; r.r_shin = [RIDE.shin, 0, RIDE.shinIn];
-      r.l_foot = [0.5, 0, 0]; r.r_foot = [0.5, 0, 0]; r.spine = [0.06 + 0.02 * b, 0, 0];
+      r.l_foot = [0.5, 0, 0]; r.r_foot = [0.5, 0, 0]; r.spine = [0.06 + 0.02 * b + lean, 0, 0];
       r.l_upper = [-0.4, 0, 0.12]; r.l_fore = [-1.05, 0, -0.15]; r.r_upper = [-0.4, 0, -0.12]; r.r_fore = [-1.05, 0, 0.15];
       r.head = [0.04, 0.3 * wob(t * 0.25, k), 0]; break;
     }

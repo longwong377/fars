@@ -31,11 +31,11 @@ import { RIDE } from './anim';
 
 export type Species = 'sheep' | 'goat' | 'ox' | 'donkey' | 'horse' | 'dog' | 'mule' | 'camel' | 'dromedary' | 'zebu' | 'deer' | 'stag' | 'gazelle' | 'gazelle_m' | 'boar' | 'hen' | 'cock'
   | 'donkey_pack' | 'mule_pack' | 'camel_pack' | 'horse_saddle'
-  | 'wolf' | 'lion' | 'lioness' | 'cheetah' | 'leopard' | 'hyena' | 'onager' | 'fox' | 'hare' | 'wild_goat' | 'urial'
+  | 'wolf' | 'lion' | 'lioness' | 'cheetah' | 'leopard' | 'hyena' | 'onager' | 'fox' | 'hare' | 'wild_goat' | 'urial' | 'cat'
   // D-256: the cows and calves of the village herds (WORLD_INVENTORY G17)
   | 'cow' | 'calf';
 export const SPECIES: Species[] = ['sheep', 'goat', 'ox', 'donkey', 'horse', 'dog', 'mule', 'camel', 'dromedary', 'zebu', 'deer', 'stag', 'gazelle', 'gazelle_m', 'boar', 'hen', 'cock',
-  'donkey_pack', 'mule_pack', 'camel_pack', 'horse_saddle', 'wolf', 'lion', 'lioness', 'cheetah', 'leopard', 'hyena', 'onager', 'fox', 'hare', 'wild_goat', 'urial', 'cow', 'calf'];
+  'donkey_pack', 'mule_pack', 'camel_pack', 'horse_saddle', 'wolf', 'lion', 'lioness', 'cheetah', 'leopard', 'hyena', 'onager', 'fox', 'hare', 'wild_goat', 'urial', 'cow', 'calf', 'cat'];
 type RGB = [number, number, number];
 interface Build { len: number; h: number; girth: number; neck: number; neckA: number; nb?: number; head: number; headR: number; leg: number;
   tail: 'fat' | 'short' | 'long' | 'tuft' | 'hair' | 'curl' | 'hen' | 'cock' | 'brush' | 'cat'; ears: 'small' | 'long' | 'mid' | 'prick' | 'none';
@@ -107,6 +107,9 @@ export const ANIMAL_BUILD: Record<Species, Build> = {
     tier: 'B species (the Persian onager on the steppes of Iran; hunted by the Achaemenid and Assyrian kings: the Nineveh reliefs, recollection; RECOLLECTION NOT SEEN) / C form', note: 'Persian onager (wild ass): sandy with a pale belly (belly NOT modelled), a dark dorsal stripe NOT modelled' },
   fox: { len: 0.68, h: 0.4, girth: 0.22, neck: 0.23, neckA: 1, nb: -0.05, head: 0.2, headR: 0.055, leg: 0.015, tail: 'brush', ears: 'prick', coat: [[0.72, 0.42, 0.22], [0.66, 0.44, 0.28]], stride: 0.7, row: 'red_fox',
     tier: 'B species (red fox in Fars: research/SOUNDSCAPE.md §5) / C form', note: 'red fox, rufous with a bushy tail (white tip and dark legs NOT modelled)' },
+  // s18 C14 (D-790; D-771 unblocked the cat): the town's mousers
+  cat: { len: 0.46, h: 0.26, girth: 0.15, neck: 0.1, neckA: 0.85, nb: -0.05, head: 0.1, headR: 0.04, leg: 0.012, tail: 'cat', ears: 'small', coat: [[0.48, 0.42, 0.34], [0.62, 0.5, 0.36], [0.3, 0.27, 0.24], [0.7, 0.62, 0.5]], stride: 0.42, row: 'cat',
+    tier: 'C (D-771: the domestic cat kept in Egypt for millennia and known in the Near East; the town has Egyptian households; mousers in yards and stores probable)', note: 'domestic cat, a mackerel tabby, grey-brown, sandy or dark (the coat C); the body the leopard library model made small (animals_derive.py)' },
   hare: { len: 0.5, h: 0.32, girth: 0.2, neck: 0.1, neckA: 0.6, nb: 0.05, head: 0.13, headR: 0.045, leg: 0.012, tail: 'short', ears: 'long', coat: [[0.62, 0.52, 0.38], [0.56, 0.46, 0.33]], stride: 0.6, row: 'hare',
     tier: 'C (the Cape or European hare of the Iranian plateau: RECOLLECTION NOT SEEN)', note: 'hare, sandy brown, long ears (the hopping gait NOT modelled: it walks)' },
   wild_goat: { len: 1.2, h: 0.85, girth: 0.4, neck: 0.48, neckA: 0.8, head: 0.28, headR: 0.07, leg: 0.028, tail: 'short', ears: 'mid', horns: 'goat', coat: [[0.6, 0.48, 0.34], [0.52, 0.42, 0.3]], stride: 1.0, row: 'wild_goat',
@@ -142,7 +145,7 @@ function tube(a: THREE.Vector3, b: THREE.Vector3, r0: number, r1: number, seg = 
 const HEAD_PITCH: Record<string, number> = { equid: 0.95, bovid: 0.8, caprine: 0.75, cervid: 0.7, antelope: 0.65, suid: 0.85, camelid: 0.3, canid: 0.4, felid: 0.35 };
 const GRAZE_PITCH = 0.55;
 const FAMILY_OF = (sp: Species) => /^(donkey|horse|mule|onager)/.test(sp) ? 'equid' : /^(ox|cow|calf|zebu)$/.test(sp) ? 'bovid' : /^(sheep|goat|wild_goat|urial)$/.test(sp) ? 'caprine' : /^(deer|stag)$/.test(sp) ? 'cervid'
-  : /^gazelle/.test(sp) ? 'antelope' : sp === 'boar' ? 'suid' : /^(camel|dromedary)/.test(sp) ? 'camelid' : /^(dog|wolf|fox|hyena)$/.test(sp) ? 'canid' : /^(lion|lioness|cheetah|leopard)$/.test(sp) ? 'felid' : sp === 'hare' ? 'hare' : 'fowl';
+  : /^gazelle/.test(sp) ? 'antelope' : sp === 'boar' ? 'suid' : /^(camel|dromedary)/.test(sp) ? 'camelid' : /^(dog|wolf|fox|hyena)$/.test(sp) ? 'canid' : /^(lion|lioness|cheetah|leopard|cat)$/.test(sp) ? 'felid' : sp === 'hare' ? 'hare' : 'fowl';
 /** the neck base (head pivot), the head's centre and direction, and the graze angle that brings the muzzle to the ground */
 export function animalFrame(sp: Species) {
   const B = ANIMAL_BUILD[sp], RR = realRig(sp);
@@ -283,7 +286,16 @@ export function animalGeometry(sp: Species): THREE.BufferGeometry {
  *  the hind pair half a cycle later); weights [walk, trot, bound] */
 export const gaitW = (g: number): [number, number, number] => { const t = Math.min(1, Math.max(0, g)), h = Math.min(1, Math.max(0, g - 1)); return [1 - t, t - h, h]; };
 /** a leg's phase offset in a gait, from its walk offset (LH 0, LF pi/2, RH pi, RF 3pi/2) and fore/hind */
-export const gaitOffset = (walkOff: number, fore: number, G: [number, number, number]) => G[0] * walkOff + G[1] * Math.PI * (1 - Math.cos(walkOff) + Math.sin(walkOff)) / 2 + G[2] * Math.PI * fore;
+export const gaitOffset = (walkOff: number, fore: number, G: [number, number, number]) => G[0] * walkOff + G[1] * Math.PI * (1 - Math.cos(walkOff) + Math.sin(walkOff)) / 2 + G[2] * (Math.PI * fore + GALLOP_LEAD * (walkOff > 2.5 ? 1 : 0));
+/** s18 C14 (D-790): the gallop's lead (rad): the right legs of each pair land a beat after the left (the transverse gallop of a
+ *  horse, four beats; the hare's half-bound), where the bound set the pairs down together (C) */
+export const GALLOP_LEAD = 0.65;
+/** s18 C14: a mount's or a driven animal's gait (gaitW's 0 walk .. 1 trot .. 2 gallop) and stride factor from its pace (m/s;
+ *  C: a horse walks to ~1.8 m/s, trots ~2.5-4, canters/gallops above; the stride lengthens ~1.3x trotting, ~2.4x galloping) */
+export function gaitOfPace(pace: number): { gait: number; stride: number } {
+  const t = Math.min(1, Math.max(0, (pace - 1.7) / 0.9)), h = Math.min(1, Math.max(0, (pace - 3.6) / 1.4));
+  return { gait: t + h, stride: 1 + 0.3 * t + 1.1 * h };
+}
 /** rig constants: leg swing and knee flex at a full walk */
 export const RIG = { swing: 0.42, knee: 0.75 } as const;
 /** the lying drop: the belly on the ground */
@@ -389,13 +401,15 @@ export function animalsFor(spec: AnimalSpec, t: number, seed: number, path?: { s
       break; }
     // a rider's mount under him: its seat (mountSeat) under the rider's pelvis; walking at `pace` (0: standing, a step now
     // and then) — the rider's root is lifted onto it by the crowd (anim RIDE)
-    case 'mount': { const s = sp(0), B = ANIMAL_BUILD[s], pace = spec.pace ?? 0, st = pace > 0 ? 1 : fr(t / 23 + h1(seed)) < 0.08 ? 1 : 0;
-      out.push({ sp: s, x: 0, z: -mountSeat(s).z, yaw: 0, phase: (TWO_PI * t * Math.max(pace, 0.5)) / B.stride, walk: st, graze: 0, lie: 0, coat: h1(seed, 8) }); break; }
+    // (s18 C14: trotting and galloping by the pace: the hunt's riders, the couriers)
+    case 'mount': { const s = sp(0), B = ANIMAL_BUILD[s], pace = spec.pace ?? 0, st = pace > 0 ? 1 : fr(t / 23 + h1(seed)) < 0.08 ? 1 : 0, Gp = gaitOfPace(pace);
+      out.push({ sp: s, x: 0, z: -mountSeat(s).z, yaw: 0, phase: (TWO_PI * t * Math.max(pace, 0.5)) / (B.stride * Gp.stride), walk: st, graze: 0, lie: 0, coat: h1(seed, 8), gait: Gp.gait }); break; }
     // an ox pair drawing a cart behind its carter (the cart: work object 'cart' at CART_AT), walking at `pace`
     // (D-256: `n` 4 = two yoke pairs, one behind the other, for the drum sledge from the quarry)
     case 'draught': { const pace = spec.pace ?? 0.9, pairs = Math.max(1, Math.round((spec.n ?? 2) / 2)); let z0 = -1.2;
       for (let k = 0; k < pairs; k++) { let L = 0; for (let i = 0; i < 2; i++) { const s = sp(2 * k + i), B = ANIMAL_BUILD[s]; L = Math.max(L, B.len);
-        out.push({ sp: s, x: i ? -0.55 : 0.55, z: z0 - B.len / 2, yaw: 0, phase: (TWO_PI * t * pace) / B.stride + i * 0.9 + k * 0.4, walk: pace > 0 ? 1 : 0, graze: 0, lie: 0, coat: h1(seed + i + 2 * k, 5) }); }
+        const Gp = gaitOfPace(pace); // (s18 C14: a team at the trot or gallop: the king's chariot)
+        out.push({ sp: s, x: i ? -0.55 : 0.55, z: z0 - B.len / 2, yaw: 0, phase: (TWO_PI * t * pace) / (B.stride * Gp.stride) + i * 0.9 + k * 0.4, walk: pace > 0 ? 1 : 0, graze: 0, lie: 0, coat: h1(seed + i + 2 * k, 5), gait: Gp.gait }); }
         z0 -= L + 0.9; }
       break; }
     // D-256: animals penned in a fold (the brushwood fold beside a band's tents, the stockyard's fold: work object 'fold', its
@@ -463,7 +477,7 @@ export class Animals {
     // the gait's weights (walk, trot, bound: gaitW) and each leg's phase offset in it (gaitOffset)
     const G2 = attribute('aGait', 'vec2'), Gt = G2.x, seedN = G2.y, gT = Gt.clamp(0, 1), gH = Gt.sub(1).clamp(0, 1), gW0 = float(1).sub(gT), gW1 = gT.sub(gH);
     const fore = max(L.w, float(0));
-    const ph = S.x.add(L.x.mul(gW0)).add(gW1.mul(Math.PI / 2).mul(float(1).sub(cos(L.x)).add(sin(L.x)))).add(gH.mul(Math.PI).mul(fore));
+    const ph = S.x.add(L.x.mul(gW0)).add(gW1.mul(Math.PI / 2).mul(float(1).sub(cos(L.x)).add(sin(L.x)))).add(gH.mul(fore.mul(Math.PI).add(step(2.5, L.x).mul(GALLOP_LEAD))));
     // arithmetic masks only (no select: D-012): fore = 1 for fore legs, 0 for hind
     const fo = foldOf(sp);
     const a1 = L.y.mul(S.y.mul(gW1.add(gH).mul(0.14).add(RIG.swing)).mul(sin(ph)).add(S.w.mul(fore.mul(fo[0] - fo[2]).add(fo[2]))));

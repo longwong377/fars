@@ -256,8 +256,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     const nrNear = Math.hypot(600 - cam.x, -6124 - cam.z) < 1200; for (const m of nrCasters) m.castShadow = nrNear;
     nr.texts.visible = Math.hypot(600 - cam.x, -6124 - cam.z) < 600; // the DNa/DNb carving (~0.2 M triangles) only near the cliff
     qb.update(cam); const qNear = qb.sites.some(s => Math.hypot(s.x - cam.x, -s.y - cam.z) < 900); qb.group.traverse(o => { if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).castShadow = qNear; });
-    const fNear = qb.sites.some(s => Math.hypot(s.x - cam.x, -s.y - cam.z) < 450) || fords.crossings.some(c => Math.hypot(c.x - cam.x, -c.y - cam.z) < 300); // (D-670: the stones' shadows read within ~300 m: 361 k shadow triangles were cast in every village frame) // the quarries share the fords' mesh (D-257)
-    fords.group.traverse(o => { if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).castShadow = fNear; }); // (D-670: this sat inside the comment above: the fords' and quarries' stone cast in every frame)
+    // (D-670, the T4's black screen: the fords' stone mesh no longer toggles its shadow at run time: it never casts, crossings.ts)
     const pp = ctx.player?.position ?? cam; syncColliders(pp, cam); syncTrunks(pp);
     vb.update(dt, cam, pp, ctx.clock?.dayIndex ?? 0, ctx.sky?.sunAlt ?? 30);
     void dt;

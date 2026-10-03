@@ -257,6 +257,12 @@ describe('the plain as built (headless): budgets, tiers, chronology', () => {
       expect(P.group.getObjectByName(`inscription:${id}:op:pick`), id).toBeTruthy();
     }
   });
+  it('D-670 (the T4 black screen): the fords\' stone mesh never casts and is never re-flagged at run time', () => {
+    const st = P.group.getObjectByName('plain-stone') ?? P.group.getObjectByName('plain-fords'); expect(st).toBeTruthy();
+    expect((st as THREE.Mesh).castShadow).toBe(false);
+    const cam = new THREE.PerspectiveCamera(60, 1.6, 0.1, 1e5); cam.position.set(854, T.heightAt(854, -3803) + 1.6, -3803); cam.updateMatrixWorld(true); // at a ford
+    P.update(0, { clock: { dayIndex: 0 }, cond: { windMs: 2 }, camera: cam }); expect((st as THREE.Mesh).castShadow).toBe(false);
+  });
   it('the plain is a fixed handful of meshes (<= 40), whatever the view; their static triangles before any culling (the budget is per frame: next test)', () => {
     let calls = 0, tris = 0; const rows: string[] = [];
     P.group.traverse(o => { const m = o as THREE.Mesh; if (!m.isMesh) return; calls++;

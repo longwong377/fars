@@ -5,7 +5,7 @@ import { loadTerrain, loadRiversFile } from './plainLib';
 import { buildZones, landUseAt } from '../src/world/plain/fields';
 import { buildCanals } from '../src/world/plain/canals';
 import { placeVillages } from '../src/world/plain/villages';
-import { beastRanges, beastsAt, keepAway, callsNow, type P2 } from '../src/world/beasts';
+import { beastRanges, beastsAt, keepAway, callsNow, BeastFlight, FLIGHT, type P2 } from '../src/world/beasts';
 import townData from '../src/data/town.json';
 
 const T = loadTerrain(), R = loadRiversFile(), canals = buildCanals(T, R.rivers, 1), villages = placeVillages(T, R.rivers, canals, 1);
@@ -56,5 +56,26 @@ describe('the wild animals\' days', () => {
   it('their calls are the night\'s: none by day, a few an hour at night', () => {
     let day = 0, night = 0; for (let t = 0; t < 86400; t++) { const h = t / 3600; if (callsNow(1, 'roar', 1e6 + t, h, sun, 3)) { if (h > sun.rise && h < sun.set) day++; else night++; } }
     expect(day).toBe(0); expect(night).toBeGreaterThan(2); expect(night).toBeLessThan(40);
+  });
+});
+describe('the herds flee and come back (s18 C14, D-790)', () => {
+  it('a herd bolts from a person at its flight distance with an alarm and hooves, runs off, watches, then drifts home', () => {
+    const F = new BeastFlight(), t0 = 80000, hour = 9; const sounds: string[] = [];
+    const ons = (t: number) => beastsAt(B, 1, t, hour, sun, 3).filter(b => b.sp === 'onager');
+    const c0 = ons(t0); const ce = c0.reduce((a, b) => a + b.e, 0) / c0.length, cn = c0.reduce((a, b) => a + b.n, 0) / c0.length;
+    const me: P2 = [ce + 120, cn]; // inside the onagers' 150 m
+    let first = F.apply(ons(t0), [me], t0, k => sounds.push(k)).filter(b => b.sp === 'onager');
+    for (let k = 1; k <= 60 * 10; k++) first = F.apply(ons(t0 + k / 10), [me], t0 + k / 10, s => sounds.push(s)).filter(b => b.sp === 'onager'); // 60 s
+    const mid = first.reduce((a, b) => a + d([b.e, b.n], me), 0) / first.length;
+    expect(sounds.filter(s => s === 'snort').length, 'one alarm').toBe(1); expect(sounds.filter(s => s === 'hoof').length).toBeGreaterThan(20);
+    expect(mid, 'they ran well past their flight distance').toBeGreaterThan(FLIGHT.onager.R + 200);
+    // the person leaves: within a quarter of an hour they are walking home and grazing again near their own place
+    let back = first; for (let k = 1; k <= 3600; k++) back = F.apply(ons(t0 + 60 + k / 2), [], t0 + 60 + k / 2).filter(b => b.sp === 'onager');
+    const home = ons(t0 + 1860); expect(d([back[0].e, back[0].n], [home[0].e, home[0].n])).toBeLessThan(5);
+  });
+  it('the grazing herds walk to water at dawn and dusk', () => {
+    expect(B.water?.steppe).toBeTruthy();
+    const c = (h: number) => { const o = beastsAt(B, 1, 80000, h, sun, 3).filter(b => b.sp === 'onager'); return [o.reduce((a, b) => a + b.e, 0) / o.length, o.reduce((a, b) => a + b.n, 0) / o.length] as P2; };
+    expect(d(c(sun.rise + 0.35), B.water!.steppe!)).toBeLessThan(d(c(10), B.water!.steppe!) - 100);
   });
 });
