@@ -10295,6 +10295,12 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   the heard reply says the reply, overheard pairs say their own fact (#15); the court's people, travellers and herders not sent
   to market (C7); meals bought by the stranger (4-12); trespass (4-1); W5, W6, W13, W14, W15, W17, W22; Kokoro blends without a
   regional colour (all C).
+- D-720 addendum 2 (the lead's last asks): the asks and rumours survive a save exactly (the running world cut to the saved state
+  each evening: minds.canon, goals.canon; the save keeps every wrong; a test in deeds.test.ts); those who come to sit with the sick
+  go alone (farmer 11543); the laid days keep their labels and walks (econ_plans 283 → 1; the rest in handoff/s18/c8_plans_ask.patch
+  for population.ts and living/world.ts, which also fixes day_jump); a house that cannot buy its bread goes short (economy 'hunger'
+  from the harvest, the price or a theft, once a month, not in the month after help; the famine chain's links 0 → 34 into hunger,
+  872 to help, 101 to a sale or loan; all C).
 - D-790 round 2 (the leads' asks): the mouth takes the voices' words (crowd.voice's optional 5th argument `words`, IPA or
   transliteration, sets FaceState.say; face.ts folds IPA onto the viseme classes; world.ts:815 to pass `v.ipa ?? v.text`);
   mounts trot and gallop by their pace (gaitOfPace: walk to ~1.8 m/s, trot to ~3.6, gallop above; a transverse gallop:

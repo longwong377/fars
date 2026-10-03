@@ -20,9 +20,18 @@ index b94b67c1..ca3b3618 100644
      }
      this.overlaid.set(k, segs); return segs;
 diff --git a/src/people/population.ts b/src/people/population.ts
-index 86f04c05..d9f5204e 100644
+index 86f04c05..ad2ec6d4 100644
 --- a/src/people/population.ts
 +++ b/src/people/population.ts
+@@ -1847,7 +1847,7 @@ export class Population {
+     const ev = this.rel.get(this.relKey(a, b)); if (ev) for (const [x, dv] of ev) if (x < d) v += dv * Math.exp(-(d - x) / L.affinity.tau_days);
+     return Math.max(-1, Math.min(1, v));
+   }
+-  relationsSnapshot() { return [...this.rel.entries()]; }
++  relationsSnapshot() { return [...this.rel.entries()].sort((a, b) => a[0] - b[0]).map(([k, v]) => [k, [...v].sort((x, y) => x[0] - y[0])] as [number, [number, number][]]); } // (D-720: in key and day order: a day made ready ahead relates in another order, the same relations)
+   relationsRestore(s: [number, [number, number][]][]) { this.rel.clear(); for (const [k, v] of s) this.rel.set(k, v.slice()); this.planCache.clear(); this.planCount = 0; this.rawCache.clear(); this.rawCount = 0; }
+   /** E-74: disputes today in their real contexts; both parties' plans include them; the relationship sours */
+   drawDisputes(d: number, C: DayCtx) {
 @@ -1976,7 +1976,7 @@ export class Population {
      const p = this.persons[pid], hid = this.home(pid, d), H = this.households[hid]; if (!H || (H.zone !== 'town' && H.zone !== 'plain') || p.zone === 'transient' || p.agent >= 0) return segs;
      if (segs.some(x => x.act === 'offmap' || x.act === 'lie_ill') || this.mourning(pid, d)) return segs;
