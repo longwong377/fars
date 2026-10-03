@@ -9948,3 +9948,9 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   town 40/40 seed 1, 39/40 seed 2 (an animal lying in a lane). The s17 town misses: q_s2's pen 180 holds walled-off ground no
   body reaches (walkers.ts now samples plot cells reachable from their door), and a person stepping across the walker's way in
   q_s2's 1.4 m lanes (fixed).
+
+## D-770 The giant-holes audit: what else the ruin bias and the early "attested only" rules left out (s18 cloud C12; UD-14, UD-29)
+- handoff/s18/holes.md ranks 25 holes by screen share x time x how jarring, with evidence, the most probable 467 fill and an
+  owner. The nine tests and rules that enforce an absence (polychromy faces/background, Treasury-only clay paint, no shrine,
+  no qanat, the king never staged, delegations/feasts `never`, words never joined) are listed so the fixes change them too.
+  No src edits (an audit).
