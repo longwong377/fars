@@ -11,8 +11,8 @@
   samples. The full-quality pass (1920x804, every frame, 64 spp) is a T4 job: tools/film/T4_JOB.md (through the lead).
 - **The game's bull and capital meshes look faceted in close-up** (their detail lives in KTX2 normal maps Blender's importer
   cannot read): the film shows them only as silhouettes, in haze and firelight; the Gate-bull close-up was cut.
-- **The in-engine opening's new first shot ('stars', night over Kuh-e Rahmat) and the town shot (roofless from above?) are
-  unseen**: asked C6 for frames. The opening's other shots are D-590's.
+- **The in-engine opening's 'stars' shot was cut** after C6's frame (the engine's night sky reads as an even dot field, Kuh-e
+  Rahmat lit flat: no silhouette, nothing alive): the opening starts on the river again. The town shot awaits C6's frame.
 - The film plays on a key press (browsers allow sound only after a gesture): until then it waits on its poster with "Any key
   to begin · Esc to skip". Safari before 17 may not play the AV1 WebM: it falls back to the H.264 MP4; a browser without
   Opus hears no in-world score (the opening's cue has an AAC copy).
@@ -25,7 +25,7 @@
    the sun; a brazier catching; the braziers of a night hall flaring down the rows on the drums; the colonnade in morning
    haze; the double-bull capital against the sky; the stair climbing into the sunrise; the merlons against the sun; the hall
    backlit at the climax; 𐎱𐎠𐎼𐎿 in gold. It covers the load; any key skips.
-2. Enter: the in-engine opening (src/shell/intro.ts), now cut to the cue "First Light": stars, river, plain, town, Terrace,
+2. Enter: the in-engine opening (src/shell/intro.ts), now cut to the cue "First Light": river, plain, town, Terrace,
    work, the walk, each cut on a bar, the camera's clock following the music, landing as the horn closes the theme's half.
 3. In the world: after 4-7 min of silence, now and then one of 21 cues (62 min) for the hour, the place and the weather,
    never the last one, nothing from the last hour while a fresh one fits, 5-12 min of silence between; Settings › Sound ›

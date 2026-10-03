@@ -24,6 +24,7 @@ const cov = id => { const p = COV.find(x => x.id === id) ?? SB.find(x => x.id ==
 const VIEWS = {
   town20: { ...cov('cov-142'), id: 'town20', eye: 20, pitch: -22, why: 'the town from 20 m up (roofs vs walls)' },
   lanes: { ...cov('cov-142'), id: 'lanes', why: 'a town lane, afternoon (cov-142)' },
+  qs1: { ...cov('cov-381'), id: 'qs1', day: 0, hour: 10, w: 'clear', why: 'a q_s1 lane on the road south at day 0, 10:00 (cov-381\'s spot)' },
   court: { ...cov('cov-037'), id: 'court', why: 'a town court, noon (cov-037)' },
   terrace: { ...cov('cov-252'), id: 'terrace', why: 'the Terrace, noon (cov-252)' },
   terrace_court: { ...cov('cov-252'), id: 'terrace_court', day: 40, hour: 10, w: 'clear', why: 'the Terrace at 10:00 with the court resident (day 40)' },
@@ -123,13 +124,22 @@ const readView = () => {
       if (Math.abs(nn.y) < 0.3) vert += ar; else if (nn.y > 0.7 && (a.y + b.y + c.y) / 3 - ymin > 1.8) up += ar; } });
   const roofs = { upAreaAbove18: Math.round(up), wallArea: Math.round(vert), ratio: vert ? +(up / vert).toFixed(3) : null, tris, at: [+look.x.toFixed(0), +(-look.z).toFixed(0)] };
   // what the simulation in this page holds round the camera (the population view and the detailed agents)
-  const ce = camP.x, cn = -camP.z; let simNear = 0, simNearAll = 0, openNear = 0, courtNear = 0, movingNear = 0; const places = {};
-  for (const p of P?.view?.visible ?? []) { const d = Math.hypot(p.e - ce, p.n - cn); if (d < 60) { simNear++; if (p.plot) courtNear++; else openNear++; if (p.moving) movingNear++;
-      const k = (p.place || (p.moving ? '(walking)' : '?')).split(/[:#]/)[0]; places[k] = (places[k] ?? 0) + 1; } if (d < 250) simNearAll++; }
-  for (const a of P?.sim?.agents ?? []) if (!a.offmap) { const d = Math.hypot(a.pos[0] - ce, a.pos[1] - cn); if (d < 60) simNear++; if (d < 250) simNearAll++; }
+  // what the simulation in this page holds round the camera: the population view's people out of doors and the detailed
+  // agents, within 40/60/250 m; of those within 60 m, how many are in the camera frustum (a 1.3 m sphere at chest height,
+  // the crowd's own test) and how many of those the crowd hides behind a court wall (crowd.walledOff: the eye below the wall top)
+  const ce = camP.x, cn = -camP.z, CR = P?.crowd; const places = {};
+  const S = { near40: 0, near60: 0, near250: 0, open60: 0, court60: 0, moving60: 0, inFr40: 0, inFr60: 0, inFrNotWalled60: 0, walledInFr60: 0 };
+  const sp = new Sph(), cv = new V3();
+  const one = (e, n, y, vp) => { const d = Math.hypot(e - ce, n - cn); if (d < 250) S.near250++; if (d >= 60) return; S.near60++; if (d < 40) S.near40++;
+    if (vp) { if (vp.plot) S.court60++; else S.open60++; if (vp.moving) S.moving60++; const k = (vp.place || (vp.moving ? '(walking)' : '?')).split(/[:#]/)[0]; places[k] = (places[k] ?? 0) + 1; }
+    sp.center.copy(cv.set(e, y + 0.9, -n)); sp.radius = 1.3; if (!fr.intersectsSphere(sp)) return; S.inFr60++; if (d < 40) S.inFr40++;
+    let walled = false; try { walled = !!(vp && CR?.walledOff?.(vp, camP.y)); } catch { } if (walled) S.walledInFr60++; else S.inFrNotWalled60++; };
+  for (const p of P?.view?.visible ?? []) one(p.e, p.n, p.y, p);
+  for (const a of P?.sim?.agents ?? []) if (!a.offmap) one(a.pos[0], a.pos[1], a.y ?? camP.y, null);
+  const simNear = S.near60, simNearAll = S.near250, openNear = S.open60, courtNear = S.court60, movingNear = S.moving60;
   const lights = []; scene.traverse(o => { if (o.isDirectionalLight && o.castShadow) lights.push({ name: o.name, far: o.shadow?.camera?.far, size: [o.shadow?.camera?.right - o.shadow?.camera?.left] }); });
   let crowd = null; try { crowd = api.humans(); } catch { }
-  return { cam: [+ce.toFixed(1), +cn.toFixed(1), +camP.y.toFixed(1)], simNear60: simNear, simNear250: simNearAll, openNear60: openNear, courtNear60: courtNear, movingNear60: movingNear, places60: places, crowd, lights, roofs,
+  return { cam: [+ce.toFixed(1), +cn.toFixed(1), +camP.y.toFixed(1)], simNear60: simNear, simNear250: simNearAll, openNear60: openNear, courtNear60: courtNear, movingNear60: movingNear, places60: places, sim: S, backend: api.backend, norender: api.norender, catchingUp: P?.sim?.catchingUp ?? null, crowd, lights, roofs,
     rows: [...rows.values()].map(r => ({ ...r, mats: [...r.mats].slice(0, 4), tiers: [...r.tiers], tris: Math.round(r.tris) })) };
 };
 
@@ -145,7 +155,10 @@ for (const v of pick) {
     await page.evaluate(() => window.__parsa.step(20, 1 / 30, 0)); // 20 frames at a frozen clock: plans, crowd LODs, fill streaming settle
     await page.evaluate(a => window.__parsa.view(...a), a);
     await page.evaluate(() => window.__parsa.step(10, 1 / 30, 0));
-    const r = await page.evaluate(readView);
+    // after a time jump the placement is whole only when the sim has caught up (sim.catchingUp false; a dt-0 tick finishes it)
+    const cu = await page.evaluate(async () => { const a = window.__parsa; let k = 0; while (a.world.people?.sim?.catchingUp && k < 200) { await a.tick(); k++; } return { ticks: k, catchingUp: !!a.world.people?.sim?.catchingUp }; });
+    await page.evaluate(() => window.__parsa.step(5, 1 / 30, 0));
+    const r = await page.evaluate(readView); r.catchUp = cu;
     results.push({ view: v.id, why: v.why, day: v.day, hour: v.hour, ms: Date.now() - t1, ...r });
     console.log(T(), v.id, r.error ?? `sim<60m ${r.simNear60}, rows ${r.rows.length}`);
   } catch (e) { console.log(T(), v.id, 'FAILED', String(e).slice(0, 300)); results.push({ view: v.id, error: String(e).slice(0, 300) }); if (/closed|crash/i.test(String(e))) break; }
@@ -174,9 +187,12 @@ for (const r of results) {
   for (const [name, re] of CLASSES) { const s = sum(r, re); md.push(`| ${name} | ${s.vis} / ${s.hidden} | ${s.instIn} | ${s.near60} | ${s.tris} |`); }
   md.push('', `shadow-casting lights: ${JSON.stringify(r.lights)}`, '');
   const cs = r.crowd ?? {}, drawn = (cs.people ?? 0) + (cs.impostors ?? 0);
+  md.push(`page: backend ${r.backend}, norender ${r.norender}, catch-up ticks ${r.catchUp?.ticks} (still catching up: ${r.catchUp?.catchingUp}), crowd looks pending ${cs.impPerf?.looksPending ?? '?'}`, '');
+  md.push(`people in the frustum: within 40 m ${r.sim.inFr40} of ${r.sim.near40}; within 60 m ${r.sim.inFr60} of ${r.sim.near60} (behind court walls for this eye: ${r.sim.walledInFr60}; to be drawn: ${r.sim.inFrNotWalled60})`, '');
+  { const hp = r.rows.filter(x => /^(world|player-body) \/ (humans:|people:)/.test(x.k)); md.push('| people mesh | visible / hidden meshes | instances (count) | in frustum | < 60 m |', '|---|---|---|---|---|', ...hp.map(x => `| ${x.k} | ${x.vis} / ${x.hidden} | ${x.inst} | ${x.instIn} | ${x.near60} |`), ''); }
   md.push(`people: sim out of doors within 60 m ${r.simNear60} (open ground ${r.openNear60}, inside walled courts ${r.courtNear60}, walking ${r.movingNear60}; places ${JSON.stringify(r.places60)}; 250 m ${r.simNear250}); crowd attached ${cs.perf?.attached ?? '?'}, skinned drawn ${cs.people ?? '?'} by LOD ${JSON.stringify(cs.byLod ?? [])}, impostors drawn ${cs.impostors ?? '?'} of ${cs.impPerf?.candidates ?? '?'} candidates`, '');
   md.push(`town roofs (150 m round ${JSON.stringify(r.roofs?.at)}): up-facing area above 1.8 m ${r.roofs?.upAreaAbove18} m², wall area ${r.roofs?.wallArea} m², ratio ${r.roofs?.ratio} (${r.roofs?.tris} triangles)`, '');
-  if (r.simNear60 >= 10 && drawn < r.simNear250 * 0.3) flags.push(`${r.view} [C5 people]: the sim holds ${r.simNear60} people out of doors within 60 m (${r.openNear60} on open ground, ${r.courtNear60} in walled courts; ${r.simNear250} within 250 m); the crowd draws ${cs.people} skinned (by LOD ${JSON.stringify(cs.byLod)}) + ${cs.impostors} impostors of ${cs.impPerf?.candidates} candidates, ${cs.perf?.attached} attached`);
+  if (r.sim.inFrNotWalled60 >= 5 && (cs.people ?? 0) + (cs.impostors ?? 0) < r.sim.inFrNotWalled60 * 0.7) flags.push(`${r.view} [C5 people]: ${r.sim.inFrNotWalled60} people within 60 m are in the frustum and not behind a wall for this eye (${r.sim.inFr60} in the frustum, ${r.simNear60} round); the crowd draws ${cs.people} skinned (by LOD ${JSON.stringify(cs.byLod)}) + ${cs.impostors} impostors of ${cs.impPerf?.candidates} candidates, ${cs.perf?.attached} attached`);
   if (r.roofs?.wallArea > 2000 && r.roofs.ratio !== null && r.roofs.ratio < 0.15) flags.push(`${r.view} [C2 roofs]: within 150 m of ${JSON.stringify(r.roofs.at)} the houses show ${r.roofs.wallArea} m² of wall but ${r.roofs.upAreaAbove18} m² of up-facing surface above 1.8 m (ratio ${r.roofs.ratio}): roofless`);
   md.push('<details><summary>all classes (top 60 by triangles)</summary>', '', '| object key | vis / hidden | inst in frustum | < 60 m | tris | mats | tiers |', '|---|---|---|---|---|---|---|');
   for (const x of [...r.rows].sort((a, b) => b.tris - a.tris || b.hidden - a.hidden).slice(0, 60)) md.push(`| ${x.k} | ${x.vis} / ${x.hidden} | ${x.instIn} | ${x.near60} | ${x.tris} | ${x.mats.join(', ')} | ${x.tiers.join('')} |`);

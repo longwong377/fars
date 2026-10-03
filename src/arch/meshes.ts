@@ -28,7 +28,7 @@ import { packGeo, unpackGeo, type GeoPack } from '../world/cache/geo';
 import type { Part, Prism, Box, Column, ColumnOrder, Material } from './parts';
 import type { Physics } from '../player/physics';
 import { columnMesh, columnMeshesByMaterial, memberMaterials, toGeometry, colossusMesh, colossusFrontProjections, setColossusFront, sculptIndex, srow, Lod, protomeBox, protomeMesh, voluteBox, voluteMesh } from './sculpt';
-import { model, fitLevel, placeLevel, bakedMaterial, registerSwap } from '../render/models';
+import { model, fitLevel, placeLevel, registerSwap } from '../render/models';
 import { frameGeometries, type FrameGeoStats } from './frames';
 import { frameMaterial } from '../render/decorAssets';
 import { memberBox, memberMesh, type MemberName, type ShaftKind } from './sculpt';
@@ -56,6 +56,7 @@ function shaftPaint(o: ColumnOrder): THREE.Material {
 import { ceilingTimbers } from './ceilings';
 import { roofEdges, wallFeet, type RoofEdges } from './roofedge';
 import { buildPieces } from './palacekit';
+import { paintedLevel, paintedModelMaterial } from './model_paint';
 /** D-276: parts that are colliders only: the round fittings world/furnish.ts draws (storage jars, querns) */
 export const COLLIDER_ONLY = new Set(['jar', 'quern']);
 const matCache = new Map<string, THREE.MeshStandardNodeMaterial>();
@@ -674,7 +675,7 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
     for (const [MM, boxOf, meshOf, part, what] of members) {
       if (!MM) continue;
       const [lo, hi] = boxOf(c.order)!, mat = M.capital, surf = CARVED[mat] ?? mat, b = c.parts[0].building;
-      const geos = MM.lods.map(g => fitLevel(g, lo, hi)), mats = MM.maps.map((map, k) => bakedMaterial(surf, map, `${MM.id}:${k}`));
+      const geos = MM.lods.map(g => fitLevel(paintedLevel(MM.id, g), lo, hi)), mats = MM.maps.map((map, k) => paintedModelMaterial(surf, map, `${MM.id}:${k}`)); // D-752: painted and gilded
       const lod = new InstancedLOD(geos, mats[0], at, SW.column, SW.hysteresis);
       lod.name = `${b}:columns:${part}`;
       lod.userData = { tier: c.parts[0].tier, src: `${c.parts[0].src};RECON;PHOTO`, placeholder: false, building: b, model: MM.id,
@@ -696,7 +697,7 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
       const CM = flatMode ? null : model(`colossus_${p.sculpt!.model}`), surf = CARVED[p.material] ?? p.material;
       const meshes = ([0, 1] as Lod[]).map(l => {
         const stand = toGeometry(colossusMesh(p, l));
-        const m = CM && CM.lods[l] ? new THREE.Mesh(placeLevel(CM.lods[l], colossusPlacement(p)), bakedMaterial(surf, CM.maps[l], `${CM.id}:${l}`)) : new THREE.Mesh(stand, carvedMaterial(p.material));
+        const m = CM && CM.lods[l] ? new THREE.Mesh(placeLevel(paintedLevel(CM.id, CM.lods[l]), colossusPlacement(p)), paintedModelMaterial(surf, CM.maps[l], `${CM.id}:${l}`)) /* D-752: painted and gilded */ : new THREE.Mesh(stand, carvedMaterial(p.material));
         if (CM && CM.lods[l]) registerSwap(m, [stand, carvedMaterial(p.material)]);
         m.castShadow = m.receiveShadow = true; return m;
       });

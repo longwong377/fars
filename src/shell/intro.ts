@@ -1,6 +1,6 @@
 // The opening (s17 C5, D-590; UD-37; s18 C11, D-760, UD-38/39): a wordless, in-engine cinematic that plays when a new
 // visit begins, cut to the score's "First Light" (src/audio/score.ts; the title film with the main theme plays before it, over
-// the loading screen: src/shell/film.ts): the stars over Kuh-e Rahmat in the last of the night, the river at first light,
+// the loading screen: src/shell/film.ts): the river at first light,
 // the plain, the town waking, the Terrace in the first sun, people at their work, and the last shot coming down to the eye
 // where the player's walk begins, landing as the solo horn ends the theme's first half. Each cut falls on a bar of the music
 // and the shots follow the music's clock (a stalled stream holds no shot back: the frame clock takes over). Out of world in
@@ -42,13 +42,9 @@ const span = (a: number, b: number) => +(barAt(b) - barAt(a)).toFixed(3);
 
 /** the shots in order (each from bar to bar of the music); the last is built at play() from where the player stands */
 export const SHOTS: IntroShot[] = [
-  // night: low on the plain W of the Terrace, the lens tilting down from the stars to Kuh-e Rahmat's black ridge (the choir's
-  // breath alone under it)
-  { id: 'stars', what: 'the stars over the mountain', dur: span(1, 3), atRise: -1.15,
-    keys: [{ e: -720, n: 70, h: 1.9, az: 86, pitch: 17, fov: 50 }, { e: -706, n: 72, h: 2.2, az: 88, pitch: 8, fov: 48 }] },
   // the Pulvar 3.8 km N of the Terrace, from its S bank 1.5 m above the water's edge, drifting upstream (E) into the glow
   // before sunrise: the sky in the water, the far bank's reeds and willows (plain riparian), the mountains black
-  { id: 'river', what: 'the river at first light', dur: span(3, 5), atRise: -0.35,
+  { id: 'river', what: 'the river at first light', dur: span(1, 5), atRise: -0.35, // (from bar 1: the 'stars' shot was cut after C6's frame, 07:13: the engine's night sky reads as a dot field and Rahmat lit flat, no silhouette)
     keys: [{ e: 880, n: 3787, h: 2.4, az: 70, pitch: -2, fov: 38 }, { e: 990, n: 3790, h: 2.8, az: 80, pitch: -1.5, fov: 38 }] },
   // high over the fields S of the river, moving S toward the Terrace (3 km): the patchwork, the villages' first smoke,
   // Kuh-e Rahmat dark against the dawn on the left (the alto flute's tune begins as it ends)

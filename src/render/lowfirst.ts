@@ -49,8 +49,11 @@ function lowKtxList(base: string): Promise<Set<string> | null> {
 }
 /** the twin to load first for a KTX2 url (`${base}textures/<key>.ktx2`), or null */
 export async function lowKtxOf(base: string, url: string): Promise<string | null> {
-  const pre = `${base}textures/`; if (!url.startsWith(pre) || !url.endsWith('.ktx2') || url.endsWith('.low.ktx2')) return null;
-  const L = await lowKtxList(base), k = url.slice(pre.length, -5); if (!L?.has(k) || await cached(url)) return null;
+  if (!url.startsWith(base) || !url.endsWith('.ktx2') || url.endsWith('.low.ktx2')) return null;
+  // (keys: a scan's path under textures/, or '@' and the path under the site for the other KTX2 arrays and maps: the people's
+  // layers, the bark, the land's atlases; D-740)
+  const pre = `${base}textures/`, k = url.startsWith(pre) ? url.slice(pre.length, -5) : '@' + url.slice(base.length, -5);
+  const L = await lowKtxList(base); if (!L?.has(k) || await cached(url)) return null;
   return url.replace(/\.ktx2$/, '.low.ktx2');
 }
 /** wrap a KTX2Loader's loadAsync with low first (loaders.ts: the page's one transcoder) */

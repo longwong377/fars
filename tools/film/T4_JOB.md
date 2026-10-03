@@ -11,6 +11,6 @@ npx tsx tools/film/carve.ts tools/film/work
 # the frames, one GPU slot (resumes where it stopped; a shot at a time is fine: --shot ember,stylus)
 node tools/dev/gpu_slot.mjs film -- "C:/Program Files/Blender Foundation/Blender 5.0/blender.exe" -b --factory-startup --python tools/film/film.py -- --shot all --res 1920x804 --fps 24 --samples 64 --gpu --out T:/film_frames --work tools/film/work
 # the edit and the encodes (the theme: tools/film/work/main_theme.opus, 192 kbps, committed by the score build)
-node tools/film/assemble.mjs T:/film_frames --fps-in 24
+node tools/film/assemble.mjs T:/film_frames
 git add -f public/film && git commit -m "D-761: the title film at full quality (T4)" && git push
 ```

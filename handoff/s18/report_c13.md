@@ -58,18 +58,26 @@ Every morning of the residence holds an audience, a gift day, a ride, a hunt or 
 
 New people: the chiliarch (in Median dress with kandys, gold at the ears and wrists) and 356 royal-road couriers.
 
-## Dress (tools/dev/dress_census.ts, seed 1; looks.ts, garments.ts, delegations.json)
+## Dress (tools/dev/dress_census.ts, seed 1; looks.ts, garments.ts, delegations.json; final numbers)
 | people | main garment dyed, before → after | main colour C*ab | ornaments |
 |---|---|---|---|
-| everyone, court away (3,000 drawn) | 16 % → 63 % | 14.9 → 22.4 | 21 % → 40 % |
-| working men | 0 % → 58 % | 11.5 → 20.5 | 0 % → 34 % (bronze) |
-| children | 0 % → 51 % | 12.2 → 21.0 | – |
-| women | 50 % → 79 % | 21.4 → 26.0 | 67 % → 89 % |
-| the court on day 40 (1,700) | 45 % → 80 % | 20.9 → 26.3 | gold 38 % → 43 %, rosettes or gold plaques 7 % → 15 % |
-| guards | 57 % → 83 % (yellow, purple and white Susa robes) | 23.4 → 25.5 | 77 % → 96 % |
-| delegations | 38-48 % → 73-74 % | 19-21 → 25-29 | – |
+| everyone, court away (3,000 drawn) | 16 % → 64 % | 14.9 → 22.2 | 21 % → 40 % |
+| working men | 0 % → 65 % | 11.5 → 21.7 | 0 % → 34 % (bronze) |
+| children | 0 % → 59 % | 12.2 → 21.8 | – (a third with a cloth band) |
+| women | 50 % → 69 % | 21.4 → 23.1 | 67 % → 90 % (necklaces for 3 in 5) |
+| the court on day 40 (1,690) | 45 % → 79 % | 20.9 → 26.3 | gold 38 % → 44 %; rosettes or gold plaques 7 % → 23 % |
+| guards | 57 % → 80 % (Susa yellow, purple and white; now including 2 in 3 non-Persian guards in the robe) | 23.4 → 27.9 | 77 % → 94 % |
+| delegations | 38-48 % → 56-79 % | 19-21 → 24-29 | – |
 
-Persians' robes are never undyed. 60 % wear torques (was 30 %). A third wear gold plaques, drawn as the rosette in gold-yellow.
+- Persians of rank never wear an undyed robe; half wear gold plaques (the rosette motif in gold-yellow).
+- Look-alikes in a crowd (C14's tools/dev/look_clones.ts): 11.6-12.8 % of 40-person crowds held a look-alike pair; now 2.0-3.2 %
+  on seeds 1-4 (target 2 %). The rest are mostly same-age children (popview.childStature gives every child of an age one height:
+  an ask for C5) and women in the same headcloth.
+- Most working men and many women go barefoot.
+- Labourers strip to the waist above 30 °C (the bare-chested wrap's mesh). This only shows once popview passes `tempC` in
+  lookInput (C5).
+- Fixed: one line comment of mine, placed mid-line, cut off a working man's headgear draw and its `break` (in at eeb45211, out
+  at 8592fe19). For those commits the worker case fell into the women's.
 
 ## Halls (furnish_palaces.ts)
 - **Court in residence:** the Apadana is laid for the banquets with 38 low tables in the bays (304 seats). This is on top of the

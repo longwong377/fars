@@ -349,6 +349,12 @@ export class PlainGround {
       plotAlb = mix(plotAlb, mix(soil.mul(1.04), weedC, 0.35), ridge.mul(basinOn).mul(0.7));
       plotAlb = mix(plotAlb, mix(soil.mul(1.05), lin(0.36, 0.40, 0.2).mul(det(G.green)), 0.45), bund.mul(0.85));
       plotAlb = mix(plotAlb, soil0.mul(det(G.packed)).mul(1.15).add(vec3(0.02, 0.018, 0.012)), track.mul(0.9));
+      // D-670 (ledger row 16): the field ditches: beside every district track of the irrigated land a ditch ~0.9 m wide that
+      // carries the canal's water to the plots, wet mud and a thread of water in the watering months (Mar-Oct), a dry dark
+      // groove otherwise; drawn by its pixel coverage like the bunds (C)
+      const dw = float(2.35), dh = float(0.45), ditch = float(1).sub(smoothstep(dh.sub(fwDd), dh.add(fwDd), abs(dEdge.sub(dw)))).mul(clamp(dh.mul(2).div(fwDd.mul(2)), 0, 1)).mul(wI).mul(mask);
+      const watering = SEASON.green.add(0.25).min(1);
+      plotAlb = mix(plotAlb, mix(soil0.mul(0.62), vec3(0.09, 0.11, 0.1), watering.mul(0.55)), ditch.mul(0.9));
       plotH = mix(plotH, G.packed.h.mul(0.01), track.mul(0.9));
       // --- the uncultivated ground (D-302; was the earth surface's own procedural herbs and chips, whose 3 m blobs cut by a
       // hard threshold read as camouflage): the loam's dust (wet: mud), stony patches over ~150-400 m, dried and cracked silt

@@ -18,7 +18,7 @@ import { uniform, positionWorld, normalWorld, normalView, positionView, mx_noise
 import { MASONRY, courseTexels } from './masonry';
 import PC from '../data/polychromy.json';
 import SPEC_JSON from '../data/site_spec.json'; // D-334: the painted interiors' scheme (global.r_interior_paint)
-import { linearToSrgb, munsellY, srgbToLinear, labToSrgb } from '../core/colour';
+import { linearToSrgb, munsellY, srgbToLinear, labToSrgb, labToLinear } from '../core/colour';
 import { SkySpecularNode } from './envmap';
 import { applyScan, scanOf } from './scans';
 import { applyGrime, grimeClass } from './grime';
@@ -1503,6 +1503,10 @@ export function incisedMaterial(surface: string, atlas: Atlas): THREE.MeshStanda
   finish(m, applyScan(SURFACES[surface] ? surface : 'limestone', layer({ ...d, blockFace: undefined }, lin(d.albedo))), d); // D-300: the cut shows the host face's scanned grain (the same world-space tiles)
   const I = incisionNodes(atlas);
   m.normalNode = I.normalView; m.aoNode = I.ao; m.opacityNode = I.mask; m.alphaTest = 0.5;
+  // D-752 (holes.md #3; C): the signs painted in, Egyptian blue (B on the Terrace, RELIEFS_AND_COLOUR §3a) laid in the cut over
+  // the stone's grain, as the painted inscriptions of the period (the colour of Persepolis's signs is not reported: C)
+  { const EB = (PC as any).pigment.egyptian_blue.v, b = labToLinear(EB[0], EB[1], EB[2]), g = m.colorNode as any;
+    m.colorNode = mix(g, vec3(b[0], b[1], b[2]).mul(g.div(lin(d.albedo)).clamp(0.6, 1.4)), float(0.85)); }
   m.polygonOffset = true; m.polygonOffsetFactor = -1; m.polygonOffsetUnits = -4;
   receiveReliefShadow(m); // an inscription beside a relief lies in its shadow like the face it is cut into (D-226)
   m.userData = { surface: SURFACES[surface] ? surface : 'limestone', scan: scanOf(SURFACES[surface] ? surface : 'limestone'), tier: 'C', note: `incised signs in ${surface} (D-177): the stone's own surface; V-section, walls at 45° (C)` };

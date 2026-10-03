@@ -34,7 +34,7 @@ import { dustWear, coldWear, wetHours, wetSpells, OPEN_PLACE } from './populatio
 import { CAMPS, CAMP_BY_ID, campPlace, campOfPlace, layoutCamp, TENT_KINDS, type Tent, type TentKind } from './camps';
 import delegationsData from '../data/delegations.json';
 import { courtYear, heralds, type CourtYear } from './courtYear';
-import { courtSetDays, audienceDraw, isGiftDay, isHuntDay, isRideDay, ceremonyHours, couriersOn, courtProgramme, FEAST_SEATS, type Ceremony, type CourtSetDays } from './ceremony';
+import { courtSetDays, audienceDraw, isGiftDay, isHuntDay, isRideDay, ceremonyHours, couriersOn, courtProgramme, FEAST_SEATS, FEAST_TABLES, type Ceremony, type CourtSetDays } from './ceremony';
 
 export const COURT = courtData as any;
 type P2 = [number, number];
@@ -376,6 +376,14 @@ export class CourtResidents {
     // D-780: a diner of the great banquet sits at his place round a low table in the Apadana (and stands there in the morning
     // of the king's gifts); the court_audience place is the hall's (C)
     if (place === 'court_audience' && (m.g === 'nobles' || m.g === 'officials' || m.role === 'chiliarch')) { const k = this.seatOf(pid, d); if (k >= 0) return { at: [...FEAST_SEATS[k].at] as P2, heading: FEAST_SEATS[k].heading }; }
+    // D-780 (C6's banquet frame: a standing crowd facing the throne): on a banquet night the servers and wine-bearers stand to
+    // serve by a table, outside its ring of diners and facing it, and the lamp tenders by the lamp stands along the walls (C)
+    if (place === 'court_audience' && this.banquetNight(d) && (m.g === 'table' || m.g === 'palace')) { const h = u01(this.pop.seed, S.face, pid, d, 9);
+      if (m.g === 'table') { const t = FEAST_TABLES[Math.floor(h * FEAST_TABLES.length)], a = u01(this.pop.seed, S.face, pid, d, 10) * 2 * Math.PI, R = 1.95;
+        const at: P2 = [t[0] + R * Math.sin(a), t[1] + R * Math.cos(a)]; return { at, heading: (Math.atan2(t[0] - at[0], t[1] - at[1]) * 180 / Math.PI + 360) % 360 }; }
+      const F = CE.feast_hall, side = Math.floor(h * 4), u = (h * 4 - side) * 2 - 1, half = F.half - 1.2, [cx, cy] = F.centre as P2;
+      const at: P2 = side === 0 ? [cx - half, cy + u * half] : side === 1 ? [cx + half, cy + u * half] : side === 2 ? [cx + u * half, cy + half] : [cx + u * half * 0.6 + (u > 0 ? 6 : -6), cy - half];
+      return { at, heading: (Math.atan2(cx - at[0], cy - at[1]) * 180 / Math.PI + 360) % 360 }; }
     const o = this.dayOrder(d);
     let pa: Party | undefined, usher = false;
     if (m.g === 'visitor') pa = this.parties[this.pop.persons[pid].idx]; else if (m.role === 'usher') { const t = o.usherOf.get(pid); if (t) { pa = this.parties[t.party]; usher = true; } }
@@ -783,9 +791,9 @@ class CourtDay {
   womenOuting(H: string) {
     const G = 'garden_pw', [h0, h1] = this.K.womenOutHours(this.d), r = this.r;
     this.fill(h0 - walkHours(this.cur, G), [[H, 'rest', 'resting in the women’s court before going out', 1]]);
-    this.go(G, this.m.g === 'women' ? 'going down to the paradise, veiled, among her attendants and the eunuchs (curtained litters: claims, B; C: D-780)' : 'walking beside the royal women to the paradise');
+    this.go(G, this.m.g === 'women' ? 'going down to the paradise in a curtained litter, among her attendants and the eunuchs (curtained carriages: claims, B; C: D-780)' : 'walking beside the royal women’s litters to the paradise');
     this.fill(h1 - walkHours(G, H), [[G, 'rest', this.m.g === 'women' ? 'sitting in the shade of the paradise with the women of the household' : 'in attendance on the royal women in the paradise', 2], [G, 'talk', this.m.g === 'women' ? 'walking and talking in the paradise with the women of the household' : 'keeping the way clear about the royal women in the paradise', 1.5]]);
-    this.go(H, 'going back up to the women’s court from the paradise'); void r;
+    this.go(H, this.m.g === 'women' ? 'carried back up to the women’s court in a curtained litter' : 'walking back beside the litters to the women’s court'); void r;
   }
   attendant() {
     const r = this.r, f = this.p.sex === 'f', H = 'court_harem';
