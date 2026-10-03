@@ -53,7 +53,7 @@ export const SHOTS: IntroShot[] = [
   // the town N of the Terrace from just over its roofs, looking S to the Terrace with the low sun raking across from the E;
   // lanes, courts, smoke from the first fires
   { id: 'town', what: 'the town waking', dur: span(9, 11), atRise: 0.35,
-    keys: [{ e: -280, n: 880, h: 24, az: 150, pitch: -12, fov: 45 }, { e: -320, n: 862, h: 20, az: 154, pitch: -11, fov: 45 }, { e: -360, n: 846, h: 17, az: 158, pitch: -10, fov: 45 }] }, // (moved W over the quarter after the cloud's first frame, 01:36: from e -165 the town lay off the right edge and the frame was empty plain)
+    keys: [{ e: -215, n: 745, h: 17, az: 150, pitch: -13, fov: 45 }, { e: -250, n: 728, h: 15, az: 154, pitch: -12, fov: 45 }, { e: -285, n: 712, h: 13, az: 158, pitch: -11, fov: 45 }] }, // (moved ~150 m S over the lanes after C6's frame, 07:44: from n 860 the near half of the frame was empty plain) // (moved W over the quarter after the cloud's first frame, 01:36: from e -165 the town lay off the right edge and the frame was empty plain)
   // the W face of the Terrace from the plain, the camera rising past the wall's top: the Grand Stair, the Gate, the columns
   // of the Apadana in the first sun over Rahmat
   { id: 'terrace', what: 'the Terrace in the first sun', dur: span(11, 14), atRise: 1.1,
@@ -69,7 +69,9 @@ export const LAST_SHOT_SECONDS = span(17, 21);
 export const LAST_SHOT_AT_RISE = 1.45;
 export const INTRO_SECONDS = SHOTS.reduce((a, s) => a + s.dur, 0) + LAST_SHOT_SECONDS;
 /** a median frame longer than this (s) over the opening's first ten frames ends the opening at once */
-export const SLOW_FRAME = 0.15;
+export const SLOW_FRAME = 0.1;
+/** the longest a dip to black may last in real time (s), whatever the frames' clock says */
+export const MAX_BLACK = 3;
 
 /** the last shot: from high on the approach behind the player, coming down along the player's heading to the eye */
 export function shotToPlayer(p: { e: number; n: number; eyeH: number; az: number; pitch: number; fov: number }): IntroShot {
@@ -138,6 +140,8 @@ export class Intro {
   private music: ScoreTrack | null = null; private G = 0; private shotStart = 0;
   /** the first frames' real lengths (s): an opening on a renderer too slow to carry it ends at once (SLOW_FRAME) */
   private early: number[] = [];
+  /** when the screen went (mostly) black, real time (ms); the black lifts after MAX_BLACK whatever the clock */
+  private blackSince = 0; private blackDone = false;
   /** what happened, for tests and the trace */
   readonly log: { shot: string; at: number; hour: number }[] = [];
   constructor(private d: IntroDeps) {}
@@ -171,7 +175,7 @@ export class Intro {
   skip() { if (!this.playing || this.ending) return; this.ending = performance.now(); }
 
   private next() {
-    this.shot++;
+    this.shot++; this.blackSince = 0; this.blackDone = false;
     const s = this.shots[this.shot]; if (!s) { this.finish(); return; }
     const now = this.d.getTime(), want = sunTimes(now.day).rise + s.atRise;
     if (want > now.hour) this.d.setTime(now.day, want); // forward only
@@ -198,7 +202,10 @@ export class Intro {
     const first = this.shot === 0, last = this.shot === this.shots.length - 1;
     const fin = Math.max(0, 1 - this.t / (first ? 2.6 : 0.9)), fout = last ? 0 : Math.max(0, 1 - (s.dur - this.t) / 0.8);
     const fskip = this.ending ? Math.min(1, (now - this.ending) / 450) : 0;
-    if (this.fade) this.fade.style.opacity = String(Math.max(fin, fout, fskip));
+    let black = Math.max(fin, fout);
+    if (black > 0.5 && !this.blackDone) { this.blackSince ||= now; if (now - this.blackSince > MAX_BLACK * 1000) this.blackDone = true; } else if (black <= 0.5) this.blackSince = 0;
+    if (this.blackDone) black = 0;
+    if (this.fade) this.fade.style.opacity = String(Math.max(black, fskip));
     if (this.ending && now - this.ending >= 450) { this.finish(); return; }
     this.raf = requestAnimationFrame(this.loop);
   };
