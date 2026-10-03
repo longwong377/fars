@@ -14,8 +14,9 @@
 // three levels by distance, drawn from one atlas (one material): one InstancedMesh per piece and level.
 import { SEASON_PALETTE } from '../season';
 import * as THREE from 'three/webgpu';
+import { WIND_FIELD } from './windField';
 import { sharedDraco } from '../../render/loaders';
-import { texture, uv, vec3, dot, attribute, max, smoothstep } from 'three/tsl';
+import { texture, uv, vec3, dot, attribute, max, smoothstep, positionLocal, sin, time } from 'three/tsl';
 import { mxNoise2 } from '../../render/mx_noise_cpu';
 import { landUseAt, type ZoneMap } from './fields';
 import { cropState } from './seasonal';
@@ -146,6 +147,9 @@ export class GroundCover {
     // s12). The cut-out is the albedo's own brightness (the black is 0; the stubble and dung cell is opaque)
     const rawT = texture(kit.map, uv()); mat.opacityNode = smoothstep(0.012, 0.045, max(rawT.r, max(rawT.g, rawT.b))); mat.alphaTest = 0.5;
     const a = texture(kit.arm, uv()); mat.roughnessNode = a.g.mul(0.3).add(0.65); mat.aoNode = a.r.mul(0.5).add(0.5); mat.name = 'ground-cover';
+    // D-670: the tufts move in the weather's wind (windField.ts): a flutter by height (their instance turn is not known here, so no lean)
+    { const pl = positionLocal, k = pl.y.max(0).mul(pl.y.max(0)).mul(WIND_FIELD.ms.mul(0.025).add(0.01)), ph = pl.x.mul(3.1).add(pl.z.mul(2.3));
+      mat.positionNode = pl.add(vec3(sin(time.mul(2.6).add(ph)).mul(k), 0, sin(time.mul(2.1).add(ph.mul(1.3))).mul(k))); }
     for (const [kind, K] of Object.entries(COVER_KINDS) as [CoverKind, typeof COVER_KINDS[CoverKind]][]) K.ids.forEach((id, v) => {
       const p = kit.pieces.find(q => q.id === id); if (!p) return;
       for (let lod = 0; lod < 3; lod++) { const g = p.lods[lod].clone(), cap = Math.ceil(K.cap * (lod === 0 ? 0.25 : lod === 1 ? 0.5 : 1)), tint = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3); g.setAttribute('ctint', tint);

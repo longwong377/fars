@@ -15,6 +15,7 @@
 // normals. A quad collapses inside the near radius of the near set's centre (the trees drawn in 3-D there) and beyond
 // an outer radius. No runtime select(): masks are arithmetic (D-012).
 import * as THREE from 'three/webgpu';
+import { windBend } from '../plain/windField';
 import { attribute, uniform, varying, textureLoad, texture, cameraPosition, cameraViewMatrix, positionGeometry, vec2, vec3, vec4, float, int, ivec2, mix, step, max, min, normalize, cross, dot, sign, cos, sin, floor, mod, atan, time, length, mx_noise_float, clamp, smoothstep, exp, fract, hash, screenCoordinate, frameId } from 'three/tsl';
 import { allModels, K1, LOD1_LEAF, LOD1_TWIG, M0, M1, K0, SIDES0, SIDES1, VARIANTS, rowOf, TRIS, type TreeModel } from './model';
 import { COLS, ROWS, TILT, type Atlas } from './atlas';
@@ -207,6 +208,9 @@ export class TreeKit {
   /** texel k of model row `row` in a data texture (TSL) */
   private rec(tex: THREE.DataTexture, x: any, row: any) { return textureLoad(tex, ivec2(int(x), int(row))); }
   /** sway of a tree-local point (m): the crown bends with the wind, more toward the top (C) */
+  /** D-670: the crown's lean and gusts in the weather's wind (windField.ts), world x/z, added after toWorld: the bend grows
+   *  with the square of the height share; stiff (0.35 of a reed's) */
+  private windW(l: any, H: any, phase: any, ipos: any) { const h: any = clamp(l.y.div(H), 0, 1.2), b = windBend(ipos.xz, phase, 0.35).mul(h).mul(h).mul(H); return vec3(b.x, 0, b.y); }
   private sway(l: any, H: any, phase: any) {
     const h: any = clamp(l.y.div(H), 0, 1.2), a: any = this.wind.mul(0.0025).mul(h).mul(h).mul(H);
     const sx: any = sin(time.mul(1.3).add(phase)).mul(a), sz: any = sin(time.mul(1.1).add(phase.mul(1.7))).mul(a).mul(0.6);
@@ -229,7 +233,7 @@ export class TreeKit {
     const sp1 = this.rec(this.spTex, 1, row), sp2 = this.rec(this.spTex, 2, row), sp3 = this.rec(this.spTex, 3, row), sp6 = this.rec(this.spTex, 6, row);
     const local = w0.xyz;
     const m = new THREE.MeshStandardNodeMaterial();
-    m.positionNode = toWorld(local.add(this.sway(local, sp1.w, itree.z)), iscl, ipos);
+    m.positionNode = toWorld(local.add(this.sway(local, sp1.w, itree.z)), iscl, ipos).add(this.windW(local.mul(iscl.y), sp1.w.mul(iscl.y), itree.z, ipos));
     // branches inside the crown are darker (shade.ts crownAO), on top of the baked occlusion of the branches and the ground
     const vNA: any = varying(vec4(w1.xyz, w2.w.mul(crownAON(local, sp3, sp2.w, sp1.w, SHADE.woodAoIn)))), vTU: any = varying(vec4(w2.xyz, w0.w)), vVL: any = varying(vec4(w1.w, sp6.x, sp6.y, sp6.z)), vRel: any = varying(sp6.w);
     const N = normalize(vNA.xyz), Tn = normalize(vTU.xyz), uvB = vec2(vTU.w, vVL.x);
@@ -258,7 +262,7 @@ export class TreeKit {
     // each tube runs a little past both ends (half its radius), so joints between segments of a bending branch close
     const e = P.y, ext = mix(t0.w.mul(-0.5), t1.w.mul(0.5), e), local = mix(t0.xyz, t1.xyz, e).add(d.mul(ext)).add(n.mul(mix(t0.w, t1.w, e)));
     const m = new THREE.MeshStandardNodeMaterial();
-    m.positionNode = toWorld(local.add(this.sway(local, sp1.w, itree.z)), iscl, ipos);
+    m.positionNode = toWorld(local.add(this.sway(local, sp1.w, itree.z)), iscl, ipos).add(this.windW(local.mul(iscl.y), sp1.w.mul(iscl.y), itree.z, ipos));
     m.normalNode = normalToView(n, iscl);
     const barkLin = sp1.xyz; // packed linear (kitdata.packSpecies)
     // limbs and twigs inside the crown are darker (shade.ts crownAO, as the leaves and the impostor bake)
@@ -298,7 +302,7 @@ export class TreeKit {
     // leaf flutter: a few cm along the card normal (C)
     const flutter = normalize(cross(c3.xyz, c2.xyz)).mul(sin(time.mul(3.1).add(slot.mul(1.7)).add(itree.z)).mul(this.wind).mul(0.006).mul(size));
     const m = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide });
-    m.positionNode = toWorld(local.add(flutter).add(this.sway(local, sp1.w, itree.z)), iscl, ipos);
+    m.positionNode = toWorld(local.add(flutter).add(this.sway(local, sp1.w, itree.z)), iscl, ipos).add(this.windW(local.mul(iscl.y), sp1.w.mul(iscl.y), itree.z, ipos));
     const tile = isL.mul(sp0.y).add(isB.mul(max(sp0.w, 0))).add(isT.mul(sp0.z));
     // shade.ts leafShade, per fragment: the texel's tree-local position, its card's centre, outward axis and size, the
     // crown ellipsoid and the species' crown base and height. Varyings are packed into vec4s: WebGPU allows 16

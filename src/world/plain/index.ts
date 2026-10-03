@@ -30,6 +30,7 @@ import { nearCrops } from './crops';
 import { buildNaqsh } from './naqsh';
 import { buildQuarries, quarrySites } from './quarries';
 import { Qanats } from './qanats';
+import { setWindField } from './windField';
 import { buildCrossings, keepOffChannels, roadRiverCrossings, type FordDetailSites } from './crossings';
 import { doyOf, riverState, marginState } from './seasonal';
 import { riparianMargins } from './riparian';
@@ -239,7 +240,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     if (hemi) skyC.copy(hemi.color).multiplyScalar(hemi.intensity);
     if (scene.fog) horC.copy((scene.fog as THREE.FogExp2).color); // the fog colour is the calibrated horizon radiance (D-060)
     rv.update(flow!, { sky: skyC, horizon: horC });
-    kit.wind.value = ctx.cond?.windMs ?? 2;
+    kit.wind.value = ctx.cond?.windMs ?? 2; setWindField(ctx.cond?.windMs ?? 2, ctx.cond?.windDirDeg ?? 300); // D-670: one wind for every plant
     const cam: THREE.Vector3 = ctx.camera.position;
     // the mid ring is rebuilt before the near set moves far enough to leave it (its centre stays within (rMid - r3) / 4)
     if (Math.hypot(cam.x - lastMid.x, cam.z - lastMid.z) > (Q.rMid - Q.r3) * 0.25) { lastMid = cam.clone(); rebuildMid(cam); }
