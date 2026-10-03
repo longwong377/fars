@@ -4,8 +4,8 @@
 - **Nobody has heard the score.** The cloud has no ears: every cue was checked by measurement only (BS.1770 loudness curves,
   spectrograms, the build's semitone-clash check of long notes against the harmony, range checks per instrument). A human
   listen on Vagon is the first real review; tools/score/analyze.ts prints the curve of any master.
-- **The hall is synthetic** (a modelled scoring-stage response, RT60 3.1 s low / 2.5 mid / 1.5 high): no recorded hall IR is
-  reachable from the cloud. Sample library: Sonatina Symphonic Orchestra is good but not a top commercial library; the
+- **The hall is now measured** (the Nordea concert hall, Tallinn, CC0, from Vagon's fetch; ~1.2 s decay, shorter than a
+  scoring stage). Sample library: Sonatina Symphonic Orchestra is good but not a top commercial library; the
   sample legato is SSO's, not a scripted true legato. Both are the ceiling of what the cloud can reach.
 - **The film in the repo is the cloud's draft**: 640x268, 146 s, rendered at 2-8 frames a second per shot (the volume
   shots sparsest) and motion-interpolated to 24, 10-14 samples: the interpolation can smear the braziers' flames and the
