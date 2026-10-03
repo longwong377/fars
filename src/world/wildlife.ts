@@ -328,7 +328,7 @@ export class Birds {
           if (tw && tw.getAttribute('position').count === g.getAttribute('position').count) { const P = tw.getAttribute('position'), N = tw.getAttribute('normal'), n = P.count, a = new Float32Array(n * 6);
             for (let k = 0; k < n; k++) { a[k * 6] = P.getX(k); a[k * 6 + 1] = P.getY(k); a[k * 6 + 2] = P.getZ(k); a[k * 6 + 3] = N.getX(k); a[k * 6 + 4] = N.getY(k); a[k * 6 + 5] = N.getZ(k); }
             const ib = new THREE.InterleavedBuffer(a, 6); g.setAttribute('standPos', new THREE.InterleavedBufferAttribute(ib, 3, 0)); g.setAttribute('standNrm', new THREE.InterleavedBufferAttribute(ib, 3, 3)); m = flyMorph ?? m; }
-          const mesh = new THREE.InstancedMesh(g, m, sp.count); mesh.count = 0; mesh.castShadow = key === 'stand0'; mesh.receiveShadow = false; mesh.frustumCulled = false; mesh.name = `bird-${v}:${key}`;
+          const mesh = new THREE.InstancedMesh(g, m, birdCapacity(sp.count)); mesh.count = 0; mesh.castShadow = key === 'stand0'; mesh.receiveShadow = false; mesh.frustumCulled = false; mesh.name = `bird-${v}:${key}`;
           mesh.userData = { tier: sp.tier, src: model ? 'SOUND-R;RECON' : 'SOUND-R', note: `${sp.name}; flight paths procedural (C)`, ...meta }; levels.set(key, { key, mesh, data, n: 0 }); this.group.add(mesh);
         };
         if (model) {
@@ -556,6 +556,10 @@ export function packBirdUV(g: THREE.BufferGeometry) {
   g.setAttribute('life', new THREE.BufferAttribute(a, 4)); g.deleteAttribute('uv');
 }
 export const BIRD_UV = () => attribute('life', 'vec4').zw;
+/** D-740: an instanced bird mesh's capacity. three sizes a uniform matrix array to the mesh's capacity (`array<mat4x4, N>`),
+ *  so every species' own count was its own shader: the flocks of 64 or fewer share one capacity (one program per level kind,
+ *  4 KB of matrices each); larger flocks keep theirs (the starlings' 1,500 go as attributes) */
+export const birdCapacity = (n: number) => (n <= 64 ? 64 : n);
 /** D-570: a bird instance's packed inputs (three vec4s: phase, flap, stand, then the bird's x, y and z axes in the world) */
 export function birdIn() { const a = attribute('bA', 'vec4'), b = attribute('bB', 'vec4'), c = attribute('bC', 'vec4');
   return { phase: a.x, flap: a.y, stand: a.z, Rx: vec3(a.w, b.x, b.y), Ry: vec3(b.z, b.w, c.x), Rz: vec3(c.y, c.z, c.w) }; }
@@ -565,16 +569,19 @@ export function birdIn() { const a = attribute('bA', 'vec4'), b = attribute('bB'
  *  axes; the normal turns with the wing (a raised wing is lit as raised); with morph, the level carries its standing twin's
  *  positions and normals and the instance's stand amount blends the poses (the wings open as the bird lifts: no pop) */
 export function birdFlapNode(uTime: any, hz: number, sx: number, morph = false) {
+  // (D-740: the wingbeat's rate and the shoulder as uniforms, not constants: every species' flying level is then the same
+  // shader, one program for all the birds instead of one each; the page's census counted 43 programs for 59 bird groups)
+  const W = uniform(hz * Math.PI * 2), SX = uniform(sx);
   return Fn(() => {
     const L = attribute('life', 'vec4'), { phase, flap, stand, Rx, Ry, Rz } = birdIn();
     const st = morph ? stand.clamp(0, 1) : float(0), fly = float(1).sub(st);
     const pg: any = morph ? mix(positionGeometry, attribute('standPos', 'vec3'), st) : positionGeometry;
     const ng: any = morph ? mix(normalGeometry, attribute('standNrm', 'vec3'), st) : normalGeometry;
-    const beat = sin(uTime.mul(hz * Math.PI * 2).add(phase)).mul(flap).mul(0.85).add(0.1).mul(fly), th = beat.mul(L.x.mul(0.45).add(0.55));
-    const x = pg.x, sg = sign(x), d = max(abs(x).sub(sx), 0).mul(L.y);
+    const beat = sin(uTime.mul(W).add(phase)).mul(flap).mul(0.85).add(0.1).mul(fly), th = beat.mul(L.x.mul(0.45).add(0.55));
+    const x = pg.x, sg = sign(x), d = max(abs(x).sub(SX), 0).mul(L.y);
     const p = vec3(x.add(sg.mul(d.mul(cos(th)).sub(d))), pg.y.add(d.mul(sin(th))), pg.z), dp = p.sub(positionGeometry);
     // the normal: turned about the bird's long axis by the wing's angle (sign(x) th) beyond the shoulder
-    const a = sg.mul(th).mul(L.y).mul(step(float(sx), abs(x))), ca = cos(a), sa = sin(a), n = vec3(ng.x.mul(ca).sub(ng.y.mul(sa)), ng.x.mul(sa).add(ng.y.mul(ca)), ng.z);
+    const a = sg.mul(th).mul(L.y).mul(step(SX, abs(x))), ca = cos(a), sa = sin(a), n = vec3(ng.x.mul(ca).sub(ng.y.mul(sa)), ng.x.mul(sa).add(ng.y.mul(ca)), ng.z);
     normalLocal.assign(Rx.mul(n.x).add(Ry.mul(n.y)).add(Rz.mul(n.z)).normalize());
     return positionLocal.add(Rx.mul(dp.x)).add(Ry.mul(dp.y)).add(Rz.mul(dp.z));
   })();
