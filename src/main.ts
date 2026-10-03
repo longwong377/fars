@@ -46,7 +46,7 @@ import { seasonAt } from './world/season';
 import { installSunCascades } from './render/sunShadows';
 import { loadScans } from './render/scans';
 import { BASE } from './core/base';
-import { installProgressiveCompile, installRenderSafetyNet, guardLiveDisposals } from './render/progressive';
+import { installProgressiveCompile, installRenderSafetyNet, deferDisposals } from './render/progressive';
 import { installShaderLog, installDeviceCounters } from './dev/shaderLog';
 import { upgradeLowFirst, lowFirstStats } from './render/lowfirst';
 installWebGPUCompat();
@@ -110,6 +110,7 @@ async function boot() {
   const backend = (renderer.backend as any).isWebGPUBackend ? 'WebGPU' : 'WebGL2';
   releaseUploadedTextures(renderer); // D-354 (s15, page memory): a static texture's page copy dropped once it is on the GPU
   if (!P.has('nosafetynet')) installRenderSafetyNet(renderer); // D-740 (s18, the black screen): one bad binding skips one object, never the frame (?nosafetynet: off)
+  const disposals = P.has('nodefer') ? null : deferDisposals(THREE as any); // D-740 (s18, the black screen): every dispose 3 frames late, never inside a frame that may bind it (?nodefer: off)
   if (P.has('shaderlog')) installShaderLog(renderer, P.get('shaderlog')); // dev (D-250, D-473): which object and material each new render pipeline came from, and why
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2) * Q.pixelRatio);
   renderer.setSize(innerWidth, innerHeight, false);
@@ -513,6 +514,7 @@ async function boot() {
   async function frame(dtOverride?: number, opts: { sim?: boolean; render?: boolean } = {}) {
     const now = performance.now();
     const dt = dtOverride ?? Math.min(0.1, (now - prev) / 1000); prev = now;
+    disposals?.tick(); // (D-740: the disposals queued 3 frames ago run now, before this frame binds anything)
     autosave.tick();
     overlay.frame(dt);
     const playing = shell.mode === 'playing' || TEST || P.has('bench');
@@ -632,7 +634,6 @@ async function boot() {
     onDrawStart = pc.drawStart; onDrawEnd = pc.drawEnd; (api as any).compiling = pc.stats;
   }
   renderer.setAnimationLoop(() => { inAnimationLoop = true; try { void frame(); } finally { inAnimationLoop = false; } });
-  if (!P.has('nosafetynet')) guardLiveDisposals(scene, THREE); // D-740: from ready on, never free what a mesh in the scene still draws (a scene walk per dispose: not during the build)
   prog.finish(); api.ready = true; (api as any).readyAt = Math.round(performance.now()); // (D-580: the page clock at ready; the harness sees it late when the main thread is busy)
   // (D-393: a ?norender page shows no frames, so the talk's model streams in from here instead of after the 5th frame)
   if (NORENDER) void startTalk();

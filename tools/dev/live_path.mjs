@@ -18,10 +18,10 @@ p.on('console', m => { if (m.type() === 'error') errs.push(`${s()}s ${m.text().s
 await p.goto(`http://127.0.0.2:${port}/fars/?quality=high&seed=1${webgl ? '&webgl=1' : ''}${extra}`);
 await p.waitForFunction(() => window.__parsa?.ready === true || window.__parsa?.error, null, { timeout: 2_400_000, polling: 1000 });
 const R = { dist, webgl, backend: await p.evaluate(() => window.__parsa.backend), readyS: s(), error: await p.evaluate(() => window.__parsa.error ?? null), steps: [] };
-const step = async (label) => { const png = await p.screenshot(); writeFileSync(join(out, `${label}.png`), png);
-  const { data, info } = await sharp(png).removeAlpha().raw().toBuffer({ resolveWithObject: true }); let sum = 0; for (let i = 0; i < data.length; i++) sum += data[i];
-  const st = await p.evaluate(() => { const s = window.__parsa.stats(); return { draws: s.drawCalls, tris: +(s.triangles / 1e6).toFixed(2), exposure: window.__parsa.exposureInfo?.() ?? null, faults: window.__renderFaults ?? null, live: window.__liveDisposals ?? null }; });
-  const row = { label, atS: s(), mean: +(sum / data.length).toFixed(1), ...st }; R.steps.push(row); console.log(JSON.stringify(row).slice(0, 900)); };
+const step = async (label) => { const png = await p.screenshot({ timeout: 120000 }).catch(e => null); if (png) writeFileSync(join(out, `${label}.png`), png);
+  let sum = 0, data = [0]; if (png) { data = (await sharp(png).removeAlpha().raw().toBuffer({ resolveWithObject: true })).data; for (let i = 0; i < data.length; i++) sum += data[i]; }
+  const st = await p.evaluate(() => { const s = window.__parsa.stats(); return { draws: s.drawCalls, tris: +(s.triangles / 1e6).toFixed(2), exposure: window.__parsa.exposureInfo?.() ?? null, faults: window.__renderFaults ?? null, live: window.__liveDisposals ?? null, deferred: window.__deferredDisposals ?? null }; });
+  const row = { label, atS: s(), mean: png ? +(sum / data.length).toFixed(1) : 'no screenshot', destroyedErrors: errs.filter(e => /destroyed/.test(e)).length, ...st }; R.steps.push(row); console.log(JSON.stringify(row).slice(0, 900)); };
 await step('ready'); await p.waitForTimeout(20000); await step('title+20s');
 await p.evaluate(() => [...document.querySelectorAll('button')].find(b => /^(Enter|Continue the visit)$/.test(b.textContent))?.click());
 for (let i = 0; i < 4; i++) { await p.waitForTimeout(1500); await p.keyboard.press('Escape'); await p.keyboard.press('Space'); }
