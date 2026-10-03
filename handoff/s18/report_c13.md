@@ -1,27 +1,33 @@
 # s18 cloud C13: court, ceremony and dress (D-780)
 
 ## Broken, placeholder, unseen (first)
-- **People taking part are not yet drawn doing it.** The plans hold the ceremonies (words, places, times, measured below), but a
-  performance is chosen by activities.ts variants (C8's file), and the variants are not in yet. Until C8 adds them
-  (handoff/s18/c13_asks.md, ready to paste):
-  - riders on a ride, a hunt or at exercise are drawn **walking at a horse's speed with no horse**. Only the couriers ride
-    already, because their words match the existing `/courier riding/` variant.
-  - the leader's proskynesis and the chiliarch's raised hand are drawn as **'inspect'** (hands clasped);
-  - banquet diners are drawn with the **'eat' sit-and-bread** pose (not seated at a table with a cup);
-  - gift animals are not led up the stair: the words are there, the animals are not;
-  - servers with wine show the jar; servers with dishes show bread.
-- **No gallop.** Couriers move at 7.5 m/s and the hunt at ~5 m/s with the walk gait (C9: a gallop cycle). The royal chariot
-  stays parked (fauna.ts, C9).
-- **Silent ceremonies.** There is no banquet music and no drums with the column: the court supper's harps in the Hadish are
-  unchanged (audio/performers.ts, unowned). The Apadana's lamp stands are **unlit** on banquet nights (C4's fire.ts).
-- **Not in the event log.** The chronicle and the soak do not see the programme yet: calendar.ts (C1) needs one line, given in
-  the asks.
-- **Wardrobe not reaching the view.** The daily wardrobe's chosen garments still never reach the drawn look:
-  popview.lookInput (C5) does not pass `outfit`. The palette change in looks.ts is what is seen.
-- The banquet uses the place `court_audience` (an ORDERED place in popgeo.ts) so diners get seats without a popgeo edit;
-  a separate `court_feast` place would be cleaner (C1's popgeo ORDERED set).
-- Gold appliqués are drawn as the existing rosette motif in a gold-yellow trim colour (one material bit), not as metal plaques.
-- Frames: crude SwiftShader frames only (below); nothing judged at the player's lens on a GPU.
+- **No frame judged yet.** The one crude SwiftShader run timed out: the page was not ready after 40 min on a box busy with test
+  runs. A retry is below if it lands. Nothing has been seen at the player's lens on a GPU.
+- **people_hair and people_cloth are STALE** (tests/people_models "current: its inputs hash"). Their input hash covers all of
+  src/people/outfits.ts, and D-780 changed it (the workers' bronze rings, the kidaris, the radial head fit). They can only be
+  rebuilt on Vagon, because the makehuman sources are on C:. Ask: `node tools/blender/build.mjs people_hair people_cloth`.
+  Until then the drape and hair cards come from the older build, which is harmless: the head pieces are not in those assets.
+- **Pose stand-ins:**
+  - The proskynesis cycle is new (workAnims.ts 'proskynesis'). Its far impostor reuses the harp_h@30.9 frame (0.09 m match).
+  - Diners sit with the 'sit' pose and a bowl. There is no table-side reclining.
+- **No gallop and no driven chariot.** Riders mount at the walk gait, including the 7.5 m/s couriers. The gallop and the
+  chariot are C14's now.
+- **Routed by the lead to other owners:**
+  - lamps lit on banquet nights (C9 + C4, the fireOcc bake);
+  - the daily wardrobe on the look (C5);
+  - the parasol following the king's route (C5);
+  - household religion (C1, C2).
+- **Not done:**
+  - the delegations' mantles, tassels and the chin wrap of the soft cap;
+  - the lion bands on the throne covers and the canopy;
+  - drums and trumpets with the column (no trumpet instrument exists).
+- **Fewer banquet furnishings than planned.** The banquet's 38 tables are drawn at the model's lowest level and have no carpet
+  or lamp of their own, and there are no hangings on the Apadana's W, E and N walls. With them the court's furnishings were
+  600-700 k triangles against the 450 k budget (tests/model_props). Measured now: 441 k.
+- Gold appliqués are the rosette motif in a gold-yellow trim colour (one material bit), not metal plaques.
+- The banquet uses the place `court_audience`, an ORDERED place in popgeo.ts, so diners get seats.
+- **Pre-existing failures, also on the base commit:** humans_faces "the kandys hangs past the knee" and court_view "no pop-in"
+  (a forecourt talker at 41.7 m).
 
 ## What a player now meets (node census, seed 1; handoff/s18/c13_court_census.md)
 The court is in residence from day 14 to day 117 (103 days). Each of those days carries a programme (src/people/ceremony.ts,
@@ -66,11 +72,30 @@ New people: the chiliarch (in Median dress with kandys, gold at the ears and wri
 Persians' robes are never undyed. 60 % wear torques (was 30 %). A third wear gold plaques, drawn as the rosette in gold-yellow.
 
 ## Halls (furnish_palaces.ts)
-- **Court in residence:** the Apadana is laid for the banquets: 38 low tables on carpets in the bays, 23 lamp stands and
-  72 hangings on the W, E and N walls. This is on top of the throne's canopy, burners and carpet road.
-- **Court away:** the Apadana keeps the hangings behind the throne's place, a keeper's corner and lamp stands. The Hadish and
-  the Harem keep their hangings.
-- 90 k triangles in use (budget 450 k).
+- **Court in residence:** the Apadana is laid for the banquets with 38 low tables in the bays (304 seats). This is on top of the
+  throne's canopy, burners, carpets and hangings. The use state is 441 k triangles (budget 450 k).
+- **Court away:** the Apadana keeps the hangings behind the throne's place, a keeper's corner and lamp stands at the corners. The
+  Tachara's side rooms and the Hadish keep their hangings. The stored state is 279 k triangles (budget 300 k).
+
+## Applied in other owners' files (the lead's go-ahead, kept small)
+- activities.ts (C8): variants for riders, led horses and gift animals by delegation, the bow, banquet diners and servers, and
+  beaters. PropKind gift_*.
+- calendar.ts (C1): the programme in the event log. New rows in events_calendar.json: E-28 the great banquet, E-29 the ride and
+  the hunt.
+- performers.ts: a court_banquet gig in the Apadana (3 harps, 5 singers, a frame drum). The lead wired banquetHall in world.ts.
+- workAnims.ts / impostors.ts: the proskynesis cycle.
+- props.ts (C5): the gift props.
+- population.json and town.json: the stale "court absent by default" lines rewritten.
+
+## The court's people and dress (later passes)
+- The crown prince and the weapon-bearer stand behind the throne (the Treasury relief). The parasol is furled indoors.
+- Guards: two in three non-Persian guards wear the court robe (Susa archers), and the robes are new and strong.
+- The king's crown is the plain kidaris. The gorytos is named as a combined bow case and quiver.
+- Head pieces are fitted radially. The support-function fit stood 12 mm off the head on average and up to 36 mm: C14's
+  floating headband.
+- The 23 peoples' skin means sit a little further apart, sd 0.16 → 0.12.
+- The delegations' gifts are modelled in Blender and carried: an ibex-handled amphora, armlets, a tusk, akinakes, bows and
+  folded garments, 17 of the gifts in all. Bowls and cups keep the lobed phiale.
 
 ## Frames (crude, SwiftShader WebGL2, seed 1, day 19)
 See handoff/s18/c13_frames/ (if present): the forecourt and N stair at 09:12 on the gift day, the audience in the hall at

@@ -453,7 +453,7 @@ export class Crowd {
     return out;
   }
   /** D-245: a person's voice plays from `from` to `to` (world time); the voices took them (see Person.claimedAt) */
-  voice(key: string, from: number, to: number, now: number) { const p = this.persons.get(key); if (p) { p.voiceFrom = from; p.voiceTo = to; p.claimedAt = now; } }
+  voice(key: string, from: number, to: number, now: number, words?: string) { const p = this.persons.get(key); if (p) { p.voiceFrom = from; p.voiceTo = to; p.claimedAt = now; p.face.say = words ? { text: words, t0: from, seconds: to - from } : null; } } // (D-790 C14: the words (IPA or transliteration) the mouth shapes: humanRig/face.ts)
   /** D-245: the talkers the voices hold this frame (their jaw moves only with their voice) */
   claimVoices(keys: Iterable<string>, now: number) { for (const k of keys) { const p = this.persons.get(k); if (p) p.claimedAt = now; } }
   /** a person is speaking (address → speech line): the jaw moves for `seconds` */

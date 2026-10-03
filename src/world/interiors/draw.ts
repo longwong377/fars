@@ -98,6 +98,9 @@ export function drawItem(c: DrawCtx, it: Item): boolean {
     case 'basin': return put(c, C, 'basin', it, [w, h, d], { clay: sh(CLAY, 0.85 + 0.2 * v) });
     case 'milkpot': return put(c, C, 'milkpot', it, [w, h, d], { clay: sh(CLAY_D, 1.1) });
     case 'kneading': return put(c, T, 'kneading_trough', it, [w, h, d], { clay: sh(WOOD, 0.9 + 0.2 * v) });
+    case 'hearth': { // s18 C2 (D-664): the modelled hearth (field stones round the ash bed) and its cooking pot
+      const ok = put(c, C, 'hearth', it, [w, h, d], { stone: [0.5, 0.48, 0.44], ash: [0.24, 0.23, 0.22] }, [0, 0], -0.03);
+      put(c, C, 'cookpot', it, [0.34, 0.29, 0.34], { '*': sh(CLAY_D, 0.8 + 0.3 * v) }, [0.05, 0.05], -0.02, v * 6); return ok; }
     case 'quern': return put(c, C, 'quern', it, [w, h, d], { stone: sh(STONE, 0.9 + 0.15 * v) });
     case 'mortar': return put(c, C, 'mortar_set', it, [w, h, d], { stone: sh(STONE, 0.95) });
     case 'loom_ground': return put(c, T, 'wo_loom', it, [w, 0.28, d], { wood: WOOD, wood_d: WOOD_D, red: TEXTILE[4], blue: TEXTILE[5], warp: TEXTILE[1], stone: STONE }, [0, 0], 0, Math.PI / 2);

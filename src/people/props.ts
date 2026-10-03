@@ -179,10 +179,32 @@ function bowString(half: number): THREE.BufferGeometry[] {
   return [paint(rod(tip, mid, 0.0025, 0.0025, 3), [0.82, 0.78, 0.66], 0, 0.8, sv), paint(rod(mid, bot, 0.0025, 0.0025, 3), [0.82, 0.78, 0.66], 0, 0.8, sv)];
 }
 
+/** D-780: a delegation's gift (C forms after the Apadana reliefs' kinds): the model's parts painted, centred on the grip */
+function giftGeometry(kind: string): THREE.BufferGeometry | null {
+  const SILVER: [number, number, number] = [0.82, 0.8, 0.76], GOLD: [number, number, number] = [0.86, 0.66, 0.3];
+  const id = kind, P = modelParts(id, 1), centre = (g: THREE.BufferGeometry) => { g.computeBoundingBox(); const c = g.boundingBox!.getCenter(new THREE.Vector3()); return g.translate(-c.x, -c.y, -c.z); };
+  const across = kind === 'gift_tusk' || kind === 'gift_daggers';
+  if (P) { const g: THREE.BufferGeometry[] = [];
+    for (const [part, geo] of Object.entries(P)) { const k = geo.clone(); g.push(part === 'metal' ? paint(k, kind === 'gift_daggers' ? GOLD : SILVER, 1, 0.3) : part === 'gold' ? paint(k, GOLD, 1, 0.3) : part === 'ivory' ? paint(k, [0.86, 0.82, 0.7], 0, 0.45)
+      : part === 'leather' ? paint(k, [0.42, 0.26, 0.15], 0, 0.7) : part === 'wood' ? paint(k, [0.45, 0.3, 0.18], 0, 0.6) : part === 'band' ? paint(k, [0.55, 0.12, 0.1], 0, 0.9) : paint(k, [0.3, 0.33, 0.55], 0, 0.95)); }
+    const m = centre(merge(g)); return across ? m.rotateZ(Math.PI / 2) : m; }
+  switch (kind) {
+    case 'gift_amphora': return paint(new THREE.LatheGeometry([[0, 0], [0.05, 0.01], [0.12, 0.17], [0.07, 0.3], [0.045, 0.42]].map(([x, y]) => new THREE.Vector2(x, y)), 14).translate(0, -0.21, 0), SILVER, 1, 0.3);
+    case 'gift_armlets': return paint(new THREE.TorusGeometry(0.055, 0.008, 6, 16).rotateX(Math.PI / 2), GOLD, 1, 0.3);
+    case 'gift_tusk': return paint(new THREE.ConeGeometry(0.05, 0.86, 8).rotateZ(Math.PI / 2), [0.86, 0.82, 0.7], 0, 0.45);
+    case 'gift_daggers': return paint(box(0.42, 0.05, 0.03, 0, 0, 0), [0.42, 0.26, 0.15], 0, 0.7);
+    case 'gift_bows': return paint(box(0.85, 0.03, 0.03, 0, 0, 0), [0.45, 0.3, 0.18], 0, 0.6);
+    case 'gift_cloth': return paint(box(0.42, 0.12, 0.3, 0, 0, 0), [0.3, 0.33, 0.55], 0, 0.95);
+  }
+  return null;
+}
 /** geometry of a kind; the Phase 3 kinds keep their old origins (spear: at the butt; others: at the grip) */
 export function propGeometry(kind: string): THREE.BufferGeometry | null {
   const tm = toolModel(kind); if (tm) return tm;
   if (kind === 'bowl') { const ph = modelParts('phiale', 1); if (ph) return paint(ph.metal, [0.82, 0.8, 0.76], 1, 0.28); } // (D-325: the lobed phiale, modelled)
+  // D-780: the delegations' gifts, modelled (tools/blender/model_props.py gift_*), centred on the grip; laid across the forearms
+  // where long (the tusk, the swords, the bows); a plain stand-in of the same size where the model is not loaded
+  if (kind.startsWith('gift_')) { const G = giftGeometry(kind); if (G) return G; }
   switch (kind) {
     case 'spear': { // shaft 2.1 m, bronze blade, silver pomegranate butt (sphere with a small crown), C proportions
       const shaft = paint(new THREE.CylinderGeometry(0.014, 0.016, 2.1, 6).translate(0, 1.13, 0), [0.45, 0.33, 0.21], 0, 0.7);
@@ -390,7 +412,10 @@ export const PROPS: Record<string, PropSpec> = {
   mould: { geom: 'mould', rule: 'at' }, brick: { geom: 'brick', rule: 'mid' }, brick_l: { geom: 'brick', rule: 'palm', hand: 'l' },
   rope: { geom: 'rope', rule: 'two', front: 'l', roll: 'up' }, adze: { geom: 'adze', rule: 'one', hand: 'r', roll: 'up' }, bow: { geom: 'bow', rule: 'bow', hand: 'l' }, arrow: { geom: 'arrow', rule: 'arrow', hand: 'r' },
   knife: { geom: 'knife', rule: 'one', hand: 'r', roll: 'palm' }, beater: { geom: 'beater', rule: 'mid' }, paddle: { geom: 'paddle', rule: 'two', front: 'l', roll: 'up' },
-  cloth: { geom: 'cloth', rule: 'mid' }, wisp: { geom: 'wisp', rule: 'one', hand: 'r', roll: 'up' }, bowl: { geom: 'bowl', rule: 'palm', hand: 'l' }, rag: { geom: 'rag', rule: 'one', hand: 'r', roll: 'up' },
+  cloth: { geom: 'cloth', rule: 'mid' },
+  // D-780: the delegations' gifts, carried before the chest in both hands (the reliefs; C)
+  gift_amphora: { geom: 'gift_amphora', rule: 'mid' }, gift_armlets: { geom: 'gift_armlets', rule: 'palm', hand: 'l' }, gift_tusk: { geom: 'gift_tusk', rule: 'mid' },
+  gift_daggers: { geom: 'gift_daggers', rule: 'mid' }, gift_bows: { geom: 'gift_bows', rule: 'mid' }, gift_cloth: { geom: 'gift_cloth', rule: 'mid' }, wisp: { geom: 'wisp', rule: 'one', hand: 'r', roll: 'up' }, bowl: { geom: 'bowl', rule: 'palm', hand: 'l' }, rag: { geom: 'rag', rule: 'one', hand: 'r', roll: 'up' },
   awl: { geom: 'awl', rule: 'one', hand: 'r', roll: 'up' }, ladle: { geom: 'ladle', rule: 'one', hand: 'r', roll: 'up' }, stick: { geom: 'stick', rule: 'one', hand: 'r', roll: 'up' },
   lead: { geom: 'lead', rule: 'one', hand: 'r', roll: 'up' }, jar_both: { geom: 'jar', rule: 'mid' }, sack_both: { geom: 'sack', rule: 'mid' },
   basket_hip: { geom: 'basket', rule: 'hip', hand: 'l' }, basket_both: { geom: 'basket', rule: 'mid' }, basket_lap: { geom: 'basket', rule: 'ground' }, // (D-691: on the ground by the seated, not on the palm in the lap: it sank into the chest and calves)

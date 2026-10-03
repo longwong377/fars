@@ -36,6 +36,8 @@ export type ActivityId =
 
 /** props an activity can put in the hands (props.ts PROPS) */
 export type PropKind = 'spear' | 'sack' | 'jar' | 'jar_head' | 'tablet' | 'mallet' | 'basket' | 'bread'
+  // D-780: the delegations' gifts (tools/blender/model_props.py gift_*)
+  | 'gift_amphora' | 'gift_armlets' | 'gift_tusk' | 'gift_daggers' | 'gift_bows' | 'gift_cloth'
   | 'hoe' | 'sickle' | 'fork' | 'goad' | 'staff' | 'broom' | 'spindle' | 'distaff' | 'trowel' | 'mould' | 'brick' | 'brick_l' | 'rope' | 'adze' | 'bow' | 'arrow'
   | 'knife' | 'beater' | 'paddle' | 'cloth' | 'wisp' | 'bowl' | 'rag' | 'awl' | 'ladle' | 'stick' | 'lead' | 'jar_both' | 'sack_both' | 'basket_hip' | 'basket_both' | 'basket_lap'
   // instruments (D-200: played only in a playing performance, playing.ts)
