@@ -10290,3 +10290,19 @@ and frame time is deployed at once; settle time and download-before-ready (worse
 become C9's next fix and the next deploy must recover them. No threshold in gates/thresholds.json or gates/budgets.json is
 touched; the budget baseline is not re-accepted from such a head.
 - Then the in-engine opening (src/shell/intro.ts, D-590's shots; a night 'stars' shot was tried and cut after C6's frame) plays to "First Light", each cut on a bar, its clock following the music, landing on the player's eye as the horn closes the theme's first half; the music rings on into the walk and the director takes over.
+## D-692 Life drawn where it is simulated: the cause of the empty frames, the first second after a jump, the lanes (s18 cloud C5)
+- The cause (C12's hole C1): nothing is dropped between the view and the screen. Headless (tools/dev/drawcount.ts) and in a
+  cloud browser (?norender scene count + a 640x360 frame of C6's q_s1 lane), the crowd draws what the view places in the
+  camera's frustum. The frames read empty because (a) in the town most people near a lane are in their own walled courts at
+  midday (q_s1, 10:00: 113 of 131 within 25 m), hidden by the walls; (b) the coverage cameras face open ground while the people
+  stand beside and behind them (cov-252: 218 within 40 m, none in the frustum; cov-142: 49 within 40 m, 4 in view, 4 drawn);
+  (c) on the court's days away the Terrace is empty by the plans (cov-294 d200, cov-350 d241). pagecheck.mjs counts the view's
+  people in a 60 m disc against frustum-culled draws.
+- Fixed in popview.ts: after a page's first update or a jump in time the near people are planned at once (CATCH_UP: 60 ms,
+  then 10 ms for 30 updates; before, 3 ms, and a page's first update was not a jump); a named work place (a town workshop
+  'ws:3', 'ws_textile') anchors its workers (the Treasury's workshop hands of q_s1 were anchored by homes up to 1.6 km off and
+  planned last). cov-266 a second after a jump: 72 -> 104 of the 116 a settle places. The doorstep (C): by day a share of the
+  people at light work in their own court (spin 45 %, play 60 %, talk 50 %, rest 35 %, craft 30 %, clean 40 %, eat 15 %) do it
+  in the lane by their street door, beside it and never in the opening, when the door is within 25 m: people in the lanes
+  within 25 m of a lane point roughly doubled (q_s1 10:00 18 -> 37, q_w2 12 -> 19, q_n1 11 -> 21; 16:00 q_w2 18 -> 32).
+  tests/people_drawn.test.ts: drawn >= 90 % of placed a second after a jump, placed >= 80 % of settled, lanes >= 25 %.
