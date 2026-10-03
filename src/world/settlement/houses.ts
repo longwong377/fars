@@ -71,7 +71,7 @@ const sh = (c: RGB, k: number): RGB => [c[0] * k, c[1] * k, c[2] * k];
 /** s18 C2 (D-660): the roofs' straw-and-clay finish coat, sun-bleached (linear; C) */
 const ROOF_COAT: RGB = lin([0.74, 0.64, 0.5]);
 /** s18 C2 (D-661): the washes (sRGB): gypsum and lime whites (never pure: the loam shows through), yellow ochres, red ochres */
-const WASH = { white: [[0.86, 0.83, 0.76], [0.82, 0.8, 0.74], [0.88, 0.84, 0.75]] as RGB[], ochre: [[0.78, 0.62, 0.38], [0.74, 0.6, 0.4], [0.8, 0.66, 0.44]] as RGB[], red: [[0.66, 0.4, 0.28], [0.6, 0.36, 0.26], [0.7, 0.46, 0.33]] as RGB[] };
+const WASH = { white: [[0.9, 0.88, 0.82], [0.86, 0.84, 0.78], [0.92, 0.89, 0.8]] as RGB[], ochre: [[0.82, 0.62, 0.32], [0.78, 0.58, 0.32], [0.84, 0.68, 0.4]] as RGB[], red: [[0.66, 0.4, 0.28], [0.6, 0.36, 0.26], [0.7, 0.46, 0.33]] as RGB[], cream: [[0.9, 0.82, 0.64], [0.87, 0.78, 0.58]] as RGB[], pink: [[0.86, 0.64, 0.56], [0.82, 0.58, 0.5]] as RGB[] };
 const mixc = (a: RGB, b: RGB, t: number): RGB => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
 const smooth = (x: number) => { const t = Math.min(1, Math.max(0, x)); return t * t * (3 - 2 * t); };
 /** hash of integers to [0, 1) */
@@ -225,21 +225,35 @@ export class SiteHouses {
     const fresh = Math.max(0, 1 - L.sincePlaster / 18); // damp-dark and warmer when fresh, paler and greyer as it weathers
     let k = (0.96 + 0.05 * (1 - fresh)) * (court ? 1.02 : 0.99); if (add) k *= 1.05;
     const m: RGB = [c[0] * k * (1 + 0.02 * fresh), c[1] * k, c[2] * k * (1 - 0.03 * fresh) * (add ? 0.96 : 1)];
-    // s18 C2 (D-661, C12's holes audit #5: every house the one buff mud): the household's wash over the mud plaster, full in
-    // the court, thinner on the lane face (sun, rain and the passing load wear it back toward the mud), fading in the months
-    // since it was last renewed; an added room strip not yet washed
-    const W = this.washOf(plot); if (!W || add) return m; const f = W.k * (court ? 0.92 : 0.62) * (0.55 + 0.45 * Math.max(0, 1 - L.sincePlaster / 30));
-    return mixc(m, W.c, f);
+    // s18 C2 (D-668, the user: "bare tan boxes"): the household's lime, gypsum or earth wash is a coat, not a tint: the face
+    // reads as plastered (the street face 0.85-0.95 of it, the court's full), dulled a little in the months since it was
+    // renewed; the mud shows at the worn foot (the material's skirt) and on the few poorest houses; an added room strip not
+    // yet washed
+    const W = this.washOf(plot); if (!W || add) return m;
+    return mixc(m, W.c, this.washF(W, court, L));
   }
-  /** s18 C2 (D-661): a house's wash (C: gypsum and lime washes, white, and earth washes of yellow and red ochre, are the
-   *  region's and the period's: the Terrace's own gypsum plaster and red-painted floors, B; which household washes and with
-   *  what C): the better-off wash more often and more often white; most of the poor leave the bare mud */
+  /** s18 C2 (D-668): how much of the wash covers a face (0..1) */
+  washF(W: { k: number }, court: number, L: HouseLife) { return Math.min(1, W.k * (court ? 1 : 0.95) * (0.88 + 0.12 * Math.max(0, 1 - L.sincePlaster / 30))); }
+  /** s18 C2 (D-661, D-668): a plot's wash (C: gypsum and lime washes, white and cream, and earth washes of yellow and red ochre
+   *  and the odd pink, are the region's and the period's: the Terrace's own gypsum plaster and red-painted floors, B; which
+   *  household washes and with what C). Every walled plot takes one: the houses by standing (white more often for the
+   *  better-off; bare mud only for the poorest few), the estates and the official compounds gypsum-white, the yards, pens and
+   *  workshops a thinner lime or earth wash */
   private washOf(plot: number): { c: RGB; k: number } | null {
-    if (plot < 0 || !HOUSE_KINDS.has(this.s.plots[plot].kind)) return null; let w = this._wash.get(plot); if (w !== undefined) return w;
-    const L = this.life(plot), h = (hashString(`${this.s.plots[plot].id}:wash`) % 100000) / 100000, h2 = (hashString(`${this.s.plots[plot].id}:wash2`) % 1000) / 1000, st = L.standing;
-    const pW = 0.12 + 0.4 * st, pO = 0.1 + 0.08 * st, pR = 0.04 + 0.06 * st;
-    w = h < pW ? { c: lin(WASH.white[Math.floor(h2 * WASH.white.length)]), k: 0.7 + 0.25 * h2 } : h < pW + pO ? { c: lin(WASH.ochre[Math.floor(h2 * WASH.ochre.length)]), k: 0.55 + 0.3 * h2 } : h < pW + pO + pR ? { c: lin(WASH.red[Math.floor(h2 * WASH.red.length)]), k: 0.45 + 0.3 * h2 } : null;
+    if (plot < 0) return null; const P = this.s.plots[plot], kind = P.kind; let w = this._wash.get(plot); if (w !== undefined) return w;
+    const h = (hashString(`${P.id}:wash`) % 100000) / 100000, h2 = (hashString(`${P.id}:wash2`) % 1000) / 1000, pick = (a: RGB[]) => lin(a[Math.floor(h2 * a.length)]);
+    if (kind === 'elite' || kind === 'official' || kind === 'station' || kind === 'store') w = { c: pick(WASH.white), k: 0.95 };
+    else if (!HOUSE_KINDS.has(kind)) w = { c: h < 0.6 ? pick(WASH.white) : pick(WASH.cream), k: 0.8 + 0.12 * h2 }; // (yards, pens, stables, craft areas)
+    else { const st = this.life(plot).standing;
+      // white 34-58 % by standing, cream 16 %, yellow ochre 14 %, pink 7 %, red ochre 7 %; bare mud only where the household is
+      // among the poorest (standing < 0.2) and the hash falls past the rest
+      const pW = 0.34 + 0.24 * st, pC = 0.16, pO = 0.14, pP = 0.07, pR = st < 0.2 ? 0.04 : 1;
+      w = h < pW ? { c: pick(WASH.white), k: 0.9 + 0.1 * h2 } : h < pW + pC ? { c: pick(WASH.cream), k: 0.9 + 0.1 * h2 } : h < pW + pC + pO ? { c: pick(WASH.ochre), k: 0.88 + 0.1 * h2 } : h < pW + pC + pO + pP ? { c: pick(WASH.pink), k: 0.85 + 0.1 * h2 } : h < pW + pC + pO + pP + pR ? { c: pick(WASH.red), k: 0.85 + 0.1 * h2 } : null; }
     this._wash.set(plot, w); return w; }
+  /** s18 C2 (D-668): the painted dado of a better house's street and court faces (C: a band of red ochre or a blue-grey earth
+   *  to ~0.9 m, the region's painted plaster), null for most */
+  dadoOf(plot: number): RGB | null { if (plot < 0 || !HOUSE_KINDS.has(this.s.plots[plot].kind)) return null; const st = this.life(plot).standing, h = (hashString(`${this.s.plots[plot].id}:dado`) % 1000) / 1000;
+    return h < 0.15 + 0.5 * st ? lin(h < 0.3 ? [0.62, 0.34, 0.25] : h < 0.45 ? [0.46, 0.52, 0.58] : [0.7, 0.52, 0.32]) : null; }
   private _wash = new Map<number, { c: RGB; k: number } | null>();
 
   // ---- the far level ---------------------------------------------------------------------------------------------------
@@ -573,15 +587,16 @@ export class SiteHouses {
             const np = Math.floor(hi(seed, 41) * 3); for (let q = 0; q < np; q++) { const ps = nicheHere.len > 0 ? sB - 0.9 - 0.5 * q - 0.3 * hi(seed, q, 42) : sA + 0.9 + 0.5 * q + 0.3 * hi(seed, q, 42), py = floor + 1.35 + 0.35 * hi(seed, q, 43);
               if (ps < sA + 0.2 || ps > sB - 0.2) continue; B.timber.set('ao', 0.9); this.pole(B.timber, this.wp(...P2l(ps, sg * (t / 2 - 0.05)), py), this.wp(...P2l(ps, sg * (t / 2 + 0.17)), py + 0.03), 0.025, 5, sh(lin(POLE), 0.75 + 0.3 * hi(seed, q, 44)), this.owner(we.plot, P.fixture), 'end'); B.timber.set('ao', 1); } } }
         const bulge = (0.007 + 0.012 * (1 - L.standing) + 0.006 * (L.age / 50)) * (house ? 1 : 0.7);
+        const dado = this.dadoOf(we.plot); // (s18 C2, D-668: a better house's painted dado to ~0.9 m, under the foot's damp band)
         const colF = (x: number, y: number): RGB => { const yr = y - floor, yf = y - ysoc(x), f = kitOn ? 1 - smooth(yf / 0.38) : 0; // D-311: the foot's band: damp, salt-dark, the brick courses showing through (redder)
-          const c0 = sh(col0, (0.955 + 0.06 * smooth(yr / 2.6)) * (sd.cls === 'open' ? 1 - 0.035 * (1 - smooth(yr / 0.8)) : 1)); return mixc(c0, [c0[0] * 0.78, c0[1] * 0.7, c0[2] * 0.64], f * (sd.cls === 'open' ? 0.85 : 0.6)); };
+          let c0 = sh(col0, (0.955 + 0.06 * smooth(yr / 2.6)) * (sd.cls === 'open' ? 1 - 0.035 * (1 - smooth(yr / 0.8)) : 1)); if (dado && yr < 0.96) c0 = mixc(c0, dado, 0.85 * (1 - smooth((yr - 0.88) / 0.06))); return mixc(c0, [c0[0] * 0.78, c0[1] * 0.7, c0[2] * 0.64], f * (sd.cls === 'open' ? 0.85 : 0.6)); };
         // D-324: where the plaster has fallen off in the damp band over the footing, the brick courses show (the kit's losses,
         // near; the middle ring draws them flat, as the bare-brick decal): more on old walls and poor houses' (the household's bare
         // share), on the lane more than in the court, mostly low (they replace D-234's random bare-brick decals)
         if (kitOn && we.plot >= 0 && len >= BRICK_W + 0.8) { const rate = (0.025 + 0.09 * L.bare + 0.03 * (L.age / 50)) * (sd.cls === 'open' ? 1 : 0.6) * (house ? 1 : 1.4), n = Math.floor(len * rate + hi(seed, si, 95));
           for (let q = 0; q < Math.min(n, 3); q++) { const s0 = sA + 0.4 + (len - 0.8 - BRICK_W) * hi(seed, si, q, 96), s1 = s0 + BRICK_W, y0 = Math.max(ysoc(s0), ysoc(s1)) + 0.42 + 1.1 * hi(seed, si, q, 97) ** 2, y1 = y0 + BRICK_H;
             if (y1 > Math.min(ytopF(s0), ytopF(s1)) - 0.35 || faceHoles.some(h => s0 < h.s1 + 0.3 && s1 > h.s0 - 0.3 && y0 < h.y1 + 0.3 && y1 > h.y0 - 0.3)) continue;
-            if (this.lod) decs.push([sg, { s0: s0 + 0.08, s1: s1 - 0.08, y0: y0 + 0.05, y1: y1 - 0.05, kind: 'bare', seed: seed * 7 + q }]);
+            if (this.lod) continue; // (s18 C2, D-667: the middle ring's flat bare-brick polygons read as hard-edged pale stickers on the T4: no loss drawn there)
             else faceHoles.push({ s0, s1, y0, y1, through: false, depth: 0, brick: Math.floor(hi(seed, si, q, 98) * 3), fl: hi(seed, si, q, 99) < 0.5 ? -1 : 1 }); } }
         // D-364: the slump leans one way per wall (hi(seed, 141)): this face bellies out or is hollowed by it
         const sag = kitOn && len > 1.6 ? (0.025 + 0.045 * (1 - L.standing) + 0.025 * (L.age / 50)) * (house ? 1 : 1.3) * (hi(seed, 141) < 0.5 ? 1 : -1) * sg * (sd.cls === 'court' ? 0.7 : 1) : 0;
@@ -691,7 +706,7 @@ export class SiteHouses {
     B.plaster.set('ao', 1); B.brick.set('ao', 1);
     // s18 C2 (D-660): the loss read as a sticker cut into a clean wall: round it the plaster is thinned, cracked and damp-stained
     // where it has begun to come away, darkest at the break and gone into the wall's own colour 8-20 cm out (an irregular rim)
-    this.halo(B.plaster, ax, cc, t, sg, h.s0, h.s1, h.y0, h.y1, seed * 13 + h.s0 * 7, 0.08, 0.2, (x, y) => sh(colF(x, y), 0.84), colF, surf, own);
+    if (this.s.meta.popZone !== 'plain') this.halo(B.plaster, ax, cc, t, sg, h.s0, h.s1, h.y0, h.y1, seed * 13 + h.s0 * 7, 0.08, 0.2, (x, y) => sh(colF(x, y), 0.84), colF, surf, own); // (not in the villages: the plain's frame budget, tests/plain.test.ts)
   }
   /** s18 C2 (D-660): a feathered rim round a box on a wall face: from the box's outline (16 points round it) out by rim0..rim1
    *  (by the angle, irregular), its colour from `inner` at the outline to the wall's own (`outer`) at its edge; on the face as
@@ -710,7 +725,7 @@ export class SiteHouses {
   private reveal(B: HB, ax: number, cc: number, t: number, sg: number, h: Hole, col: RGB, plot: number) {
     const b = B.plaster, P2l = (x: number, off: number): [number, number] => (ax === 0 ? [x, cc + off] : [cc + off, x]);
     const f0 = sg * (t / 2), f1 = sg * (t / 2 - (h.through ? t / 2 : h.depth)); // the reveals run to the wall's middle (the other face draws its half)
-    const p = (x: number, o2: number, y: number) => this.wp(...P2l(x, o2), y), c = sh(col, 0.9), own = this.owner(plot, P.window);
+    const dd = this.dadoOf(plot), p = (x: number, o2: number, y: number) => this.wp(...P2l(x, o2), y), c = dd && h.through ? sh(dd, 1.05) : sh(col, 0.9), own = this.owner(plot, P.window); // (s18 C2, D-668: a better house's windows framed in its dado's paint)
     const nS = ax === 0 ? this.dirW(1, 0) : this.dirW(0, 1), nA = ax === 0 ? this.dirW(0, sg) : this.dirW(sg, 0);
     b.set('y0', -1000).set('ytop', 1e4).set('ao', 0.45);
     b.quad(p(h.s0, f0, h.y0), p(h.s0, f1, h.y0), p(h.s0, f1, h.y1), p(h.s0, f0, h.y1), [nS[0], 0, nS[1]], c, c, c, c, own);
