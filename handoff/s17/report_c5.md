@@ -21,3 +21,4 @@ skyline_gen.ts, first_minutes.mjs.
 
 **Tests.** intro 11/11; guards 25/25; tsc clean in touched files. lint:lang 25/26 after the last merge: V2's new public/textures/dirt_floor/arm.jpg (a23bfea8, D-490) is not registered in the image list (not C5's; to V2).
 Cloud eyes' frame of shot 3 (01:36): from e -165 the town lay off the right edge; the shot was moved W over the quarter (72 plots in the frame's cone vs few before). Its other findings (roofless houses, the smeared plain, the grey walled box, a dotted seam) are C1's/C2's/V2's.
+Cloud eyes' frames 02:20: shot 1 (river) reads; shot 2 had no Terrace or Rahmat (a low ridge E of the old position hides them; moved W where the line of sight clears by 0.7 deg); the title backdrop reads (its bright vertical streak on the mountain is not C5's). Shots 4-6 unrendered.
