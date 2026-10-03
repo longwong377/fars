@@ -56,6 +56,8 @@ import { buildReliefs, buildInscriptions, loadInscriptionFonts, buildPhase4Relie
 import { buildWaterworks } from '../arch/waterworks';
 import { footGeometry, FOOT_DEPTH } from '../arch/terrace_foot';
 import { buildGlazedFrieze } from '../arch/glazed';
+import { buildDressings } from '../arch/dressings';
+import { buildDrumRoad } from '../arch/drum_road';
 import { updateReliefs, settleReliefs, buildReliefShadow, ReliefSet } from '../arch/reliefs';
 import { setReliefShadow, refreshReliefShadow } from '../render/reliefShadow';
 import { FireSystem, fireLight, type FireKind } from './fire';
@@ -290,6 +292,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // D-214 (gap audit item 31): the Terrace's drain mouths, inlets and gutters and the cistern heads (all C); the kerbs are solid
   const waterworks = buildWaterworks(parts, (e, n) => terrain.heightAt(e, -n)); root.add(waterworks.group);
   const glaze = buildGlazedFrieze(parts); if (glaze) root.add(glaze); // D-214 (item 28): the Apadana towers' glazed-brick frieze (C)
+  const dress = buildDressings(parts); if (dress) root.add(dress); // D-750 (C10): the porticoes' hangings and the royal standards
+  root.add(buildDrumRoad()); // D-754 (C10): the column drums' sledge road and ramp
   for (const c of waterworks.colliders) phys.addBox({ x: c.c.x, y: c.c.y, z: c.c.z }, { x: c.half.x, y: c.half.y, z: c.half.z });
   insc.add(buildFoundationDeposits(manifest)); // the Apadana foundation deposits, sealed under the hall corners (D-068)
   if ((manifest.treasury as any)?.benches) root.add(buildTreasuryGoods([...(manifest.treasury as any).benches, ...((manifest.treasury as any).storeBenches ?? [])], seed)); // stored goods (types B, placement C; D-276: the store rooms' benches too)

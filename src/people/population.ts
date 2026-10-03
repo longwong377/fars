@@ -1640,10 +1640,11 @@ export class Population {
   /** D-359 (B226): a wedding the relations layer made (relations/world.ts), joined to the population as its own are: the bride
    *  lives in the groom's house from the day, and the day is a wedding day for both houses (procession, feast: weddingDay).
    *  Only for a bride the population never married or moved (one move a year per person: Person.marry/hh2); false if not */
-  addWedding(bride: number, groom: number, day: number, to: number): boolean {
+  addWedding(bride: number, groom: number, day: number, to: number, room = false): boolean {
     const B = this.persons[bride], G = this.persons[groom]; if (!B || !G || B.hh2 >= 0 || B.marry < 1e9 || B.hh === to || !this.households[to]) return false;
-    // (D-651: a town house holds no more than its plot: a wedding into a full one is not made; the room is kept for her)
-    const T0 = this.households[to]; if (T0.zone === 'town') { const id = (T0.plots ?? [T0.plot]).find(x => x && (this.plotFree.get(x) ?? 0) >= 1); if (!id) return false; this.plotFree.set(id, this.plotFree.get(id)! - 1); if (T0.plots && T0.shares) T0.shares[T0.plots.indexOf(id)]++; }
+    // (D-651: `room`, the minds' own weddings (goals.ts): a town house holds no more than its plot, a wedding into a full one is
+    // not made; the relations layer's weddings are the year's register and are always joined)
+    const T0 = this.households[to]; if (room && T0.zone === 'town') { const id = (T0.plots ?? [T0.plot]).find(x => x && (this.plotFree.get(x) ?? 0) >= 1); if (!id) return false; this.plotFree.set(id, this.plotFree.get(id)! - 1); if (T0.plots && T0.shares) T0.shares[T0.plots.indexOf(id)]++; }
     B.hh2 = to; B.marry = day; B.single = false; G.single = false; if (!this.households[to].joins.includes(bride)) this.households[to].joins.push(bride);
     (this.weddingList[day] ??= []).push({ day, bride, groom, from: B.hh, to }); this.wedCache.delete(day); this.relWed.add(bride); return true;
   }
@@ -2313,13 +2314,14 @@ export const ALL_NAMES: any[] = [...(namesData as any).names, ...(namesRecalled 
 /** D-452: the men of Darius' Bisitun inscription whose names may go to ordinary men (see NAME_POOLS) */
 export const DB_MEN = ['Vidarna', 'Vaumisa', 'Dādarši', 'Taxmaspāda', 'Artavardiya', 'Vivāna', 'Vindafarnā', 'Utāna', 'Θuxra', 'Bagabuxša', 'Gaubaruva',
   'Dātuvahya', 'Ardumaniš', 'Vahuka', 'Bagābigna', 'Upadarma', 'Vahyasparuva', 'Cincaxri', 'Aspacanā'];
-/** D-651 (s18 C12, W1): Darius' six helpers against Gaumāta (DB 4.80-86: Vindafarnā, Utāna, Gaubaruva, Vidarna, Bagabuxša,
- *  Ardumaniš) founded the great houses: their names are not dealt to the town's ordinary men (the court's nobles keep them) */
+/** D-651 (s18 C12, W1): Darius' six helpers against Gaumāta (DB 4.80-86). Kept in the men's pool after all: without them the
+ *  Iranian men's names are 105 and the deal's top share passes T-E2's 1 % (person_census); a reserve for the great houses needs
+ *  more attested men's names first */
 export const THE_SIX = ['Vindafarnā', 'Utāna', 'Gaubaruva', 'Vidarna', 'Bagabuxša', 'Ardumaniš'];
 /** D-651 (W2): a composed woman's name (D-236, *) that is no name: the element doubled (*Čiθračiθrā), or the royal xšaθra-
  *  ("kingship") on the women of the lanes */
 const MECHANICAL = (n: string) => /^\*Xšaθra/.test(n) || (() => { const b = n.replace(/^\*/, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); for (const k of [4, 5, 6]) if (b.length >= 2 * k && b.slice(0, k) === b.slice(k, 2 * k)) return true; return false; })();
-const NAME_POOLS = (() => { const m = new Map<string, string[]>(); for (const n of ALL_NAMES) { if (n.notable || n.reading_uncertain || THE_SIX.includes(n.name) || (n.sex === 'f' && MECHANICAL(n.name))) continue; const k = `${n.sex}:${n.origin_guess}`; (m.get(k) ?? m.set(k, []).get(k)!).push(n.name); }
+const NAME_POOLS = (() => { const m = new Map<string, string[]>(); for (const n of ALL_NAMES) { if (n.notable || n.reading_uncertain || (n.sex === 'f' && MECHANICAL(n.name))) continue; const k = `${n.sex}:${n.origin_guess}`; (m.get(k) ?? m.set(k, []).get(k)!).push(n.name); }
   // attested outside names.json, in the project's research: Herdkama "the Egyptian", chief of a team of 100 labourers in a
   // Treasury text (research/PEOPLE.md, PT-WAGE: SX, C; the name looks Iranian, the label is Egyptian: kept as given)
   (m.get('m:Egyptian') ?? m.set('m:Egyptian', []).get('m:Egyptian')!).push('Herdkama');
@@ -2328,7 +2330,7 @@ const NAME_POOLS = (() => { const m = new Map<string, string[]>(); for (const n 
   // (Vištāspa, Aršāma, ...) nor the nine "liars" whose names the king cursed (Gaumāta, Āçina, Nidintabaira, Martiya, Fravartiš,
   // Ciçantaxma, Vahyazdāta, Araxa, Frāda) nor Imaniš, Aθamaita and Skunxa; Marduniya is left out as the pool's Mardunuya.
   // Their use for ordinary men of 467 is C: names recur in the tablets as in any town
-  m.get('m:Iranian')!.push(...DB_MEN.filter(n => !THE_SIX.includes(n)));
+  m.get('m:Iranian')!.push(...DB_MEN);
   // D-452: the CDLI PF names whose language tools/names_licensed.py could not tell (65 men, A as names) belong to no one origin:
   // in the Fortification texts Iranian and Elamite names stand side by side among the same people (C), so Persian and Elamite
   // men both draw on them, and Elamite men on the Iranian names too (the three names read as Elamite were 12.8 % each of them)
@@ -2339,8 +2341,8 @@ const NAME_POOLS = (() => { const m = new Map<string, string[]>(); for (const n 
   m.set('f:Elamite', [...(m.get('f:Elamite') ?? []), ...(m.get('f:Iranian') ?? [])]);
   return m; })();
 /** every attested name of each sex (not the notable, not the uncertain readings), of whatever origin */
-const NAME_ALL: Record<string, string[]> = { m: [], f: [] }; for (const n of ALL_NAMES) if (!n.notable && !n.reading_uncertain && NAME_ALL[n.sex] && !THE_SIX.includes(n.name) && !(n.sex === 'f' && MECHANICAL(n.name))) NAME_ALL[n.sex].push(n.name);
-NAME_ALL.m.push(...DB_MEN.filter(n => !THE_SIX.includes(n)));
+const NAME_ALL: Record<string, string[]> = { m: [], f: [] }; for (const n of ALL_NAMES) if (!n.notable && !n.reading_uncertain && NAME_ALL[n.sex] && !(n.sex === 'f' && MECHANICAL(n.name))) NAME_ALL[n.sex].push(n.name);
+NAME_ALL.m.push(...DB_MEN);
 // (D-202: Bactrians and Sogdians speak Iranian languages; Ionians draw on the Greek names, Carians, Lydians and Lycians on their
 // own; Thracians and Cappadocians, with no names recalled, on all the names of their sex, as foreign workers in the tablets do)
 const ORIGIN_POOL: Record<string, string> = { Persian: 'Iranian', Median: 'Iranian', Bactrian: 'Iranian', Sogdian: 'Iranian', Elamite: 'Elamite', Babylonian: 'Babylonian', Syrian: 'West Semitic', Egyptian: 'Egyptian', Indian: 'Indian',

@@ -91,6 +91,10 @@ settlement/plan.ts (+ new settlement/estates.ts).
 - **Weak:** on a plain plastered run the relief (batter, ~3 cm undulation, runnels) shows only under raking light. The plaster's
   grain is left to the game's scanned material.
 
+## Stop (lead 3, 11:27)
+C15 has stopped: the agent count was cut. Town kit batch 1 is merged; C2 places it and extends the pieces if needed. Head
+at the stop: this commit. Nothing is left uncommitted or running.
+
 ## Frames (crude, SwiftShader, `?webgl=1`, 1280 × 720, day 25 10:00 clear)
 
 Before: `origin/s17-int` 803a0e76 (06:00). After: this branch at 4f3ab187. Since then: the village yards are trodden earth

@@ -8,7 +8,7 @@ import { regionFrame } from '../../src/people/bodyShape';
 const HD = 'public/generated/humans', bin = readFileSync(`${HD}/humans.bin`);
 const A = decodeHumanAssets(JSON.parse(readFileSync(`${HD}/humans.json`, 'utf8')), bin.buffer.slice(bin.byteOffset, bin.byteOffset + bin.byteLength) as ArrayBuffer);
 const ref = A.byId.m03, F = regionFrame(A, ref);
-const keep = (i: number) => A.part[i] === PART.head || A.part[i] === PART.neck;
+const keep = (i: number) => A.part[i] === PART.head || A.part[i] === PART.neck || A.part[i] === PART.chest; // (s18 C14: and the upper chest: the scan reaches the collarbones)
 const tris: number[] = []; const T = A.lods[0]; for (let t = 0; t < T.length; t += 3) if (keep(T[t]) && keep(T[t + 1]) && keep(T[t + 2])) tris.push(T[t], T[t + 1], T[t + 2]);
 const used = [...new Set(tris)].sort((a, b) => a - b), loc = new Map(used.map((i, k) => [i, k]));
 const J = (b: number) => [ref.joints[b * 3], ref.joints[b * 3 + 1], ref.joints[b * 3 + 2]];

@@ -1159,8 +1159,8 @@ function layer(d: SurfaceDef, base: any, arch = false, band = false): Layer {
     rough = mix(rough, rough.mul(0.94), inner); // a paint film a little less matte than bare mud
   };
   if (arch && d.paint) paintScheme(d.paint, attribute('inner', 'float').mul(float(1).sub(smoothstep(0.3, 0.7, abs(n.y)))).mul(SURF_AB)); // D-334: the painted interiors (inner faces only)
-  if (arch && d.outerPaint) // D-752: the painted exteriors: the vertical faces that are not inner and stand on a floor (the fittings carry y0 = -1000)
-    paintScheme(d.outerPaint, float(1).sub(attribute('inner', 'float')).mul(float(1).sub(smoothstep(0.3, 0.7, abs(n.y)))).mul(step(-500, attribute('y0', 'float'))).mul(step(attribute('ytop', 'float').sub(attribute('y0', 'float')), 500)).mul(SURF_AB));
+  if (arch && d.outerPaint) // D-752: the painted exteriors: the vertical faces that are not inner (the fittings carry ytop = 1e4)
+    paintScheme(d.outerPaint, float(1).sub(attribute('inner', 'float')).mul(float(1).sub(smoothstep(0.3, 0.7, abs(n.y)))).mul(step(attribute('ytop', 'float'), 500)).mul(SURF_AB)); // (D-755: a face with no floor in front, y0 = -1000, takes the ground and the frieze: the towers over the podium's edge)
   if (arch && d.runoff) { // run-off below the tops of exposed stone (D-157, C): streaks fast across the face, slow down it
     const below = attribute('ytop', 'float').sub(p.y), vert = float(1).sub(smoothstep(0.3, 0.7, abs(n.y)));
     const q = vec3(p.x.mul(2.2), p.y.mul(0.2), p.z.mul(2.2));

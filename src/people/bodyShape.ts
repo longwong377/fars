@@ -139,6 +139,21 @@ export interface BodyRig {
 }
 export interface SpringP { hz: number; zeta: number; gain: number; max: number }
 
+/** s18 C14 (D-790): a young child drawn from the 8-10-year-olds' bodies scaled down to its age's stature (crowd.ts attachPop)
+ *  keeps the head an older child's size: a head grows little after the first years (from ~90 % of an eight-year-old's
+ *  height at three, C: growth charts' order of magnitude), so the head, jaw, eyes and lids are scaled up about the head
+ *  joint by scale^-exp (capped), with everything skinned to them (hair, caps). Returns the factor. */
+export const CHILD_HEAD = { exp: 0.6, max: 1.25 };
+export function childHead(B: BodyRig, v: HumanVariant, scale: number): number {
+  const k = Math.min(CHILD_HEAD.max, Math.max(1, scale ** -CHILD_HEAD.exp)); if (k <= 1.0005) return 1;
+  const J = v.joints, p = [J[HB.head * 3], J[HB.head * 3 + 1], J[HB.head * 3 + 2]], G = B.girth;
+  for (const b of [HB.head, HB.jaw, HB.eye_l, HB.eye_r, HB.lid_ul, HB.lid_ll, HB.lid_ur, HB.lid_lr]) { const o = b * 12;
+    if (!B.bones[b]) { G.fill(0, o, o + 12); G[o] = G[o + 5] = G[o + 10] = 1; }
+    // S·G with S = k about p: the 3×3 scaled by k, the translation k t + (1 − k) p
+    for (let r = 0; r < 3; r++) { for (let c = 0; c < 3; c++) G[o + r * 4 + c] *= k; G[o + r * 4 + 3] = k * G[o + r * 4 + 3] + (1 - k) * p[r]; }
+    B.bones[b] = 1; }
+  return k;
+}
 /** body rig of a shape on a variant */
 export function bodyRigFor(A: HumanAssets, v: HumanVariant, s: BodyShape): BodyRig {
   const vb = variantBuild(v), fR = s.child ? s.fat : fatEff(s.fat) - fatEff(vb.fat) * 0.85, mR = s.child ? s.muscle : s.muscle - vb.muscle * 0.85, f = s.sex === 'f' && !s.child;

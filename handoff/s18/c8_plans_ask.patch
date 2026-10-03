@@ -1,0 +1,43 @@
+diff --git a/src/people/living/world.ts b/src/people/living/world.ts
+index b94b67c1..ca3b3618 100644
+--- a/src/people/living/world.ts
++++ b/src/people/living/world.ts
+@@ -21,6 +21,7 @@ import type { ActivityId } from '../activities';
+ import type { Intent, NeedKind } from '../economy/api';
+ import type { Economy } from '../economy/world';
+ import { splice } from '../talk';
++import { relabelHousehold } from '../deeds/engine';
+ import { MINDING, reasonOk } from '../planCheck';
+ import { dateOf } from '../calendar';
+ import { nobodyWith } from '../wardrobe/washing';
+@@ -114,7 +115,7 @@ export class LivingWorld {
+       const over = base.filter(s => s.t1 > L.h0 + 1e-9 && s.t0 < L.h1 - 1e-9); if (!over.length || !over.every(slotOk) || !nobodyWith(this.pop, pid, day, L.h0, L.h1)) continue; // (D-347: nor while a little one is with the doer)
+       // (D-347: the errand dressed against the cold and the dust by its own hours, as the day's stretches are; was: the base
+       // stretch's dress copied, so a walk back into the dust went unwrapped)
+-      const mid = L.segs.map(x => ({ ...x })), wx = this.pop.cal.ctx(day).wx; dustWear(mid, wx); coldWear(mid, wx); const next = splice(segs, L.h0, L.h1, mid);
++      const mid = L.segs.map(x => ({ ...x })), wx = this.pop.cal.ctx(day).wx; dustWear(mid, wx); coldWear(mid, wx); const next = relabelHousehold(this.pop, pid, day, segs, splice(segs, L.h0, L.h1, mid));
+       if (shortHeat(next) > shortHeat(segs)) continue; segs = next; // (D-458: nor where it would cut a rest through the heat to a scrap: planCheck's label)
+     }
+     this.overlaid.set(k, segs); return segs;
+diff --git a/src/people/population.ts b/src/people/population.ts
+index 86f04c05..d9f5204e 100644
+--- a/src/people/population.ts
++++ b/src/people/population.ts
+@@ -1976,7 +1976,7 @@ export class Population {
+     const p = this.persons[pid], hid = this.home(pid, d), H = this.households[hid]; if (!H || (H.zone !== 'town' && H.zone !== 'plain') || p.zone === 'transient' || p.agent >= 0) return segs;
+     if (segs.some(x => x.act === 'offmap' || x.act === 'lie_ill') || this.mourning(pid, d)) return segs;
+     const age = this.ageOn(pid, d), home = H.home, W: Where = H.zone === 'plain' ? 'plain' : 'town', wx = this.cal.ctx(d).wx, u = (k: number) => u01(this.seed, S_OUT, pid, d, k);
+-    const dry = (a: number, b: number) => rainHours(wx, a - 0.3, b + 0.3) === 0 && !(wx.stormH && a < wx.stormH[1] + 0.5 && b > wx.stormH[0] - 0.5);
++    const dry = (a: number, b: number) => rainHours(wx, a - 0.3, b + 0.3) === 0 && !(wx.stormH && a < wx.stormH[1] + 0.5 && b > wx.stormH[0] - 0.5) && !(wx.dustH && a < wx.dustH[1] && b > wx.dustH[0]);
+     let out = segs; const own = () => { if (out === segs) out = segs.slice(); };
+     const lane = `lane:${H.q}:${hid}`, step = 0.02;
+     // the others of the house who are "with" this one in their own day (a child with its mother): she does not leave them
+@@ -2003,7 +2003,7 @@ export class Population {
+     // day's, so whoever plays there that day is in the lane; never with a little one, or a child someone small is with)
+     const kid = (x: number) => { const a = this.ageOn(x, d); return a >= 5 && a <= 13; };
+     if (age >= 5 && age <= 13) for (const x of [...out]) { const ph = x.place.startsWith('h:') ? +x.place.slice(2) : -1, PH = this.households[ph];
+-      if (!PH || x.act !== 'play' || /minding|little|baby/.test(x.why) || (x.with !== undefined && !kid(x.with)) || x.t0 < 7 || x.t1 > 19 || x.t1 - x.t0 < 0.5 || !dry(x.t0, x.t1) || u01(this.seed, S_OUT, ph, d, 40) >= 0.8) continue;
++      if (!PH || x.act !== 'play' || /minding|little|baby/.test(x.why) || (x.with !== undefined && !kid(x.with)) || x.t0 < 7 || x.t1 > 19 || x.t1 - x.t0 < 0.5 || !dry(x.t0, x.t1) || u01(this.seed, S_OUT, ph, d, 40) >= 0.8 || !free(x.t0, x.t1)) continue;
+       if (this.membersOn(ph, d).some(m => !kid(m) && m !== pid && this.basePlan(m, d).some(y => y.with === pid && y.t0 < x.t1 && y.t1 > x.t0))) continue;
+       swap(x, [{ t0: x.t0, t1: x.t0 + step, place: `road:${W}`, act: 'walk', why: 'out to the lane', where: 'road' }, { ...x, t0: x.t0 + step, t1: x.t1 - step, place: `lane:${PH.q}:${ph}`, why: 'playing in the lane with the other children' }, { t0: x.t1 - step, t1: x.t1, place: `road:${W}`, act: 'walk', why: 'back in', where: 'road' }]); }
+     // the evening at the door (half the houses: the household's own draw)
