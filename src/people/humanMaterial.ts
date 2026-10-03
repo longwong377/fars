@@ -160,7 +160,7 @@ export const KOHL = { band: 0.35, alb: [0.018, 0.016, 0.015] as RGB };
 export const BROW = { lines: 2800, len: 140, clumps: 650 };
 /** the coordinate across the brow's hairs (their direction at angle th from the horizontal, outward) */
 const bP = (y: any, ax: any, c: any, sn: any) => y.mul(c).sub(ax.mul(sn));
-export const EYE = { irisR: 0.0059, pupilR: 0.0015, sclera: [0.64, 0.6, 0.55] as RGB, caruncle: [0.6, 0.36, 0.34] as RGB, lidShadow: 0.55, f0: 0.025, /** D-790 */ cornerShade: 0.38 };
+export const EYE = { irisR: 0.0059, pupilR: 0.0015, sclera: [0.64, 0.6, 0.55] as RGB, caruncle: [0.6, 0.36, 0.34] as RGB, lidShadow: 0.55, f0: 0.025, /** D-790 */ cornerShade: 0.38, lowerShade: 0.3 };
 export const IRIS: RGB[] = [[0.04, 0.02, 0.009], [0.062, 0.032, 0.013], [0.095, 0.05, 0.02], [0.13, 0.072, 0.03], [0.14, 0.1, 0.045], [0.11, 0.115, 0.06], [0.11, 0.13, 0.105], [0.1, 0.14, 0.18]];
 /** lash strips (MakeHuman helper UVs span u 0.704–0.762 along both lids): clumps along the lid, tapering to the tip */
 export const LASH = { u0: 0.704, u1: 0.762, clumps: 72 };
@@ -536,7 +536,9 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     let sclera: any = mix(vec3(...EYE.sclera), vec3(...EYE.sclera).mul(vec3(1, 0.62, 0.58)), veins);
     sclera = mix(sclera, vec3(...EYE.caruncle), nasal.mul(0.8));
     const lidSh = float(1).sub(smoothstep(-0.0015, 0.0018, ey).mul(EYE.lidShadow)) // the upper lid's shadow on the eyeball
-      .mul(float(1).sub(smoothstep(0.0055, 0.0115, abs(ex)).mul(EYE.cornerShade))); // (D-790: the white turns away into the corners: a bright flat white read as a doll's)
+      .mul(float(1).sub(smoothstep(0.0055, 0.0115, abs(ex)).mul(EYE.cornerShade))) // (D-790: the white turns away into the corners: a bright flat white read as a doll's)
+      // (D-790: the eye's occlusion along the lower lid too: the lid and the lashes' rim shade the ball where they meet it)
+      .mul(float(1).sub(smoothstep(-0.0028, -0.0058, ey).mul(EYE.lowerShade)));
     const eyeAlb = mix(sclera, iris, irisM).mul(lidSh);
 
     // ---- hair: natural curls, court rows of snail curls, straight strands
