@@ -161,6 +161,7 @@ const TERRACE_XY: [number, number] = [-52, 118.5];
  *  carries his work to the royal stores on this share of days (C) */
 const TANNERS_GROUP = 7, OIL_EVERY = 25, SMITH_DELIVER = 0.15;
 const S_PLAY = salt('playmates'); // (D-371)
+const S_OUT = salt('out-of-doors'); // (D-651)
 const S = { plan: salt('plan'), sick: salt('sick'), sickd: salt('sickd'), death: salt('death'), birth: salt('birth'), marry: salt('marry'), bday: salt('bday'), disp: salt('disp'),
   dispo: salt('dispo'), econLife: salt('econ-life'), assign: salt('assign'), shear: salt('shear'), carer: salt('carer'), gen: salt('gen'), mourn: salt('mourn'), dbl: salt('dbl'), fam: salt('fam'), draft: salt('draft'), name: salt('name'), nurse: salt('nurse'), kid: salt('kid'), band: salt('band'), sac: salt('sacrifice'), fun: salt('funeral'), birthNext: salt('birth-next'), care: salt('body-care') };
 const AGE: [number, number, number][] = L.age_structure.v;
@@ -1962,7 +1963,53 @@ export class Population {
   /** D-459 (UD-32): the deeds of the minds and the stranger laid over the plans (people/deeds/engine.ts DeedWorld; the sim sets it):
    *  a friend visited, work shared, a wound kept at home. Over the relations' meetings, under the stranger's talk */
   deeds: { touches(pid: number, day: number): boolean; overlay(pid: number, day: number, base: Seg[]): Seg[] } | null = null;
-  plan(pid: number, day: number): Seg[] { let b = this.basePlan(pid, day); const e = this.econ?.touches(pid, day); if (this.wash?.touches(pid, day)) b = this.wash.overlay(pid, day, b); if (e) b = this.econ!.overlay(pid, day, b); if (this.bonds?.touches(pid, day)) b = this.bonds.overlay(pid, day, b); b = this.mindAfter(pid, day, b); if (this.deeds?.touches(pid, day)) b = this.deeds.overlay(pid, day, b); if (this.talk?.touches(pid, day)) b = this.talk.overlay(pid, day, b); b = this.keepFood(pid, day, b); return b === this.basePlan(pid, day) ? b : this.keepDress(day, b); }
+  plan(pid: number, day: number): Seg[] { let b = this.basePlan(pid, day); const e = this.econ?.touches(pid, day); if (this.wash?.touches(pid, day)) b = this.wash.overlay(pid, day, b); if (e) b = this.econ!.overlay(pid, day, b); if (this.bonds?.touches(pid, day)) b = this.bonds.overlay(pid, day, b); b = this.mindAfter(pid, day, b); if (this.deeds?.touches(pid, day)) b = this.deeds.overlay(pid, day, b); if (this.talk?.touches(pid, day)) b = this.talk.overlay(pid, day, b); b = this.outOfDoors(pid, day, b); b = this.keepFood(pid, day, b); return b === this.basePlan(pid, day) ? b : this.keepDress(day, b); }
+  /** D-651 (the out-of-doors day; s18 C12's pagecheck: a town lane at 13:48 with all 144 people at home, 111 of them in walled
+   *  courts, and nobody walking): the life of the lanes. A grown-up of the town or a village (14-65, not minding little ones,
+   *  nursing, ill or in mourning, nor someone a child of the house is with) goes out two to four times a day from a stretch at
+   *  home (resting, at a craft, spinning, talking): to the well for a word with the women there, the quarter's market ground, or
+   *  a neighbour's door to talk, with the walks there and back (walkH). The children of 5-13 play in the lane before their own
+   *  door, not in the court; and half the houses sit out at their door of an evening. Not in the rain; all C */
+  private outOfDoors(pid: number, d: number, segs: Seg[]): Seg[] {
+    const p = this.persons[pid], hid = this.home(pid, d), H = this.households[hid]; if (!H || (H.zone !== 'town' && H.zone !== 'plain') || p.zone === 'transient' || p.agent >= 0) return segs;
+    if (segs.some(x => x.act === 'offmap' || x.act === 'lie_ill') || this.mourning(pid, d)) return segs;
+    const age = this.ageOn(pid, d), home = H.home, W: Where = H.zone === 'plain' ? 'plain' : 'town', wx = this.cal.ctx(d).wx, u = (k: number) => u01(this.seed, S_OUT, pid, d, k);
+    const dry = (a: number, b: number) => rainHours(wx, a - 0.3, b + 0.3) === 0 && !(wx.stormH && a < wx.stormH[1] + 0.5 && b > wx.stormH[0] - 0.5);
+    let out = segs; const own = () => { if (out === segs) out = segs.slice(); };
+    const lane = `lane:${H.q}:${hid}`, step = 0.02;
+    // the others of the house who are "with" this one in their own day (a child with its mother): she does not leave them
+    // (and the house's own "with the household" hours: the household is together then, planCheck's label)
+    const withMe: [number, number][] = []; for (const m of this.membersOn(hid, d)) if (m !== pid) for (const x of this.basePlan(m, d)) if (x.with === pid || /with the household/.test(x.why)) withMe.push([x.t0, x.t1]);
+    for (const x of segs) if (/with the household/.test(x.why)) withMe.push([x.t0, x.t1]);
+    const free = (a: number, b: number) => !withMe.some(([x, y]) => x < b && y > a);
+    const swap = (x: Seg, parts: Seg[]) => { own(); const i = out.indexOf(x); if (i >= 0) out.splice(i, 1, ...parts.filter(y => y.t1 - y.t0 > 1e-6)); };
+    if (age >= 14 && age <= 65 && !this.nurslings(pid, d).length && !segs.some(x => MIND_WHY.test(x.why))) {
+      const n = 2 + Math.floor(u(1) * 3);
+      for (let k = 0; k < n; k++) { const t = 7.5 + u(10 + k) * 10.5, x = segAt(out, t);
+        if (x.place !== home || x.where === 'road' || x.with !== undefined || !['rest', 'craft', 'spin', 'talk'].includes(x.act) || /nurs|asleep|siesta|heat|household/.test(x.why)) continue;
+        const v = u(20 + k), nb = H.kin.find(o => this.households[o]?.q === H.q) ?? -1;
+        // (the well: a word with the women there; the house's own water is the planner's, counted jar by jar: planCheck's water)
+        const [place, act, stay, why, back]: [string, ActivityId, number, string, string | undefined] = v < 0.4 ? [`well:${H.q}:${hid}`, 'talk', 0.2 + 0.15 * u(30 + k), 'talking with the neighbours at the well', undefined]
+          : v < 0.65 ? [`market:${H.q}`, 'exchange', 0.3 + 0.4 * u(30 + k), 'at the market ground, buying and selling a little', 'basket']
+          : [nb >= 0 ? `lane:${H.q}:${nb}` : lane, 'talk', 0.3 + 0.5 * u(30 + k), nb >= 0 ? 'talking with kin at their door' : 'talking with the neighbours in the lane', undefined];
+        const w = Math.min(0.4, Math.max(0.04, this.walkH(home, place, d, W, W))), len = 2 * w + stay; if (x.t1 - x.t0 < len + 0.2) continue;
+        const a = Math.min(Math.max(t, x.t0 + 0.05), x.t1 - len - 0.05); if (!dry(a, a + len) || !free(a, a + len)) continue;
+        swap(x, [{ ...x, t1: a }, { t0: a, t1: a + w, place: `road:${W}`, act: 'walk', why: why.endsWith('at the well') ? 'going down to the well' : why.startsWith('at the market') ? 'going to the market ground' : 'going to see a neighbour', where: 'road' },
+          { t0: a + w, t1: a + w + stay, place, act, why, where: W }, { t0: a + w + stay, t1: a + len, place: `road:${W}`, act: 'walk', why: 'walking home', where: 'road', ...(back ? { carry: back } : {}) }, { ...x, t0: a + len }]); } }
+    // the children's play out in the lane before their door (by day, dry, nobody's charge)
+    // (the play of a house's court goes out as one, the playmates of other houses with it: the draw is the house's and the
+    // day's, so whoever plays there that day is in the lane; never with a little one, or a child someone small is with)
+    const kid = (x: number) => { const a = this.ageOn(x, d); return a >= 5 && a <= 13; };
+    if (age >= 5 && age <= 13) for (const x of [...out]) { const ph = x.place.startsWith('h:') ? +x.place.slice(2) : -1, PH = this.households[ph];
+      if (!PH || x.act !== 'play' || /minding|little|baby/.test(x.why) || (x.with !== undefined && !kid(x.with)) || x.t0 < 7 || x.t1 > 19 || x.t1 - x.t0 < 0.5 || !dry(x.t0, x.t1) || u01(this.seed, S_OUT, ph, d, 40) >= 0.8) continue;
+      if (this.membersOn(ph, d).some(m => !kid(m) && m !== pid && this.basePlan(m, d).some(y => y.with === pid && y.t0 < x.t1 && y.t1 > x.t0))) continue;
+      swap(x, [{ t0: x.t0, t1: x.t0 + step, place: `road:${W}`, act: 'walk', why: 'out to the lane', where: 'road' }, { ...x, t0: x.t0 + step, t1: x.t1 - step, place: `lane:${PH.q}:${ph}`, why: 'playing in the lane with the other children' }, { t0: x.t1 - step, t1: x.t1, place: `road:${W}`, act: 'walk', why: 'back in', where: 'road' }]); }
+    // the evening at the door (half the houses: the household's own draw)
+    if (age >= 14 && u01(this.seed, S_OUT, hid, d, 50) < 0.5) for (const x of [...out]) { const a = Math.max(x.t0, 17.5), b = Math.min(x.t1, 20.5);
+      if (x.place !== home || !['rest', 'talk'].includes(x.act) || x.with !== undefined || /asleep|nurs/.test(x.why) || b - a < 0.6 || !dry(a, b) || !free(a, b)) continue;
+      swap(x, [{ ...x, t1: a }, { t0: a, t1: a + step, place: `road:${W}`, act: 'walk', why: 'out to the door', where: 'road' }, { ...x, t0: a + step, t1: b - step, place: lane, act: 'talk', why: 'sitting at the door in the evening with the neighbours' }, { t0: b - step, t1: b, place: `road:${W}`, act: 'walk', why: 'back in', where: 'road' }, { ...x, t0: b }]); }
+    return out;
+  }
   /** D-651: the overlays' stretches dressed as the planner's are: the economy's hired day in the cold or the dust (planCheck's
    *  dress: "working for ... (taken on, paid by the day)" undressed in the cold) is dressed again by the planner's own rules
    *  (dustWear, coldWear) over the whole day, on copies (the base day's stretches are shared) */
