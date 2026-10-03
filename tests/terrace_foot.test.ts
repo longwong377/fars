@@ -72,3 +72,10 @@ describe('the tether lines at the stair foot (D-227)', () => {
     expect(draws).toBeLessThanOrEqual(10); expect(tris).toBeLessThan(0.5e6);
   });
 });
+describe('the stair foot\'s second kind (D-740)', () => {
+  it('over a month the foot shows mules, saddle horses and camels, never more than two species a day', async () => {
+    const { footSecond } = await import('../src/world/terraceFoot');
+    const seen = new Set<string>(); for (let d = 0; d < 30; d++) seen.add(footSecond(1, d));
+    expect([...seen].sort()).toEqual(['camel', 'horse_saddle', 'mule']);
+  });
+});

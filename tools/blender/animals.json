@@ -11,7 +11,7 @@
  "species": {
   "horse": "large", "horse_saddle": "large", "mule": "large", "mule_pack": "large", "ox": "large", "cow": "large", "zebu": "large", "camel": "large", "camel_pack": "large", "dromedary": "large", "lion": "large",
   "donkey": "medium", "donkey_pack": "medium", "onager": "medium", "deer": "medium", "stag": "medium", "boar": "medium", "lioness": "medium", "cheetah": "medium", "leopard": "medium", "wolf": "medium", "wild_goat": "medium", "urial": "medium", "hyena": "medium", "calf": "medium",
-  "sheep": "small", "goat": "small", "dog": "small", "gazelle": "small", "gazelle_m": "small", "fox": "small",
+  "sheep": "small", "goat": "small", "dog": "small", "gazelle": "small", "gazelle_m": "small", "fox": "small", "cat": "tiny",
   "hare": "tiny", "hen": "tiny", "cock": "tiny"
  }
 }

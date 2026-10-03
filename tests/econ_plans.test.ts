@@ -58,7 +58,7 @@ describe('the economy in the day plans (D-340)', () => {
         if (last !== null && s.place !== last && !walked && !s.place.startsWith('@')) bad.push(`${k} ${last} -> ${s.place} at ${s.t0.toFixed(2)} without a walk`); last = s.place; walked = false; }
       // the plan checks (planCheck.ts) find nothing in the laid day that the day as the world made it did not have
       const [pid, d] = k.split(':').map(Number), count = (x: Seg[]) => { const m: Record<string, number> = {}; for (const i of checkPlan(S.pop, pid, d, x, null)) m[i.kind] = (m[i.kind] ?? 0) + 1; return m; };
-      const b0 = count(S.pop.basePlan(pid, d)), b1 = count(p); for (const [kind, c] of Object.entries(b1)) if (c > (b0[kind] ?? 0)) bad.push(`${k} plan check ${kind}`);
+      const b0 = count(S.pop.basePlan(pid, d)), b1 = count(p); for (const [kind, c] of Object.entries(b1)) if (c > (b0[kind] ?? 0)) bad.push(`${k} plan check ${kind}: ${checkPlan(S.pop, pid, d, p, null).filter(i => i.kind === kind).map(i => i.note).slice(-1)[0]?.slice(0, 140)}`);
       // a little one with someone is where that one is
       for (const s of p) if (s.with !== undefined && econ(s)) { const o = segAt(S.pop.plan(s.with, d), (s.t0 + s.t1) / 2); if (o.place !== s.place && !(o.where === 'road' && s.where === 'road')) bad.push(`${k} apart from ${s.with} at ${s.t0.toFixed(2)}`); }
       for (const s of p.filter(econ)) if (s.where !== 'road') { const w = S.pop.walkH('official_bldg', s.place, +k.split(':')[1], 'town', s.where); if (!Number.isFinite(w)) bad.push(`${k} ${s.place} unreachable`); }

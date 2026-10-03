@@ -38,7 +38,7 @@ describe('visitor access zones', () => {
     expect(decide('grand_stair', ctx({ night: true })).allowed).toBe(false);
     expect(decide('gate_nations', ctx()).needs).toBe('never'); // no business there
     const gate = businessZones(3); expect(gate.has('gate_nations')).toBe(true);
-    expect(decide('gate_nations', ctx({ business: gate })).needs).toBe('halmi');
+    expect(decide('gate_nations', ctx({ business: gate })).needs).toBe('letter'); // (D-696, W18: a palace's guard asks the business, the sealed letter; the halmi is the road's)
     expect(decide('gate_nations', ctx({ business: gate, admitted: new Set(['gate_nations']) })).allowed).toBe(true);
     expect(decide('terrace_courts', ctx()).needs).toBe('escort');
     expect(decide('terrace_courts', ctx({ escorted: true })).allowed).toBe(true);

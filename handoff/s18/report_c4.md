@@ -12,8 +12,19 @@
   the lead: reroute vertices 0-2 round the north end (a 40 m least-cost course stays on the plain, 9.5 km, max 7 m).
 - Seen in passing, not mine: from the plain 1.5 km N of the Terrace (16 h and noon) no town shows between the camera and the
   Terrace (q_n1 at -265,725 should be in frame): the town's far drawing (asks list item 1); the Terrace reads as a low box.
-- The clouds at Q=low in SwiftShader with 2 frames are grainy (no TRAA convergence): their edge softness cannot be judged in
+- The night clouds' "hard round edges": not judged (Q=low frames are grainy). The clouds at Q=low in SwiftShader with 2 frames are grainy (no TRAA convergence): their edge softness cannot be judged in
   the cloud. The T4's final cov-000 (01:55) also shows white dots over the ground and sky at night (particles?), unidentified.
+
+## The black screen (the lead's urgent ask, mid-session)
+- Fixed on the cloud's live path (da893241): progressive compile deferred the full-screen quads drawn last in a frame (the
+  post pipeline's at high, the renderer's own output quad at low) every frame while the world streamed in: black canvas,
+  unwritten meter. Also 824e2238: tone mapping restored around the post pass however it ends; meter readback timeout and
+  zero-readback rejection, falling back to the lux law. Frames: c4_frames/live_black_before.png, live_after_quadfix.png.
+- e8e271e8: TRAA's depth-history copy threw every frame on WebGL (black at quality high, ?webgl=1): fixed; and a black-frame
+  watchdog switches to the renderer's own output (window.__safeMode) if the post output stays black, times out or throws.
+  Unseen on a real GPU; the cloud's SwiftShader gives out at ~500 s at quality high.
+- NOT fixed by me: the T4's "[Buffer] used in submit while destroyed" in ShadowMaterial pipelines (C9's deferred-dispose
+  work); the far cascade disposes nothing (?farcsm=0 rules it out on the T4).
 
 ## What a player meets now
 - **Far views get sun shadows** (if the T4 confirms): past 600 m, where nothing had a sun shadow, a fifth map fitted to the
@@ -21,11 +32,15 @@
   houses from 560-600 m out. Static: drawn at load and again only when the sun moves 0.4 deg (not while it is down). Read
   with textureLoad and a hand 2x2 comparison: **no sampler added** to any material (tests/far_cascade_d680.test.ts compares
   a lit surface's bindings with the cascade on and off). ?farcsm=0 or `__parsaFarCascade.value = 0` for the A/B.
-- **Night:** the purple band and the horizon fan were already gone on this tree (V1's light v2/v2b); the crude cov-000 frame
-  showed one remaining light streak rising from a horizon point in the SE: the Milky Way's cusp-shaped cross-section
-  (exp(-|b|/w)) drew a thin bright ridge beside the Great Rift. Now a smooth Gaussian profile (skySystem.ts). Before/after:
-  crude frames below.
+- **Night:** the purple band and the many-ray fan were already gone on this tree (V1's light v2/v2b). One light streak still
+  rose from a horizon point (cloud frames and the T4's final cov-000 alike). By elimination (Milky Way hidden: still there;
+  clouds hidden: gone; world-fixed at another resolution and heading) and a CPU replica of the cloud march, it was a clear
+  slit in the cloud deck: the noise volume tiles every 7 km, so a ray along a lattice axis samples one periodic column again
+  and again, and an empty column draws a slit to the horizon; all slits converge on the axis's horizon point (the "fan").
+  The base shapes are now warped by the weather field (clouds.ts, mirror cloudCover.ts; no extra fetch): near-horizon rays
+  along the axes were clear 2.9x as often as rays off them, now 1.2x (tests/cloud_slits_d680.test.ts, which fails unwarped).
+  Cover calibration unchanged (cloudcover tests pass). A Milky Way edit tried on the way was reverted (not the cause).
 
 ## Frames (crude, WebGL2 SwiftShader, Q=low unless said; not the T4's look)
 before: night cov-000; Rahmat dawn 5.22 h and noon from -322,90 (the road streak); plain at dawn/noon/16 h 1.5 km N of the
-Terrace; plain at dusk; the Apadana at 22:30. after: night cov-000 with the smooth Milky Way. Attached to the lead's message.
+Terrace; plain at dusk; the Apadana at 22:30. after: night cov-000 with the warped cloud field (night-cov000_after-warp.jpg). In handoff/s18/c4_frames/.

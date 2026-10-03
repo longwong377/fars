@@ -80,6 +80,6 @@ if (typeof location !== 'undefined' && typeof document !== 'undefined') {
   const q = new URLSearchParams(location.search);
   // (loadsave: the page reloaded itself to restore a save; webdriver: the project's drivers, budget and first-minutes,
   // measure the world, not the film)
-  if (!q.has('test') && !q.has('nointro') && !q.has('nofilm') && !q.has('loadsave') && !(navigator as any).webdriver) {
+  if (q.has('film') || (!q.has('test') && !q.has('nointro') && !q.has('nofilm') && !q.has('loadsave') && !(navigator as any).webdriver)) { // ?film: always (checks)
     if (document.body) mountTitleFilm(); else addEventListener('DOMContentLoaded', () => mountTitleFilm(), { once: true }); }
 }

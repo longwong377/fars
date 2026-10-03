@@ -92,7 +92,10 @@ export const SITUATIONS: Situation[] = [
     when: (a, b) => still(a) && act(a, 'write_tablet', 'seal', 'inspect', 'talk') && (a.task!.place === 'stair_foot' || /ration|issue/.test(a.task!.why ?? '')) && act(b, 'queue') && same(a, b),
     turns: [{ who: 'a', intents: ['ration'] }, { who: 'a', intents: ['count'] }, { who: 'b', intents: ['ration'], p: 0.5, own: true },
       { who: 'a', intents: ['remark'], p: 0.5 }, { who: 'b', intents: ['pious'], p: 0.5 }] },
-  { id: 'gate_check', tier: 'C', reach: 8, cooldownH: 3,
+  // (D-720, C7's CI: seed 1 had no gate check in 8 days: a guard posted at a gate jamb or a stair head and those passing through
+  // the passage come no nearer than 10-11 m (the Gate's passages ~10 m wide; measured tools/dev: the nearest officials 10.3 m,
+  // porters 11.4 m): the guard steps out to whoever passes through, within 14 m: C)
+  { id: 'gate_check', tier: 'C', reach: 14, cooldownH: 3,
     note: 'a guard at a gate, stair head or Treasury door questions someone passing (access.json stop procedure; guards on the reliefs B): asks for the document, hears who he is, lets him through by day, turns him back at night (C)',
     cast: { a: role('guard'), b: role('courier', 'official', 'porter') },
     when: (a, b) => still(a) && act(a, 'stand_guard') && CHECK_POSTS.has(a.task!.place) && up(b) && !same(a, b),

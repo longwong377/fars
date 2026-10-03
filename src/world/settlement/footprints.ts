@@ -19,6 +19,7 @@ export function siteFootprints(s: Site): Footprint[] {
     if (f.kind === 'portico') for (const [u, v] of f.posts!) out.push({ u, v, hu: 0.12, hv: 0.12, rot: -th, y: 1.5, hy: 1.5, kind: 'post' }); }
   s.fittings.forEach((f, fi) => {
     switch (f.kind) {
+      case 'shrine': out.push({ u: f.u, v: f.v, hu: 0.5, hv: 0.32, rot: f.rot, y: 0.4, hy: 0.45, kind: f.kind, fitting: fi }); break;
       case 'oven': out.push({ u: f.u, v: f.v, hu: 0.35, hv: 0.35, rot: -th, y: 0.4, hy: 0.45, kind: f.kind, fitting: fi }); break;
       case 'kiln': { const r = 1.2 * f.size * 0.8; out.push({ u: f.u, v: f.v, hu: r, hv: r, rot: -th, y: 1, hy: 1, kind: f.kind, fitting: fi }); break; }
       case 'trough': out.push({ u: f.u, v: f.v, hu: 0.7 * f.size, hv: 0.28, rot: f.rot, y: 0.25, hy: 0.3, kind: f.kind, fitting: fi }); break;

@@ -23,7 +23,7 @@ export const DEFAULT_KEYS: Record<string, string> = {
   nowView: 'KeyN', // the Now view (out-of-world, D-201)
 };
 export const DEFAULT_SETTINGS: Settings = {
-  quality: 'high', forceWebGL: false, playerMode: 'observer', courtCalendar: 'seasonal', translation: false, fov: 60, headBob: true,
+  quality: 'high', forceWebGL: false, playerMode: 'visitor', /* s18 C5 (D-696): a newcomer is a visitor (the guards notice them); observer in the settings */ courtCalendar: 'seasonal', translation: false, fov: 60, headBob: true,
   mouseSensitivity: 1, invertY: false, keys: { ...DEFAULT_KEYS },
   volume: { master: 0.9, ambience: 1, voices: 1, music: 1, effects: 1 }, subtitleSize: 1, lightningWarning: true, colourBlindUI: false,
   timeScale: 1, devOverlay: false, nowView: false, hearIn: 'own', talk: true,

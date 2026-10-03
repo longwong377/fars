@@ -77,15 +77,16 @@ describe('D-334 surfaces', () => {
     expect(SURFACES.mudbrick_bare.joints).toBeDefined();
   });
   it('the palaces\' interiors are painted (the evidenced scheme\'s colours), the service ranges not', () => {
-    for (const k of ['mudbrick', 'mudbrick_painted']) expect(SURFACES[k].paint, k).toBeDefined();
+    for (const k of ['mudbrick', 'mudbrick_painted', 'palace_plaster']) expect(SURFACES[k].paint, k).toBeDefined();
+    expect(SURFACES.palace_plaster.outerPaint).toBeDefined(); expect(SURFACES.palace_plaster.earthWeather!.loss.cover).toBe(0); // D-752: painted outside too, no fallen plaster
     expect(PAINTED_INTERIORS.has('apadana')).toBe(true); expect(PAINTED_INTERIORS.has('garrison')).toBe(false); expect(PAINTED_INTERIORS.has('hall100')).toBe(false);
     const B = buildMeshes(parts); let inner = 0, outer = 0;
-    B.group.traverse(o => { const g = (o as any).geometry; if (!g || !/^(apadana|garrison):mudbrick/.test(o.name)) return; const a = g.getAttribute('inner'); if (!a) return;
+    B.group.traverse(o => { const g = (o as any).geometry; if (!g || !/^(apadana|garrison):(mudbrick|palace_plaster)/.test(o.name)) return; /* (D-752: the palaces' walls draw in palace_plaster) */ const a = g.getAttribute('inner'); if (!a) return;
       for (let i = 0; i < a.count; i++) { if (a.getX(i) > 0.5) { if (o.name.startsWith('garrison')) outer++; else inner++; } } });
     expect(inner).toBeGreaterThan(100); expect(outer).toBe(0);
   }, 600000);
   it('the Blender bakes are shipped as KTX2 and laid on every palace wall and roof', () => {
-    for (const k of ['mudbrick', 'mudbrick_painted', 'roof_earth']) { const b = WALL_BAKE[k]; expect(b?.ktx, k).toBe(true);
+    for (const k of ['mudbrick', 'mudbrick_painted', 'palace_plaster', 'roof_earth']) { const b = WALL_BAKE[k]; expect(b?.ktx, k).toBe(true);
       const f = `public/textures/${b.tex}/bake.ktx2`; expect(existsSync(f), f).toBe(true); expect(statSync(f).size).toBeLessThan(2e6); }
   });
 });

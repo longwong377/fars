@@ -28,13 +28,21 @@ const pool = () => Math.max(1, Math.min(8, (((globalThis as any).navigator?.hard
 let adP: Promise<any> | null = null, k2P: Promise<any> | null = null, dracoP: Promise<any> | null = null;
 /** the WebGPU adapter (null without one), asked once */
 export const gpuAdapter = (): Promise<any> => (adP ??= Promise.resolve().then(() => (globalThis as any).navigator?.gpu?.requestAdapter?.() ?? null).catch(() => null));
+/** the page draws through the WebGL2 backend by request (?webgl=1: main.ts settings.forceWebGL) */
+const forcedWebGL = () => typeof location !== 'undefined' && new URLSearchParams(location.search).get('webgl') === '1';
 /** the page's KTX2Loader (three's), its transcoder target set */
 export function sharedKTX2(base = BASE, renderer?: any): Promise<any> {
   return (k2P ??= (async () => {
     const { KTX2Loader } = await import('three/addons/loaders/KTX2Loader.js');
     const k = new KTX2Loader().setTranscoderPath(base + 'models/lib/basis/').setWorkerLimit(pool());
     if (renderer) k.detectSupport(renderer);
-    else { const ad = await gpuAdapter(); k.detectSupport({ isWebGPURenderer: true, hasFeature: (f: string) => !!ad?.features?.has(f) } as any); }
+    else if (forcedWebGL()) { // D-750: the page draws through WebGL2 (?webgl=1, the cloud's eyes): its extensions, not the adapter's
+      // (the WebGPU adapter's 'texture-compression-bc' sent every scan to BC7, which SwiftShader's WebGL2 cannot upload:
+      // compressedTexSubImage2D 'invalid format', the textures sampled black: the black Terrace walls of the s17/s18 cloud frames)
+      const gl = (globalThis as any).document?.createElement?.('canvas')?.getContext?.('webgl2') as WebGL2RenderingContext | null;
+      k.detectSupport({ isWebGPURenderer: false, extensions: { has: (e: string) => !!gl?.getExtension(e), get: (e: string) => gl?.getExtension(e) } } as any);
+      (gl?.getExtension('WEBGL_lose_context') as any)?.loseContext?.();
+    } else { const ad = await gpuAdapter(); k.detectSupport({ isWebGPURenderer: true, hasFeature: (f: string) => !!ad?.features?.has(f) } as any); }
     // (the pool is idle when no worker is busy and nothing is queued)
     const wp = (k as any).workerPool, arm = reapWhenIdle(() => wp.workerStatus !== 0 || wp.queue.length > 0, () => { if (wp.workers.length) { wp.dispose(); loaderStats.ktx2Reaped++; } });
     wrap(wp, 'postMessage', arm);

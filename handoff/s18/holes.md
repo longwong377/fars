@@ -24,7 +24,7 @@ first-time player would hit.
 - **Owner** is taken from handoff/s18/sessions.md. 'Unowned' means the file belongs to no s18 agent, so by the rules it
   goes to C7 or the lead.
 
-## LEDGER: sent to / status (C12 keeps this; the lead dispatches from it). Updated 2026-10-03 06:25 UTC against s17-int 4cda1f6f and the agent branches.
+## LEDGER: sent to / status (C12 keeps this; the lead dispatches from it). Updated 2026-10-03 08:55 UTC from the agent branches; s17-int 7727254a.
 
 How the status column is read:
 - **DONE** means it is merged into s17-int.
@@ -39,79 +39,80 @@ None of it is verified in a render yet (pagecheck and C6 are the check).
 |---|---|---|---|---|
 | 1 | empty world | C1, C5 | WIP | C1 f0eb96b0 nine building gangs (DONE-b); C5's top item is the drawing drop |
 | 2 | court timing: a new game before the arrival | C1 | DONE-b | f0eb96b0 "a new game with the court in residence" |
-| 3 | Terrace colour part 2 (reliefs, capitals, colossi, frames, inscriptions) | C10 | **SENT, no action seen** | C10's D-750 commits are merlons, hangings, standards and blind windows; no relief or capital paint |
+| 3 | Terrace colour part 2 (reliefs, capitals, colossi, frames, inscriptions) | C10 | DONE-b (paint 1-3) | c5f99e1b walls and frames; ccf861d2 capitals and colossi; 77403d90 every relief figure painted (flesh, eyes with pupils, animals). **Inscriptions coloured: not seen (chased 07:55)** |
 | 4 | town shape (belt at the Terrace foot) | C2 | DONE | 5819c8ef D-661 lower-city belt, 739 plots |
-| 5 | houses one buff mud | C2 | DONE | 5819c8ef washes, painted doors, dyes |
-| 6 | ruin weathering (grime, lichen, boulder scan, rough timber) | C10 | **SENT, no action seen** | no grime.ts or scans.ts commit |
+| 5 | houses one buff mud | C2 | DONE | 5819c8ef washes; 11d5ef20 the town plastered (94.7 % of street faces), dados, framed windows; b1858ea4 the damp foot a worn band |
+| 6 | ruin weathering (grime, lichen, boulder scan, rough timber) | C10 | DONE-b | c5f99e1b fresh 467 stone (no lichen, mottle at 20 % chroma), royal cedar planed and painted |
 | 7 | night black, no player light | C4, C5 | WIP | C4 on night light; C5 player lamp listed |
 | 8 | public site behind | Vagon | DONE (s17); s18 pending | c3bde8ab deployed 04:50; s18 waits on a Vagon budget run |
 | 9 | talk hidden | C8, C11 | DONE | 3f07b3e6 E speaks to anyone; ed032cd1 one talk key; c20cefad panel (DONE-b) |
 | 10 | court ceremony never happens | C13 | DONE | e9341d07 the programme; 4a2db721 proskynesis (DONE-b) |
 | 11 | clothes undyed | C13, C2 | DONE | e9341d07 dyed dress and jewellery; 5819c8ef more dyes |
 | 12 | sound mostly synthesis | Vagon, C8 | DONE (mostly) | fb250784 115 of 121 recorded sets |
-| 13 | plain work places, brick fields, houses being built | C3, C2 | DONE / WIP | 08243142 works built; C2 half-built house open |
-| 14 | halls stored, bare windows, hangings, ceilings, banners | C10, C13 | partly | 946ae757 porch hangings and standards; 1afbf0e5 blind windows; **ceilings unpainted, shutters and grilles, banners in wind, off-season hall dress: no action seen** |
-| 15 | speech in isolated words, hums, wordless songs | C8 | **SENT, no action seen** | C8 has done talk only; the murmur, songs and model-driven overheard talk are untouched |
-| 16 | water (river, paradise feed, qanats, ferry, ditches) | C3, C2 | partly | 563ab492 qanats; eb41c068 meander; **the ferry or bridge on the Kur, field ditches and shadufs, the paradise feed: UNSENT** |
-| 17 | world does not notice the player | C5, C8 | WIP | cddd96c0 trespass (DONE-b); C5 visitor default listed |
+| 13 | plain work places, brick fields, houses being built | C3, C2 | DONE / DONE-b | 08243142 works; 5078eda1 a house being built in q_b1 |
+| 14 | halls stored, bare windows, hangings, ceilings, banners | C10, C13 | partly | hangings and standards (946ae757); **ceilings, shutters and grilles, banners in the wind, off-season hall dress: silent since 07:34 (chased 07:05, 07:55, 08:55; asked the lead to move them)** |
+| 15 | speech in isolated words, hums, wordless songs | C8 | DONE-b (songs) | 859a28d5 work, reaping, well and market songs; crowd murmur and model-driven overheard talk not re-checked |
+| 16 | water (river, paradise feed, qanats, ferry, ditches) | C3, C2 | DONE-b | 7d149e7e bridge of boats and shadufs; 50ae2b11 ditches; e66d2f57 the paradise inlet channel and sluice |
+| 17 | world does not notice the player | C5, C8 | DONE | visitor default (C5 5af8439a); trespass (C8) |
 | 18 | horses, gallop, hunt | C13, C9 | partly | e9341d07 rides, hunts, couriers; b29e8735 asks C9 for the gallop |
-| 19 | shrines and household cult | C1, C2 | WIP | C1 "household religion" listed; the town shrine (C2): **UNSENT** |
-| 20 | estates, pavilion, Naqsh painted | C15 | SENT 06:0x | 99aa8f83 C15 started |
-| 21 | snow cap, comet, floods, dust storms, run-off, shimmer | C4 | WIP | C4: snow cap, comet, shimmer; **floods, dust-storm wall, run-off in lanes: UNSENT** |
-| 22 | broken-looking faults | C4, C6, C2, C10 | SENT 06:0x | the black ridge (C4), cameras facing walls (C6), **the Treasury floor's mirror (C10): UNSENT** |
-| 23 | walk-only speed, no mount | C5 | SENT 06:0x | "rides (row 23)" on C5's list |
+| 19 | shrines and household cult | C2, C1 | DONE-b | 3340f4fe a neighbourhood shrine in every quarter (offering table, bowls, figurines, lamp); c402e717 a niche lamp and offering in every living room |
+| 20 | estates, pavilion, Naqsh painted | C15 | DONE-b | C15 D-800: Naqsh-e Rustam texts carved (a1364786); estates and villages in progress |
+| 21 | snow cap, comet, floods, dust storms, run-off, shimmer | C4 | WIP (behind the black screen) | the lead keeps C4 on the black screen and night light first |
+| 22 | broken-looking faults | C4, C6, C2, C10 | partly | the Treasury floor mirror (C10): **silent, chased 07:55, 08:55** |
+| 23 | walk-only speed, no mount | C5 | DEFERRED | rides deferred by the lead (08:54) |
 | 24 | faces | C14 | DONE | 82866584 faces that speak; 3f1040ac |
 | 25 | memory and load | C9 | WIP | KTX2 merged (memory 5.35 -> 4.55 GB cloud) |
-| u1 | royal women never appear; the litters | C13 | **UNSENT** | |
+| u1 | royal women never appear; the litters | C13 | DONE-b | ea287ef1, 28e9d8e3 the royal women in curtained litters |
 | u2 | punishment never shown | (CLAUDE.md: as evidence) | KEEP | |
-| u3 | personal seals worn | C13 | **UNSENT** | |
-| u4 | toddlers walking, barefoot poor, stripping in heat | C14, C13 | **UNSENT** | |
-| u5 | cats, ducks, geese, bats, rats, storks, flies | C9 | **UNSENT** | same as P2-4 |
-| u6 | latrines, roof sleeping, fruit drying on roofs | C2 | **UNSENT** | |
-| u7 | Diodorus' triple wall and bronze gates | C10 | **UNSENT** | low |
-| u8 | trees and planters on the Terrace; the "Penelope" statue | C10 | **UNSENT** | low |
-| u9 | portico floors and ceremonial courts paved or limed | C10 | **UNSENT** | |
+| u3 | personal seals worn | C13 | DONE-b | 0af4d9a6 the officials' cylinder seals on cords |
+| u4 | toddlers walking, barefoot poor, stripping in heat | C13, C14 | DONE-b | 36be15e0 toddlers walk (C14); 8592fe19 labourers stripped to the waist (C13) |
+| u5 | cats, ducks, geese, bats, rats, storks, flies | C14, C9 | DONE | C14 cats, storks and bats by season; C9 7baa1f87 |
+| u6 | latrines, roof sleeping, fruit drying on roofs | C2 | DONE-b | c402e717 roofs slept on in summer, fruit dried at harvest |
+| u7 | Diodorus' triple wall and bronze gates | C10 | **SENT 06:5x** | low |
+| u8 | trees and planters on the Terrace; the "Penelope" statue | C10, C3 | partly | 93d82bfc plantedTrees() for the Terrace planters (C3); placing them is C10's |
+| u9 | portico floors and ceremonial courts paved or limed | C10 | **SENT 06:5x** |  |
 | u10 | baked prose for seed 1 only | C8 | DONE-b | 0c1b9d46 junk baked lives removed |
 | u11 | Quality change needs a reload (no note); debug sliders shown | C11 | SENT? | "polished out-of-world text" (92d6a6bf), unverified |
 | C1 | life simulated but not drawn | C5 (+ C9's finding) | WIP | the top item; pagecheck D-772 measures it |
-| C2 | working land empty in the sim | C1, C3 | WIP | works built (C3); people at the works spots next (C1) |
+| C2 | working land empty in the sim | C1, C3 | DONE-b | 5a3c79f6 the staffed works; 74538bb3 the fields worked out to 3.2 km |
 | F1 | faces, lips, guards' dress and pose | C14, C13 | DONE | 82866584 visemes; e9341d07 guards in the court robe |
 | P2-1 | (retracted) | | | |
 | P2-2 | the delegations' animals and chariots | C13 | DONE | 54655633 gift animals |
-| P2-3 | patterned robes; the throne's lion bands; relief pupils | C13, C10 | partly | dyed dress (C13); **lion bands and pupils (C10): UNSENT** |
-| P2-4 | storks, bats, cats; mules and camels on the plain; reins; turning wheels | C9 | **UNSENT** | |
-| P2-5 | tower stairs and walkable roofs; the Hadish balcony | C10 | **UNSENT** | |
-| P2-6 | the drums' ramp and ascent | C10, C1 | **UNSENT** | |
+| P2-3 | patterned robes; the throne's lion bands; relief pupils | C13, C10 | partly (DONE-b) | pupils 77403d90; **the throne's lion bands: silent (C10)** |
+| P2-4 | storks, bats, cats; mules and camels on the plain; reins; turning wheels | C14, C9 | DONE / DONE-b | cats, storks, bats (C14); C9 7baa1f87; 32cff91b the wheels turn (C14); reins: check |
+| P2-5 | tower stairs and walkable roofs; the Hadish balcony | C10 | **silent (chased 07:55, 08:55)** |  |
+| P2-6 | the drums' ramp and ascent | C10, C1 | **silent (chased 07:55, 08:55)** | the ramp C10, the people C1 |
 | P2-7 | festive dress, toys, necklaces | C13 | SENT 06:0x | |
 | P2-8 | blocklist wording | C12 | DONE | 257ab230 |
-| P2-9 | Rahmat quarries, E-foot cistern, Akhor Rostam niches | C3, C10, C15 | SENT 06:0x | |
-| P2-10 | soil moisture; gates barred at night | C3, C5 | WIP | both on the agents' lists |
-| stale | 'court ABSENT default' in the data files | C13 | **SENT, no action seen** | court.json, events_calendar.json, population.json:9, town.json:3 not changed |
-| 4-1 | the world never notices you | C5, C8, C13 | WIP | cddd96c0 trespass (DONE-b); C5 visitor default |
+| P2-9 | Rahmat quarries, E-foot cistern, Akhor Rostam niches | C3, C10, C15 | DONE-b / ? | 6fa03934 Akhor Rostam niches and private rock tombs (C15); Rahmat quarry faces and the E-foot cistern not seen |
+| P2-10 | soil moisture; gates barred at night | C3, C10 | WIP / SENT | soil moisture C3; gates barred at night moved to C10 (08:54) |
+| stale | 'court ABSENT default' in the data files | C13 | DONE-b | no "court ABSENT default" wording left in court.json, events_calendar.json, population.json or town.json on cloud-s18-c13-court |
+| T1 | **Time jump keeps people at stale places** (after setTime, save/load or a skip): 58 in the Apadana hall and 44 in the forecourt on day 200, off-season | C5, C1 | SENT 07:56 | pagecheck run 5 + C13's node check (no plan holds them) |
+| 4-1 | the world never notices you | C5, C8, C13 | DONE / DONE-b | C5 visitor default and guards (5af8439a); C8 trespass (cddd96c0) |
 | 4-2 | nothing moves in the wind | C3 | DONE | 677621a9 one wind for every plant |
-| 4-3 | invisible walls, glued escort | C5 | WIP | src/world/visitor on C5's list |
-| 4-4 | the house mimed: quern, oven, hearth, meal | C1, C2, C8 | partly | C1 "meals kept" listed; **an indoor hearth (interiors: unowned) and work objects for grind, knead and bake: UNSENT** |
-| 4-5 | wild herds behave like force fields | C9 | **UNSENT** | beasts.ts is unowned |
+| 4-3 | invisible walls, glued escort | C5 | DONE | 5af8439a: guards ask your business, the escort at your shoulder, walked back rather than teleported |
+| 4-4 | the house mimed: quern, oven, hearth, meal | C2, C1 | DONE / WIP | C2 D-664 houseWorkObjects and indoor hearths; C1 to use them |
+| 4-5 | wild herds behave like force fields | C14 | DONE | C14 BeastFlight |
 | 4-6 | score clichés, wiring, switch | C11 | DONE (clichés, cut) | a2a70619 re-oriented, no duduk; **the Score toggle and its own slider: unverified** |
 | 4-7 | court details | C13 | DONE | 4b0b21b2 parasol furled indoors, prince, weapon bearer; 4a2db721 bow; parasol following the king: C5 listed |
 | 4-8 | out-of-world text reads as a dev tool | C11, C8, C1, C5 | partly | c20cefad talk panel; 92d6a6bf polished text; chronicle (C1) listed; visitor strings (C5) |
 | 4-9 | night sky flat | C4 | WIP | the C4 list covers all four |
-| 4-10 | animals keep clock hours | C9 | DONE-b | 2fa8251e; **birdsong hours in soundscape.ts (unowned): UNSENT** |
-| 4-11 | no footprints or dust | C5 | **UNSENT** | |
-| 4-12 | season-blind market; can't buy food | C8, C2 | partly | c6c2a110 buy bread, beer, a meal (DONE-b); **seasonal goods and fewer market squares (C2 fillPlan): UNSENT** |
-| W1, W2, W10 | names; month labels | C1 | WIP | on C1's list |
+| 4-10 | animals keep clock hours | C9, C4 | DONE-b / SENT | 2fa8251e; birdsong hours -> C4 (soundscape.ts now C4's) |
+| 4-11 | no footprints or dust | C5 | DONE | 5af8439a / 8be059a1 (in s17-int since 1def8629): footprints and dust |
+| 4-12 | season-blind market; can't buy food | C8, C2 | DONE-b | c6c2a110 buying food; c402e717 seasonal fruit on the stalls; 3340f4fe market goods off the plots |
+| W1, W2, W10 | names; month labels | C1 | DONE-b | 6371b169 the Six for the great houses, no mechanical women's names, all twelve Persian months, the chronicle |
 | W3, W4 | crown; guards' kit | C13 | DONE | 4b0b21b2 plain kidaris, gorytos |
 | W5, W6, W13, W14, W15, W17, W22 | dialogue fixes | C8 | DONE-b | 0c1b9d46 |
 | W7 | Pulvar/Medus | C3, C8, C1 | partly | 677621a9 data names; **history.ts:40 (C1) and life.ts:308 (C8): unverified** |
 | W8 | "tomb attributed to Xerxes" | C3 | DONE | 677621a9 "the second tomb being cut" |
-| W9 | 'Frataraka' in a 467 name | C2 | **UNSENT** | |
-| W11 | washing lines across the lanes | C2 | SENT? | C2 "stiff laundry" open; the move to roofs not seen |
-| W12 | commoners' tables | interiors (unowned) | **UNSENT** | |
+| W9 | 'Frataraka' in a 467 name | lead | DONE | "official hall north of the Terrace" |
+| W11 | washing lines across the lanes | C2 | DONE | D-663 |
+| W12 | commoners' tables | C2 | DONE | D-664 |
 | W16 | talk download size in Settings | C11 | SENT? | unverified |
-| W18 | halmi used as a palace pass | C5 | **UNSENT** | |
-| W19 | millet; nightingale | C3; soundscape (unowned) | WIP / **UNSENT** | millet on C3's list; nightingale unowned |
-| W20 | delegation gifts as stand-ins | C13 | partly | gift animals; **objects (bows, shields, tusk): UNSENT** |
-| W21 | figurines; latrines and refuse pits | C1; C2 | WIP / **UNSENT** | |
+| W18 | halmi used as a palace pass | C5 | DONE | 5af8439a: the halmi wording |
+| W19 | millet; nightingale | C3, C4 | **WIP / SENT** | millet C3; nightingale -> C4 06:5x |
+| W20 | delegation gifts as stand-ins | C13 | DONE-b | dee79fa5 the gifts drawn |
+| W21 | figurines; latrines and refuse pits | C1, C2 | DONE-b | c402e717 refuse heap and latrine screen in every court; figurines at the shrines (3340f4fe) |
 
 ## The pattern behind most of these holes
 

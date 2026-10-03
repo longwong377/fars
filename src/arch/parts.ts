@@ -2,12 +2,12 @@
 // plan-overlay tests all consume the same parts, so what is tested is what is built.
 import type { Tier } from './spec';
 export type Pt = [number, number]; // grid (east, north)
-export type Material = 'limestone' | 'limestone_dark' | 'mudbrick' | 'mudbrick_painted' | 'plaster' | 'plaster_red' | 'timber' | 'glazed' | 'earth' | 'scaffold' | 'rubble' | 'bronze' | 'court_fill' | 'terrace' | 'roof_earth' /* D-334: the roofs' earth on exposed tops */ | 'mudbrick_bare' /* D-334: render only, the walls under construction */ | 'steel' /* modern steel: the Now view only (D-201) */;
+export type Material = 'limestone' | 'limestone_dark' | 'frame_coat' | 'palace_plaster' | 'mudbrick' | 'mudbrick_painted' | 'plaster' | 'plaster_red' | 'timber' | 'glazed' | 'earth' | 'scaffold' | 'rubble' | 'bronze' | 'court_fill' | 'terrace' | 'roof_earth' /* D-334: the roofs' earth on exposed tops */ | 'mudbrick_bare' /* D-334: render only, the walls under construction */ | 'steel' /* modern steel: the Now view only (D-201) */;
 export interface Base { building: string; kind: string; material: Material; tier: Tier; src: string; note?: string; placeholder?: boolean; solid?: boolean; /** Now view parts only: the element of src/data/now_view.json it comes from (D-201) */ now?: string }
 /** vertical prism: polygon extruded from y0 to y1 (heights relative to the court datum) */
 export interface Prism extends Base { type: 'prism'; polygon: Pt[]; y0: number; y1: number }
 /** oriented box, grid-aligned (rot = rotation about vertical, radians, counter-clockwise in grid) */
-export interface Box extends Base { type: 'box'; c: Pt; size: [number, number]; y0: number; y1: number; rot?: number; sculpt?: Sculpt; door?: DoorLeafData }
+export interface Box extends Base { type: 'box'; c: Pt; size: [number, number]; y0: number; y1: number; rot?: number; sculpt?: Sculpt; door?: DoorLeafData; /** D-753: the envelope (grid x0, y0, x1, y1) of the hollow tower this wall belongs to */ env?: [number, number, number, number] }
 /** a box that is RENDERED as sculpture (the box stays the collider and plan footprint): doorway colossus model, the grid
  *  x direction its head faces (±1) and the grid y side (±1) its relief faces (the doorway passage) */
 export interface Sculpt { model: 'bull' | 'lamassu'; facing: 1 | -1; passage: 1 | -1 }
