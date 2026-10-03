@@ -294,6 +294,8 @@ export function lookFor(A: HumanAssets, p: LookInput, worldSeed: number): Person
   const uE = rng.next(), uB = rng.next(), uS = rng.next(), uK = rng.next();
   if (shares && free) { const bz = dress === 'woman' || dress === 'worker'; if (uE < shares.ear) add(bz ? 'earrings_b' : 'earrings'); if (uB < shares.brace) add(bz ? 'bracelets_b' : 'bracelets'); if (uS < (shares.shield ?? 0)) add('shield'); }
   const kohl = shares && (free || dress === 'king') && uK < (shares.kohl ?? 0) ? 1 : 0;
+  // D-780 (C12 P2-7; new draws last): the women's necklaces: every court woman, three in five of the town's women (C)
+  const uN = rng.next(); if (free || dress === 'court_woman') { if (dress === 'court_woman') add('necklace'); else if (dress === 'woman' && uN < 0.6) add('necklace_b'); }
   // D-780 (holes #11; new draws last): the gold of the court's robes: the gold plaques sewn on the robes of Persians of rank
   // (HDT 9.80 'gold plaques'; the gold appliqués of the Oxus Treasure and of Achaemenid tombs: B for the thing) drawn as the
   // rosette motif in a gold-yellow (the shared motif of the material: one in three robes of the Persians and the court women; C)
