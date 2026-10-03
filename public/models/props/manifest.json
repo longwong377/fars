@@ -10838,6 +10838,118 @@
     0.3022218495607376
    ],
    "tex": 0
+  },
+  "m_wo_shaduf": {
+   "file": "models/props/m_wo_shaduf.glb",
+   "of": "wo_shaduf",
+   "role": "model",
+   "parts": [
+    "mud",
+    "wood",
+    "wood_d",
+    "clay",
+    "cord",
+    "hide"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/model_props.py (D-325)",
+   "bytes": 80716,
+   "sha256": "92ccf3beb98c40a104f4d8bfa0af4c88c7e134c408bf25d116114467f902353a",
+   "tris": {
+    "lod0": 1636,
+    "lod1": 804,
+    "lod2": 804
+   },
+   "partTris": {
+    "lod0__mud": 216,
+    "lod0__wood": 352,
+    "lod0__wood_d": 352,
+    "lod0__clay": 644,
+    "lod0__cord": 12,
+    "lod0__hide": 60,
+    "lod1__mud": 216,
+    "lod1__wood": 140,
+    "lod1__wood_d": 160,
+    "lod1__clay": 256,
+    "lod1__cord": 8,
+    "lod1__hide": 24,
+    "lod2__mud": 216,
+    "lod2__wood": 140,
+    "lod2__wood_d": 160,
+    "lod2__clay": 256,
+    "lod2__cord": 8,
+    "lod2__hide": 24
+   },
+   "box": [
+    [
+     -0.9025433659553528,
+     -0.05000000074505806,
+     -2.569999933242798
+    ],
+    [
+     0.9058977365493774,
+     2.8499999046325684,
+     3.819999933242798
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    1.8084411025047302,
+    2.8999999053776264,
+    6.389999866485596
+   ],
+   "tex": 0
+  },
+  "m_wo_pontoon": {
+   "file": "models/props/m_wo_pontoon.glb",
+   "of": "wo_pontoon",
+   "role": "model",
+   "parts": [
+    "wood_d",
+    "wood",
+    "cord"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/model_props.py (D-325)",
+   "bytes": 85392,
+   "sha256": "52b83f7a9aab89bfa8e5d30e47f9d9f889462171140c7a46679f31e26c904318",
+   "tris": {
+    "lod0": 1770,
+    "lod1": 756,
+    "lod2": 336
+   },
+   "partTris": {
+    "lod0__wood_d": 148,
+    "lod0__wood": 1598,
+    "lod0__cord": 24,
+    "lod1__wood_d": 148,
+    "lod1__wood": 600,
+    "lod1__cord": 8,
+    "lod2__wood_d": 148,
+    "lod2__wood": 180,
+    "lod2__cord": 8
+   },
+   "box": [
+    [
+     -3.8440146446228027,
+     -0.9293324947357178,
+     -3
+    ],
+    [
+     3.8440146446228027,
+     1.0299999713897705,
+     3.0005974769592285
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    7.6880292892456055,
+    1.9593324661254883,
+    6.0005974769592285
+   ],
+   "tex": 0
   }
  }
 }

@@ -9930,6 +9930,12 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   horizon map rebuilt (tools/build_horizon.ts). terrain, terrain_walk, horizon and plain tests green; villages unchanged.
 - The T4's black screen (Vagon's culprit probe: plain-stone's shadow pass bound a released buffer): the fords' merged stone
   mesh casts no shadow from birth and is never re-flagged at run time; the shared quarry mesh is hidden, never disposed.
+- Far flora no longer black (the flora atlas's transparent texels are black, so its coarser mips darkened the far cards:
+  groundFlora.ts un-premultiplies the colour by the mip's coverage). plantedTrees() (src/world/trees/planted.ts) for C10's
+  Terrace planters. The river works (ledger row 16): two kit models built in the cloud's pip bpy (model_props.py
+  a_wo_shaduf, a_wo_pontoon); waterworks.ts places ~127 shadufs on the river and canal banks within 12 km (every ~420 m /
+  ~330 m, sides alternating, none near a ford or on a road) with a 'lift' spot each for C1, and a bridge of boats on the
+  royal road over the Kur whose deck rides on the river's level of the day.
 
 ## D-720 Follow thirty: the people answer from their own lives without the model, and the town's deeds and yesterday reach their talk (session 18, cloud C8; UD-07, UD-08, UD-11, UD-21, UD-24, UD-32)
 - Measured (tools/dev/follow30.ts; REVIEWS/follow30.json): thirty people drawn by seed across the town, the villages, the Terrace's
