@@ -84,7 +84,7 @@ export const SSS_MAX_DISTANCE = 1.0, SSS_THICKNESS = 0.12;
  *  the composite (a jar, a door jamb or a wall foot meeting the ground darkens its last decimetres); the lab measured the 0.6 m /
  *  6 cm contact rays stepping through walls (sss debug view all-white beside a sunlit plinth), so they reach 1 m with 12 cm
  *  samples. C */
-export const CONTACT_AO_POW = 1.8;
+export const CONTACT_AO_POW = 2.4; // D-680: was 1.8 (the reset: AO at every wall foot and corner reads)
 /** D-355: the screen-space passes' resolution (× the drawing buffer) per quality; TRAA resolves the upsampled result */
 export const POST_SCALE: Partial<Record<Quality, { ssgi: number; ssr: number; sss: number }>> = {
   high: { ssgi: 1, ssr: 1, sss: 1 },
