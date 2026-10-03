@@ -44,7 +44,7 @@ export interface FaceState {
 }
 /** D-790: the head following the eyes: rate (1/s), leak back to the pose's head (1/s), dead zones (yaw, pitch; rad), the
  *  largest turn added (rad) */
-export const FOLLOW = { rate: 6, leak: 0.5, dz: [0.15, 0.1] as [number, number], maxYaw: 0.5 };
+export const FOLLOW = { rate: 6, leak: 0.5, dz: [0.15, 0.1] as [number, number], maxYaw: 0.35, pitch: [-0.3, 0.25] as [number, number] }; // (s18 C14: 0.5 / [-0.45, 0.35] read as a head rolled over at 0.5 m)
 /** D-790: a jaw opened beyond this (rad) reads as speech or song (the crowd's talking jaw reaches 0.15; eating stays ≤ 0.06) */
 export const TALK_JAW = 0.065;
 /** D-790: the face's motion per FaceState (the eyes' fixations, the listening nods, the speech's phones) */
@@ -155,7 +155,7 @@ export class RigSolver {
     // (a slow leak back to the pose's own head: a captured head swings by itself, and a turn kept after it swung back would
     // hold the face turned away)
     if (f.look) { const dz = (v: number, d: number) => (Math.abs(v) > d ? v - Math.sign(v) * d : 0), lk = Math.min(1, dt * FOLLOW.leak);
-      F[0] = Math.max(-FOLLOW.maxYaw, Math.min(FOLLOW.maxYaw, F[0] * (1 - lk) + k * dz(M.need[0], FOLLOW.dz[0]))); F[1] = Math.max(-0.45, Math.min(0.35, F[1] * (1 - lk) + k * dz(M.need[1], FOLLOW.dz[1]))); }
+      F[0] = Math.max(-FOLLOW.maxYaw, Math.min(FOLLOW.maxYaw, F[0] * (1 - lk) + k * dz(M.need[0], FOLLOW.dz[0]))); F[1] = Math.max(FOLLOW.pitch[0], Math.min(FOLLOW.pitch[1], F[1] * (1 - lk) + k * dz(M.need[1], FOLLOW.dz[1]))); }
     else { F[0] *= 1 - k; F[1] *= 1 - k; }
     // a speaker breathes in at the pauses between phrases (the chest lifts, the head with it a little; ~0.3 s); C
     const inhale = env > 0.01 && say && M.ph ? pauseAt(M.ph, tt) * env : env > 0.01 ? Math.max(0, Math.sin(tt * 1.9 + seed) - 0.82) * 5 * env : 0;
@@ -187,7 +187,8 @@ export class RigSolver {
     // (and only for a face the caller animates: the crowd gives the far people (lod 2+) no gaze, drift or jaw, and they skip it)
     const F0 = inp.face, live = !!(F0.look || F0.jaw > 0 || F0.eyeYaw || F0.eyePitch || F0.say || F0.talk);
     const fc = inp.t !== undefined && F0.blink < 1 && live ? this.faceMotion(inp) : null;
-    if (fc) { for (const [b, k] of [[HB.head, 0.65], [HB.neck_01, 0.35]] as [number, number][]) { acc[b * 3] += fc[0] * k; acc[b * 3 + 1] += fc[2] * k; acc[b * 3 + 2] += fc[1] * k; has[b] = 1; }
+    // (s18 C14: on the head alone: a share on the neck swung what is weighted to it, the torc out in front of the chest at 0.5 m)
+    if (fc) { for (const [b, k] of [[HB.head, 1]] as [number, number][]) { acc[b * 3] += fc[0] * k; acc[b * 3 + 1] += fc[2] * k; acc[b * 3 + 2] += fc[1] * k; has[b] = 1; }
       if (this.breath) { acc[HB.spine_03 * 3] -= this.breath; has[HB.spine_03] = 1; } } // (the breath before a phrase: the chest lifts back)
     const st = inp.body?.stoop ?? 0;
     if (st) { for (const [b, k] of [[HB.spine_02, 0.35], [HB.spine_03, 0.35], [HB.neck_01, 0.3], [HB.head, -0.45]] as [number, number][]) { acc[b * 3] += st * k; has[b] = 1; } }

@@ -10315,6 +10315,10 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   over the procedural creases (tools/blender/face_scan.py; skin.ts applyFaceRelief); its albedo is not used (one man's
   stubble and brows on every face). The hair atlas's curls loosened (curly, court and beard rows: more irregular radius,
   pitch and phase, more strays and fray: the elder's "bubble wrap"), rebuilt in the cloud (ktx_cli.mjs takes given levels).
+- D-790 round 5: the skin's micro-relief from ShareTextures (CC0) in the scan layers' alpha, triplanar (SKIN.microTile 7 cm,
+  microAmp: sd ~15 um) in place of the finer pore octave; the court shell's cells on scalp and cheeks at 0.15; a woman's own
+  walk, stance, talk and box carry from ACCAD Female1 (CC BY 3.0; tools/mocap/bvh.ts), idle/talk chosen by the gait style;
+  people_hair, people_cloth and scans.ktx2 rebuilt in the cloud (ktx_cli.mjs: arrays, levels, RDO, extract).
 
 ## D-691 Carried props sit on the body, seated poses clear their props (s18 cloud C5)
 - tools/dev/prop_clip.ts: every activity and variant that holds a prop, and the goods in the plan's words (basket, sack, jar,
