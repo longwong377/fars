@@ -2,7 +2,8 @@
 // glazed bands under the palaces' string courses, the porticoes' hangings and the royal standards. Render geometry only.
 import { describe, it, expect } from 'vitest';
 import { buildTerrace } from '../src/arch/terrace';
-import { roofEdges, CROWN_SKIP } from '../src/arch/roofedge';
+import { roofEdges, CROWN_SKIP, KIT_BUILDINGS } from '../src/arch/roofedge';
+import { buildMeshes } from '../src/arch/meshes';
 import { crownPlan } from '../src/arch/decor';
 import { palaceBandFaces, buildGlazedFrieze } from '../src/arch/glazed';
 import { buildDressings, porchBays, standardPlaces } from '../src/arch/dressings';
@@ -36,4 +37,12 @@ describe('D-750 the Terrace dressed for distance', () => {
     const f = buildGlazedFrieze(parts)!; expect(f.getObjectByName('c10:dressings')).toBeTruthy(); expect(f.getObjectByName('palace-glazed-bands')).toBeTruthy();
     for (const p of parts) expect(['c10:dressings'].includes((p as any).kind)).toBe(false);
   });
+  it('D-803: the Terrace kit\'s cornices and plinths run along the palaces\' wall heads and feet, within their triangle bound', () => {
+    const B = buildMeshes(parts), k = B.group.getObjectByName('terracekit')!; expect(k).toBeTruthy();
+    let cor = 0, pl = 0; k.traverse((o: any) => { if (o.isInstancedMesh && o.name.endsWith(':lod1')) { const n = o.parent.levels[0].count + o.count; if (/cornice/.test(o.name)) cor += n; else pl += n; } });
+    expect(cor).toBeGreaterThan(1500); expect(pl).toBeGreaterThan(1500);
+    expect(B.kitTriangles).toBeGreaterThan(100000); expect(B.kitTriangles).toBeLessThan(450000);
+    for (const h of R.heads) { expect(KIT_BUILDINGS.has(h.building)).toBe(true); expect(Math.hypot(...h.u)).toBeCloseTo(1, 6); }
+    expect(new Set(R.heads.map(h => h.building))).toEqual(new Set(['gate_nations', 'apadana', 'tachara', 'hadish', 'harem']));
+  }, 600000);
 });
