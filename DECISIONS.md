@@ -9973,3 +9973,31 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   from 2 m up to ~290 m over the mountain behind the Terrace; a data fix (reroute round the north end) asked of the lead.
 - Unseen: the cloud cannot draw Q=high (WebGL2: program validation failures and a lost device with the cascade on AND off;
   WebGPU: SwiftShader's 16-texture cap), so the far cascade is verified node-side only; it needs a T4 frame.
+
+## D-740 The budget: every scan in KTX2 with low-first twins, one shader for the birds, the T4's pipeline limits counted on real WGSL (s18 cloud C9; UD-31)
+- Measured in the cloud (built site as Pages serves it, 100 Mbit/s, cold, `?quality=high&norender&seed=1`, headless Chromium on SwiftShader's WebGPU; tools/dev/pipeline_census.mjs, n=2 each). Base: s17 tip bc1afaca. After: this branch (s17-int 0b3871de merged, so V10's load fixes are in it too). The T4's own path is measured with `?twins=1`:
+  ready 64.3 -> 52.3 s; bytes before ready 370 -> 371 MB (textures 56 -> 56); page memory at ready 5.35 -> 4.55 GB, peak 5.87 -> 5.15 GB; textures bound by the scene's pipelines 2,259 -> 1,374 MB of GPU bytes; scene-pass shader programs 254 -> 216 (vertex modules 199 -> 160); pipelines over 16 vertex inputs / 8 buffers / 16 samplers: 0 (worst 16 / 8 / 11).
+- Textures: the 36 scan maps still loaded as 2048² jpgs (22.4 MB each on the GPU as RGBA8 with mips) are now UASTC KTX2 (BC7: 5.6 MB), and the ground's 12 layers are one KTX2 array (~64 MB, not 256 MB; no 192 MB array packed by hand on the page). KTX-Software 4.4.2's Linux release downloads in the cloud: /tmp/ktxsw, KTX=<it> for tools/bake_world/ktx_scans.ts, ktx_ground.ts and the new ktx_low.ts.
+- Low first for KTX2 (lowfirst.ts, loaders.ts): each KTX2 scan and the ground array has an ETC1S twin (`.low.ktx2`, the same size and mips, 35.7 MB for all 46), loaded before ready. After the world is up, the UASTC file's mips go into the same texture. This only happens where both transcode to BC7 (a desktop GPU without ETC2 or ASTC: the T4). Elsewhere (SwiftShader, Apple) the listed scans take their jpgs, low first, as before (cloud: 339 MB before ready). `?twins=1/0` force it either way.
+- Birds: the wingbeat's rate and shoulder are uniforms. shareInstancing.fitsAttributes now counts exactly (4 matrix + 4 previous matrix + 1 colour only when present). On three's uniform path an instanced mesh's matrix buffer is named after its node (`NodeBuffer_<id>`), so every such mesh had its own program. Flying birds: 31 programs -> 2. Each bird model's uv is packed into life.zw (one input and one buffer less).
+- Starling: D-570's fix holds on the real WGSL: 14 inputs now (6 geometry + 4 matrix + 4 previous matrix). D-570's geometry count had missed TRAA's previous matrix; on the pre-D-570 file the new test reads exactly the T4's 17. Doves: 9-16 inputs, <= 8 buffers, 3 node samplers in every level. The node census finds no fault; the T4's own log is asked for.
+- Tests: tests/pipeline_limits.test.ts (three's WGSLNodeBuilder, velocity MRT on, share-instancing on, 64 KiB uniform limit: every bird level, the jackals and the small life within 16 / 8 / 5 node samplers; the flying birds <= 2 programs); shader_share's buffer case follows the exact rule. In-page census: `__parsa.census()` (src/dev/pipelineCensus.ts).
+- Not done / not mine: the dist grew 704 -> 934 MB (Pages limit 1 GB). build_site.mjs should leave out the jpgs whose KTX2 is listed (77 MB) and the ground-only layer jpgs (84 MB): ~773 MB (asked of the lead). RGBA8 textures left in other owners' files: models/land cover/ground (6 x 21 MB), people_cloth_folds (21 MB), humans scans array (107 MB), tree leaf atlases (2 x 32 MB), bark array (45 MB) (asked).
+## D-771 The ruin rules rewritten in research/ and the blocklist (s18 cloud C12; UD-02, UD-14, UD-29)
+- Every absence rule that only recorded the evidence's silence now says what 467 most probably had (tier C, each change
+  marked "s18 D-771" in place with its reason and the old wording). In COURT, EVENTS, PEOPLE and CHRONOLOGY (and Q-005), the
+  court now comes and goes by default (D-236), so "court ABSENT is the default / evidence-strict" is gone. The king is
+  staged as a king (column, audience, bow, feast, gift day) but never addresses the visitor. A gift day of the delegations
+  with their animals; tukta and E-36 scheduled; harp and pipes at court; secular songs may have reconstructed words (UD-24).
+  The magi's chant stays wordless (CLAUDE.md ritual rule). Relief backgrounds, faces, animals and eyes are painted on the
+  whitish ground; capitals and colossi are painted; shafts have a finish coat, not raw stone; garments have borders; the
+  throne has lion bands; windows have shutters or grilles; the named work places are built; the brick fields, tower stairs,
+  drum ramp, Rahmat quarries, E-foot cistern, Akhor Rostam niches, private tombs, soil moisture, mules and camels; household
+  niches in non-Persian homes; qanats allowed (Ayn Manawir, Polybius 10.28).
+- Blocklist: "modern tents/villages"; gilding is banned as everything-gold, not outside attested zones; cats unblocked
+  (mousers); qanat allowed.
+- Kept: fire temples, statues of gods, music at Persian sacrifice, post-467 buildings and sites, windcatchers, domes,
+  fired-brick houses, glass windows, silk, rice as a staple.
+- Not mine to change (asked): src/data/blocklist.json (the 'qanat' term and the descriptions), tests/plain.test.ts:356
+  ('qanat'), tools/chrono_to_md.py:12 (CHRONOLOGY.md is generated: the new line must go into the generator), and the data
+  files (C13).

@@ -8,8 +8,9 @@ named page (capped at B); `NS` = not seen (capped at C, "RECOLLECTION, NOT SEEN,
 - **No event is attested for 467 itself.** The dated evidence is Darius-era: the Fortification texts (509–493), of which
   only 67 were read in full (CDLI-PF). Carrying any rhythm forward to Xerxes yr 19 is tier C. The one exception is the
   Treasury's activity (payments in silver), which does peak in Xerxes yrs 19–20 (IR-TREAS, SX, B).
-- **The court is absent by default (D-003).** So there are no delegations, no royal feasts, no New Year journeys to the
-  king and no royal-table deliveries. They exist only under the setting *Court calendar = seasonal pattern* (C).
+- **The court comes and goes by default (D-236).** **s18 D-771 (C):** this line said 'the court is absent by default (D-003)'. While it
+  is resident (from its arrival in days 6–18 of Nisannu to E-26) there are delegations, royal feasts, New Year journeys to the
+  king and royal-table deliveries (timing C); the out-of-world setting *Court calendar = evidence only* removes them.
 - **Within-month timing is not recorded** in any retrieved text. The texts give the month a ration is *for*, not the
   day it is issued. Every "day 1–5" rule is C.
 - **The agricultural calendar is modern Fars agronomy (SX) plus Old Persian month-name glosses (SX).** No Achaemenid
@@ -70,7 +71,7 @@ April–July: 1.0 2.5 6.7 8.6 11.7 8.6 10.6 5.5 2.8 2.0 1.1 0.6 (then × 0.5, C)
 | E-21 | all | **Travellers with a sealed authorisation (*halmi*)** arrive, show it, and draw travel rations | the party (officials, messengers, workers in transit), their guide (C), the storekeeper | road station / storehouse | 1–1.5 qa flour + ≈ 1 qa beverage per person per day; party size 1–20 typical (C); up to 1,633 (Lycian *marataš*) | court absent: 1–3 parties a week; court resident: 1–3 a day (C) | IR-PET ("sealed documents issued by the king or officials of satrapal level stating the scale"); HYLAND2022 (SX) | B / C (rates) |
 | E-22 | all | Traveller routes | – | – | from Susa (via Bessitme ≈ Basht and Dašer, about halfway), Media, India, Arachosia, Sagartia, Areia, Gandara, Bactria; Sardis (Artaphernes' messengers, 495–494) | – | IR-PET, Potts 2009 (SX via search) | B |
 | E-23 | any | **Large work-group transfer** arrives (a group of kurtaš reassigned) | group, heads, guide | road → town | 50–1,633 persons | C: 0–2 a year | HYLAND2022 (SX) | B (practice) / C (rate) |
-| E-24 | – | **Delegations bearing gifts: none** while the king is absent. Whether the Apadana reliefs show a real annual procession is debated (brief §2) | – | – | – | 0 by default | D-003 | C |
+| E-24 | – | **Delegations bearing gifts** while the king is resident. **s18 D-771 (C):** a gift day early in the residence when the delegations climb together behind their ushers with gifts and animals, and single parties through the rest of the residence (D-199); none while he is away. Whether the Apadana reliefs show one real annual procession is debated (brief §2); they are still the most probable picture of how gift-bearing looked. Was: 'none … 0 by default' | – | – | – | one gift day + parties (court resident) | D-199, D-771 | C |
 | E-25 | 1 (setting only) | **Court arrives** (setting "seasonal pattern": resident Nisannu–Duzu) | king, household, guards at full strength, officials | Terrace, palaces, town | + the court-resident populations (PEOPLE §P5.6) | once, day 1 of month 1 (C) | D-003; Q-005 | C |
 | E-26 | 4 (setting only) | **Court leaves** | same | – | – | once, end of month 4 (C) | D-003 | C |
 | E-27 | 12–1 (setting only) | **Journeys to the king at the New Year** (Darius-era pattern) | officials, taxpayers | Terrace | – | court resident only | KING2022 (abstract) | B (Darius-era) / C |
@@ -85,8 +86,8 @@ April–July: 1.0 2.5 6.7 8.6 11.7 8.6 10.6 5.5 2.8 2.0 1.1 0.6 (then × 0.5, C)
 | E-33 | 1, 7 | ***šip***: a large sacrificial feast "intimately connected with the crown"; Parnakka presided at Pasargadae and Ziššawiš at Appištapdan; sheep/goats under a *halmi* of Parnakka (NN 2259). **Scheduled since D-211 (the user's D-207): two a year at the offering place**, at the opening of the year (Nisannu 8–12; the Babylonian *akītu* of 1–11 Nisannu as the analogy) and on the festival of the seventh month, *Bāgayādiš* (Tashritu 10–15; the month's name A, the festival behind it C); an unnamed official presides; the heads of the town's and the near villages' households fetch their share of the meat in the morning | an official presiding (unnamed, C), magi (the rite: the religion workstream), storekeepers, the households' heads | the offering place (C) | 220–360 sheep and goats, 60–120 BAR grain, 40–90 marriš wine and 80–180 BAR beer as the stores allow (all C) | 2 a year (C) | HENK2011 (SX) | B (Darius-era) / C (467, dates, size, the sharing) |
 | E-34 | – | Form of a Persian sacrifice (Greek claim): "they do not build altars or kindle fire, employ libations, or music"; "a Magus comes near and chants"; the sacrificer takes the meat | magus, sacrificer | open ground | – | the households' sacrifices at the precinct (D-209: about 180 a year, C) and the form of E-30 to E-32 as shown | HDT 1.132 (FT) | B (claim) / C (rate, place) |
 | E-38 | 1, 7 | **Festival day off** (with E-33): the builders' gangs, the work camp, the porters, the weavers, millers and brewers, the craftsmen, the gardeners and farmers and the households at home keep the day: the šip meat fetched, the household's feast at midday, kin visited, the lanes in the best clothes, the women's drum at dusk (M-22); the watch, the flocks, the Treasury's desk, the stores, the station and the magi keep their duties | as named | home, the lanes, kin, the offering place | – | with E-33 | RECON (Babylonian temple workers' feast days as the analogy) | C (Q-057) |
-| E-35 | – (court only) | **King's birthday feast**: "served once a year, on the king's birthday … *tukta* … the king anoints his head and makes gifts to the Persians" | king, court | wherever the king is | – | court resident only; date unknown | HDT 9.110 (FT) | B (claim) |
-| E-36 | – (court only) | When the king "comes to Persia" he sacrifices and gives gifts to all the Persians, men and women | king | – | – | court resident only | XEN-CYR 8.5.21, 8.5.26 (FT) | B (claim) |
+| E-35 | – (court only) | **King's birthday feast**: "served once a year, on the king's birthday … *tukta* … the king anoints his head and makes gifts to the Persians" | king, court | wherever the king is | – | court resident; **s18 D-771 (C):** the date is unknown, so the seed draws one day in the residence (was: not scheduled) | HDT 9.110 (FT) | B (claim) |
+| E-36 | – (court only) | When the king "comes to Persia" he sacrifices and gives gifts to all the Persians, men and women | king | – | – | court resident: **s18 D-771 (C):** on the arrival day or the day after (was: default off) | XEN-CYR 8.5.21, 8.5.26 (FT) | B (claim) |
 | E-37 | any | **Birthday meal**: "The day which every man values most is his own birthday … a more abundant meal"; the poorer serve "the lesser kinds of cattle" | household | home | one small animal or better food | once a year per adult (Persian households) | HDT 1.133 (FT) | B (claim) |
 
 **How the religious rows are shown (D-209, session 7; the user's direction D-207: the most probable reconstruction, tier C,
@@ -115,7 +116,8 @@ one in 467).** All of it is reconstruction unless a source is named:
   is made without a magus, which argues against a private offering at the hearth; no domestic cult of Persians is attested
   for the period. The house's hearth fire is kept (lit at dusk, banked, relit before dawn: fire.ts 'home'), which is
   practice, not rite. Babylonian and Elamite households' domestic cults (known in Mesopotamia) are an open question
-  (Q-471).
+  (Q-471). **s18 D-771 (C):** fill the probable for those households: a wall niche with a clay figurine or amulet and a small food
+  offering (Mesopotamian household cult, B by analogy); Persian households stay without a shrine (Herodotus 1.132).
 
 ## 5. Agriculture, herds and the river (Fars)
 | id | month(s) | event | participants | place | quantities | frequency | source | tier |

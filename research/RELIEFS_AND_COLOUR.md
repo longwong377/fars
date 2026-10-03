@@ -111,10 +111,10 @@ delegation**, and the usher type (Median or Persian) was not found for individua
 | Throne covers and royal robes (Hall of 100 Columns, Harem, Tripylon) | painted walking-lion bands, attested by incised painters' guidelines | Nagel (academia extract) citing Tilia 1978: 46 | B | These are later or contemporary buildings; carry the convention over to the Apadana audience relief |
 | Winged-disc god (Hall of 100 Columns) | blue, green, red (cinnabar and ochre), black, white present | Lerner 2024 | B | The zone-by-zone map is in the paper, which was not read |
 | General statement | traces of green, gold, blue and red paint on the reliefs | Iranica "Persepolis" (search extract) | B | "gold" means gilding or metal attachments. Details not read |
-| Delegates' garments, gifts, animals | not found | — | — | OPEN. The model needs a convention (see OPEN_QUESTIONS) |
+| Delegates' garments, gifts, animals | not found | — | C | **s18 D-771 (C):** a palette per people from the natural dyes (D-189) and each garment's form; gifts in their materials (gold, silver, bronze, dyed cloth); animals in natural colours with painted harness. Was: OPEN |
 | Jewellery (bracelets, torques, crowns) | gold likely; inlay (lapis, carnelian) on real objects | Oxus-treasure extracts, about objects, not reliefs | C | No relief-specific gilding evidence was read |
-| Relief background | **no evidence found** | — | — | OPEN. Do not paint it by default; see §4 on the whitish finish layer |
-| Eyes (pupils) | not found | — | — | OPEN |
+| Relief background | **no evidence found** | — | C | **s18 D-771 (C):** not the bare grey of the ruin: the whitish finish layer (§4, B) is the ground and the figures are painted on it, faces and animals included (flesh ochre, painted eyes, harness). Was: 'OPEN. Do not paint it by default' |
+| Eyes (pupils) | not found | — | C | **s18 D-771 (C):** dark pupils and lash lines, as in every painted figure tradition of the time (Egypt, Assyria, the Susa bricks). Was: OPEN |
 
 ### 3c. Projects and literature
 - **Tilia 1978**, "Colours in Persepolis", in *Studies and Restorations at Persepolis and Other Sites of Fārs* II. This is
