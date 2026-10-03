@@ -9973,3 +9973,22 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   from 2 m up to ~290 m over the mountain behind the Terrace; a data fix (reroute round the north end) asked of the lead.
 - Unseen: the cloud cannot draw Q=high (WebGL2: program validation failures and a lost device with the cascade on AND off;
   WebGPU: SwiftShader's 16-texture cap), so the far cascade is verified node-side only; it needs a T4 frame.
+
+## D-771 The ruin rules rewritten in research/ and the blocklist (s18 cloud C12; UD-02, UD-14, UD-29)
+- Every absence rule that only recorded the evidence's silence now says what 467 most probably had (tier C, each change
+  marked "s18 D-771" in place with its reason and the old wording). In COURT, EVENTS, PEOPLE and CHRONOLOGY (and Q-005), the
+  court now comes and goes by default (D-236), so "court ABSENT is the default / evidence-strict" is gone. The king is
+  staged as a king (column, audience, bow, feast, gift day) but never addresses the visitor. A gift day of the delegations
+  with their animals; tukta and E-36 scheduled; harp and pipes at court; secular songs may have reconstructed words (UD-24).
+  The magi's chant stays wordless (CLAUDE.md ritual rule). Relief backgrounds, faces, animals and eyes are painted on the
+  whitish ground; capitals and colossi are painted; shafts have a finish coat, not raw stone; garments have borders; the
+  throne has lion bands; windows have shutters or grilles; the named work places are built; the brick fields, tower stairs,
+  drum ramp, Rahmat quarries, E-foot cistern, Akhor Rostam niches, private tombs, soil moisture, mules and camels; household
+  niches in non-Persian homes; qanats allowed (Ayn Manawir, Polybius 10.28).
+- Blocklist: "modern tents/villages"; gilding is banned as everything-gold, not outside attested zones; cats unblocked
+  (mousers); qanat allowed.
+- Kept: fire temples, statues of gods, music at Persian sacrifice, post-467 buildings and sites, windcatchers, domes,
+  fired-brick houses, glass windows, silk, rice as a staple.
+- Not mine to change (asked): src/data/blocklist.json (the 'qanat' term and the descriptions), tests/plain.test.ts:356
+  ('qanat'), tools/chrono_to_md.py:12 (CHRONOLOGY.md is generated: the new line must go into the generator), and the data
+  files (C13).
