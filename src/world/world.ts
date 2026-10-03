@@ -85,7 +85,7 @@ import { Birds, Jackals } from './wildlife';
 import { SmallLife, type CellCtx } from './smallLife';
 import { GroundFlora, RoseBeds } from './groundFlora';
 import { RoadLitter } from './roadLitter';
-import { WorldFill } from './fill'; import { TownTethers, townTethers } from './settlement/tethers'; import { RoofWear } from './settlement/roofwear'; import { townFill, terraceFill } from './fillPlan'; import { villageSite, importVillageSites, exportVillageSites } from './plain/villagesite';
+import { WorldFill } from './fill'; import { TownTethers, townTethers } from './settlement/tethers'; import { RoofWear } from './settlement/roofwear'; import { townFill, terraceFill } from './fillPlan'; import { villageSite, importVillageSites, exportVillageSites } from './plain/villagesite'; import { exportPlotCells, importPlotCells } from './settlement/walk';
 import { GroundRocks } from './groundRocks';
 import { Bedrock, loadRockKit } from './hills/bedrock';
 import { Ledges, loadLedgeFace } from './hills/ledges';
@@ -153,7 +153,7 @@ import { TreeKit } from './trees/render';
 import { newGameStart } from '../core/newGame';
 import { cached, prefetchWorldCache, cacheStats, cacheGet, cachePut, cacheEnabled, prefetchUnits, cachedSync, cacheGetSync, cachePutSync, verifying, verify, prefetchedKeys } from './cache/worldCache';
 /** D-392: the baked units read by the build's sync stages (cacheGetSync), fetched ahead */
-const SYNC_UNITS = ['townplan', 'navcore', 'arch'], WORLD_UNITS = ['grime', 'fill', 'zones', 'vsites'];
+const SYNC_UNITS = ['townplan', 'navcore', 'arch'], WORLD_UNITS = ['grime', 'fill', 'zones', 'vsites', 'plotcells'];
 import { hashArrays, hashString, hashBytes } from './cache/pack';
 import { packGeo, unpackGeo, geoHash, type GeoPack } from './cache/geo';
 import { mudFace } from '../arch/mudface';
@@ -464,6 +464,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const fillItems = cachedSync('fill', bakeKey, () => [...townFill(settlement?.plan.sites ?? [], seed, villagesIn.map(v => villageSite(v, v.comps as any).site), Object.values(sim.pop.quarters).filter(q => q.kind === 'town' || q.kind === 'garden').map(q => q.xy)).items, ...terraceFill(seed)]); // (D-392: the plan from the baked world)
   const fill = new WorldFill([...fillItems, ...(settlement?.roofFill() ?? [])], { ground: groundAt, phys, nav }); root.add(fill.group); // (s17 C1: + the roofs' things)
   const tethers = new TownTethers(townTethers(settlement?.plan.sites ?? [], fillItems), groundAt); root.add(tethers.group); // s17 C1 (D-550): the households' animals at their tethers
+  // s17 V10 (D-479): the town plots' cells a body reaches from the door (walk.ts plotCells, ~4 s live) from the baked world
+  if (settlement && !importPlotCells(settlement.plan.sites, cacheGetSync<ReturnType<typeof exportPlotCells>>('plotcells', bakeKey))) cachePutSync('plotcells', bakeKey, exportPlotCells(settlement.plan.sites));
   const fauna = new Fauna(seed, settlement?.plan ?? null, villagesIn, groundAt, { rivers: plain.data.rivers.rivers.map(r => ({ pts: Array.from(r.x, (x, i) => [x, r.y[i]] as [number, number]), half: r.topWidth / 2 })), canals: plain.data.canals.map(c => c.pts as [number, number][]) });
   { // the wild animals beyond the town (session 9, beasts.ts): uncultivated land from the plain's own land use; people at the
     // town's places, the villages and the Terrace (the lions and the steppe animals keep kilometres from them)

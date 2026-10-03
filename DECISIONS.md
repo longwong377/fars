@@ -9855,3 +9855,14 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   built-site load and the budget pass; the budget does not pass (first frames 45.5 -> 58.9 s, shaders settled 753 -> 931 s).
   V10 (branch s17-loadback, D-479) wins the load back; the built site is re-measured and s14-int pushed only when no metric is
   worse than the morning's. The final scoreboard (renders/2026-10-03T02-27-39-final2) and s17-int stand as they are.
+
+## D-479 (s17, V10 load win-back): the plots' door-reach cells baked; measure.mjs times ready before its probes
+- world:fauna's +4.2 s (0.6 -> 4.8 s on the T4 page) was not the fill or the tethers (WorldFill + TownTethers ~0.1 s in node,
+  <0.3 s on the page) but Fauna's constructor: its fromTown is the first caller of walk.ts plotCells, which since C1's D-550
+  runs reachFromDoor (cellRoom/edgeRoom over every plot cell of the town: 4.0-4.3 s of node CPU). The result is now a world-cache
+  unit ('plotcells', keyed by the world key, taken at the same point of the build so it sees the same solids; listed in
+  boot_files.txt for the prefetch): node, baked world read: Fauna 4006 -> 108 ms, world:fauna 4657 -> 741 ms. Nothing drawn changes.
+- measure.mjs: readyS/framesS were taken after D-580's memory probes (a forced GC, a scene walk, every worker's heap), which
+  added ~10-15 s to tonight's "first frames seen 58.9 s" (page clock: ready 41.6 s, frame 2 rendered 48.6 s). Now taken at ready.
+- fireOcc's "+2.6 s" is when its promise resolved under a busier main thread; the build awaits it only after the palace,
+  long after: it never blocked. Its half-float decode now uses a 64 K table instead of 1.7 M conversions.
