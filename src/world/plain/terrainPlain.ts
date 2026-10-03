@@ -322,7 +322,11 @@ export class PlainGround {
       let plotAlb: any = soilT.mul(bare).add(green.mul(gCov).mul(speck)).add(straw.mul(sCov).mul(speck)).mul(tint);
       let plotH: any = mix(G.dust.h, G.tilled.h, S.w).mul(bare).add(G.green.h.mul(gCov)).add(G.straw.h.mul(sCov)).mul(0.012);
       // bunds on plot edges (0.35 m) and a track along district edges (2.5 m wide), near only, in fields
-      const bund = float(1).sub(smoothstep(0.3, 0.6, edge)).mul(near).mul(mask); // earth bunds between plots, ~1 m wide (C)
+      // D-670 (the "dark dotted seam" across the near plain): the bund and the district track were cut at a fixed width in metres,
+      // so past ~100 m, under a pixel wide, they aliased into dotted lines; now each is drawn by its pixel coverage (a line under
+      // a pixel fades to its share of the pixel instead of breaking into dots)
+      const fwEd = fwidth(edge).max(0.01), fwDd = fwidth(dEdge).max(0.01);
+      const bund = float(1).sub(smoothstep(float(0.45).sub(fwEd), float(0.45).add(fwEd), edge)).mul(clamp(float(0.45).div(fwEd), 0, 1)).mul(near).mul(mask); // earth bunds between plots, ~1 m wide (C)
       // D-670: the plot's margin, a headland of weeds and grass the plough turns on, 1-3 m wide and ragged (its width varies
       // along the edge), drawn by its pixel coverage at any distance (a fine line far off, not cut at a radius); and in the
       // irrigated plots the basins (kart) the water is let into, low ridges every ~11-15 m across and ~18-28 m along the strip,
@@ -335,7 +339,7 @@ export class PlainGround {
       const fwB = fwidth(bq).mul(bw).max(0.02), ridge = max(float(1).sub(smoothstep(float(0.25).sub(fwB.x), float(0.25).add(fwB.x), bd.x)), float(1).sub(smoothstep(float(0.25).sub(fwB.y), float(0.25).add(fwB.y), bd.y)));
       const basinOn = wI.mul(mask).mul(step(k, ROW.fallow - 0.5)).mul(plotKeep);
       const wetB = step(0.72, unitN(hash2N(cellUN(bi.x.add(ph.toFloat().mod(977))), cellUN(bi.y), 48))).mul(basinOn).mul(SEASON.green.min(1));
-      const track = float(1).sub(smoothstep(1.0, 1.6, dEdge)).mul(near).mul(mask);
+      const track = float(1).sub(smoothstep(float(1.3).sub(fwDd), float(1.3).add(fwDd), dEdge)).mul(clamp(float(1.3).div(fwDd), 0, 1)).mul(near).mul(mask);
       plotAlb = mix(plotAlb, plotAlb.mul(vec3(0.8, 0.84, 0.86)), wetB.mul(0.8));
       const weedC = mix(mix(lin(...SEASON_PALETTE.straw).mul(det(G.straw)), lin(...SEASON_PALETTE.green).mul(det(G.green)), SEASON.green.div(SEASON.green.add(SEASON.dry).max(0.001))), soil, 0.3);
       plotAlb = mix(plotAlb, weedC.mul(float(1).add(vig.mul(0.08))), margin.mul(0.75));

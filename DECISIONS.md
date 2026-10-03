@@ -9855,7 +9855,8 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   banks; bank trees stand back of the bars.
 - Fields (terrainPlain.ts): greyer olive greens, a hue per plot, uneven vigour inside a plot, drill rows while young, a ragged
   1-3 m weedy headland drawn by coverage at any distance, irrigation basins (11-15 x 18-28 m) with ridges and their own
-  wetness (all C).
+  wetness (all C). The plot bunds and district tracks drawn by pixel coverage: cut at a width in metres they aliased into the
+  "dark dotted seam" across the near plain.
 - The far plain: field-edge trees (now ~17 a km2 of fields) and a new fallow scrub (almond, tamarisk, pistachio; thinned near
   the Terrace) within 8 km stand in the static far impostor set (they ended at the 900 m mid ring); the villages' floors,
   stacks, heaps and folds drawn to 2.2 km; crop guards' reed shelters at irrigated plot edges and herders' wattle pens with
