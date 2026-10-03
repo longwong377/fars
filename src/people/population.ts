@@ -533,6 +533,7 @@ export class Population {
     const craftOf = (H: Household) => { for (const x of H.members) { const j = this.persons[x].job; if (j === 'weaver') return ['textile']; if (j === 'brewer') return ['brewery']; if (j === 'craftsman') return ['metal', 'wood', 'pottery', 'pigment']; } return null; };
     const hs = this.households.filter(H => H.zone === 'town'); for (const H of hs) H.need = Math.max(1, this.maxMembers(H));
     hs.sort((a, b) => b.need! - a.need! || a.id - b.id);
+    this.plotFree = free; // (D-651: the room left in each plot, for the weddings made later in the year: addWedding)
     const take = (H: Household, id: string) => { free.set(id, free.get(id)! - H.need!); used.add(id); H.plot = id; };
     const zoneOf = new Map(townQ.map(q => [q.id, q.zone as string]));
     const tryIn = (H: Household, sids: string[], ok: (x: TownPlot) => boolean) => { for (const sid of sids) for (const x of plotsIn.get(sid) ?? []) if (ok(x) && free.get(x.id)! >= H.need!) return x.id; return null; };
@@ -541,7 +542,8 @@ export class Population {
       const ord = order.get(H.q) ?? siteIds, own = ord.filter(sid => TOWN_SITES[sid].zone === zoneOf.get(H.q)), other = ord.filter(sid => TOWN_SITES[sid].zone !== zoneOf.get(H.q));
       const cr = craftOf(H); let id: string | null = null;
       if (cr) id = tryIn(H, own, x => x.kind === 'workshop' && !!x.craft && cr.includes(x.craft) && !used.has(x.id));
-      id ??= tryIn(H, own, house) ?? tryIn(H, own, empty) ?? tryIn(H, own, any);
+      const fits = (x: TownPlot) => !cr || x.kind !== 'workshop' || (!!x.craft && cr.includes(x.craft)); // (D-651: a craft's house never in another craft's workshop)
+      id ??= tryIn(H, own, house) ?? tryIn(H, own, x => empty(x) && fits(x)) ?? tryIn(H, own, x => any() && fits(x));
       if (id) { take(H, id); continue; }
       // larger than any free house of its zone (an estate): the empty plots of one site of its zone together, before
       // anything elsewhere
@@ -549,7 +551,7 @@ export class Population {
         const ids: string[] = []; let cap = 0; for (const x of cand) { ids.push(x.id); cap += x.capacity; if (cap >= H.need!) break; }
         if (cap >= H.need!) { let left = H.need!; H.shares = []; for (const i of ids) { const t = Math.min(free.get(i)!, left); free.set(i, free.get(i)! - t); left -= t; used.add(i); H.shares.push(t); } H.plot = ids[0]; H.plots = ids; return true; } } return false; };
       if (H.need! > 10 && multi(own)) continue;
-      for (const sid of other) { id = tryIn(H, [sid], house) ?? tryIn(H, [sid], empty) ?? tryIn(H, [sid], any); if (id) break; }
+      for (const sid of other) { id = tryIn(H, [sid], house) ?? tryIn(H, [sid], x => empty(x) && fits(x)) ?? tryIn(H, [sid], x => any() && fits(x)); if (id) break; }
       if (id) { take(H, id); continue; }
       for (const sid of order.get(H.q) ?? siteIds) { const cand = (plotsIn.get(sid) ?? []).filter(x => !used.has(x.id)).sort((a, b) => b.capacity - a.capacity || (a.id < b.id ? -1 : 1));
         const ids: string[] = []; let cap = 0; for (const x of cand) { ids.push(x.id); cap += x.capacity; if (cap >= H.need!) break; }
@@ -1630,11 +1632,15 @@ export class Population {
    *  Only for a bride the population never married or moved (one move a year per person: Person.marry/hh2); false if not */
   addWedding(bride: number, groom: number, day: number, to: number): boolean {
     const B = this.persons[bride], G = this.persons[groom]; if (!B || !G || B.hh2 >= 0 || B.marry < 1e9 || B.hh === to || !this.households[to]) return false;
+    // (D-651: a town house holds no more than its plot: a wedding into a full one is not made; the room is kept for her)
+    const T0 = this.households[to]; if (T0.zone === 'town') { const id = (T0.plots ?? [T0.plot]).find(x => x && (this.plotFree.get(x) ?? 0) >= 1); if (!id) return false; this.plotFree.set(id, this.plotFree.get(id)! - 1); if (T0.plots && T0.shares) T0.shares[T0.plots.indexOf(id)]++; }
     B.hh2 = to; B.marry = day; B.single = false; G.single = false; if (!this.households[to].joins.includes(bride)) this.households[to].joins.push(bride);
     (this.weddingList[day] ??= []).push({ day, bride, groom, from: B.hh, to }); this.wedCache.delete(day); this.relWed.add(bride); return true;
   }
   /** the brides of the relations layer's weddings (addWedding) */
   readonly relWed = new Set<number>();
+  /** D-651: each town plot's room left after the housing (housePlots), spent by the weddings made later (addWedding) */
+  private plotFree = new Map<string, number>();
   private wedCache = new Map<number, { day: number; bride: number; groom: number; from: number; to: number }[]>();
   /** the weddings held today: bride and groom both fit for the day, both houses in the town or the plain (else the move is
    *  the quiet one of before: Planner.marriageDay) */
