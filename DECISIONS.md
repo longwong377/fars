@@ -10505,3 +10505,15 @@ touched; the budget baseline is not re-accepted from such a head.
   sent to C2 with a repro. At q_s1 (d0 10:00) 53 of 75 people on the move walk; the walks are short (3-5 min), and only 6 of
   303 drawn within 60 m walk: more and longer trips are the plans' (C1).
 - The doorstep shares a little higher (spin 50 %, play 65 %, talk 55 %, rest 40 %, craft 35 %, clean 45 %, eat 20 %).
+- (D-697) The court's people anchored at their groups' places on a court day (COURT_ANCHOR: the forecourt for the delegations
+  and the royal guard, the Apadana's N portico for the nobles, officials, heralds and table), not at their camps or the Terrace's
+  centre: tied with every Terrace worker they ranked 10,000-15,000th and a jump to the gift day placed 4 of the 747 a settle
+  puts within 60 m of the N court for 8 s; now 689 two seconds on (tests/people_drawn.test.ts). A walker over the route budget
+  asks again after half a game minute (ROUTE_RETRY_H), not every update.
+## D-694 (rebuild) The nav grid with C2's lower town (s18 cloud C5)
+- tools/build_nav.ts adds every collider box of the sites reaching into the grid (5 sites, 8,486 boxes: q_b8, q_b9, q_b10 at the
+  Terrace's W foot and their neighbours), and on the approach (west of e -45) blocks the pockets no body reaches from the seeds
+  (the quarters' houses and lanes: their walk is the town's TownWalk, not this grid). The Terrace's cells are unchanged. 162,852
+  approach cells fewer walkable (the quarters). Bots: approach 40/40 (0.53 % stuck), Terrace 39/40 (the miss: people at the
+  Tachara's door; stuck time at the Hall of 100's masons, sim.ts). terrace_walk's "every road block ... decides to an on-Terrace
+  task" fails identically on the old grid (not this rebuild).

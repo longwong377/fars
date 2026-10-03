@@ -48,6 +48,12 @@ describe('the people the view places are drawn (D-692)', () => {
     }
     console.log(rows.join('\n'));
   }, 900_000);
+  it("a jump to the court's gift day (day 19, 08:30): two seconds on, the view places at least half of the people a settle puts within 60 m of the Apadana's N court (C6's frame: 6 of 300+)", () => {
+    const sim = W.sim!, view = W.view!, c: [number, number] = [1.9, 75], t = 19 * 24 + 8.5; sim.jumpTo(t);
+    for (let f = 0; f <= 60; f++) view.update(t + f / 30 / 3600, c); const live = view.query(c, 60).filter(o => o.agent < 0).length;
+    view.settle(t + 61 / 30 / 3600, c); const settled = view.query(c, 60).filter(o => o.agent < 0).length;
+    console.log(`gift day, two seconds after the jump: ${live} placed of ${settled} a settle places`); expect(live).toBeGreaterThanOrEqual(0.5 * settled); expect(settled).toBeGreaterThan(300);
+  }, 900_000);
   it('a jump in time leaves nobody where the state before it put them (C12 T1): the court day 40 -> day 200, the court away', () => {
     const sim = W.sim!, view = W.view!, c: [number, number] = [0, 80], at = () => view.query(c, 80).filter(o => o.agent < 0 && /forecourt|portico|apadana/.test(o.what)).length;
     sim.jumpTo(40 * 24 + 10); view.settle(sim.t, c); const before = at(); expect(before).toBeGreaterThan(100);
