@@ -167,7 +167,7 @@ export class SkySystem {
       // squares as x·x: pow() of a negative base is undefined on the GPU (NaN), and TRAA spread those NaNs over the frame
       const sq = (x: any) => x.mul(x);
       const alongC = exp(sq(ld.div(62)).negate()); // brighter toward the centre
-      const width = float(7).add(alongC.mul(6)); // the band thickens toward Sagittarius (deg)
+      const width = float(8).add(alongC.mul(10)); // the band thickens toward Sagittarius (deg; D-680: was 7 + 6, a ray, not a band, where it rises)
       // D-680: a smooth (Gaussian) cross-section; the exp(-|b|/w) cusp drew a thin bright ridge beside the Great Rift's lane,
       // which near the horizon read as one light streak rising from a point (cov-000, T4 and cloud frames)
       const disk = exp(sq(bd.add(0.5).div(width.mul(0.9))).mul(-0.5)).mul(float(0.3).add(alongC.mul(0.55)));
