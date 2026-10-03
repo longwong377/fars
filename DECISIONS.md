@@ -10105,3 +10105,10 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   left out; animalModels passes the normals): they flick now (1.5-2.4 cm on donkeys, horses, sheep, dogs, camels). The
   camels' and the dromedary's tails swing (tail_r 0.06 / 0.07; a library tail's lever capped at 0.42 m so the hair against
   the hocks is not torn: TAIL_LEVER_REAL); the camel_pack's lying tear (lod1, 4 cm) gone with it.
+- D-720 addendum (the lead's asks): EconPlans.stepsSliced (C1's sliced day); no wall-clock in the deeds' save; the deeds' save keeps
+  the deed count and the last day's and ten days of the weighty deeds (tuples, under the 600 KB budget); E speaks with whoever is
+  faced, the player sees words and keys only, every reply voice through the mixer (holes #9); the eight peoples without a lexicon
+  speak reconstructed tongues of their own sounds (audio/tongues.ts), the lexicon languages add everyday reconstructed sentences,
+  the heard reply says the reply, overheard pairs say their own fact (#15); the court's people, travellers and herders not sent
+  to market (C7); meals bought by the stranger (4-12); trespass (4-1); W5, W6, W13, W14, W15, W17, W22; Kokoro blends without a
+  regional colour (all C).
