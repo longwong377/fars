@@ -301,6 +301,8 @@ export function lookFor(A: HumanAssets, p: LookInput, worldSeed: number): Person
   const kohl = shares && (free || dress === 'king') && uK < (shares.kohl ?? 0) ? 1 : 0;
   // D-780 (C14's look-alike measure; new draws last): one dye bath is not another and one garment's age is not another's: the
   // main garment's value and the hair's warmth spread a little per person (C)
+  // D-780 (holes u3; a new draw): the officials, scribes and secretaries wear their cylinder seal on a cord (C)
+  { const uS2 = rng.next(); if (free && (dress === 'persian' || dress === 'median') && ['official', 'scribe', 'treasury', 'steward'].includes(p.role) && uS2 < 0.8) add('seal_cord'); }
   { const uH = rng.next(); if (uH < 0.35 && dress === 'child' && free) add('headband'); if (uH < 0.5 && dress === 'woman' && free && !pieces.includes('headcloth')) add('headband'); } // (D-780: a cloth band round a child's or a bareheaded woman's head, C)
   { const vm = rng.range(0.7, 1.3), warm = rng.range(-0.15, 0.15); col.main = col.main.map(x => x * vm) as RGB; col.hair = [col.hair[0] * (1 + warm), col.hair[1], col.hair[2] * (1 - warm)] as RGB; }
   // D-780 (C12 P2-7; new draws last): the women's necklaces: every court woman, three in five of the town's women (C)

@@ -34,6 +34,6 @@ describe('Naqsh-e Rustam in 467 (D-800)', () => {
   it('the second tomb\'s scaffold and spoil, the keepers\' house at the people\'s house, the offering table', () => {
     expect(KEEPERS_HOUSE).toEqual(NAQSH.house);
     const life = buildNaqsh(T, R.nrAncientFootAsl).group.userData.life; console.log(JSON.stringify(life));
-    expect(life.scaffoldMembers).toBeGreaterThan(100); expect(life.keepersHouse).toBe(1); expect(life.offering).toBe(1); expect(life.tris).toBeLessThan(20000);
+    expect(life.scaffoldMembers).toBeGreaterThan(100); expect(life.akhorNiches, 'Akhor Rostam niches on rock (Q-085)').toBeGreaterThanOrEqual(24); expect(life.akhorAt).toBeLessThan(4500); expect(life.privateTombs).toBeGreaterThanOrEqual(4); expect(life.keepersHouse).toBe(1); expect(life.offering).toBe(1); expect(life.tris).toBeLessThan(30000);
   });
 });
