@@ -85,7 +85,7 @@ import { Birds, Jackals } from './wildlife';
 import { SmallLife, type CellCtx } from './smallLife';
 import { GroundFlora, RoseBeds } from './groundFlora';
 import { RoadLitter } from './roadLitter';
-import { WorldFill } from './fill'; import { TownTethers, townTethers } from './settlement/tethers'; import { RoofWear } from './settlement/roofwear'; import { townFill, terraceFill } from './fillPlan'; import { villageSite, importVillageSites, exportVillageSites } from './plain/villagesite';
+import { WorldFill } from './fill'; import { TownTethers, townTethers } from './settlement/tethers'; import { RoofWear } from './settlement/roofwear'; import { townFill, terraceFill } from './fillPlan'; import { villageSite, importVillageSites, exportVillageSites } from './plain/villagesite'; import { exportPlotCells, importPlotCells } from './settlement/walk';
 import { GroundRocks } from './groundRocks';
 import { Bedrock, loadRockKit } from './hills/bedrock';
 import { Ledges, loadLedgeFace } from './hills/ledges';
@@ -153,7 +153,7 @@ import { TreeKit } from './trees/render';
 import { newGameStart } from '../core/newGame';
 import { cached, prefetchWorldCache, cacheStats, cacheGet, cachePut, cacheEnabled, prefetchUnits, cachedSync, cacheGetSync, cachePutSync, verifying, verify, prefetchedKeys } from './cache/worldCache';
 /** D-392: the baked units read by the build's sync stages (cacheGetSync), fetched ahead */
-const SYNC_UNITS = ['townplan', 'navcore', 'arch'], WORLD_UNITS = ['grime', 'fill', 'zones', 'vsites'];
+const SYNC_UNITS = ['townplan', 'navcore', 'arch'], WORLD_UNITS = ['grime', 'fill', 'zones', 'vsites', 'plotcells'];
 import { hashArrays, hashString, hashBytes } from './cache/pack';
 import { packGeo, unpackGeo, geoHash, type GeoPack } from './cache/geo';
 import { mudFace } from '../arch/mudface';
@@ -427,6 +427,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   wmark('sim');
   settlement?.roofWear.setSource(RoofWear.source(sim.pop.households, (hh, d) => sim.deeds.joint.roofOf(hh, d), () => Math.floor(sim.t / 24))); // s17 C1 (D-550): leaking and fresh roofs
   sim.routeSearchesPerStep = 1; // at most one new route search per render frame (D-024)
+  sim.aheadMs = 4; // D-650: tomorrow made ready ~4 ms a frame
   // D-199: the court's camps (court setting only): the tents of the court's camp and of the retinue's camps (camps.ts)
   const campTents = sim.pop.court ? new CourtCampTents(sim.pop.court.tents, (e, n) => terrain.heightAt(e, -n), phys) : null; if (campTents) root.add(campTents.group);
   if (sim.pop.court) addCampHearths(fire, campItems(sim.pop.court.tents), (e, n) => terrain.heightAt(e, -n), ti => tentStands(sim.pop.court!.tents[ti], sim.t)); // D-530: the court camps' hearths (C3's ask)
@@ -449,7 +450,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   let navOwn = false;
   if (navCore) for (const k of prefetchedKeys('navcore')) { if (!k.startsWith(navKey + '|')) continue; const m = cacheGetSync<Map<string, unknown>>('navcore', k);
     if (m instanceof Map) { for (const [a, v] of m) navCore.set(a, v); if (k === `${navKey}|${seed}`) navOwn = true; } }
-  const view = new PopView(sim, geo, seed, { warm: !navOwn }); crowd.view = view;
+  const view = new PopView(sim, geo, seed, { warm: !navOwn }); crowd.view = view; view.setDoorways(doorways); // D-690: the view keeps people out of the Terrace doorways (C5)
   if (navCore && !navOwn) cachePutSync('navcore', `${navKey}|${seed}`, navCore);
   wmark('view');
   // D-210: the animals that live about the town, the villages, the paradise and the river (world/fauna.ts), and the animals
@@ -464,6 +465,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const fillItems = cachedSync('fill', bakeKey, () => [...townFill(settlement?.plan.sites ?? [], seed, villagesIn.map(v => villageSite(v, v.comps as any).site), Object.values(sim.pop.quarters).filter(q => q.kind === 'town' || q.kind === 'garden').map(q => q.xy)).items, ...terraceFill(seed)]); // (D-392: the plan from the baked world)
   const fill = new WorldFill([...fillItems, ...(settlement?.roofFill() ?? [])], { ground: groundAt, phys, nav }); root.add(fill.group); // (s17 C1: + the roofs' things)
   const tethers = new TownTethers(townTethers(settlement?.plan.sites ?? [], fillItems), groundAt); root.add(tethers.group); // s17 C1 (D-550): the households' animals at their tethers
+  // s17 V10 (D-479): the town plots' cells a body reaches from the door (walk.ts plotCells, ~4 s live) from the baked world
+  if (settlement && !importPlotCells(settlement.plan.sites, cacheGetSync<ReturnType<typeof exportPlotCells>>('plotcells', bakeKey))) cachePutSync('plotcells', bakeKey, exportPlotCells(settlement.plan.sites));
   const fauna = new Fauna(seed, settlement?.plan ?? null, villagesIn, groundAt, { rivers: plain.data.rivers.rivers.map(r => ({ pts: Array.from(r.x, (x, i) => [x, r.y[i]] as [number, number]), half: r.topWidth / 2 })), canals: plain.data.canals.map(c => c.pts as [number, number][]) });
   { // the wild animals beyond the town (session 9, beasts.ts): uncultivated land from the plain's own land use; people at the
     // town's places, the villages and the Terrace (the lions and the steppe animals keep kilometres from them)
@@ -570,8 +573,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // 135 on the Terrace; published words only, each person their own voice; a grain bed for the talkers beyond (audio/voices.ts)
   const voices = new PopulationVoices(audio, { seed }); const overheard = new Overheard(sim); voices.script = (k, g, l) => overheard.next(k, g, l); voices.neural = neural; farCrowd.neural = neural; const nearBuf: NearPerson[] = []; const scriptedUntil = new Map<string, number>();
   // what a person near says reaches the translation layer (out of world; T-K3c), unless a scripted line was shown lately
-  let scriptedSubAt = -1e9; voices.onCaption = c0 => { if (c0.lang === 'wordless' || time - scriptedSubAt < 4) return; const c1 = thinCaption(sim, c0), tp = overheard.topicFor(c0.key), c = { ...c1, lang: c0.lang, gloss: tp ? `${c1.gloss}${c1.gloss ? ' ' : ''}(talking of ${tp})` : c1.gloss }; // (D-377: what they talk of; D-370: the gloss thins as the stranger learns the tongue)
-    lastSubtitle = { lineId: c.unit, lang: c.lang, translit: c.translit, gloss: c.gloss, tier: c.tier, speakerId: c.key, backend: neural?.stats.ready ? 'kokoro' : 'formant' }; };
+  let scriptedSubAt = -1e9; voices.onCaption = c0 => { if ((c0.lang === 'wordless' && !c0.tongue) || time - scriptedSubAt < 4) return; const c1 = thinCaption(sim, c0), tp = overheard.topicFor(c0.key), c = { ...c1, lang: c0.lang, gloss: tp ? `${c1.gloss}${c1.gloss ? ' ' : ''}(talking of ${tp})` : c1.gloss }; // (D-377: what they talk of; D-370: the gloss thins as the stranger learns the tongue)
+    lastSubtitle = { lineId: c.unit, lang: c.lang as any, translit: c.translit, gloss: c.gloss, tier: c.tier, speakerId: c.key, backend: neural?.stats.ready ? 'kokoro' : 'formant' }; };
   // D-245: the rivers and canals sound near their banks (audio/water.ts; T-G3e)
   const water = new WaterSound(audio, [...plain.data.rivers.rivers.map(r => ({ pts: Array.from(r.x, (x, i) => [x, r.y[i]] as [number, number]), half: r.topWidth / 2, kind: 'river' as const })),
     ...plain.data.canals.map(c => ({ pts: c.pts, half: c.width / 2, kind: 'canal' as const }))], groundAt, seed);
@@ -626,6 +629,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const courtOn = (d: number) => d >= 0 && sim.cal.ctx(d).court;
   const music = new MusicSystem(audio, () => courtOn(Math.floor(sim.t / 24)) || courtOn(Math.floor(sim.t / 24) - 1));
   const hadishRoom = rooms.find(r => r.id === 'hadish') ?? null;
+  const apadanaRoom = rooms.find(r => r.id === 'apadana') ?? null; // D-780: the court's banquets in the Apadana (C13)
   const director = new MusicDirector(music, audio, {
     addExtra: (key, x) => { crowd.addExtra(key, { id: -7000 - (x.seed % 1000), dress: x.sex === 'f' ? 'court_woman' : 'persian', sex: x.sex, role: 'musician', seed: x.seed, x: x.e, y: x.y, z: -x.n, yaw: yawOf(x.heading), anim: x.anim } as any); },
     removeExtra: key => crowd.detach(key),
@@ -657,7 +661,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const simulate = (dt: number, clock: any) => {
     const target = clock.t * 24;
     if (!simStarted) { sim.jumpTo(target); simStarted = true; }
-    else { const ds = (target - sim.t) * 3600; if (ds < -1 || ds > 900) sim.jumpTo(target); else if (ds > 0) sim.step(ds); }
+    else { const ds = (target - sim.t) * 3600; if (ds < -1 || ds > 900) sim.jumpTo(target, dt > 0 ? 8 : 0); /* D-650: a day change is sliced over frames (8 ms each); a dt-0 tick jumps whole */ else if (ds > 0) sim.step(ds); }
     if (playerAt) sim.player = [playerAt.x, -playerAt.z];
     // doors (D-051): swing, schedules, people opening closed doors as they pass; before the next physics step
     doors.player = playerAt; doors.people = sim.agents.filter(a => !a.offmap).map(a => a.pos as [number, number]);
@@ -792,7 +796,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
           if (time - leavesAt > 0.5) { leavesAt = time; syncLeaves(); occCache.clear(); }
           const day = Math.floor(sim.t / 24), C = sim.cal.ctx(day);
           director.update(dt, sim.agents as unknown as PerformerAgent[], { t: sim.t, seed, courtToday: C.court, courtYesterday: courtOn(day - 1), sun: C.sun, foul: C.wx.storm || ctx.cond.rain > 0.3,
-            courtHall: hadishRoom ? { cx: hadishRoom.cx, cy: hadishRoom.cy, sx: hadishRoom.sx, sy: hadishRoom.sy, fl: hadishRoom.fl } : null }, cam.position, bandPeople(day));
+            courtHall: hadishRoom ? { cx: hadishRoom.cx, cy: hadishRoom.cy, sx: hadishRoom.sx, sy: hadishRoom.sy, fl: hadishRoom.fl } : null, banquetHall: apadanaRoom ? { fl: apadanaRoom.fl } : null }, cam.position, bandPeople(day));
           audio.updateOcclusion(3); // ~0.1 ms per query measured in node (D-178): about 0.3 ms a frame
         }
         const jdn = ctx.clock.jdn, b = babylonianDate(jdn); void b;

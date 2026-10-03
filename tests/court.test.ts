@@ -46,7 +46,7 @@ describe('the court in residence (D-182)', () => {
       expect(day).toBeGreaterThanOrEqual(Math.max(TER.day.all_seasons.range[0], 0.8 * TER.day.all_seasons.w)); expect(day).toBeLessThanOrEqual(Math.min(TER.day.all_seasons.range[1], 1.2 * TER.day.all_seasons.w));
       expect(night).toBeGreaterThanOrEqual(Math.max(TER.night.all_seasons.range[0], 0.8 * TER.night.all_seasons.w)); expect(night).toBeLessThanOrEqual(Math.min(TER.night.all_seasons.range[1], 1.2 * TER.night.all_seasons.w)); }
     // without the court the Terrace is the court-absent Terrace
-    expect(onTerrace(absent.pop, 45, 10)).toBeLessThan(1200);
+    expect(onTerrace(absent.pop, 45, 10)).toBeLessThanOrEqual(Math.max(...Object.values((popData as any).zones.find((z: any) => z.id === 'terrace').court_absent.day).map((v: any) => v.range[1]))); // (D-651: population.json's own court-absent range, was a fixed 1,200 before the nine gangs)
     console.log(rows.join('\n'));
   }, 300_000);
   it('the groups are as court.json sizes them; names from the attested pools by origin; sources resolve', () => {

@@ -10,6 +10,8 @@ import type { Pose, PoseBone } from './anim';
 import { WORK_META, type WorkAnim } from './workAnims';
 import { EXTRA_BONES, EXTRA_FLOATS, type BodyRig } from './bodyShape';
 import { SoftState, stepSoft } from './softbody';
+import { EX } from './bodyShape';
+import { visemeAt, stressAt, phonesOf, pauseAt, saccade, listenNod, gazeState, JAW_OPEN, FACE0, type FaceShape, type GazeState, type Phones } from './face';
 
 export const NBONES = HBONES.length;
 export const PARENT = Int8Array.from(HBONES.map(b => (HPARENT[b] ? HB[HPARENT[b]!] : -1)));
@@ -34,7 +36,22 @@ export interface FaceState {
    *  person's, character space when the root is zero (the crowd); null: eyes follow the head, with saccades */
   look: [number, number, number] | null;
   eyeYaw: number; eyePitch: number;
+  /** D-790 (face.ts): the line being spoken (its transliteration, the world time it began, its length in seconds): the
+   *  mouth follows its phones. Absent: a talking jaw (jaw above TALK_JAW) speaks a seeded babble in the period's shape */
+  say?: { text: string; t0: number; seconds?: number } | null;
+  /** D-790: 1 while speaking, 0 not (absent: read from the jaw) */ talk?: number;
+  /** D-790: the person's seed for the face's motion (absent: one per FaceState) */ seed?: number;
 }
+/** D-790: the head following the eyes: rate (1/s), leak back to the pose's head (1/s), dead zones (yaw, pitch; rad), the
+ *  largest turn added (rad) */
+export const FOLLOW = { rate: 6, leak: 0.5, dz: [0.15, 0.1] as [number, number], maxYaw: 0.5 };
+/** D-790: a jaw opened beyond this (rad) reads as speech or song (the crowd's talking jaw reaches 0.15; eating stays ≤ 0.06) */
+export const TALK_JAW = 0.065;
+/** D-790: the face's motion per FaceState (the eyes' fixations, the listening nods, the speech's phones) */
+interface FaceMem { G: GazeState; seed: number; lastT: number; env: number; ph: Phones | null; phKey: string; blinkAt: number; smile: number;
+  /** the eyes' last unclamped need (head frame: yaw, pitch) and the head's following turn (yaw, pitch) */ need: [number, number]; follow: [number, number] }
+const FACE_MEM = new WeakMap<FaceState, FaceMem>();
+let faceSeq = 1;
 export interface RigInput {
   joints: Float32Array; pose: Pose; face: FaceState;
   /** finger curl 0 (relaxed) … 1 (closed grip), per hand */
@@ -94,6 +111,58 @@ export class RigSolver {
   private tmp = new Float64Array(9); private tmp2 = new Float64Array(9);
   private pelvisY = 0; private acc = new Float64Array(NBONES * 3); private has = new Uint8Array(NBONES);
   constructor(private curlAxes: Record<string, number[]>) {}
+  /** D-790: this solve's face controls, eye offset (yaw, pitch) and blink */
+  readonly fs: FaceShape = { ...FACE0 }; readonly eyeOff: [number, number] = [0, 0]; blink = 0; private faceOn = false; private breath = 0;
+
+  /** D-790: the face's controls for this frame (this.fs, eyeOff, blink); returns the head's added pitch, roll and yaw (rad) */
+  private curM: FaceMem | null = null;
+  private faceMotion(inp: RigInput): [number, number, number] {
+    const f = inp.face, t = inp.t!; let M = FACE_MEM.get(f);
+    if (!M) { const seed = f.seed ?? (faceSeq++ * 7919); M = { G: gazeState(seed), seed, lastT: t, env: 0, ph: null, phKey: '', blinkAt: -9, smile: 0, need: [0, 0], follow: [0, 0] }; FACE_MEM.set(f, M); }
+    if (f.seed !== undefined && f.seed !== M.seed) { M.seed = f.seed; M.G = gazeState(f.seed); }
+    const dt = Math.max(0, Math.min(0.25, t - M.lastT)); M.lastT = t;
+    const seed = M.seed, G = M.G, fs = this.fs;
+    // speaking: the line's phones, else a talking jaw's babble; the envelope eases in and out (~0.12 s)
+    const say = f.say && t >= f.say.t0 && t < f.say.t0 + (f.say.seconds ?? 1e9) + 0.2 ? f.say : null;
+    if (say) { const key = say.text + '|' + (say.seconds ?? ''); if (key !== M.phKey) { M.ph = phonesOf(say.text, say.seconds); M.phKey = key; } }
+    if (f.talk !== undefined ? f.talk > 0 : f.jaw > TALK_JAW) G.talkSeen = t;
+    const talking = !!say || t - G.talkSeen < 0.45;
+    M.env += ((talking ? 1 : 0) - M.env) * Math.min(1, dt * 9);
+    const env = M.env, tt = say ? t - say.t0 : t;
+    if (env > 0.01) { visemeAt(say ? M.ph : null, seed, tt, fs); fs.jaw *= JAW_OPEN * env * (0.85 + 0.3 * ((seed % 89) / 89)); fs.round *= env; fs.wide *= env; fs.press *= env; fs.tuck *= env; }
+    else { fs.jaw = fs.round = fs.wide = fs.press = fs.tuck = 0; }
+    // not speaking: the crowd's jaw (eating, a piper's reed) with the lips closed over the chewing
+    if (env < 0.99) { const j0 = Math.max(0, f.jaw) * (1 - env); fs.jaw += j0; if (f.jaw > 0 && f.jaw <= TALK_JAW) fs.press = Math.max(fs.press, 0.5 * (1 - f.jaw / TALK_JAW)); }
+    const stress = env > 0.01 ? stressAt(say ? M.ph : null, seed, tt) * env : 0;
+    const onFace = !!f.look, h1 = ((seed >>> 3) % 101) / 101, h2 = ((seed >>> 7) % 97) / 97;
+    // brows: lifted on stress (some people far more than others), a slow thinking knit while speaking, a greeting lift
+    fs.browUp = Math.min(1, stress * (0.35 + 0.9 * h1) + (onFace ? 0.12 : 0) * (0.5 + 0.5 * Math.sin(t * 0.37 + seed)));
+    fs.knit = env * Math.max(0, Math.sin(t * 0.29 + seed * 0.7) - 0.55) * 1.6 * h2;
+    // a faint smile for the person looked at, warmer in some (C: the warmth of a greeting; never a fixed grin)
+    const smT = onFace ? 0.12 + 0.5 * h2 * (0.6 + 0.4 * Math.sin(t * 0.21 + seed)) : 0.04;
+    M.smile += (smT - M.smile) * Math.min(1, dt * 2.5); fs.smile = M.smile;
+    // eyes: saccades (a blink with most large ones), the drift of fixation
+    const [ey, ep, bl] = saccade(G, seed, t, onFace); this.eyeOff[0] = ey; this.eyeOff[1] = ep;
+    if (bl) M.blinkAt = t;
+    const bt = t - M.blinkAt; this.blink = Math.max(f.blink, bt >= 0 && bt < 0.15 ? Math.sin((bt / 0.15) * Math.PI) : 0);
+    // the head: a small nod on the stress (down), a tilt that drifts; listening: back-channel nods
+    const nod = 0.04 * stress + (onFace && env < 0.5 ? listenNod(G, seed, t) : 0);
+    const roll = (G.tilt + 0.03 * Math.sin(t * 0.43 + seed)) * (onFace ? 1 : 0.4) + 0.02 * stress * Math.sin(seed);
+    // the head follows the eyes (people turn the head once the eyes are more than ~10-15 degrees off its axis, C): the eyes'
+    // last need beyond the dead zone feeds the head's turn, so a captured talking head bowed over its hands lifts to the face
+    // it speaks to instead of the eyes rolling up under the brows; without a target the turn eases away
+    const F = M.follow, k = Math.min(1, dt * FOLLOW.rate);
+    // (a slow leak back to the pose's own head: a captured head swings by itself, and a turn kept after it swung back would
+    // hold the face turned away)
+    if (f.look) { const dz = (v: number, d: number) => (Math.abs(v) > d ? v - Math.sign(v) * d : 0), lk = Math.min(1, dt * FOLLOW.leak);
+      F[0] = Math.max(-FOLLOW.maxYaw, Math.min(FOLLOW.maxYaw, F[0] * (1 - lk) + k * dz(M.need[0], FOLLOW.dz[0]))); F[1] = Math.max(-0.45, Math.min(0.35, F[1] * (1 - lk) + k * dz(M.need[1], FOLLOW.dz[1]))); }
+    else { F[0] *= 1 - k; F[1] *= 1 - k; }
+    // a speaker breathes in at the pauses between phrases (the chest lifts, the head with it a little; ~0.3 s); C
+    const inhale = env > 0.01 && say && M.ph ? pauseAt(M.ph, tt) * env : env > 0.01 ? Math.max(0, Math.sin(tt * 1.9 + seed) - 0.82) * 5 * env : 0;
+    this.breath = 0.035 * inhale;
+    this.curM = M; this.faceOn = true;
+    return [nod + F[1] - 0.3 * this.breath, roll, F[0]];
+  }
 
   /** local rotations from the pose channels, hands and face (eyes are aimed during solve, once the head is placed) */
   private fingerCache = new Map<number, Float64Array>();
@@ -108,21 +177,33 @@ export class RigSolver {
   }
   setPose(inp: RigInput) {
     const L = this.local;
-    L.set(IDENT_ALL);
+    L.set(IDENT_ALL); this.faceOn = false; this.curM = null; this.breath = 0;
     const acc = this.acc, has = this.has; acc.fill(0); has.fill(0);
     for (const ch in inp.pose.rot) { const e = inp.pose.rot[ch as PoseBone]; if (!e) continue;
       for (const [bn, k] of RETARGET[ch as PoseBone]) { const b = HB[bn]; acc[b * 3] += e[0] * k; acc[b * 3 + 1] += e[1] * k; acc[b * 3 + 2] += e[2] * k; has[b] = 1; } }
     // D-363: the stoop of age and of carrying (+X bows forward), spread over the spine and neck, the head lifting half back
+    // D-790: the face's own motion (speech, brows, the head's beats and nods, saccades): only where the caller keeps a
+    // clock (the crowd, the player); an impostor bake (no clock) stays still
+    // (and only for a face the caller animates: the crowd gives the far people (lod 2+) no gaze, drift or jaw, and they skip it)
+    const F0 = inp.face, live = !!(F0.look || F0.jaw > 0 || F0.eyeYaw || F0.eyePitch || F0.say || F0.talk);
+    const fc = inp.t !== undefined && F0.blink < 1 && live ? this.faceMotion(inp) : null;
+    if (fc) { for (const [b, k] of [[HB.head, 0.65], [HB.neck_01, 0.35]] as [number, number][]) { acc[b * 3] += fc[0] * k; acc[b * 3 + 1] += fc[2] * k; acc[b * 3 + 2] += fc[1] * k; has[b] = 1; }
+      if (this.breath) { acc[HB.spine_03 * 3] -= this.breath; has[HB.spine_03] = 1; } } // (the breath before a phrase: the chest lifts back)
     const st = inp.body?.stoop ?? 0;
     if (st) { for (const [b, k] of [[HB.spine_02, 0.35], [HB.spine_03, 0.35], [HB.neck_01, 0.3], [HB.head, -0.45]] as [number, number][]) { acc[b * 3] += st * k; has[b] = 1; } }
     for (let b = 0; b < NBONES; b++) if (has[b]) eulerXYZ(L, b * 9, acc[b * 3], acc[b * 3 + 1], acc[b * 3 + 2]);
     // fingers: resting curl blended to a grip (thumb_01 … pinky_03 are consecutive bones after each hand)
     L.set(this.fingers(0, inp.grip[0]), HB.thumb_01_l * 9); L.set(this.fingers(1, inp.grip[1]), HB.thumb_01_r * 9);
     // face: jaw opens about +X; upper lids close downward (+X), lower lids rise (−X); lids follow the gaze pitch a little
-    const f = inp.face; eulerXYZ(L, HB.jaw * 9, Math.max(0, f.jaw), 0, 0);
-    const lidFollow = 0.6 * f.eyePitch;
-    for (const b of [HB.lid_ul, HB.lid_ur]) eulerXYZ(L, b * 9, f.blink * LID_CLOSE + lidFollow * (1 - f.blink), 0, 0);
-    for (const b of [HB.lid_ll, HB.lid_lr]) eulerXYZ(L, b * 9, -f.blink * LID_LOWER + 0.3 * lidFollow * (1 - f.blink), 0, 0);
+    const f = inp.face, fs = this.fs, jaw = fc ? fs.jaw : Math.max(0, f.jaw); eulerXYZ(L, HB.jaw * 9, jaw, 0, 0);
+    const blink = fc ? this.blink : f.blink, lidFollow = 0.6 * (f.eyePitch + (fc ? this.eyeOff[1] : 0));
+    // (D-790: the smile lifts the lower lids and narrows the eyes a little; a lifted brow opens the upper lids)
+    const squint = fc ? 0.35 * fs.smile : 0, wide = fc ? 0.12 * fs.browUp : 0;
+    // (D-790: the upper lid at rest covers the top of the iris by a millimetre or two, more in some people and when tired;
+    // the wide-open stare of the bind pose read as a doll's; C)
+    const rest = fc ? 0.06 + 0.07 * ((((this.curM as FaceMem | null)?.seed ?? 0) >>> 5) % 53) / 53 : 0;
+    for (const b of [HB.lid_ul, HB.lid_ur]) eulerXYZ(L, b * 9, blink * LID_CLOSE + (lidFollow + (0.08 * squint + rest) * LID_CLOSE - wide) * (1 - blink), 0, 0);
+    for (const b of [HB.lid_ll, HB.lid_lr]) eulerXYZ(L, b * 9, -blink * LID_LOWER + (0.3 * lidFollow - (0.5 * squint + 0.5 * rest) * LID_LOWER) * (1 - blink), 0, 0);
     this.pelvisY = inp.joints[HB.pelvis * 3 + 1];
   }
 
@@ -131,7 +212,7 @@ export class RigSolver {
   solve(inp: RigInput, palette: Float32Array, off: number) {
     const J = inp.joints, L = this.local, WR = this.wr, WT = this.wt, P = inp.pose;
     const hs = this.pelvisY / POSE_PELVIS_Y;
-    const aim = !!(inp.face.look || inp.face.eyeYaw || inp.face.eyePitch);
+    const aim = !!(inp.face.look || inp.face.eyeYaw || inp.face.eyePitch || this.faceOn);
     for (let b = 0; b < NBONES; b++) {
       const p = PARENT[b];
       if (p < 0) { for (let k = 0; k < 9; k++) WR[k] = L[k]; WT[0] = J[0] + P.hips[0] * hs; WT[1] = J[1] + P.hips[1] * hs; WT[2] = J[2] + P.hips[2] * hs; continue; }
@@ -159,7 +240,12 @@ export class RigSolver {
     }
     // D-363: the body's extras (static fields) and the soft tissue's springs
     const eo = off + NBONES * 12;
-    if (G) { palette.set(G.extras, eo); const S = inp.soft ?? (inp.soft = new SoftState()); stepSoft(S, G, inp.t ?? (typeof performance !== 'undefined' ? performance.now() / 1000 : 0), WT, WR, inp, palette, eo); }
+    if (G) { palette.set(G.extras, eo);
+      // D-790: the face's controls (bodyShape EX.vis, EX.brow; zero where the face is still)
+      const fs = this.fs, on = this.faceOn;
+      palette[eo + EX.vis] = on ? fs.round : 0; palette[eo + EX.vis + 1] = on ? fs.wide : 0; palette[eo + EX.vis + 2] = on ? fs.press : 0; palette[eo + EX.vis + 3] = on ? fs.tuck : 0;
+      palette[eo + EX.brow] = on ? fs.smile : 0; palette[eo + EX.brow + 1] = on ? fs.browUp : 0; palette[eo + EX.brow + 2] = on ? fs.knit : 0;
+      const S = inp.soft ?? (inp.soft = new SoftState()); stepSoft(S, G, inp.t ?? (typeof performance !== 'undefined' ? performance.now() / 1000 : 0), WT, WR, inp, palette, eo); }
     else palette.fill(0, eo, eo + EXTRA_FLOATS);
   }
   /** lowest foot contact point (heel, ball, toe tip; character space, after FK) */
@@ -191,7 +277,9 @@ export class RigSolver {
   }
   /** eye look-at in the head's frame (the head is placed before its children in HBONES order); clamped, plus saccades */
   private aimEye(inp: RigInput, b: number, head: number) {
-    let yaw = inp.face.eyeYaw, pitch = inp.face.eyePitch;
+    // (D-790: the saccades replace the crowd's slow sine where it gives no target: kept at a third, as drift)
+    const sc = this.faceOn && !inp.face.look ? 0.3 : 1;
+    let yaw = inp.face.eyeYaw * sc + (this.faceOn ? this.eyeOff[0] : 0), pitch = inp.face.eyePitch * sc + (this.faceOn ? this.eyeOff[1] : 0);
     if (inp.face.look) {
       // target → character space (inverse root), then into the head frame
       const cy = Math.cos(inp.yaw), sy = Math.sin(inp.yaw), s = inp.scale;
@@ -210,6 +298,7 @@ export class RigSolver {
       const hz = WR[head * 9 + 2] * vx + WR[head * 9 + 5] * vy + WR[head * 9 + 8] * vz;
       if (hz > 0.05) { yaw += Math.atan2(hx, hz); pitch += -Math.atan2(hy, Math.hypot(hx, hz)); }
     }
+    if (this.curM && b === HB.eye_l) { this.curM.need[0] = inp.face.look ? yaw : 0; this.curM.need[1] = inp.face.look ? pitch : 0; } // (D-790: the head follows)
     yaw = Math.max(-EYE_YAW_MAX, Math.min(EYE_YAW_MAX, yaw)); pitch = Math.max(-EYE_PITCH_MAX, Math.min(EYE_PITCH_MAX, pitch));
     // R = Ry(yaw)·Rx(pitch): pitch > 0 looks down (a +Z point rotated about +X moves to −Y)
     eulerXYZ(this.tmp, 0, pitch, 0, 0); eulerXYZ(this.tmp2, 0, 0, yaw, 0); mul3(this.local, b * 9, this.tmp2, 0, this.tmp, 0);

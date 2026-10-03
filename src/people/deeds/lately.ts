@@ -11,7 +11,7 @@ import type { DeedRec, Verb } from './types';
 
 /** the deed from each side: [the doer's words, the words of the one it was done to]; O is the other's name, T the third's */
 const SIDE: Partial<Record<Verb, [string, string]>> = {
-  join: ['worked alongside O', 'O came and worked alongside me'], help: ['helped O with the work', 'O helped me with the work'],
+  join: ['did something with O', 'did something with O'], help: ['helped O with the work', 'O helped me with the work'],
   teach: ['learned from O', 'taught O'], learn: ['taught O', 'O taught me'], hire: ['hired O for a day’s work', 'O hired me for a day’s work'],
   give: ['gave O a gift', 'O gave me a gift'], lend: ['lent O what was needed', 'O lent me what we needed'], borrow: ['borrowed from O', 'O borrowed from me'],
   ask_for: ['asked O for help', 'O came asking for help'], steal: ['', 'something of ours was stolen'], return: ['gave O back what was owed', 'O gave back what was ours'],
@@ -28,11 +28,12 @@ const SIDE: Partial<Record<Verb, [string, string]>> = {
   come_with: ['went along with O', 'O went along with me'], visit: ['visited O', 'O came to visit us'], meet: ['met O', 'met O'], send: ['sent O on an errand', 'O sent me on an errand'],
   bring: ['brought O something', 'O brought me something'], dismiss: ['sent O away', 'O sent me away'], avoid: ['kept away from O', 'O keeps away from me'],
 };
+const JOIN: Record<string, [string, string]> = { eat: ['ate and drank with O', 'ate and drank with O'], play: ['passed the time with O', 'passed the time with O'], pray: ['prayed with O', 'prayed with O'], work: ['worked alongside O', 'O came and worked alongside me'] };
 /** what a deed looks like to one who saw it, neither doer nor done-to: "I saw O strike T" */
 const SEEN: Partial<Record<Verb, string>> = { attack: 'strike', push: 'shove', insult: 'insult', mock: 'make fun of', curse: 'curse', embrace: 'embrace', flirt: 'make eyes at', court: 'come courting', steal: 'steal from', break: 'break something of', accuse: 'accuse', threaten: 'threaten', reconcile: 'make peace with', praise: 'praise', give: 'give a gift to', help: 'help' };
 /** the weight of a deed in a life (what a person would tell first): wrongs and bonds before courtesies */
 const WEIGHT: Partial<Record<Verb, number>> = { attack: 5, steal: 5, break: 4, curse: 4, accuse: 4, threaten: 4, court: 4, reconcile: 4, heal: 4, insult: 3, mock: 3, push: 3, help: 3, give: 3, lend: 3, borrow: 3, hire: 3, repair: 3, comfort: 3, intercede: 3, forgive: 3, apologize: 3, return: 3, embrace: 3, visit: 2, share_food: 2, teach: 2, learn: 2, tell: 2, lie: 2, praise: 2, warn: 2, promise: 2, flirt: 2 };
-const when = (k: number) => k <= 0 ? 'today' : k === 1 ? 'yesterday' : k < 7 ? `${['', '', 'two', 'three', 'four', 'five', 'six'][k]} days ago` : k < 14 ? 'last week' : 'some weeks ago';
+const when = (k: number) => k <= 0 ? 'today' : k === 1 ? 'yesterday' : k < 7 ? `${['', '', 'two', 'three', 'four', 'five', 'six'][k]} days ago` : k < 12 ? `${['', '', '', '', '', '', '', 'seven', 'eight', 'nine', 'ten', 'eleven'][k]} days ago` : k < 22 ? 'half a month ago' : 'about a month ago'; // (D-720, W5: no weeks in Persis)
 const CONSENT_FAIL: Partial<Record<Verb, string>> = { court: 'but was turned away', help: 'but was not wanted', lend: 'but was refused', borrow: 'but was refused', ask_for: 'but got nothing', reconcile: 'but O would not', visit: 'but was not let in', hire: 'but O would not', come_with: 'but O would not', apologize: 'but O would not hear it' };
 
 export interface LatelyPort { minds: { memory: Map<number, number[]> }; rec(id: number): DeedRec | undefined; name(a: number | 'player'): string }
@@ -44,10 +45,11 @@ export function latelyOf(W: LatelyPort, pid: number, day: number, n = 3, within 
     if (d.actor === 'player' || d.target === 'player') continue; // (the stranger's deeds are the brief's own: engine.ts briefOf)
     const nm = (a: unknown) => typeof a === 'number' ? W.name(a) : 'someone';
     const sub = (s: string, o: unknown) => s.replace(/\bO\b/g, nm(o)).replace(/\bT\b/g, nm(d.third));
-    const side = SIDE[d.verb]; let s = '';
+    // (a joining is as its activity: a drink, a game, the work: "drank with Arta", not "worked alongside Arta" over a jug of beer)
+    const side = d.verb === 'join' ? JOIN[d.act === 'eat' ? 'eat' : d.act === 'play' || d.act === 'gamble' ? 'play' : (d.act as string) === 'offer' ? 'pray' : 'work'] : SIDE[d.verb]; let s = '';
     if (d.actor === pid) { if (!side?.[0]) continue; s = `I ${sub(side[0], d.target)}`; if (!r.out.ok) { const f = CONSENT_FAIL[d.verb]; if (!f) continue; s += ` ${f.replace(/\bO\b/g, nm(d.target))}`; } }
     else if (!r.out.ok) continue;
-    else if (d.target === pid) { if (!side) continue; s = (d.verb === 'tell' || d.verb === 'lie') && d.about ? `${nm(d.actor)} told me of ${nm(d.third)}: ${d.about}` : sub(side[1], d.actor); if (/^(made peace|ate|met|taught)/.test(s)) s = `I ${s}`; }
+    else if (d.target === pid) { if (!side) continue; s = (d.verb === 'tell' || d.verb === 'lie') && d.about ? `${nm(d.actor)} told me of ${nm(d.third)}: ${d.about}` : sub(side[1], d.actor); if (/^(made peace|ate|met|taught|passed|prayed|did)/.test(s)) s = `I ${s}`; }
     else if (d.third === pid && (d.verb === 'intercede' || d.verb === 'fetch' || d.verb === 'introduce')) s = `${nm(d.actor)} ${d.verb === 'intercede' ? `pleaded for me with ${nm(d.target)}` : d.verb === 'fetch' ? `fetched me for ${nm(d.target)}` : `brought me to meet ${nm(d.target)}`}`;
     else if (d.third === pid && (d.verb === 'tell' || d.verb === 'lie' || d.verb === 'accuse' || d.verb === 'complain')) s = `${nm(d.actor)} has been talking of me to ${nm(d.target)}`;
     else if (SEEN[d.verb] && typeof d.target === 'number') s = `I saw ${nm(d.actor)} ${SEEN[d.verb]} ${nm(d.target)}`;

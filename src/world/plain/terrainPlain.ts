@@ -366,6 +366,13 @@ export class PlainGround {
         wildAlb = mix(wildAlb, veg, cov); wildH = mix(wildH, hH.mul(0.012), cov); }
       let alb: any = mix(groundLoaded() ? wildAlb : albIn, plotAlb, M);
       let hS: any = mix(groundLoaded() ? wildH : float(0), plotH, M);
+      // D-475 (s17 V8): macro variation of the uncultivated and trodden ground at 15-70 m (the 0-60 m ground read as one flat ochre
+      // sheet in the s17 scoreboard): lighter, drier dust and darker, browner damp or humus-stained patches, +-11 % and a warm/cool
+      // shift, two octaves in the lattice-free frame; the plots keep their own shade (C)
+      { const mq = vec3(p.x, 0.0, p.y), m1 = mx_noise_float(mq.mul(1 / 23).add(vec3(1.7, 3.1, 0.4))), m2 = mx_noise_float(mq.mul(1 / 61).add(vec3(5.3, 0.7, 2.2)));
+        const mv = m1.mul(0.6).add(m2.mul(0.8)), k = float(1).add(mv.mul(0.11)).mul(float(1).sub(M)).add(M);
+        const warm = mx_noise_float(mq.mul(1 / 37).add(vec3(9.1, 1.1, 4.4))).mul(0.035).mul(float(1).sub(M));
+        alb = alb.mul(vec3(k.add(warm), k, k.sub(warm))); }
       // session 9 (G71): the spring flowers on the uncultivated ground and the bunds: violet and yellow in March-April, red
       // (poppies, anemones) in April-May (BLOOM, seasonal.ts bloomAt; C). Each colour in its own patches ~40-80 m across over
       // about a fifth of the ground at its peak; inside a patch the heads are specks near (3-4 per m) and their mean far

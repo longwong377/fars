@@ -52,7 +52,9 @@ const norm = s => ' ' + String(s ?? '').toLowerCase().replace(/<[^>]*>/g, ' ').r
 export function rejectedBy(text, words) { const t = norm(text); return words.filter(w => t.includes(norm(w))); }
 
 // ------------------------------------------------------------------------------------------------ http
+let fsLast = 0; // s18: freesound's API allows 60 requests a minute; unthrottled, a wide item's later searches came back empty
 async function get(url, as = 'text', tries = 3) {
+  if (url.includes('freesound.org/apiv2')) { const w = fsLast + 1100 - Date.now(); if (w > 0) await new Promise(z => setTimeout(z, w)); fsLast = Date.now(); tries = Math.max(tries, 5); }
   for (let k = 0; k < tries; k++) {
     try { const r = await fetch(url, { headers: { 'User-Agent': UA } }); if (r.status === 429 || r.status >= 500) throw new Error(`HTTP ${r.status}`); if (!r.ok) return null;
       return as === 'json' ? await r.json() : as === 'buf' ? Buffer.from(await r.arrayBuffer()) : await r.text(); }
@@ -267,7 +269,9 @@ export function ledger(lock) {
 async function main() {
   const lock = existsSync(LOCK_P) ? JSON.parse(readFileSync(LOCK_P, 'utf8')) : { note: 'D-620: the recordings tools/audio/fetch.mjs resolved (re-runs download these; --refresh re-searches)', items: {} };
   const items = LIST.items.filter(it => !ONLY || ONLY.includes(it.key)), failed = [];
-  for (const item of items) {
+  // s17: items in parallel (CONC, default 8): one at a time was hundreds of sequential round trips an item (~3 min each, ~6 h)
+  const queue = [...items], CONC = Math.max(1, +(process.env.CONC ?? 8));
+  await Promise.all(Array.from({ length: CONC }, async () => { for (let item; (item = queue.shift()); ) {
     let have = lock.items[item.key] ?? [];
     const want = item.section === 'beds' ? item.variants : Math.min(item.variants, 3); // one-shot variants come from events within a recording
     // a provisional bed (ESC-50 patchwork) counts only with --keep-provisional: otherwise the search looks for a real one
@@ -291,7 +295,7 @@ async function main() {
         if (!existsSync(f)) { const raw = await get(e.audio, 'buf'); if (raw && sha(raw) === e.sha256) writeFileSync(f, raw); else console.warn(`   ${item.key}: ${e.id} changed or gone at the source (re-run with --only ${item.key} --refresh)`); } }
     }
     if (!DRY) writeFileSync(LOCK_P, JSON.stringify(lock, null, 1) + '\n');
-  }
+  } }));
   if (DRY) return;
   // encode everything in the lock that the list still names
   const sections = { beds: {}, oneshots: {}, foot: {} };

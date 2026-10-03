@@ -6,7 +6,7 @@
     "tiers": "A attested / B inferred (includes every search-extract value: capped at B) / C reconstructed. Every population value is a C derivation from B inputs; see 'derivation'.",
     "access": "FT = read in full this session; SX = web-search extract of a named page (capped at B); NS = not seen (model recollection, capped at C, verify)",
     "ranges": "value ranges are [min, max]; 'w' is the working value the simulation should use unless a setting overrides it",
-    "default_court_state": "court_absent (DECISIONS D-003; OPEN_QUESTIONS Q-005). court_resident is the out-of-world setting 'Court calendar = seasonal pattern' (resident months 1-4), tier C.",
+    "default_court_state": "court_resident in its season (UD-10, D-236: the court comes in Nisannu on the seed's day and leaves on E-26; tier C); court_absent the rest of the year, and all year only with the out-of-world setting 'evidence' (D-003, Q-005).",
     "src_keys": "all keys resolve in src/data/sources.json"
   },
   "units": {
@@ -29,10 +29,10 @@
       "label": "Terrace platform, including the garrison quarters on it",
       "court_absent": {
         "day": {
-          "spring": { "range": [290, 930], "w": 575 },
-          "summer": { "range": [260, 830], "w": 515 },
-          "autumn": { "range": [290, 930], "w": 575 },
-          "winter": { "range": [210, 680], "w": 425 }
+          "spring": { "range": [590, 1930], "w": 1175 },
+          "summer": { "range": [560, 1730], "w": 995 },
+          "autumn": { "range": [590, 1930], "w": 1175 },
+          "winter": { "range": [360, 1180], "w": 725 }
         },
         "night": {
           "spring": { "range": [60, 200], "w": 125 },
@@ -48,7 +48,7 @@
       "components_court_absent": [
         { "role": "garrison (all resident on the Terrace; ~1/3 on watch)", "day": [50, 150], "night": [50, 150], "w": 100, "tier": "C", "src": "RECON", "note": "brief 9.1 (smaller garrison when the king is away, especially on the Treasury); no count retrieved (Q-043)" },
         { "role": "Treasury building staff (treasurer's office, scribes, storekeepers, weighers, treasury artisans working inside)", "day": [50, 150], "night": [5, 15], "w": 100, "tier": "C", "src": "LIVIUS-TREAS;HENK2023;IR-TREAS", "note": "a subset of the >=1,348 people 'employed in the treasury' in 467 (LIVIUS-TREAS, SX, B); the split between the building and the workshops is C" },
-        { "role": "building gangs (Hall of 100 Columns, Tripylon)", "day": [150, 500], "night": [2, 10], "w": 300, "season_factor": { "spring": 1.0, "summer": 0.8, "autumn": 1.0, "winter": 0.5 }, "tier": "C", "src": "PT-WAGE;RECON", "note": "gangs of ~100 under a chief (PT-WAGE, SX, C); the night figure is site watchmen; the season factors are C (harvest and heat in summer; frost and rain in winter, climate A)" },
+        { "role": "building gangs (Hall of 100 Columns, Tripylon)", "day": [450, 1500], "night": [2, 10], "w": 900, "season_factor": { "spring": 1.0, "summer": 0.8, "autumn": 1.0, "winter": 0.5 }, "tier": "C", "src": "PT-WAGE;LIVIUS-TREAS;HENK2023;RECON", "note": "gangs of ~100 under a chief (PT-WAGE, SX, C); the night figure is site watchmen; the season factors are C (harvest and heat in summer; frost and rain in winter, climate A). D-651 (s18): nine gangs, not three: the Treasury alone employed >= 1,348 people in 467 (LIVIUS-TREAS, B) and the Fortification and Treasury texts ration kurtas work groups in the hundreds and thousands on the region's building works (B); 900 on the year's one great hall is C" },
         { "role": "porters, water carriers, deliveries", "day": [20, 60], "night": [0, 0], "w": 40, "tier": "C", "src": "RECON" },
         { "role": "palace caretakers, cleaners, lamp keepers (palaces shut while the court is away)", "day": [10, 40], "night": [5, 20], "w": 20, "tier": "C", "src": "RECON" },
         { "role": "officials, couriers, visitors", "day": [5, 30], "night": [0, 0], "w": 15, "tier": "C", "src": "RECON" }
@@ -119,7 +119,7 @@
       "derivation": "Sumner <= 44,000 sedentary in the plain (39 sites, ~675 ha; SX, B) minus the town (5,000-10,000) = 34,000-39,000 if Sumner counts the town, up to 44,000 if not (Q-038); working 36,000. Spring and autumn add transient herders. Day = night: people move into the fields within the zone. Court resident: + 3,000-10,000 in supply trains, royal herds and camps (C)."
     }
   ],
-  "totals_court_absent": { "range": [44000, 51000], "w": 44100, "tier": "C", "note": "night, spring, working values: Terrace 125 + town 7,000 + plain 37,000 = 44,125; by day the Terrace adds ~450 who sleep in the town. About Sumner's ceiling for the plain, plus transients" },
+  "totals_court_absent": { "range": [44000, 51000], "w": 44100, "tier": "C", "note": "night, spring, working values: Terrace 125 + town 7,000 + plain 37,000 = 44,125; by day the Terrace adds ~1,050 who sleep in the town (D-651: nine building gangs). About Sumner's ceiling for the plain, plus transients" },
   "ration_scale": [
     { "category": "man", "grain_qa_month": 30, "liquid_qa_month": null, "tier": "B", "src": "RATION-30;IR-PET", "note": "3 BAR, 'the normal men's ration'" },
     { "category": "man_skilled_or_foreman", "grain_qa_month": [40, 60], "liquid_qa_month": null, "tier": "C", "src": "RECON", "note": "NS; the PT/PF scale by skill was not retrieved" },

@@ -79,11 +79,11 @@ describe('the T-E9 test set', () => {
 });
 
 describe('the heard reply (UD-18: the heard world stays period)', () => {
-  it('a Persian answers in Old Persian units, an Elamite in Elamite, a people without a corpus in wordless voice; never English', () => {
+  it('a Persian answers in Old Persian units, an Elamite in Elamite, a people without a corpus in its own tongue (D-720, reconstructed, C); never English', () => {
     const P = S.pop; const pick = (o: string) => P.persons.find(p => p.origin === o && p.age >= 16 && P.present(p.id, 150))!.id;
     const a = heardReply(P, pick('Persian'), 150, 'Yes, my wife is at home grinding the barley.', 1); expect(a.lang).toBe('op');
     const b = heardReply(P, pick('Elamite'), 150, 'No, stranger, I do not know that word.', 1); expect(b.lang).toBe('el');
-    const c = heardReply(P, pick('Lycian'), 150, 'The work is hard.', 1); expect(c.lang).toBe('wordless');
+    const c = heardReply(P, pick('Lycian'), 150, 'The work is hard.', 1); expect(c.lang).toBe('tg:Lycian');
     for (const h of [a, b, c]) { expect(h.seconds).toBeGreaterThan(0.3); expect(h.rms).toBeGreaterThan(0.005); expect(h.units.length).toBeGreaterThan(0); expect(h.units.length).toBeLessThanOrEqual(3);
       for (const u of h.units) expect(u.ipa).not.toMatch(/\b(the|and|yes|no)\b/); }
   });

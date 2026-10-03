@@ -145,3 +145,10 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-710..D-719 | s18 | C7 CI and the old failing tests (Q-1640..Q-1649, B740..B749) | cloud-s18-c7-ci | in flight |
 | D-720..D-729 | s18 | C8 the people's depth (Q-1650..Q-1659, B750..B759) | cloud-s18-c8-depth | in flight |
 | D-730..D-739 | s18 | cloud lead (Q-1660..Q-1669, B760..B769) | s17-int / cloud-s17-int | in flight |
+| D-740..D-749 | s18 | C9 the budget (Q-1670..Q-1679, B770..B779) | cloud-s18-c9-budget | in flight |
+| D-750..D-759 | s18 | C10 the Terrace at 100-300 m (Q-1680..Q-1689, B780..B789) | cloud-s18-c10-terrace | in flight |
+| D-760..D-769 | s18 | C11 the opening cinematic and its score, UD-38 (Q-1690..Q-1699, B790..B799) | cloud-s18-c11-cinematic | in flight |
+| D-770..D-779 | s18 | C12 the giant-holes audit (Q-1700..Q-1709, B800..B809) | cloud-s18-c12-holes | in flight |
+| D-780..D-789 | s18 | C13 court, ceremony and dress (Q-1710..Q-1719, B810..B819) | cloud-s18-c13-court | in flight |
+| D-790..D-799 | s18 | C14 people up close and the last procedural animals (Q-1720..Q-1729, B820..B829) | cloud-s18-c14-faces | in flight |
+| D-800..D-809 | s18 | C15 beyond the Terrace (Q-1730..Q-1739, B830..B839) | cloud-s18-c15-beyond | in flight |

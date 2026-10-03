@@ -79,7 +79,7 @@ export class EconPlans {
   readonly laid = new Map<string, Laid[]>();
   constructor(readonly pop: Population, private econTo: (day: number) => Economy) {}
   /** forget everything read from the economy (a load, or an intervention entered into it) */
-  reset() { this.byDay.clear(); this.cache.clear(); this.evDay.clear(); this.scanned = 0; this.laid.clear(); this.lastE = null; }
+  reset() { this.pend = null; this.byDay.clear(); this.cache.clear(); this.evDay.clear(); this.scanned = 0; this.laid.clear(); this.lastE = null; }
   /** D-460: read the economy's new events; a day already worked out that a new event belongs to (its day, or the morning
    *  after) is forgotten and worked out again (a stranger taken in after the day's plans were first read, for one) */
   private scan(E: Economy) {
@@ -158,13 +158,15 @@ export class EconPlans {
    *  its goods; and some of the houses that sell nothing come to buy (a short errand: oil, salt, onions, a pot; in kind, not
    *  in the economy): about one house in five of the town on a dry day out of winter (a daily market where most houses buy
    *  something every few days), three in ten of a village on its market day (C) */
-  private marketDay(E: Economy, day: number, put: (s: EconStep | null) => void) {
+  private *marketDay(E: Economy, day: number, put: (s: EconStep | null) => void): Generator<void> {
     const P = this.pop, sellers = new Set<number>(), goodsAt = new Map<string, StallGood[]>();
     for (const st of E.stallsOn(day)) { const hid = this.hid(st.hh); if (hid === null || !P.households[hid]) continue;
       const ground = this.exchangeFor(hid, day), s = this.stallStep(E, st, hid, ground, day); if (!s) continue; put(s); sellers.add(hid);
       (goodsAt.get(ground) ?? goodsAt.set(ground, []).get(ground)!).push(st.good); }
     const f = E.marketFactor(day);
+    let n = 0;
     for (const H of P.households) {
+      if (++n % 400 === 0) yield; // (D-720: the buyers read their own days: the costly part of a day's steps, stepped in slices)
       if (sellers.has(H.id) || !H.members.length || !marketDayOf(P.seed, H.q, day)) continue; const hh = E.hh.get(`h:${H.id}`); if (!hh || hh.dead || day < hh.mourning || day < hh.sickUntil) continue;
       if (u01(P.seed, S.buy, H.id, day) >= (H.q.startsWith('v_') ? 0.3 : 0.22) * f) continue;
       const ground = this.exchangeFor(H.id, day), gs = goodsAt.get(ground); if (!gs?.length) continue; const [da, db] = this.dryHours(day, 7, 14); if (db - da < 1.6) continue;
@@ -224,6 +226,20 @@ export class EconPlans {
   /** the economy's events of a day and the bondages in force, each given to a person (cached per day) */
   steps(day: number): Map<number, EconStep[]> {
     { const c = this.byDay.get(day); if (c) { if (this.lastE) this.scan(this.lastE); const c2 = this.byDay.get(day); if (c2) return c2; } }
+    // (D-720: a day begun in slices is finished here, the same steps as whole)
+    const g = this.pend?.day === day ? this.pend.g : this.stepsParts(day); if (this.pend?.day === day) this.pend = null;
+    for (;;) { const r = g.next(); if (r.done) return r.value; }
+  }
+  /** D-720 (C1's sliced day, D-650): the day's steps worked out within about `ms` a call (the market day's buyers, ~0.8 s whole,
+   *  read a few hundred houses at a time); true when the day is ready. The same steps as steps(day) */
+  stepsSliced(day: number, ms: number): boolean {
+    if (this.byDay.has(day)) return true; const end = performance.now() + ms;
+    if (this.pend?.day !== day) this.pend = { day, g: this.stepsParts(day) };
+    while (performance.now() < end) { if (this.pend.g.next().done) { this.pend = null; return true; } }
+    return false;
+  }
+  private pend: { day: number; g: Generator<void, Map<number, EconStep[]>> } | null = null;
+  private *stepsParts(day: number): Generator<void, Map<number, EconStep[]>> {
     const E = this.econTo(day + 1); this.lastE = E; // (an accusation is dated the morning after the theft it follows)
     // (asked while the living world is itself stepping the economy (its re-entry guard): the day is not decided yet; nothing
     // is laid and nothing cached, so the next ask after the step sees it)
@@ -232,7 +248,8 @@ export class EconPlans {
     const m = new Map<number, EconStep[]>(); this.today = m;
     const put = (s: EconStep | null) => { if (!s) return; const xs = m.get(s.pid) ?? m.set(s.pid, []).get(s.pid)!; xs.push(s); };
     for (const e of this.evDay.get(day) ?? []) for (const s of this.stepsOf(E, e, day)) put(s);
-    this.marketDay(E, day, put);
+    // (between slices another day's steps may have been asked: the day being built is this one again when it resumes)
+    for (const _ of this.marketDay(E, day, put)) { yield; this.today = m; }
     for (const b of E.boundOn(day)) put(this.boundStep(E, b.hh, b.to, b.ev, day, b.from, b.until));
     for (const b of E.bondages) if (b.until === day && b.from < day) put(this.boundStep(E, b.hh, b.to, b.ev, day, b.from, b.until)); // (the morning a live-in bondage ends)
     // the morning after an arrest: let go from the officials' building until the judgement (world.ts holds him a day)
@@ -260,7 +277,9 @@ export class EconPlans {
   pick(hid: number, day: number, role: Role, key: number, market = false): number | null {
     const P = this.pop; if (!P.households[hid]) return null;
     // (a rich house's own business, the pledges and the suits, may go by its servants and stewards: D-340, C)
-    const mem = P.membersOn(hid, day).filter(x => P.present(x, day) && P.persons[x].agent < 0 && (!SUPERVISED.has(P.persons[x].job) || (role === 'house' && /^(servant|steward)$/.test(P.persons[x].job))) && !P.sick(x, day));
+    // (D-720, C7's root cause: the court's people (the king's whisk-bearer, a delegation's leader) were sent to keep a market
+    // stall on an audience morning; their days are the court's, as a traveller's are the road's and a herder's the band's)
+    const mem = P.membersOn(hid, day).filter(x => P.present(x, day) && P.persons[x].agent < 0 && !P.court?.owns(x) && P.persons[x].job !== 'traveller' && P.persons[x].job !== 'herder' && (!SUPERVISED.has(P.persons[x].job) || (role === 'house' && /^(servant|steward)$/.test(P.persons[x].job))) && !P.sick(x, day));
     const age = (x: number) => P.ageOn(x, day), m = (x: number) => P.persons[x].sex === 'm';
     let pool: number[];
     if (role === 'man' || role === 'house') pool = mem.filter(x => m(x) && age(x) >= 18 && age(x) <= 70);
@@ -332,7 +351,7 @@ export class EconPlans {
         step(me, 'man', errand(7, 15, x, [['exchange', this.dur(e, 1, 2), herd ? 'bargaining for ewes to make up the flock after the loss' : 'bargaining for a draught ox to replace the one the house lost']],
           ['walk', herd ? 'going to buy ewes' : 'going to buy an ox'], ['walk', herd ? 'driving the ewes home' : 'leading the new ox home'])); break; }
       case 'loan': case 'loan_refused': case 'repaid': { if (me === null || other === null) break; const L = this.headName(other, day);
-        const why = e.kind === 'loan' ? `asking at ${L} for a loan of silver; it is weighed out, to be repaid with a tenth more after the harvest`
+        const why = e.kind === 'loan' ? `asking at ${L} for a loan of silver; it is weighed out, to be repaid after the harvest with a fifth more for the year, reckoned by the months it runs`
           : e.kind === 'loan_refused' ? `asking at ${L} for a loan of silver; refused: ${E.events.some(x => x.actor === e.actor && x.kind === 'default' && x.day > day - 240 && x.day <= day) ? 'the house did not pay the last one' : 'the house has nothing left to pledge'}`
             : `bringing the silver owed back to ${L} and seeing it weighed`;
         step(me, 'man', errand(7, 18, `h:${other}`, [['talk', this.dur(e, 0.3, 0.7), why]], ['walk', `going to ${L}`], ['walk', 'going back'])); break; }

@@ -70,6 +70,8 @@ const MUD: RGB = [0.56, 0.47, 0.36], POLE: RGB = [0.5, 0.43, 0.34], BRUSH: RGB =
 const sh = (c: RGB, k: number): RGB => [c[0] * k, c[1] * k, c[2] * k];
 /** s18 C2 (D-660): the roofs' straw-and-clay finish coat, sun-bleached (linear; C) */
 const ROOF_COAT: RGB = lin([0.74, 0.64, 0.5]);
+/** s18 C2 (D-661): the washes (sRGB): gypsum and lime whites (never pure: the loam shows through), yellow ochres, red ochres */
+const WASH = { white: [[0.86, 0.83, 0.76], [0.82, 0.8, 0.74], [0.88, 0.84, 0.75]] as RGB[], ochre: [[0.78, 0.62, 0.38], [0.74, 0.6, 0.4], [0.8, 0.66, 0.44]] as RGB[], red: [[0.66, 0.4, 0.28], [0.6, 0.36, 0.26], [0.7, 0.46, 0.33]] as RGB[] };
 const mixc = (a: RGB, b: RGB, t: number): RGB => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
 const smooth = (x: number) => { const t = Math.min(1, Math.max(0, x)); return t * t * (3 - 2 * t); };
 /** hash of integers to [0, 1) */
@@ -215,8 +217,23 @@ export class SiteHouses {
     const L = this.life(plot), c = plot >= 0 ? this.pcol[plot] : lin(MUD);
     const fresh = Math.max(0, 1 - L.sincePlaster / 18); // damp-dark and warmer when fresh, paler and greyer as it weathers
     let k = (0.96 + 0.05 * (1 - fresh)) * (court ? 1.02 : 0.99); if (add) k *= 1.05;
-    return [c[0] * k * (1 + 0.02 * fresh), c[1] * k, c[2] * k * (1 - 0.03 * fresh) * (add ? 0.96 : 1)];
+    const m: RGB = [c[0] * k * (1 + 0.02 * fresh), c[1] * k, c[2] * k * (1 - 0.03 * fresh) * (add ? 0.96 : 1)];
+    // s18 C2 (D-661, C12's holes audit #5: every house the one buff mud): the household's wash over the mud plaster, full in
+    // the court, thinner on the lane face (sun, rain and the passing load wear it back toward the mud), fading in the months
+    // since it was last renewed; an added room strip not yet washed
+    const W = this.washOf(plot); if (!W || add) return m; const f = W.k * (court ? 0.92 : 0.62) * (0.55 + 0.45 * Math.max(0, 1 - L.sincePlaster / 30));
+    return mixc(m, W.c, f);
   }
+  /** s18 C2 (D-661): a house's wash (C: gypsum and lime washes, white, and earth washes of yellow and red ochre, are the
+   *  region's and the period's: the Terrace's own gypsum plaster and red-painted floors, B; which household washes and with
+   *  what C): the better-off wash more often and more often white; most of the poor leave the bare mud */
+  private washOf(plot: number): { c: RGB; k: number } | null {
+    if (plot < 0 || !HOUSE_KINDS.has(this.s.plots[plot].kind)) return null; let w = this._wash.get(plot); if (w !== undefined) return w;
+    const L = this.life(plot), h = (hashString(`${this.s.plots[plot].id}:wash`) % 100000) / 100000, h2 = (hashString(`${this.s.plots[plot].id}:wash2`) % 1000) / 1000, st = L.standing;
+    const pW = 0.12 + 0.4 * st, pO = 0.1 + 0.08 * st, pR = 0.04 + 0.06 * st;
+    w = h < pW ? { c: lin(WASH.white[Math.floor(h2 * WASH.white.length)]), k: 0.7 + 0.25 * h2 } : h < pW + pO ? { c: lin(WASH.ochre[Math.floor(h2 * WASH.ochre.length)]), k: 0.55 + 0.3 * h2 } : h < pW + pO + pR ? { c: lin(WASH.red[Math.floor(h2 * WASH.red.length)]), k: 0.45 + 0.3 * h2 } : null;
+    this._wash.set(plot, w); return w; }
+  private _wash = new Map<number, { c: RGB; k: number } | null>();
 
   // ---- the far level ---------------------------------------------------------------------------------------------------
   /** every wall (partitions under the roofs left out), roof and large fitting of the site, each vertex tagged with its tile's
@@ -233,7 +250,7 @@ export class SiteHouses {
       const ax = along ? 0 : 1, cc = ax === 0 ? w.v0 : w.u0, sA = ax === 0 ? w.u0 : w.v0, sB = ax === 0 ? w.u1 : w.v1, t = w.thick;
       const P3 = (x: number, off: number, y: number) => this.wp(...((ax === 0 ? [x, cc + off] : [cc + off, x]) as [number, number]), y);
       const nrm = (sg: number) => { const d = ax === 0 ? this.dirW(0, sg) : this.dirW(sg, 0); return [d[0], 0, d[1]]; };
-      if (w.door) { const yl = Math.max(sp.doorBase, sp.gmax) + DOOR_H; if (sp.top - yl > 0.05) b.box(sp.gm[0], sp.gm[1], th, hu, hv, yl, sp.top, sh(c, 0.9), c, this.owner(we.plot, P.door));
+      if (w.door) { const yl = Math.max(sp.doorBase, sp.gmax) + DOOR_H; if (sp.top - yl > 0.05) b.box(sp.gm[0], sp.gm[1], th, hu, hv, yl, sp.top, sh(c, 0.9), c, this.owner(we.plot, P.door), false, along ? 1 | 8 | 16 : 1 | 2 | 4); // (s18 C2: its ends abut the walls)
         // the street doorway's dark: the vestibule behind the opening (the leaf, when shut, stands in front of it)
         if (we.street) { const p = s.plots[we.plot], d = s.doorPoints(p); if (d) { const og = Math.sign(ax === 0 ? d.out[1] - d.inside[1] : d.out[0] - d.inside[0]), off = -og * (t / 2 + 0.14), y0 = sp.gmin - 0.05, dk = sh(c, 0.1);
           b.set('ao', 0.15); b.quad(P3(sA, off, y0), P3(sB, off, y0), P3(sB, off, yl), P3(sA, off, yl), nrm(og), dk, dk, dk, dk, this.owner(we.plot, P.door)); b.set('ao', 1); } }
@@ -257,7 +274,7 @@ export class SiteHouses {
       // (s18 C2, D-660: the top in the roof's own straw-and-clay coat, paler and warmer than the walls' plaster and more
       // varied roof to roof: from the Terrace and 20 m up the roofs read as the plaster of the walls, the town as boxes)
       const c = this.roofCol(r), g = s.grid(s.u0 + (r.i0 + r.i1) / 2, s.v0 + (r.j0 + r.j1) / 2);
-      b.box(g[0], g[1], th, (r.i1 - r.i0) / 2, (r.j1 - r.j0) / 2, r.R - ROOF_T, r.R - r.fall - 0.012, sh(c, 0.8), c, this.owner(r.plot, P.roof)); }
+      b.box(g[0], g[1], th, (r.i1 - r.i0) / 2, (r.j1 - r.j0) / 2, r.R - ROOF_T, r.R - r.fall - 0.012, sh(c, 0.8), c, this.owner(r.plot, P.roof), false, r.full ? 1 : 31); } // (s18 C2: a full room's roof its top only: its sides lie in the walls' middle)
     // D-324b: the court things that show from afar: each ladder's rails against the eave (a thin slab each), the firewood and
     // fodder stacks (a low block), from the near level's own fixtures
     for (let fi = 0; fi < this.fixtures.length; fi++) { const f = this.fixtures[fi], own = this.fixDesc[fi] * 32 + P.fixture; if (f.kind !== 'ladder' && f.kind !== 'firewood' && f.kind !== 'fodder') continue;
@@ -279,7 +296,7 @@ export class SiteHouses {
     for (const it of this.roofFill()) { if (it.m === 'fill_line') continue; const q = toLocal(s.frame, it.e, it.n), t = this.tileAt(q[0], q[1]); b.set('tileId', (this.big[this.plotOf(q[0], q[1])] ? t : this.plotTile[this.plotOf(q[0], q[1])] ?? t) + 1).set('y0', -1000).set('ytop', 1e4).set('ao', 0.9);
       const jar = it.m.startsWith('jar'), k = it.s[0], cl: RGB = jar ? lin([0.6, 0.42, 0.3]) : it.m === 'mat' ? lin([0.74, 0.64, 0.44]) : it.m === 'wo_fleece' ? lin(it.col?.wool ?? [0.8, 0.75, 0.64]) : lin([0.36, 0.3, 0.22]);
       const [hx, hz, hy] = jar ? [0.22 * k, 0.22 * k, 0.62 * k] : it.m === 'mat' ? [0.62 * k, 0.48, 0.015] : it.m === 'wo_fleece' ? [0.5, 0.42, 0.04] : [0.2, 0.2, 0.03];
-      b.box(it.e, it.n, it.rot, hx, hz, it.y - 0.02, it.y + hy, sh(cl, 0.7), cl, this.owner(this.plotOf(q[0], q[1]), P.fixture)); }
+      b.box(it.e, it.n, it.rot, hx, hz, it.y - 0.02, it.y + hy, sh(cl, 0.7), cl, this.owner(this.plotOf(q[0], q[1]), P.fixture), false, jar ? 31 : 1); }
     b.set('ao', 1);
   }
   /** s18 C2 (D-660): a roof's top colour on every level: the plot's earth under a straw-and-clay coat, sun-bleached paler and
@@ -294,8 +311,10 @@ export class SiteHouses {
     const P3 = (x: number, off: number, y: number) => this.wp(...((ax === 0 ? [x, cc + off] : [cc + off, x]) as [number, number]), y);
     const dir = (du: number, dv: number) => { const d = this.dirW(du, dv); return [d[0], 0, d[1]]; };
     const N = (sg: number) => ax === 0 ? dir(0, sg) : dir(sg, 0), A = ax === 0 ? dir(1, 0) : dir(0, 1);
-    const st = [sA, sB]; const n = Math.max(1, Math.round(len / 3)); for (let i = 1; i < n; i++) st.push(sA + (len * i) / n);
-    for (const [cn, wd, dp] of T.notches) if (dp > 0.1) for (const k of [-1, 0, 1]) { const x = cn + k * wd; if (x > sA + 0.05 && x < sB - 0.05) st.push(x); }
+    // (s18 C2, D-661: stations ~6 m apart and each deep notch's centre only, was ~3 m and three a notch: the belt's 739 plots
+    // kept the town under its 1.2 M triangles; beyond 72 m a notch reads as its dip)
+    const st = [sA, sB]; const n = Math.max(1, Math.round(len / 6)); for (let i = 1; i < n; i++) st.push(sA + (len * i) / n);
+    for (const [cn, , dp] of T.notches) if (dp > 0.12 && cn > sA + 0.05 && cn < sB - 0.05) st.push(cn);
     const S = [...new Set(st.map(x => +x.toFixed(3)))].sort((p, q) => p - q), cT = sh(c, 1.04), cB = sh(c, 0.8);
     for (let i = 0; i + 1 < S.length; i++) { const x0 = S[i], x1 = S[i + 1], y0 = ytopF(x0), y1 = ytopF(x1);
       for (const sg of [-1, 1]) { const f = sg * t / 2; b.quad(P3(x0, f, sp.y0), P3(x1, f, sp.y0), P3(x1, f, y1), P3(x0, f, y0), N(sg), cB, cB, c, c, own); }

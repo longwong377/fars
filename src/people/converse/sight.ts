@@ -23,20 +23,28 @@ import type { PeopleSim } from '../sim';
 export type SightKind = 'greet' | 'nod' | 'stare' | 'bow' | 'avoid' | 'ignore';
 export interface Sight { pid: number; kind: SightKind; /** out-of-world reason (dev overlay) */ why: string; /** metres to the stranger */ d: number;
   /** greet: the person's name as the stranger knows it (they have talked) */ name?: string; byName?: boolean;
-  /** stare: a village child who also tags along a little way (the sim lays it as a 'follow' deed) */ follow?: boolean }
+  /** stare: a village child who also tags along a little way (the sim lays it as a 'follow' deed) */ follow?: boolean;
+  /** D-720: a stare that is a challenge: the stranger where he has no right to be, shouted out of a house or stopped in a hall
+   *  (react.ts plays the stare; a shout and a pointing arm are the render side's to add) */ challenge?: boolean }
 export interface Near { pid: number; e: number; n: number }
 
 export const SIGHT_M = 12;
 export const BOW_AT = 0.5;
 export const AVOID_TRUST = 0.35;
 /** rumours of the stranger that make a house keep away (his ingratitude, a tale of his found false) */
-const BAD_NEWS = new Set(['ingrate', 'claim_denied', 'claim_doubted', /* D-460 (deeds/law.ts): */ 'theft', 'assault', 'damage', 'threats', 'lie_found', 'convicted']);
+const BAD_NEWS = new Set(['trespass', 'ingrate', 'claim_denied', 'claim_doubted', /* D-460 (deeds/law.ts): */ 'theft', 'assault', 'damage', 'threats', 'lie_found', 'convicted']);
 const CURIOUS = 8, WARY = 0; // talk.ts TEMPER order (wary, dry, warm, proud, anxious, cheerful, pious, blunt, curious)
 /** the chance a village child who stares runs after the stranger a while (C) */
 export const CHILD_FOLLOW = 0.35;
 
-/** how each person near the stranger reacts at sim time t (pure: reads the sim, changes nothing) */
-export function reactions(sim: PeopleSim, near: readonly Near[], stranger: { e: number; n: number }, t: number): Sight[] {
+/** D-720 (the holes audit 4-1): where the stranger stands, when it is somewhere that is someone's: inside a household's house
+ *  (its population index), a palace hall, the women's palace, a store or the Treasury (the render side knows the room he is in) */
+export interface Inside { kind: 'house' | 'palace' | 'harem' | 'store'; hh?: number }
+/** the people whose place a palace, a store or the women's palace is (they stop a stranger there; C) */
+const KEEPERS = new Set(['guard', 'servant', 'official', 'caretaker', 'storekeeper', 'treasury', 'scribe', 'steward']);
+/** how each person near the stranger reacts at sim time t (reads the sim; D-720: a trespass ('stare' with challenge), first seen, is laid as a deed once
+ *  a house and day: deeds/engine.ts trespassed, idempotent) */
+export function reactions(sim: PeopleSim, near: readonly Near[], stranger: { e: number; n: number; inside?: Inside | null }, t: number): Sight[] {
   const P = sim.pop, day = Math.floor(t / 24), h = t - day * 24, hour = Math.floor(h);
   const E = sim.ledgerNow(), S = E?.hasStranger ? E.stranger() : null, T = E?.trust ?? null;
   const R = sim.asksWorld.on && E ? sim.asksWorld.rumours : null;
@@ -63,6 +71,16 @@ export function reactions(sim: PeopleSim, near: readonly Near[], stranger: { e: 
     const ai = p.agent ?? -1, mem = ai >= 0 ? sim.memory.greeting(ai, t) : 'none';
     const temper = Math.min(8, Math.floor(p.trait * 9)), child = age <= 11;
     const village = cur.where === 'plain' || (cur.where === 'road' && p.zone === 'plain');
+    // (0) D-720: the stranger in a house that is not his to enter (no guest-right, no place in it, never welcomed) or in a hall,
+    // a store or the women's palace (the keepers of the place stop him; a believed man of rank is bowed to instead): the house
+    // shouts him out and the lane will hear of it; a child stares, the old and the asleep are as before
+    const inn = stranger.inside;
+    if (inn?.kind === 'house' && inn.hh === P.home(x.pid, day) && atHome && age >= 12) {
+      const welcome = S?.stay?.host === hh || (S?.group?.kind === 'household' && (S.group as any).hh === hh) || (talked && trust >= 0.6);
+      if (welcome) { out.push(r('greet', 'a guest of the house, or a friend of it')); continue; }
+      sim.deeds.trespassed(x.pid, hh, t, 'house'); out.push(r('stare', 'a stranger in the house, uninvited: shouted out', { challenge: true })); continue; }
+    if (inn && inn.kind !== 'house' && KEEPERS.has(p.job) && !(reg && !reg.doubted && reg.belief * reg.rank >= BOW_AT)) {
+      sim.deeds.trespassed(x.pid, hh, t, inn.kind); out.push(r('stare', `a stranger in the ${inn.kind === 'harem' ? 'women’s palace' : inn.kind}: stopped and turned back`, { challenge: true })); continue; }
     // (1) a man of high rank, believed: bowed to even at the work (C: a worker bows to rank as it passes)
     if (reg && !reg.doubted && reg.belief * reg.rank >= BOW_AT && trust >= AVOID_TRUST) { out.push(r('bow', `the house believes him a man of rank (${(reg.belief * reg.rank).toFixed(2)})`)); continue; }
     if (supervised) { out.push(r('ignore', 'at supervised work: eyes on the work')); continue; }

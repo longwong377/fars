@@ -13,7 +13,7 @@
 // Tier C throughout (DECISIONS D-459): the law's fines and the elder's hearing are reconstructed from the Achaemenid evidence of
 // royal judges and fines in silver (B for the institution, C for the amounts and the village elder's part).
 import type { Population, Seg, Where } from '../population';
-import { segAt, OPEN_PLACE, wetHours } from '../population';
+import { segAt, OPEN_PLACE, wetHours, coldWear, dustWear } from '../population';
 import type { Economy } from '../economy/world';
 import type { RumourNet } from '../asks/rumour';
 import type { ActivityId } from '../activities';
@@ -42,6 +42,8 @@ const VERB_TO: Partial<Record<string, string>> = { visit: 'a visit from', help: 
 /** the doer's side of a deed in a day plan's words (D-461) */
 const VERB_ING: Partial<Record<string, string>> = { visit: 'visiting', help: 'helping', hire: 'hiring', court: 'courting', teach: 'learning from', learn: 'teaching', heal: 'tending', intercede: 'pleading with', reconcile: 'making peace with', share_food: 'eating with', introduce: 'introducing', come_with: 'going with', repair: 'mending for', build: 'building with', carry: 'carrying for', guard: 'keeping watch for', join: 'together with', meet: 'meeting', fetch: 'fetching for', pray: 'praying with', offer: 'offering with' };
 const cl = (x: number, lo = -1, hi = 1) => x < lo ? lo : x > hi ? hi : x;
+/** D-720: the deeds a save keeps ten days of (wrongs, courting, peace, care): what a person would still tell of */
+const KEPT = new Set(['attack', 'steal', 'break', 'curse', 'accuse', 'threaten', 'insult', 'mock', 'push', 'court', 'reconcile', 'heal', 'forgive', 'apologize', 'intercede', 'comfort']);
 const CHILD_HARM = new Set(['attack', 'push', 'steal', 'threaten', 'curse', 'break']);
 const ROMANCE = new Set(['flirt', 'court', 'embrace']);
 /** deeds the people near take note of and tell (a wrong, and words or touches that make talk); the rest need no witnesses
@@ -57,7 +59,7 @@ export class DeedWorld {
   /** the id the next deed will have */
   get next() { return this.base + this.log.length; }
   /** a deed by its id, while it is in the window */
-  rec(id: number): DeedRec | undefined { return this.log[id - this.base]; }
+  rec(id: number): DeedRec | undefined { return id >= this.base ? this.log[id - this.base] : this.old.get(id); }
   readonly minds: Minds;
   /** D-461: what the minds set out to do of their own accord (goals over days and months, moods, the talk of deeds) */
   readonly agency: Initiative;
@@ -286,9 +288,14 @@ export class DeedWorld {
     // nor in the open while it rains or the dust is up: the deed is done in words, its stretch of the day is not laid. A wound
     // kept at home is laid whatever)
     const P = this.w.pop;
+    // (D-720, the court_fill audience: the king's morning had a prayer laid into it: the court's people keep the court's day; their
+    // deeds are done in words, and a wound is the court's physicians' to tend in their own quarters)
+    if (P.court?.owns(pid)) return false;
     if (seg.act !== 'lie_ill') { if (P.ageOn(pid, day) < 3 || (P.persons[pid].job === 'child' && P.hday(P.home(pid, day), day).minder === pid)) return false; // (the minder is a child of the house)
       const wx = P.cal?.ctx(day).wx, open = OPEN_PLACE.test(seg.place) || /^(offering_place|hills|river|mountain|road:)/.test(seg.place) || OUTDOOR_ACT.has(seg.act);
       if (wx && open && (wetHours(wx, seg.t0, seg.t1) > 0 || (wx.dustH && wx.dustH[0] < seg.t1 && wx.dustH[1] > seg.t0))) return false; }
+    // (D-720, C7's planCheck: a laid stretch is dressed against the cold and the dust as the day's own are: fishing at dawn in winter)
+    { const wx = P.cal?.ctx(day).wx; if (wx) { const run = [{ ...seg }]; coldWear(run, wx); dustWear(run, wx); seg = run[0]; } }
     const k = `${pid}:${day}`; const l = this.lays.get(k) ?? []; l.push(seg); this.lays.set(k, l); return true; }
   /** take back the segments laid from a day on whose reason matches (a hire ended: D-462) */
   private unlay(pid: number, from: number, why: RegExp) { for (const [k, l] of this.lays) { const [p, d] = k.split(':').map(Number); if (p !== pid || d < from) continue; const r = l.filter(s => !why.test(s.why)); if (r.length) this.lays.set(k, r); else this.lays.delete(k); } }
@@ -345,6 +352,16 @@ export class DeedWorld {
     out.push(...this.law.briefOf(pid, day), ...this.joint.briefOf(pid, day), ...this.agency.briefOf(pid, day)); // (D-461: what they are set on, and their mood)
     return out;
   }
+  /** D-720 (the holes audit 4-1): the stranger found where he has no right to be (sight.ts 'challenge'), once a place and day: the
+   *  one who found him angry and wary of him, the house's trust in him down, and the talk of it put into the rumour net to travel
+   *  the houses' ties (a 'trespass' rumour: the town keeps away from him as from a thief, sight.ts BAD_NEWS) */
+  private trespassSeen = new Set<string>();
+  trespassed(pid: number, hh: string, t: number, where: string) {
+    const day = Math.floor(t / 24), k = `${where}|${hh}|${day}`; if (this.trespassSeen.has(k)) return; this.trespassSeen.add(k); if (this.trespassSeen.size > 400) this.trespassSeen.clear();
+    this.minds.move(pid, 'player', { anger: where === 'house' ? 0.35 : 0.2, fear: 0.1, resp: -0.1 }, day);
+    const E = this.w.econ(day); if (E?.trust && E.hh.has(hh)) E.trust.note(hh, 'player', where === 'house' ? -0.25 : -0.1, day);
+    const R = this.w.rumours(); if (R && E?.hh.has(hh) && where === 'house') R.inject(day, hh, 'trespass', 1, hh, 'player');
+  }
   /** a person's wound now (the renderer's and the marks' hook) */
   injuryOf(pid: number, day: number) { const i = this.injuries.get(pid); return i && i.until > day ? i : null; }
 
@@ -355,13 +372,22 @@ export class DeedWorld {
       // D-720: the deeds of the last ten days and the count of all (a save loaded began the ids again at 0: the memories' ids then
       // read other deeds, the town's talk of deeds (initiative.ts, from its last id seen) stopped until the count caught up, and
       // what a person had lately done or suffered was gone); kept lean: the outcome's effects and witnesses are spent
-      next: this.next, recent: this.recentSave(d0 - 9) }; }
-  private recentSave(from: number) { let i = this.log.length; while (i > 0 && this.log[i - 1].day >= from) i--;
-    return this.log.slice(i).map(r => ({ id: r.id, day: r.day, t: r.t, deed: r.deed, out: { ok: r.out.ok, why: r.out.why, ...(r.out.refused ? { refused: true } : {}) } })); }
+      next: this.next, recent: this.recentSave(d0) }; }
+  /** the deeds kept over a save (D-720): the last day's (but the tellings) and ten days of the weighty ones, as tuples
+   *  [id, t×10, verb, actor, target, third, ok, act] (the save's 600 KB: ~2,900 deeds a day would be ~85 KB a day whole) */
+  private recentSave(d0: number) { const out: unknown[][] = [];
+    for (let i = this.log.length - 1; i >= 0; i--) { const r = this.log[i]; if (r.day < d0 - 9) break; const v = r.deed.verb;
+      if (!((r.day >= d0 - 1 && v !== 'tell' && v !== 'lie') || KEPT.has(v))) continue;
+      out.push([r.id, Math.round(r.t * 10), v, r.deed.actor, r.deed.target ?? -1, r.deed.third ?? -1, r.out.ok ? 1 : 0, r.deed.act ?? 0]); }
+    return out.reverse(); }
+  /** D-720: deeds from before a load, by id (the log's window begins again empty after it) */
+  private old = new Map<number, DeedRec>();
   load(s: ReturnType<DeedWorld['save']> | undefined) { if (!s) return; this.mine = s.mine; this.minds.load(s.minds); this.injuries.clear(); for (const [k, v] of s.inj) this.injuries.set(k, v);
     this.law.load((s as any).law ?? { cases: (s as any).cases }); this.promises.splice(0, this.promises.length, ...s.promises); this.skills.clear(); for (const [k, v] of s.skills) this.skills.set(k, v);
     this.lays = new Map(s.lays); this.dayDone = s.dayDone; this.evSeen = 0;
-    const rs = ((s as any).recent ?? []) as DeedRec[]; this.log.splice(0, this.log.length, ...rs); this.base = ((s as any).next ?? s.n ?? 0) - rs.length; this.joint.load(s.joint); this.agency.load(s.agency); }
+    this.log.splice(0); this.base = (s as any).next ?? s.n ?? 0; this.old.clear();
+    for (const [id, t10, verb, actor, target, third, ok, act] of ((s as any).recent ?? []) as any[][]) { const t = t10 / 10;
+      this.old.set(id, { id, day: Math.floor(t / 24), t, deed: { verb, actor, ...(target !== -1 ? { target } : {}), ...(third !== -1 ? { third } : {}), ...(act ? { act } : {}) } as Deed, out: { ok: !!ok, why: '', effects: [] } }); } this.joint.load(s.joint); this.agency.load(s.agency); }
 }
 
 /** a segment laid into a day: the base is cut around it (the overlays' shared rule) */

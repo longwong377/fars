@@ -36,7 +36,7 @@ Access: `SX` = search extract, `FT` = full text or dataset downloaded, `NS` = no
 | waystation_kur_west | Way-station at the Kur crossing | −11000, 500 | 3000 | walled court, store, stable (C) | Achaemenid | yes | ROYALROAD-GIS | SX | C | By analogy with the Jinjun and Qaleh-ye Kali way-stations (B). The first station out of Persepolis is not identified |
 | akhor_rostam_niches | Akhor Rostam rock-cut burial niches | 29.86553, 52.948606 (9.6 km SE) | 3000 | – | Achaemenid (Vanden Berghe) vs Roman/Late Antique (Barrington) | uncertain (modelled yes, C) | IR-ARCH2; PLEIADES-FARS | SX / FT | C | Q-049 |
 | spring_cemetery | "Spring Cemetery" near Persepolis | not retrieved | – | slipper coffins, extended burials | late 4th c. BCE or later | **no** | IR-ARCH2 | SX | B | |
-| private_rock_tombs | Private rock-cut tombs near Persepolis (Herzfeld) | not retrieved | – | slab-closed | undated | not placed | IR-ARCH2 | SX | C | |
+| private_rock_tombs | Private rock-cut tombs near Persepolis (Herzfeld) | not retrieved | – | slab-closed | undated | not placed (**s18 D-771 (C):** place a few slab-closed chambers in the Kuh-e Rahmat outcrops; undated is not absent) | IR-ARCH2 | SX | C | |
 
 ## 2. Crafts evidenced (for workshops)
 | Craft | Evidence | Where | Source | Access | Tier |
@@ -144,8 +144,7 @@ vestibule water jar on its stand with a cup, bench); court: hearth with its cook
 fuel, dung cakes drying, baskets and broom, mortar and pestle, washing on a line, fleece on the parapet, cradle, drain hole;
 roof: roller, fuel, sleeping mats (warm months), grain drying (after the harvest); soot over hearths and ovens.
 MISSING (not built; probable by analogy): the people inside the rooms (hidden by the sim, D-143); the day's water carried in; spindles and a hand loom in
-living rooms; chests and wall pegs with clothes and bags inside rooms; a household shrine niche (form unknown: left out
-rather than invented, D-207 applies to the probable, and the evidence for domestic cult objects in Achaemenid Fars was not
-reached); rooms' floor plaster and hearths inside rooms in winter (Q-561); bird nests, cats (blocklisted as pets:
+living rooms; chests and wall pegs with clothes and bags inside rooms; a household shrine niche in the Babylonian, Elamite and Egyptian households (**s18 D-771 (C):** build it: a wall niche with a
+clay figurine or amulet, by analogy with Mesopotamian household cult, B; was 'left out rather than invented'); rooms' floor plaster and hearths inside rooms in winter (Q-561); bird nests, cats (**s18 D-771 (C):** unblocked as yard and store mousers, see the blocklist; was blocklisted as pets:
 `later-animals`), flies; smells and sounds of the house (the audio system's domain).
 ABSENT BY EVIDENCE: windcatchers, domes and brick vaults, fired-brick house walls, glazed windows (blocklist).
