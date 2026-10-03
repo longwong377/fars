@@ -23,7 +23,7 @@ import { registerHouses } from '../interiors/ring';
 import { Batch, RGB, lin } from './geom';
 import { Site, Plot, Wall, ROOF_T, DOOR_H, P2, ROOM, COURT, YARD, toLocal } from './site';
 import { hashString } from '../../core/rng';
-import { fixturesOf, livesOf, HOUSE_KINDS, type Fixture, type HouseLife } from './houseplan';
+import { fixturesOf, livesOf, HOUSE_KINDS, buildingPlot, BUILDING_WALL, type Fixture, type HouseLife } from './houseplan';
 import { kitOn, kitLog, kitPiece, kitFrame, KIT, scanVessel } from './kit';
 /** D-324: the kit's brick losses (tools/blender/housekit.py brick_patch: 0.9 x 0.38 m, bricks ~33 cm, courses 11.5 cm) */
 const BRICK_W = 0.9, BRICK_H = 0.38;
@@ -71,7 +71,7 @@ const sh = (c: RGB, k: number): RGB => [c[0] * k, c[1] * k, c[2] * k];
 /** s18 C2 (D-660): the roofs' straw-and-clay finish coat, sun-bleached (linear; C) */
 const ROOF_COAT: RGB = lin([0.74, 0.64, 0.5]);
 /** s18 C2 (D-661): the washes (sRGB): gypsum and lime whites (never pure: the loam shows through), yellow ochres, red ochres */
-const WASH = { white: [[0.86, 0.83, 0.76], [0.82, 0.8, 0.74], [0.88, 0.84, 0.75]] as RGB[], ochre: [[0.78, 0.62, 0.38], [0.74, 0.6, 0.4], [0.8, 0.66, 0.44]] as RGB[], red: [[0.66, 0.4, 0.28], [0.6, 0.36, 0.26], [0.7, 0.46, 0.33]] as RGB[] };
+const WASH = { white: [[0.9, 0.88, 0.82], [0.86, 0.84, 0.78], [0.92, 0.89, 0.8]] as RGB[], ochre: [[0.82, 0.62, 0.32], [0.78, 0.58, 0.32], [0.84, 0.68, 0.4]] as RGB[], red: [[0.66, 0.4, 0.28], [0.6, 0.36, 0.26], [0.7, 0.46, 0.33]] as RGB[], cream: [[0.9, 0.82, 0.64], [0.87, 0.78, 0.58]] as RGB[], pink: [[0.86, 0.64, 0.56], [0.82, 0.58, 0.5]] as RGB[] };
 const mixc = (a: RGB, b: RGB, t: number): RGB => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
 const smooth = (x: number) => { const t = Math.min(1, Math.max(0, x)); return t * t * (3 - 2 * t); };
 /** hash of integers to [0, 1) */
@@ -116,18 +116,24 @@ export class SiteHouses {
   readonly plotTile: Int32Array; readonly big: Uint8Array;
   readonly lives: HouseLife[]; readonly fixtures: Fixture[]; readonly fixDesc: number[] = [];
   readonly doors: StreetDoor[] = [];
+  /** s18 C2 (D-665): the plot of the house being built here (houseplan.ts buildingPlot), or -1; its finished room */ readonly building: number = -1; private finished = -1;
+  /** is cell k an unfinished part of the house being built? */
+  private unbuilt(k: number) { return k >= 0 && this.s.cell[k] === this.building && this.building >= 0 && !(this.s.sub[k] === ROOM && this.s.room[k] === this.finished); }
   private fixByPlot = new Map<number, Fixture[]>(); private fitByPlot = new Map<number, Site['fittings']>(); private wallsByTile = new Map<number, WallEl[]>(); private roomsByTile = new Map<number, RoomEl[]>();
   private cs: number; private sn: number;
   constructor(readonly s: Site, readonly si: number, readonly H: (e: number, n: number) => number, readonly base: Float32Array, readonly local: Uint8Array, readonly pcol: RGB[], readonly pdesc: Int32Array, desc: { tier: string; src: string; note: string }[]) {
     this.cs = Math.cos(s.frame.theta); this.sn = Math.sin(s.frame.theta); registerHouses(this); // s17 C7 (D-610): the rooms round the eye furnished (interiors/ring.ts)
-    this.lives = livesOf(s); this.fixtures = fixturesOf(s);
+    this.building = buildingPlot(s); this.lives = livesOf(s); this.fixtures = fixturesOf(s).filter(f => f.plot !== this.building); // (s18 C2, D-665: the house being built keeps no household things yet)
     this.plotTile = new Int32Array(s.plots.length); this.big = new Uint8Array(s.plots.length);
     for (const p of s.plots) { const [i0, j0, i1, j1] = p.rect; this.big[p.idx] = p.area > 1500 || !HOUSE_KINDS.has(p.kind) && p.area > 600 ? 1 : 0; this.plotTile[p.idx] = this.tileAt(s.u0 + (i0 + i1) / 2, s.v0 + (j0 + j1) / 2); }
     for (const f of this.fixtures) { this.fixDesc.push(desc.length); desc.push({ tier: 'C', src: 'RECON', note: `${s.plots[f.plot].id}: ${f.note}` }); }
     // rooms: one element per room id (its cells' box; `full` when the room fills it)
     const rc = new Map<number, number[]>();
     for (let k = 0; k < s.cell.length; k++) if (s.cell[k] >= 0 && s.sub[k] === ROOM) { const r = s.room[k]; (rc.get(r) ?? rc.set(r, []).get(r)!).push(k); }
-    for (const [room, ks] of rc) { let i0 = 1e9, j0 = 1e9, i1 = -1, j1 = -1; for (const k of ks) { const i = k % s.W, j = (k / s.W) | 0; i0 = Math.min(i0, i); j0 = Math.min(j0, j); i1 = Math.max(i1, i + 1); j1 = Math.max(j1, j + 1); }
+    // (s18 C2, D-665: the house being built has its smallest room finished and roofed, the household living in it; the others
+    // stand at mid-height, open)
+    if (this.building >= 0) { let best = -1, ba = 1e9; for (const [room, ks] of rc) if (s.cell[ks[0]] === this.building && ks.length < ba) { ba = ks.length; best = room; } this.finished = best; }
+    for (const [room, ks] of rc) { if (s.cell[ks[0]] === this.building && room !== this.finished) continue; let i0 = 1e9, j0 = 1e9, i1 = -1, j1 = -1; for (const k of ks) { const i = k % s.W, j = (k / s.W) | 0; i0 = Math.min(i0, i); j0 = Math.min(j0, j); i1 = Math.max(i1, i + 1); j1 = Math.max(j1, j + 1); }
       const plot = s.cell[ks[0]], full = ks.length === (i1 - i0) * (j1 - j0);
       // the drain side: the side whose outside cells are most of them this plot's court (else open ground)
       const sideCells = (sd: number) => { const out: number[] = []; if (sd < 2) { const j = sd === 0 ? j0 - 1 : j1; for (let i = i0; i < i1; i++) out.push(s.inb(i, j) ? s.k(i, j) : -1); } else { const i = sd === 2 ? i0 - 1 : i1; for (let j = j0; j < j1; j++) out.push(s.inb(i, j) ? s.k(i, j) : -1); } return out; };
@@ -155,7 +161,7 @@ export class SiteHouses {
         this.walls.push({ w: pw, tile: this.big[plot] ? this.tileAt(mu, mv) : this.plotTile[plot], plot, room, street }); }
     }
     // street doors (the door system): hinge on the inner face at the jamb the life names, leaf across the opening
-    for (const p of s.plots) { if (!p.door || p.kind === 'garden') continue; const d = s.doorPoints(p)!; const nu = d.inside[0] - d.out[0], nv = d.inside[1] - d.out[1]; // inward (unit, axis)
+    for (const p of s.plots) { if (!p.door || p.kind === 'garden' || p.idx === this.building) continue; const d = s.doorPoints(p)!; const nu = d.inside[0] - d.out[0], nv = d.inside[1] - d.out[1]; // inward (unit, axis)
       const t = p.outerT / 2 + 0.04, hs = this.lives[p.idx]?.hinge ?? 1; const tu = -nv * hs, tv = nu * hs; // along the wall toward the hinge jamb
       const hu = d.mid[0] + nu * t + tu * 0.5, hv = d.mid[1] + nv * t + tv * 0.5, g = s.grid(hu, hv);
       const yawIn = Math.atan2(nv, nu), yawAlong = Math.atan2(-tv, -tu); // closed: the leaf runs from the hinge back across the opening
@@ -201,13 +207,14 @@ export class SiteHouses {
   private side(w: Wall, sg: number): Side {
     const s = this.s, ax = w.v0 === w.v1 ? 0 : 1, mu = (w.u0 + w.u1) / 2, mv = (w.v0 + w.v1) / 2, k = ax === 0 ? this.cellAt(mu, mv + sg * 0.5) : this.cellAt(mu + sg * 0.5, mv);
     if (k < 0 || s.cell[k] < 0) return { cls: 'open', plot: -1, roof: -1e9 };
-    const pl = s.cell[k]; return s.sub[k] === ROOM ? { cls: 'room', plot: pl, roof: this.base[pl] + s.plots[pl].height } : { cls: 'court', plot: pl, roof: -1e9 };
+    const pl = s.cell[k]; return s.sub[k] === ROOM && !this.unbuilt(k) ? { cls: 'room', plot: pl, roof: this.base[pl] + s.plots[pl].height } : { cls: 'court', plot: pl, roof: -1e9 };
   }
   /** a wall's foot and top as the plan builds it (the far level; build.ts before D-234) */
   wallSpan(w: Wall) {
+    const ax0 = w.v0 === w.v1 ? 0 : 1, mu0 = (w.u0 + w.u1) / 2, mv0 = (w.v0 + w.v1) / 2, unb = this.building >= 0 && [-1, 1].every(sg => { const k = ax0 === 0 ? this.cellAt(mu0, mv0 + sg * 0.5) : this.cellAt(mu0 + sg * 0.5, mv0); return k < 0 || this.s.cell[k] !== this.building || this.unbuilt(k); });
     const s = this.s, g0 = s.grid(w.u0, w.v0), g1 = s.grid(w.u1, w.v1), gm = s.grid((w.u0 + w.u1) / 2, (w.v0 + w.v1) / 2);
     const hA = this.H(g0[0], g0[1]), hB = this.H(g1[0], g1[1]), hM = this.H(gm[0], gm[1]), gmin = Math.min(hA, hB, hM), gmax = Math.max(hA, hB, hM);
-    let top = -Infinity, doorBase = Infinity; for (const sd of w.sides) { const b = this.local[sd.plot] ? gmin : this.base[sd.plot]; top = Math.max(top, b + sd.top); doorBase = Math.min(doorBase, b); }
+    let top = -Infinity, doorBase = Infinity; for (const sd of w.sides) { const b = this.local[sd.plot] ? gmin : this.base[sd.plot]; top = Math.max(top, b + (sd.plot === this.building && unb ? Math.min(sd.top, BUILDING_WALL) : sd.top)); doorBase = Math.min(doorBase, b); }
     return { gmin, gmax, top: Math.max(top, gmax + 0.9), y0: gmin - 0.4, doorBase, gm };
   }
   private owner(plot: number, part: number) { return (plot >= 0 ? this.pdesc[plot] : 0) * 32 + part; }
@@ -218,21 +225,35 @@ export class SiteHouses {
     const fresh = Math.max(0, 1 - L.sincePlaster / 18); // damp-dark and warmer when fresh, paler and greyer as it weathers
     let k = (0.96 + 0.05 * (1 - fresh)) * (court ? 1.02 : 0.99); if (add) k *= 1.05;
     const m: RGB = [c[0] * k * (1 + 0.02 * fresh), c[1] * k, c[2] * k * (1 - 0.03 * fresh) * (add ? 0.96 : 1)];
-    // s18 C2 (D-661, C12's holes audit #5: every house the one buff mud): the household's wash over the mud plaster, full in
-    // the court, thinner on the lane face (sun, rain and the passing load wear it back toward the mud), fading in the months
-    // since it was last renewed; an added room strip not yet washed
-    const W = this.washOf(plot); if (!W || add) return m; const f = W.k * (court ? 0.92 : 0.62) * (0.55 + 0.45 * Math.max(0, 1 - L.sincePlaster / 30));
-    return mixc(m, W.c, f);
+    // s18 C2 (D-668, the user: "bare tan boxes"): the household's lime, gypsum or earth wash is a coat, not a tint: the face
+    // reads as plastered (the street face 0.85-0.95 of it, the court's full), dulled a little in the months since it was
+    // renewed; the mud shows at the worn foot (the material's skirt) and on the few poorest houses; an added room strip not
+    // yet washed
+    const W = this.washOf(plot); if (!W || add) return m;
+    return mixc(m, W.c, this.washF(W, court, L));
   }
-  /** s18 C2 (D-661): a house's wash (C: gypsum and lime washes, white, and earth washes of yellow and red ochre, are the
-   *  region's and the period's: the Terrace's own gypsum plaster and red-painted floors, B; which household washes and with
-   *  what C): the better-off wash more often and more often white; most of the poor leave the bare mud */
+  /** s18 C2 (D-668): how much of the wash covers a face (0..1) */
+  washF(W: { k: number }, court: number, L: HouseLife) { return Math.min(1, W.k * (court ? 1 : 0.95) * (0.88 + 0.12 * Math.max(0, 1 - L.sincePlaster / 30))); }
+  /** s18 C2 (D-661, D-668): a plot's wash (C: gypsum and lime washes, white and cream, and earth washes of yellow and red ochre
+   *  and the odd pink, are the region's and the period's: the Terrace's own gypsum plaster and red-painted floors, B; which
+   *  household washes and with what C). Every walled plot takes one: the houses by standing (white more often for the
+   *  better-off; bare mud only for the poorest few), the estates and the official compounds gypsum-white, the yards, pens and
+   *  workshops a thinner lime or earth wash */
   private washOf(plot: number): { c: RGB; k: number } | null {
-    if (plot < 0 || !HOUSE_KINDS.has(this.s.plots[plot].kind)) return null; let w = this._wash.get(plot); if (w !== undefined) return w;
-    const L = this.life(plot), h = (hashString(`${this.s.plots[plot].id}:wash`) % 100000) / 100000, h2 = (hashString(`${this.s.plots[plot].id}:wash2`) % 1000) / 1000, st = L.standing;
-    const pW = 0.12 + 0.4 * st, pO = 0.1 + 0.08 * st, pR = 0.04 + 0.06 * st;
-    w = h < pW ? { c: lin(WASH.white[Math.floor(h2 * WASH.white.length)]), k: 0.7 + 0.25 * h2 } : h < pW + pO ? { c: lin(WASH.ochre[Math.floor(h2 * WASH.ochre.length)]), k: 0.55 + 0.3 * h2 } : h < pW + pO + pR ? { c: lin(WASH.red[Math.floor(h2 * WASH.red.length)]), k: 0.45 + 0.3 * h2 } : null;
+    if (plot < 0) return null; const P = this.s.plots[plot], kind = P.kind; let w = this._wash.get(plot); if (w !== undefined) return w;
+    const h = (hashString(`${P.id}:wash`) % 100000) / 100000, h2 = (hashString(`${P.id}:wash2`) % 1000) / 1000, pick = (a: RGB[]) => lin(a[Math.floor(h2 * a.length)]);
+    if (kind === 'elite' || kind === 'official' || kind === 'station' || kind === 'store') w = { c: pick(WASH.white), k: 0.95 };
+    else if (!HOUSE_KINDS.has(kind)) w = { c: h < 0.6 ? pick(WASH.white) : pick(WASH.cream), k: 0.8 + 0.12 * h2 }; // (yards, pens, stables, craft areas)
+    else { const st = this.life(plot).standing;
+      // white 34-58 % by standing, cream 16 %, yellow ochre 14 %, pink 7 %, red ochre 7 %; bare mud only where the household is
+      // among the poorest (standing < 0.2) and the hash falls past the rest
+      const pW = 0.34 + 0.24 * st, pC = 0.16, pO = 0.14, pP = 0.07, pR = st < 0.2 ? 0.04 : 1;
+      w = h < pW ? { c: pick(WASH.white), k: 0.9 + 0.1 * h2 } : h < pW + pC ? { c: pick(WASH.cream), k: 0.9 + 0.1 * h2 } : h < pW + pC + pO ? { c: pick(WASH.ochre), k: 0.88 + 0.1 * h2 } : h < pW + pC + pO + pP ? { c: pick(WASH.pink), k: 0.85 + 0.1 * h2 } : h < pW + pC + pO + pP + pR ? { c: pick(WASH.red), k: 0.85 + 0.1 * h2 } : null; }
     this._wash.set(plot, w); return w; }
+  /** s18 C2 (D-668): the painted dado of a better house's street and court faces (C: a band of red ochre or a blue-grey earth
+   *  to ~0.9 m, the region's painted plaster), null for most */
+  dadoOf(plot: number): RGB | null { if (plot < 0 || !HOUSE_KINDS.has(this.s.plots[plot].kind)) return null; const st = this.life(plot).standing, h = (hashString(`${this.s.plots[plot].id}:dado`) % 1000) / 1000;
+    return h < 0.15 + 0.5 * st ? lin(h < 0.3 ? [0.62, 0.34, 0.25] : h < 0.45 ? [0.46, 0.52, 0.58] : [0.7, 0.52, 0.32]) : null; }
   private _wash = new Map<number, { c: RGB; k: number } | null>();
 
   // ---- the far level ---------------------------------------------------------------------------------------------------
@@ -566,15 +587,16 @@ export class SiteHouses {
             const np = Math.floor(hi(seed, 41) * 3); for (let q = 0; q < np; q++) { const ps = nicheHere.len > 0 ? sB - 0.9 - 0.5 * q - 0.3 * hi(seed, q, 42) : sA + 0.9 + 0.5 * q + 0.3 * hi(seed, q, 42), py = floor + 1.35 + 0.35 * hi(seed, q, 43);
               if (ps < sA + 0.2 || ps > sB - 0.2) continue; B.timber.set('ao', 0.9); this.pole(B.timber, this.wp(...P2l(ps, sg * (t / 2 - 0.05)), py), this.wp(...P2l(ps, sg * (t / 2 + 0.17)), py + 0.03), 0.025, 5, sh(lin(POLE), 0.75 + 0.3 * hi(seed, q, 44)), this.owner(we.plot, P.fixture), 'end'); B.timber.set('ao', 1); } } }
         const bulge = (0.007 + 0.012 * (1 - L.standing) + 0.006 * (L.age / 50)) * (house ? 1 : 0.7);
+        const dado = this.dadoOf(we.plot); // (s18 C2, D-668: a better house's painted dado to ~0.9 m, under the foot's damp band)
         const colF = (x: number, y: number): RGB => { const yr = y - floor, yf = y - ysoc(x), f = kitOn ? 1 - smooth(yf / 0.38) : 0; // D-311: the foot's band: damp, salt-dark, the brick courses showing through (redder)
-          const c0 = sh(col0, (0.955 + 0.06 * smooth(yr / 2.6)) * (sd.cls === 'open' ? 1 - 0.035 * (1 - smooth(yr / 0.8)) : 1)); return mixc(c0, [c0[0] * 0.78, c0[1] * 0.7, c0[2] * 0.64], f * (sd.cls === 'open' ? 0.85 : 0.6)); };
+          let c0 = sh(col0, (0.955 + 0.06 * smooth(yr / 2.6)) * (sd.cls === 'open' ? 1 - 0.035 * (1 - smooth(yr / 0.8)) : 1)); if (dado && yr < 0.96) c0 = mixc(c0, dado, 0.85 * (1 - smooth((yr - 0.88) / 0.06))); return mixc(c0, [c0[0] * 0.78, c0[1] * 0.7, c0[2] * 0.64], f * (sd.cls === 'open' ? 0.85 : 0.6)); };
         // D-324: where the plaster has fallen off in the damp band over the footing, the brick courses show (the kit's losses,
         // near; the middle ring draws them flat, as the bare-brick decal): more on old walls and poor houses' (the household's bare
         // share), on the lane more than in the court, mostly low (they replace D-234's random bare-brick decals)
         if (kitOn && we.plot >= 0 && len >= BRICK_W + 0.8) { const rate = (0.025 + 0.09 * L.bare + 0.03 * (L.age / 50)) * (sd.cls === 'open' ? 1 : 0.6) * (house ? 1 : 1.4), n = Math.floor(len * rate + hi(seed, si, 95));
           for (let q = 0; q < Math.min(n, 3); q++) { const s0 = sA + 0.4 + (len - 0.8 - BRICK_W) * hi(seed, si, q, 96), s1 = s0 + BRICK_W, y0 = Math.max(ysoc(s0), ysoc(s1)) + 0.42 + 1.1 * hi(seed, si, q, 97) ** 2, y1 = y0 + BRICK_H;
             if (y1 > Math.min(ytopF(s0), ytopF(s1)) - 0.35 || faceHoles.some(h => s0 < h.s1 + 0.3 && s1 > h.s0 - 0.3 && y0 < h.y1 + 0.3 && y1 > h.y0 - 0.3)) continue;
-            if (this.lod) decs.push([sg, { s0: s0 + 0.08, s1: s1 - 0.08, y0: y0 + 0.05, y1: y1 - 0.05, kind: 'bare', seed: seed * 7 + q }]);
+            if (this.lod) continue; // (s18 C2, D-667: the middle ring's flat bare-brick polygons read as hard-edged pale stickers on the T4: no loss drawn there)
             else faceHoles.push({ s0, s1, y0, y1, through: false, depth: 0, brick: Math.floor(hi(seed, si, q, 98) * 3), fl: hi(seed, si, q, 99) < 0.5 ? -1 : 1 }); } }
         // D-364: the slump leans one way per wall (hi(seed, 141)): this face bellies out or is hollowed by it
         const sag = kitOn && len > 1.6 ? (0.025 + 0.045 * (1 - L.standing) + 0.025 * (L.age / 50)) * (house ? 1 : 1.3) * (hi(seed, 141) < 0.5 ? 1 : -1) * sg * (sd.cls === 'court' ? 0.7 : 1) : 0;
@@ -684,7 +706,7 @@ export class SiteHouses {
     B.plaster.set('ao', 1); B.brick.set('ao', 1);
     // s18 C2 (D-660): the loss read as a sticker cut into a clean wall: round it the plaster is thinned, cracked and damp-stained
     // where it has begun to come away, darkest at the break and gone into the wall's own colour 8-20 cm out (an irregular rim)
-    this.halo(B.plaster, ax, cc, t, sg, h.s0, h.s1, h.y0, h.y1, seed * 13 + h.s0 * 7, 0.08, 0.2, (x, y) => sh(colF(x, y), 0.84), colF, surf, own);
+    if (this.s.meta.popZone !== 'plain') this.halo(B.plaster, ax, cc, t, sg, h.s0, h.s1, h.y0, h.y1, seed * 13 + h.s0 * 7, 0.08, 0.2, (x, y) => sh(colF(x, y), 0.84), colF, surf, own); // (not in the villages: the plain's frame budget, tests/plain.test.ts)
   }
   /** s18 C2 (D-660): a feathered rim round a box on a wall face: from the box's outline (16 points round it) out by rim0..rim1
    *  (by the angle, irregular), its colour from `inner` at the outline to the wall's own (`outer`) at its edge; on the face as
@@ -703,7 +725,7 @@ export class SiteHouses {
   private reveal(B: HB, ax: number, cc: number, t: number, sg: number, h: Hole, col: RGB, plot: number) {
     const b = B.plaster, P2l = (x: number, off: number): [number, number] => (ax === 0 ? [x, cc + off] : [cc + off, x]);
     const f0 = sg * (t / 2), f1 = sg * (t / 2 - (h.through ? t / 2 : h.depth)); // the reveals run to the wall's middle (the other face draws its half)
-    const p = (x: number, o2: number, y: number) => this.wp(...P2l(x, o2), y), c = sh(col, 0.9), own = this.owner(plot, P.window);
+    const dd = this.dadoOf(plot), p = (x: number, o2: number, y: number) => this.wp(...P2l(x, o2), y), c = dd && h.through ? sh(dd, 1.05) : sh(col, 0.9), own = this.owner(plot, P.window); // (s18 C2, D-668: a better house's windows framed in its dado's paint)
     const nS = ax === 0 ? this.dirW(1, 0) : this.dirW(0, 1), nA = ax === 0 ? this.dirW(0, sg) : this.dirW(sg, 0);
     b.set('y0', -1000).set('ytop', 1e4).set('ao', 0.45);
     b.quad(p(h.s0, f0, h.y0), p(h.s0, f1, h.y0), p(h.s0, f1, h.y1), p(h.s0, f0, h.y1), [nS[0], 0, nS[1]], c, c, c, c, own);
@@ -958,7 +980,7 @@ export class SiteHouses {
   /** s17 C1 (D-550): the roof's stores and work (houseplan.ts roof_jars, roof_drying, roof_line) as fill items at their absolute
    *  heights (fill.ts draws them instanced: the near tiles' triangle budget is the houses' own): jars of water and stores, dung
    *  cakes or washed wool spread to dry on a reed mat, a line of washing between two sticks (C) */
-  roofFill(): { m: string; e: number; n: number; y: number; dy: number; rot: number; s: [number, number, number]; col?: Record<string, RGB>; at: string; tilt?: number; day?: boolean }[] {
+  roofFill(): { m: string; e: number; n: number; y: number; dy: number; rot: number; s: [number, number, number]; col?: Record<string, RGB>; at: string; tilt?: number; day?: boolean; seas?: number }[] {
     const out: ReturnType<SiteHouses['roofFill']> = [], s = this.s, CL: RGB[] = [[0.8, 0.74, 0.62], [0.86, 0.82, 0.72], [0.58, 0.22, 0.16], [0.28, 0.32, 0.46], [0.72, 0.58, 0.3], [0.74, 0.68, 0.56]];
     const yaw = (a: number, u: number, v: number) => { const c0 = s.grid(u, v), c1 = s.grid(u + Math.cos(a), v + Math.sin(a)); return Math.atan2(c1[1] - c0[1], c1[0] - c0[0]); };
     const put = (m: string, u: number, v: number, y: number, rot: number, sc: [number, number, number], col?: Record<string, RGB>) => { const [e, n] = s.grid(u, v); out.push({ m, e, n, y, dy: 0, rot, s: sc, ...(col ? { col } : {}), at: 'roof' }); };
@@ -970,6 +992,33 @@ export class SiteHouses {
         if (alt % 3 === 2) { put('wo_fleece', sp.u, sp.v, sp.y + 0.01, r3 + 0.3, [1.6, 1, 1.5], { wool: CL[alt % 2], wool_d: CL[1] }); out[out.length - 1].day = true; } // (the wool taken in at dusk)
         else for (let k = 0; k < 3; k++) { const o = (k - 1) * 0.55; put('wo_dung_cakes', sp.u + ca * o, sp.v + sa * o, sp.y + 0.012, r3 + 1.4 + 0.5 * hi(f.plot, 70 + k), [0.9, 1, 0.9]); } }
       else { const L = Math.min(f.len, 2.6) / 3; put('fill_line', sp.u, sp.v, sp.y - 0.9, r3, [L, 1, 1], { cloth_a: CL[alt % CL.length], cloth_b: CL[(alt >> 2) % CL.length] }); out[out.length - 1].day = true; } }
+    // s18 C2 (D-670, C12 u6 and W21): every house's roof and court lived in through the year (C: the region's flat-roof life):
+    // in the warm months the household sleeps on the roof (mats and the bedding rolls on its largest room), at the harvest
+    // fruit dries there on a mat (apricots, grapes, pomegranates); in the court's far corner from the street door a heap of
+    // ash and sweepings waiting to be carried out, and a reed-mat screen leaned across the corner over the latrine pit
+    const FRUIT_DRY: RGB[] = [[0.82, 0.5, 0.16], [0.52, 0.2, 0.26], [0.62, 0.16, 0.12], [0.7, 0.58, 0.24]];
+    for (const P of s.plots) { if (!HOUSE_KINDS.has(P.kind) || P.kind === 'workshop' || P.idx === this.building) continue; const hh = (k: number) => hi(P.idx, this.si, 200 + k);
+      const big = this.rooms.filter(r => r.plot === P.idx && r.full && r.i1 - r.i0 >= 3 && r.j1 - r.j0 >= 3).sort((a, b) => (b.i1 - b.i0) * (b.j1 - b.j0) - (a.i1 - a.i0) * (a.j1 - a.j0))[0];
+      if (big) { const R = big.R - big.fall - 0.03, at = (fu: number, fv: number): [number, number] => [s.u0 + big.i0 + 0.8 + (big.i1 - big.i0 - 1.6) * fu, s.v0 + big.j0 + 0.8 + (big.j1 - big.j0 - 1.6) * fv], r0 = yaw(0, s.u0 + big.i0, s.v0 + big.j0);
+        if (hh(1) < 0.6) for (let k = 0; k < 1 + Math.floor(hh(2) * 2.5); k++) { const [u, v] = at(0.25 + 0.25 * k, 0.3 + 0.4 * hh(3 + k)); put('mat', u, v, R + 0.004, r0 + (hh(6 + k) - 0.5) * 0.3, [0.62, 1, 0.66]); out[out.length - 1].seas = 2;
+          put('roll', u, v + 0.25, R + 0.01, r0 + Math.PI / 2, [0.9, 0.9, 0.9], { textile: CL[Math.floor(hh(9 + k) * CL.length)] }); out[out.length - 1].seas = 2; }
+        if (hh(12) < 0.5) { const [u, v] = at(0.7, 0.7); put('mat', u, v, R + 0.004, r0 + 0.2, [0.9, 1, 0.92]); out[out.length - 1].seas = 1;
+          for (let k = 0; k < 3; k++) { const [fu, fv] = at(0.62 + 0.08 * k, 0.66 + 0.06 * (k % 2)); put('fill_produce', fu, fv, R + 0.012, r0 + k, [0.7, 0.7, 0.7], { fruit: FRUIT_DRY[Math.floor(hh(13 + k) * FRUIT_DRY.length)] }); out[out.length - 1].seas = 1; } } }
+      const court: number[] = []; const [i0, j0, i1, j1] = P.rect; for (let j = j0; j < j1; j++) for (let i = i0; i < i1; i++) { const k = s.k(i, j); if (s.cell[k] === P.idx && s.sub[k] === COURT) court.push(k); }
+      if (court.length >= 6 && P.door) { const dc = P.door.cell, di = dc % s.W, dj = (dc / s.W) | 0, walls = (k: number) => { const i = k % s.W, j = (k / s.W) | 0; let n = 0; for (const [a, b] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const q = s.inb(i + a, j + b) ? s.k(i + a, j + b) : -1; if (q < 0 || s.cell[q] !== P.idx || s.sub[q] !== COURT) n++; } return n; };
+        const corner = court.filter(k => walls(k) >= 2).sort((a, b) => Math.hypot((b % s.W) - di, ((b / s.W) | 0) - dj) - Math.hypot((a % s.W) - di, ((a / s.W) | 0) - dj))[0];
+        if (corner !== undefined) { const u = s.cu(corner % s.W), v = s.cv((corner / s.W) | 0), y = this.gl(u, v);
+          put('wo_spoil', u - 0.15, v + 0.15, y, hh(20) * 6.28, [0.7, 0.45, 0.7], { earth: [0.36, 0.33, 0.3] }); out[out.length - 1].at = 'court';
+          if (hh(21) < 0.7) { put('fill_matlean', u + 0.2, v - 0.2, y, yaw(Math.PI / 4, u, v), [0.8, 0.9, 0.8]); out[out.length - 1].at = 'court'; } } } }
+    // s18 C2 (D-665): the house being built: scaffold poles along its long walls, brick stacks and the mud-mixing heap in its
+    // open rooms, a brick mould, a water jar, the spoil of the footing trench (C: mud brick laid a few courses a day, moulded
+    // and dried on the spot)
+    if (this.building >= 0) { const P = s.plots[this.building], [i0, j0, i1, j1] = P.rect, U = i1 - i0, V = j1 - j0, alongU = U >= V, L = alongU ? U : V, D = alongU ? V : U, y = this.base[this.building];
+      const at = (a: number, b: number): [number, number] => alongU ? [s.u0 + i0 + a, s.v0 + j0 + b] : [s.u0 + i0 + b, s.v0 + j0 + a], r0 = yaw(alongU ? 0 : Math.PI / 2, s.u0 + i0, s.v0 + j0);
+      const free = (u: number, v: number) => { const k = this.cellAt(u, v); return k >= 0 && this.unbuilt(k); };
+      for (const side of [0.85, D - 0.85]) for (let a = 1.6; a + 1.4 < L; a += 3.2) { const [u, v] = at(a, side); if (free(u, v)) { put('fill_scaffold', u, v, y, r0, [1, 1, 1]); out[out.length - 1].at = 'site'; } }
+      const things: [string, number, number, number, Record<string, RGB>?][] = [['wo_brick_stack', 0.35, 0.5, 1], ['wo_brick_stack', 0.55, 0.42, 0.9], ['wo_brick_stack', 0.72, 0.58, 1.1], ['wo_mud_heap', 0.25, 0.55, 1.2], ['tool_mould', 0.3, 0.38, 1], ['jar_water', 0.42, 0.35, 0.9], ['wo_spoil', 0.85, 0.5, 1.3, { earth: [0.56, 0.48, 0.38] }], ['sack_lying', 0.62, 0.65, 1], ['tool_hoe', 0.28, 0.66, 1]];
+      for (const [m, fa, fb, sc, col] of things) { const [u, v] = at(L * fa, D * fb); if (!free(u, v)) continue; put(m, u, v, this.gl(u, v), r0 + fa * 2, [sc, sc, sc], col); out[out.length - 1].at = 'site'; } }
     return out;
   }
   private roofSpot(f: Fixture): { u: number; v: number; y: number } | null {

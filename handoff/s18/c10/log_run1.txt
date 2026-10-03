@@ -1,0 +1,6 @@
+stairfoot before toggled=19 637s {"dc":560,"tri":11835022}
+stairfoot after toggled=19 331s {"dc":569,"tri":12787426}
+town300 before toggled=19 324s {"dc":547,"tri":10525306}
+town300 after toggled=19 303s {"dc":555,"tri":11104558}
+plain1k before toggled=19 505s {"dc":724,"tri":10267404}
+plain1k after toggled=19 449s {"dc":731,"tri":10583040}

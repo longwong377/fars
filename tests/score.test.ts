@@ -3,7 +3,7 @@
 // catalogue on disk (every cue it names is there in both encodings).
 import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync, statSync } from 'node:fs';
-import { chooseCue, fitness, phaseOf, placeOf, DIRECTOR, type Catalogue, type ScoreContext } from '../src/audio/score';
+import { chooseCue, fitness, phaseOf, placeOf, DIRECTOR, DUCK, type Catalogue, type ScoreContext } from '../src/audio/score';
 
 const cat: Catalogue = { cues: {
   main_theme: { title: 'theme', tags: ['main', 'film'], seconds: 140 },
@@ -30,6 +30,13 @@ describe('the score director (D-760)', () => {
     const ids = history.map(h => h.id); expect(new Set(ids).size).toBe(4);
     const fresh: { id: string; at: number }[] = [{ id: 'day1', at: 0 }, { id: 'day3', at: 100 }];
     for (let r = 0; r < 1; r += 0.05) expect(['day2', 'any1']).toContain(chooseCue(cat, day, fresh, 200, r));
+  });
+  it('ducks under a conversation, and leans away from a cue like the last', () => {
+    expect(DUCK).toBeLessThanOrEqual(0.35);
+    const cat2: Catalogue = { cues: { r1: { title: '', tags: ['day', 'road'], seconds: 100 }, r2: { title: '', tags: ['day', 'road'], seconds: 100 }, t1: { title: '', tags: ['day'], seconds: 100 } } };
+    const ctx: ScoreContext = { hour: 11, rise: 6, set: 18, place: 'road', rain: false };
+    let r2 = 0; for (let r = 0.005; r < 1; r += 0.01) if (chooseCue(cat2, ctx, [{ id: 'r1', at: 0 }], 5000, r) === 'r2') r2++;
+    expect(r2).toBeLessThan(60); // without the lean the road cue (weight 3) would take 75 of 100
   });
   it('keeps long silences', () => { expect(DIRECTOR.gap[0]).toBeGreaterThanOrEqual(180); expect(DIRECTOR.firstAfter[0]).toBeGreaterThanOrEqual(120); });
   it('knows the places', () => { expect(placeOf(100, 0)).toBe('terrace'); expect(placeOf(-175, 122)).toBe('town'); expect(placeOf(-1500, 1500)).toBe('road'); expect(placeOf(4000, 0)).toBe('plain'); });

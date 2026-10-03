@@ -43,7 +43,10 @@ export const LAND_FAR: Record<string, number> = { meadow: 900, bank: 1200, edge:
  *  scattered plots of a household: the village fields of the region in every period, C). Shared with popgeo.ts, so the
  *  plan's walk out is as long as the walk the view draws */
 export function fieldOffset(seed: number, hh: number, plot: number): [number, number] {
-  const a = u01(seed, salt('field-bearing'), hh, plot) * Math.PI * 2, d = 200 + 1600 * u01(seed, salt('field-dist'), hh, plot);
+  // (D-651: out to 3.2 km, evenly by area (the square root): the land between the villages is worked too. It was 200-1,800 m, so
+  // the irrigated land 1-4.5 km from any village (most of the plain the player crosses) was never worked: s18 C12's census, plain
+  // fields empty 88 % of spring and autumn mornings. An hour's walk out at most, as the region's villages' fields lie, C)
+  const a = u01(seed, salt('field-bearing'), hh, plot) * Math.PI * 2, d = Math.sqrt(250 ** 2 + (3200 ** 2 - 250 ** 2) * u01(seed, salt('field-dist'), hh, plot));
   return [Math.cos(a) * d, Math.sin(a) * d];
 }
 /** D-640: the brushwood and the dung of the hill: Kuh-e Rahmat's lower slopes E and S of the Terrace, where the town's
@@ -533,6 +536,7 @@ export class Population {
     const craftOf = (H: Household) => { for (const x of H.members) { const j = this.persons[x].job; if (j === 'weaver') return ['textile']; if (j === 'brewer') return ['brewery']; if (j === 'craftsman') return ['metal', 'wood', 'pottery', 'pigment']; } return null; };
     const hs = this.households.filter(H => H.zone === 'town'); for (const H of hs) H.need = Math.max(1, this.maxMembers(H));
     hs.sort((a, b) => b.need! - a.need! || a.id - b.id);
+    this.plotFree = free; // (D-651: the room left in each plot, for the weddings made later in the year: addWedding)
     const take = (H: Household, id: string) => { free.set(id, free.get(id)! - H.need!); used.add(id); H.plot = id; };
     const zoneOf = new Map(townQ.map(q => [q.id, q.zone as string]));
     const tryIn = (H: Household, sids: string[], ok: (x: TownPlot) => boolean) => { for (const sid of sids) for (const x of plotsIn.get(sid) ?? []) if (ok(x) && free.get(x.id)! >= H.need!) return x.id; return null; };
@@ -541,7 +545,8 @@ export class Population {
       const ord = order.get(H.q) ?? siteIds, own = ord.filter(sid => TOWN_SITES[sid].zone === zoneOf.get(H.q)), other = ord.filter(sid => TOWN_SITES[sid].zone !== zoneOf.get(H.q));
       const cr = craftOf(H); let id: string | null = null;
       if (cr) id = tryIn(H, own, x => x.kind === 'workshop' && !!x.craft && cr.includes(x.craft) && !used.has(x.id));
-      id ??= tryIn(H, own, house) ?? tryIn(H, own, empty) ?? tryIn(H, own, any);
+      const fits = (x: TownPlot) => !cr || x.kind !== 'workshop' || (!!x.craft && cr.includes(x.craft)); // (D-651: a craft's house never in another craft's workshop)
+      id ??= tryIn(H, own, house) ?? tryIn(H, own, x => empty(x) && fits(x)) ?? tryIn(H, own, x => any() && fits(x));
       if (id) { take(H, id); continue; }
       // larger than any free house of its zone (an estate): the empty plots of one site of its zone together, before
       // anything elsewhere
@@ -549,7 +554,7 @@ export class Population {
         const ids: string[] = []; let cap = 0; for (const x of cand) { ids.push(x.id); cap += x.capacity; if (cap >= H.need!) break; }
         if (cap >= H.need!) { let left = H.need!; H.shares = []; for (const i of ids) { const t = Math.min(free.get(i)!, left); free.set(i, free.get(i)! - t); left -= t; used.add(i); H.shares.push(t); } H.plot = ids[0]; H.plots = ids; return true; } } return false; };
       if (H.need! > 10 && multi(own)) continue;
-      for (const sid of other) { id = tryIn(H, [sid], house) ?? tryIn(H, [sid], empty) ?? tryIn(H, [sid], any); if (id) break; }
+      for (const sid of other) { id = tryIn(H, [sid], house) ?? tryIn(H, [sid], x => empty(x) && fits(x)) ?? tryIn(H, [sid], x => any() && fits(x)); if (id) break; }
       if (id) { take(H, id); continue; }
       for (const sid of order.get(H.q) ?? siteIds) { const cand = (plotsIn.get(sid) ?? []).filter(x => !used.has(x.id)).sort((a, b) => b.capacity - a.capacity || (a.id < b.id ? -1 : 1));
         const ids: string[] = []; let cap = 0; for (const x of cand) { ids.push(x.id); cap += x.capacity; if (cap >= H.need!) break; }
@@ -1630,11 +1635,15 @@ export class Population {
    *  Only for a bride the population never married or moved (one move a year per person: Person.marry/hh2); false if not */
   addWedding(bride: number, groom: number, day: number, to: number): boolean {
     const B = this.persons[bride], G = this.persons[groom]; if (!B || !G || B.hh2 >= 0 || B.marry < 1e9 || B.hh === to || !this.households[to]) return false;
+    // (D-651: a town house holds no more than its plot: a wedding into a full one is not made; the room is kept for her)
+    const T0 = this.households[to]; if (T0.zone === 'town') { const id = (T0.plots ?? [T0.plot]).find(x => x && (this.plotFree.get(x) ?? 0) >= 1); if (!id) return false; this.plotFree.set(id, this.plotFree.get(id)! - 1); if (T0.plots && T0.shares) T0.shares[T0.plots.indexOf(id)]++; }
     B.hh2 = to; B.marry = day; B.single = false; G.single = false; if (!this.households[to].joins.includes(bride)) this.households[to].joins.push(bride);
     (this.weddingList[day] ??= []).push({ day, bride, groom, from: B.hh, to }); this.wedCache.delete(day); this.relWed.add(bride); return true;
   }
   /** the brides of the relations layer's weddings (addWedding) */
   readonly relWed = new Set<number>();
+  /** D-651: each town plot's room left after the housing (housePlots), spent by the weddings made later (addWedding) */
+  private plotFree = new Map<string, number>();
   private wedCache = new Map<number, { day: number; bride: number; groom: number; from: number; to: number }[]>();
   /** the weddings held today: bride and groom both fit for the day, both houses in the town or the plain (else the move is
    *  the quiet one of before: Planner.marriageDay) */
@@ -1951,7 +1960,46 @@ export class Population {
   /** D-459 (UD-32): the deeds of the minds and the stranger laid over the plans (people/deeds/engine.ts DeedWorld; the sim sets it):
    *  a friend visited, work shared, a wound kept at home. Over the relations' meetings, under the stranger's talk */
   deeds: { touches(pid: number, day: number): boolean; overlay(pid: number, day: number, base: Seg[]): Seg[] } | null = null;
-  plan(pid: number, day: number): Seg[] { let b = this.basePlan(pid, day); const e = this.econ?.touches(pid, day); if (this.wash?.touches(pid, day)) b = this.wash.overlay(pid, day, b); if (e) b = this.econ!.overlay(pid, day, b); if (this.bonds?.touches(pid, day)) b = this.bonds.overlay(pid, day, b); b = this.mindAfter(pid, day, b); if (this.deeds?.touches(pid, day)) b = this.deeds.overlay(pid, day, b); return this.talk?.touches(pid, day) ? this.talk.overlay(pid, day, b) : b; }
+  plan(pid: number, day: number): Seg[] { let b = this.basePlan(pid, day); const e = this.econ?.touches(pid, day); if (this.wash?.touches(pid, day)) b = this.wash.overlay(pid, day, b); if (e) b = this.econ!.overlay(pid, day, b); if (this.bonds?.touches(pid, day)) b = this.bonds.overlay(pid, day, b); b = this.mindAfter(pid, day, b); if (this.deeds?.touches(pid, day)) b = this.deeds.overlay(pid, day, b); if (this.talk?.touches(pid, day)) b = this.talk.overlay(pid, day, b); b = this.keepFood(pid, day, b); return b === this.basePlan(pid, day) ? b : this.keepDress(day, b); }
+  /** D-651: the overlays' stretches dressed as the planner's are: the economy's hired day in the cold or the dust (planCheck's
+   *  dress: "working for ... (taken on, paid by the day)" undressed in the cold) is dressed again by the planner's own rules
+   *  (dustWear, coldWear) over the whole day, on copies (the base day's stretches are shared) */
+  private keepDress(d: number, segs: Seg[]): Seg[] {
+    const wx = this.cal.ctx(d).wx, tq = wx.tempQ; if (!wx.dustH && !(tq?.length && Math.min(...tq) < COLD_C)) return segs;
+    const out = segs.map(x => ({ ...x })); dustWear(out, wx); coldWear(out, wx); return out;
+  }
+  /** D-651: the overlays (the economy's steps, the washing, the relations, the minds' deeds, the talk) lay their stretches over
+   *  the planner's day; where one took a meal or a baby's feed, the day keeps one: a short meal of the bread brought along
+   *  (or at home) where the day goes more than 7.5 h without food or first eats over 4.3 h after waking, and a feed wherever a
+   *  baby would wait longer by day than the planner's own rule (planCheck's meals and feed). Unchanged days come back as they are */
+  private keepFood(pid: number, d: number, segs0: Seg[]): Seg[] {
+    let segs = segs0; const age = this.ageOn(pid, d), home = `h:${this.home(pid, d)}`;
+    const spliceAt = (t: number, len: number, act: ActivityId, why: (x: Seg) => string, ok: (x: Seg) => boolean): boolean => {
+      const tries = Array.from({ length: 25 }, (_, i) => t + (i % 2 ? 1 : -1) * Math.ceil(i / 2) * 0.15);
+      for (const u of tries) { if (u < 0.1 || u > 23.5) continue; const x = segAt(segs, u); if (!ok(x) || x.where === 'road' || x.t1 - x.t0 < len + 0.1) continue;
+        const a = Math.min(Math.max(u, x.t0 + 0.05), x.t1 - len - 0.05), i = segs.indexOf(x); if (i < 0) continue; if (segs === segs0) segs = segs0.slice();
+        segs.splice(segs.indexOf(x), 1, ...[{ ...x, t1: a }, { ...x, t0: a, t1: a + len, act, why: why(x) }, { ...x, t0: a + len }].filter(y => y.t1 - y.t0 > 1e-6)); return true; }
+      return false; };
+    const busy = (x: Seg) => !['sleep', 'lie_ill', 'offmap', 'eat', 'walk'].includes(x.act) && !/nurs/.test(x.why);
+    if (age >= 14) for (let k = 0; k < 3; k++) {
+      const awake = segs.filter(x => x.act !== 'sleep' && x.act !== 'lie_ill' && !NIGHT_FEED.test(x.why)); if (!awake.length || segs.some(x => x.act === 'offmap')) break;
+      const wake = awake[0].t0, bed = awake[awake.length - 1].t1; if (bed - wake < 10) break;
+      const eats = segs.filter(x => x.act === 'eat'); let at = -1;
+      if (!eats.length) at = (wake + bed) / 2; else if (wake >= 3 && eats[0].t0 - wake > 4.3) at = wake + 3.2;
+      else for (let i = 1; i < eats.length; i++) if (eats[i].t0 - eats[i - 1].t1 > 7.5) { at = (eats[i].t0 + eats[i - 1].t1) / 2; break; }
+      if (at < 0 && eats.length === 1 && bed - wake >= 10) at = eats[0].t0 - wake > bed - eats[0].t1 ? (wake + eats[0].t0) / 2 : (eats[0].t1 + bed) / 2;
+      if (at < 0 || !spliceAt(at, 0.3, 'eat', x => x.place === home ? 'a bite of bread and onions at home' : 'eating the bread brought along', busy)) break;
+    }
+    const babies = this.nurslings(pid, d).filter(c => this.ageOn(c, d) === 0 && this.persons[c].born !== d);
+    if (babies.length) { const cap = (L.infant_care as any).day_feed_every_h[1] + 0.4;
+      // (the day as planCheck reads it: from the first waking after 2 h, to the last waking stretch before midnight; each gap tried)
+      const wake = segs.find(x => x.t0 > 2 && x.act !== 'sleep')?.t0 ?? 6, bed = [...segs].reverse().find(x => x.act !== 'sleep' && x.t1 < 24)?.t1 ?? 21;
+      for (let k = 0; k < 6; k++) { const fs = segs.filter(x => /nurs/.test(x.why)).map(x => [x.t0, x.t1] as [number, number]); let done = false;
+        for (let i = 1; i < fs.length && !done; i++) { const a = fs[i - 1][1], b = fs[i][0], m = (a + b) / 2; if (m < wake || m > bed || b - a <= cap) continue;
+          done = spliceAt(m, 0.2, 'rest', x => ['talk', 'rest', 'queue', 'gamble', 'exchange', 'play'].includes(x.act) ? 'nursing the baby' : 'stopping to nurse the baby', x => !['sleep', 'offmap', 'eat', 'draw_water', 'knead', 'bake'].includes(x.act) && !/nurs/.test(x.why) && x.t0 >= a - 1e-6 && x.t1 <= b + 1e-6 || (x.t0 < b && x.t1 > a && !['sleep', 'offmap', 'eat', 'draw_water', 'knead', 'bake'].includes(x.act) && !/nurs/.test(x.why))); }
+        if (!done) break; } }
+    return segs;
+  }
   /** the base day with the house's washing laid in (D-347): what the relations' meetings are fitted to, since plan() lays
    *  them over it (D-350: fitted to the base alone, a meeting was reported laid and then refused by the washing under it) */
   washedPlan(pid: number, day: number): Seg[] { const b = this.basePlan(pid, day); return this.wash?.touches(pid, day) ? this.wash.overlay(pid, day, b) : b; }
@@ -2168,7 +2216,13 @@ export const ALL_NAMES: any[] = [...(namesData as any).names, ...(namesRecalled 
 /** D-452: the men of Darius' Bisitun inscription whose names may go to ordinary men (see NAME_POOLS) */
 export const DB_MEN = ['Vidarna', 'Vaumisa', 'Dādarši', 'Taxmaspāda', 'Artavardiya', 'Vivāna', 'Vindafarnā', 'Utāna', 'Θuxra', 'Bagabuxša', 'Gaubaruva',
   'Dātuvahya', 'Ardumaniš', 'Vahuka', 'Bagābigna', 'Upadarma', 'Vahyasparuva', 'Cincaxri', 'Aspacanā'];
-const NAME_POOLS = (() => { const m = new Map<string, string[]>(); for (const n of ALL_NAMES) { if (n.notable || n.reading_uncertain) continue; const k = `${n.sex}:${n.origin_guess}`; (m.get(k) ?? m.set(k, []).get(k)!).push(n.name); }
+/** D-651 (s18 C12, W1): Darius' six helpers against Gaumāta (DB 4.80-86: Vindafarnā, Utāna, Gaubaruva, Vidarna, Bagabuxša,
+ *  Ardumaniš) founded the great houses: their names are not dealt to the town's ordinary men (the court's nobles keep them) */
+export const THE_SIX = ['Vindafarnā', 'Utāna', 'Gaubaruva', 'Vidarna', 'Bagabuxša', 'Ardumaniš'];
+/** D-651 (W2): a composed woman's name (D-236, *) that is no name: the element doubled (*Čiθračiθrā), or the royal xšaθra-
+ *  ("kingship") on the women of the lanes */
+const MECHANICAL = (n: string) => /^\*Xšaθra/.test(n) || (() => { const b = n.replace(/^\*/, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); for (const k of [4, 5, 6]) if (b.length >= 2 * k && b.slice(0, k) === b.slice(k, 2 * k)) return true; return false; })();
+const NAME_POOLS = (() => { const m = new Map<string, string[]>(); for (const n of ALL_NAMES) { if (n.notable || n.reading_uncertain || THE_SIX.includes(n.name) || (n.sex === 'f' && MECHANICAL(n.name))) continue; const k = `${n.sex}:${n.origin_guess}`; (m.get(k) ?? m.set(k, []).get(k)!).push(n.name); }
   // attested outside names.json, in the project's research: Herdkama "the Egyptian", chief of a team of 100 labourers in a
   // Treasury text (research/PEOPLE.md, PT-WAGE: SX, C; the name looks Iranian, the label is Egyptian: kept as given)
   (m.get('m:Egyptian') ?? m.set('m:Egyptian', []).get('m:Egyptian')!).push('Herdkama');
@@ -2177,7 +2231,7 @@ const NAME_POOLS = (() => { const m = new Map<string, string[]>(); for (const n 
   // (Vištāspa, Aršāma, ...) nor the nine "liars" whose names the king cursed (Gaumāta, Āçina, Nidintabaira, Martiya, Fravartiš,
   // Ciçantaxma, Vahyazdāta, Araxa, Frāda) nor Imaniš, Aθamaita and Skunxa; Marduniya is left out as the pool's Mardunuya.
   // Their use for ordinary men of 467 is C: names recur in the tablets as in any town
-  m.get('m:Iranian')!.push(...DB_MEN);
+  m.get('m:Iranian')!.push(...DB_MEN.filter(n => !THE_SIX.includes(n)));
   // D-452: the CDLI PF names whose language tools/names_licensed.py could not tell (65 men, A as names) belong to no one origin:
   // in the Fortification texts Iranian and Elamite names stand side by side among the same people (C), so Persian and Elamite
   // men both draw on them, and Elamite men on the Iranian names too (the three names read as Elamite were 12.8 % each of them)
@@ -2188,8 +2242,8 @@ const NAME_POOLS = (() => { const m = new Map<string, string[]>(); for (const n 
   m.set('f:Elamite', [...(m.get('f:Elamite') ?? []), ...(m.get('f:Iranian') ?? [])]);
   return m; })();
 /** every attested name of each sex (not the notable, not the uncertain readings), of whatever origin */
-const NAME_ALL: Record<string, string[]> = { m: [], f: [] }; for (const n of ALL_NAMES) if (!n.notable && !n.reading_uncertain && NAME_ALL[n.sex]) NAME_ALL[n.sex].push(n.name);
-NAME_ALL.m.push(...DB_MEN);
+const NAME_ALL: Record<string, string[]> = { m: [], f: [] }; for (const n of ALL_NAMES) if (!n.notable && !n.reading_uncertain && NAME_ALL[n.sex] && !THE_SIX.includes(n.name) && !(n.sex === 'f' && MECHANICAL(n.name))) NAME_ALL[n.sex].push(n.name);
+NAME_ALL.m.push(...DB_MEN.filter(n => !THE_SIX.includes(n)));
 // (D-202: Bactrians and Sogdians speak Iranian languages; Ionians draw on the Greek names, Carians, Lydians and Lycians on their
 // own; Thracians and Cappadocians, with no names recalled, on all the names of their sex, as foreign workers in the tablets do)
 const ORIGIN_POOL: Record<string, string> = { Persian: 'Iranian', Median: 'Iranian', Bactrian: 'Iranian', Sogdian: 'Iranian', Elamite: 'Elamite', Babylonian: 'Babylonian', Syrian: 'West Semitic', Egyptian: 'Egyptian', Indian: 'Indian',

@@ -1,5 +1,6 @@
 // Proleptic Julian calendar <-> Julian Day, and the Babylonian/Persian month for YEAR 467 BCE (DECISIONS D-003).
 import cal from '../data/calendar_467.json';
+import evCal from '../data/events_calendar.json';
 
 export const YEAR_BCE = 467;
 export const ASTRO_YEAR = 1 - YEAR_BCE; // -466
@@ -28,8 +29,10 @@ export function julianDateUT(y: number, m: number, d: number, hoursUT: number): 
 export interface BabMonth { jdn: number; y: number; m: number; d: number; monthNo: number; name: string; days: number }
 const months = (cal as { months: BabMonth[] }).months;
 
-/** Old Persian month names retrieved so far (research/CALENDAR_AND_UNITS.md); others unknown => Babylonian name only. */
-export const OP_MONTH: Record<number, string> = { 1: 'Adukanaiša', 2: 'Θūravāhara', 3: 'Θāigraciš', 4: 'Garmapada' };
+/** The Old Persian month names, all twelve (events_calendar.json months: the Bisitun forms, and the reconstructed (*) or
+ *  uncertain (?) ones from their Elamite renderings in the Fortification texts; research/CALENDAR_AND_UNITS.md). D-651 (s18 C12,
+ *  W10): was the first four only, the others shown by their Babylonian name alone */
+export const OP_MONTH: Record<number, string> = Object.fromEntries((evCal as any).months.map((m: any) => [m.n, String(m.op)]));
 
 /** Babylonian month containing the civil day starting at the given JDN (month day 1 = P&D date; the day actually began at the previous sunset). */
 export function babylonianDate(jdn: number): { month: BabMonth; day: number } | null {

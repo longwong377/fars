@@ -1,6 +1,6 @@
 // The opening (s17 C5, D-590; UD-37; s18 C11, D-760, UD-38/39): a wordless, in-engine cinematic that plays when a new
 // visit begins, cut to the score's "First Light" (src/audio/score.ts; the title film with the main theme plays before it, over
-// the loading screen: src/shell/film.ts): the stars over Kuh-e Rahmat in the last of the night, the river at first light,
+// the loading screen: src/shell/film.ts): the river at first light,
 // the plain, the town waking, the Terrace in the first sun, people at their work, and the last shot coming down to the eye
 // where the player's walk begins, landing as the solo horn ends the theme's first half. Each cut falls on a bar of the music
 // and the shots follow the music's clock (a stalled stream holds no shot back: the frame clock takes over). Out of world in
@@ -42,13 +42,9 @@ const span = (a: number, b: number) => +(barAt(b) - barAt(a)).toFixed(3);
 
 /** the shots in order (each from bar to bar of the music); the last is built at play() from where the player stands */
 export const SHOTS: IntroShot[] = [
-  // night: low on the plain W of the Terrace, the lens tilting down from the stars to Kuh-e Rahmat's black ridge (the choir's
-  // breath alone under it)
-  { id: 'stars', what: 'the stars over the mountain', dur: span(1, 3), atRise: -1.15,
-    keys: [{ e: -720, n: 70, h: 1.9, az: 86, pitch: 17, fov: 50 }, { e: -706, n: 72, h: 2.2, az: 88, pitch: 8, fov: 48 }] },
   // the Pulvar 3.8 km N of the Terrace, from its S bank 1.5 m above the water's edge, drifting upstream (E) into the glow
   // before sunrise: the sky in the water, the far bank's reeds and willows (plain riparian), the mountains black
-  { id: 'river', what: 'the river at first light', dur: span(3, 5), atRise: -0.35,
+  { id: 'river', what: 'the river at first light', dur: span(1, 5), atRise: -0.35, // (from bar 1: the 'stars' shot was cut after C6's frame, 07:13: the engine's night sky reads as a dot field and Rahmat lit flat, no silhouette)
     keys: [{ e: 880, n: 3787, h: 2.4, az: 70, pitch: -2, fov: 38 }, { e: 990, n: 3790, h: 2.8, az: 80, pitch: -1.5, fov: 38 }] },
   // high over the fields S of the river, moving S toward the Terrace (3 km): the patchwork, the villages' first smoke,
   // Kuh-e Rahmat dark against the dawn on the left (the alto flute's tune begins as it ends)
@@ -57,7 +53,7 @@ export const SHOTS: IntroShot[] = [
   // the town N of the Terrace from just over its roofs, looking S to the Terrace with the low sun raking across from the E;
   // lanes, courts, smoke from the first fires
   { id: 'town', what: 'the town waking', dur: span(9, 11), atRise: 0.35,
-    keys: [{ e: -280, n: 880, h: 24, az: 150, pitch: -12, fov: 45 }, { e: -320, n: 862, h: 20, az: 154, pitch: -11, fov: 45 }, { e: -360, n: 846, h: 17, az: 158, pitch: -10, fov: 45 }] }, // (moved W over the quarter after the cloud's first frame, 01:36: from e -165 the town lay off the right edge and the frame was empty plain)
+    keys: [{ e: -215, n: 745, h: 17, az: 150, pitch: -13, fov: 45 }, { e: -250, n: 728, h: 15, az: 154, pitch: -12, fov: 45 }, { e: -285, n: 712, h: 13, az: 158, pitch: -11, fov: 45 }] }, // (moved ~150 m S over the lanes after C6's frame, 07:44: from n 860 the near half of the frame was empty plain) // (moved W over the quarter after the cloud's first frame, 01:36: from e -165 the town lay off the right edge and the frame was empty plain)
   // the W face of the Terrace from the plain, the camera rising past the wall's top: the Grand Stair, the Gate, the columns
   // of the Apadana in the first sun over Rahmat
   { id: 'terrace', what: 'the Terrace in the first sun', dur: span(11, 14), atRise: 1.1,
@@ -72,6 +68,10 @@ export const LAST_SHOT_SECONDS = span(17, 21);
 /** the world's hour at the last cut, from sunrise */
 export const LAST_SHOT_AT_RISE = 1.45;
 export const INTRO_SECONDS = SHOTS.reduce((a, s) => a + s.dur, 0) + LAST_SHOT_SECONDS;
+/** a median frame longer than this (s) over the opening's first ten frames ends the opening at once */
+export const SLOW_FRAME = 0.1;
+/** the longest a dip to black may last in real time (s), whatever the frames' clock says */
+export const MAX_BLACK = 3;
 
 /** the last shot: from high on the approach behind the player, coming down along the player's heading to the eye */
 export function shotToPlayer(p: { e: number; n: number; eyeH: number; az: number; pitch: number; fov: number }): IntroShot {
@@ -138,6 +138,10 @@ export class Intro {
   private bars: HTMLElement | null = null; private fade: HTMLElement | null = null; private hint: HTMLElement | null = null;
   /** the music, and the opening's clock (s from the first cut): the music's own time while it plays, the frames' otherwise */
   private music: ScoreTrack | null = null; private G = 0; private shotStart = 0;
+  /** the first frames' real lengths (s): an opening on a renderer too slow to carry it ends at once (SLOW_FRAME) */
+  private early: number[] = [];
+  /** when the screen went (mostly) black, real time (ms); the black lifts after MAX_BLACK whatever the clock */
+  private blackSince = 0; private blackDone = false;
   /** what happened, for tests and the trace */
   readonly log: { shot: string; at: number; hour: number }[] = [];
   constructor(private d: IntroDeps) {}
@@ -147,7 +151,7 @@ export class Intro {
     const p = this.d.player(), terr = this.d.heightAt(p.x, p.z);
     this.look0 = { yaw: p.yaw, pitch: p.pitch };
     this.shots = [...SHOTS, shotToPlayer({ e: p.x, n: -p.z, eyeH: p.y - terr, az: azOf(p.yaw), pitch: (p.pitch * 180) / Math.PI, fov: this.d.fov() })];
-    this.playing = true; this.shot = -1; this.t = 0; this.ending = 0; this.began = performance.now(); this.last = this.began; this.log.length = 0;
+    this.early = []; this.playing = true; this.shot = -1; this.t = 0; this.ending = 0; this.began = performance.now(); this.last = this.began; this.log.length = 0;
     document.body.classList.add('intro');
     const mk = (cls: string) => { const e = document.createElement('div'); e.className = cls; document.body.append(e); return e; };
     this.bars = mk('intro-bars'); this.fade = mk('intro-fade'); this.hint = mk('intro-skip');
@@ -171,7 +175,7 @@ export class Intro {
   skip() { if (!this.playing || this.ending) return; this.ending = performance.now(); }
 
   private next() {
-    this.shot++;
+    this.shot++; this.blackSince = 0; this.blackDone = false;
     const s = this.shots[this.shot]; if (!s) { this.finish(); return; }
     const now = this.d.getTime(), want = sunTimes(now.day).rise + s.atRise;
     if (want > now.hour) this.d.setTime(now.day, want); // forward only
@@ -181,7 +185,10 @@ export class Intro {
   private loop = () => {
     if (!this.playing) return;
     if (this.d.paused?.()) { this.finish(); return; }
-    const now = performance.now(), dt = Math.min(0.1, (now - this.last) / 1000); this.last = now;
+    const now = performance.now(), raw = (now - this.last) / 1000, dt = Math.min(0.1, raw); this.last = now;
+    // too slow to carry an opening (a software renderer, a weak GPU still compiling): the frames' clock would crawl and the
+    // fade from black last minutes; hand the camera to the player instead
+    if (this.early.length < 10) { this.early.push(raw); if (this.early.length === 10 && [...this.early].sort((a, b) => a - b)[5] > SLOW_FRAME) { this.ending = now; this.finish(); return; } }
     // follow the music: slew toward its time (never a jump back), or run on the frames while it is not sounding
     const m = this.music, mt = m && m.playing && m.el.readyState >= 3 && m.time > 0 ? m.time : null;
     this.G += dt; if (mt != null && Math.abs(mt - this.G) < 3) this.G += Math.max(-dt * 0.5, Math.min(dt * 0.5, mt - this.G));
@@ -195,7 +202,10 @@ export class Intro {
     const first = this.shot === 0, last = this.shot === this.shots.length - 1;
     const fin = Math.max(0, 1 - this.t / (first ? 2.6 : 0.9)), fout = last ? 0 : Math.max(0, 1 - (s.dur - this.t) / 0.8);
     const fskip = this.ending ? Math.min(1, (now - this.ending) / 450) : 0;
-    if (this.fade) this.fade.style.opacity = String(Math.max(fin, fout, fskip));
+    let black = Math.max(fin, fout);
+    if (black > 0.5 && !this.blackDone) { this.blackSince ||= now; if (now - this.blackSince > MAX_BLACK * 1000) this.blackDone = true; } else if (black <= 0.5) this.blackSince = 0;
+    if (this.blackDone) black = 0;
+    if (this.fade) this.fade.style.opacity = String(Math.max(black, fskip));
     if (this.ending && now - this.ending >= 450) { this.finish(); return; }
     this.raf = requestAnimationFrame(this.loop);
   };

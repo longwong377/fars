@@ -9,6 +9,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'node
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { join } from 'node:path';
+import { twin } from './ktx_twin';
 const KTX = process.env.KTX ?? 'C:/Program Files/KTX-Software/bin/ktx.exe', DIR = 'public/generated/humans/scans', tmp = join(DIR, 'tmp-ktx');
 const meta = JSON.parse(readFileSync(join(DIR, 'scans.json'), 'utf8')), n: number = meta.size;
 const F = JSON.parse(readFileSync('public/models/people/people_cloth.json', 'utf8')).folds as { file: string; layers: number } | undefined;
@@ -21,10 +22,11 @@ for (const c of meta.cloth) { const d = await raw(join(DIR, `cloth_${c.layer}.jp
 if (F) { const b = readFileSync(join('public/models/people', F.file)); h.update(b); const m = await sharp(b).metadata(), lh = Math.round(m.height! / F.layers);
   for (let k = 0; k < F.layers; k++) await put(`fold${k}`, await sharp(b).extract({ left: 0, top: k * lh, width: m.width!, height: lh }).resize(n, n, { fit: 'fill' }).ensureAlpha().raw().toBuffer()); }
 const src = h.digest('hex').slice(0, 16), out = join(DIR, 'scans.ktx2'), mf = join(DIR, 'scans_ktx.json'), old = existsSync(mf) ? JSON.parse(readFileSync(mf, 'utf8')) : null;
-if (old?.src === src && existsSync(out)) console.log('scans.ktx2 is current');
+if (old?.src === src && existsSync(out) && !process.env.FORCE) console.log('scans.ktx2 is current');
 else { const t = Date.now();
-  execFileSync(KTX, ['create', '--format', 'R8G8B8A8_SRGB', '--assign-tf', 'srgb', '--layers', String(pngs.length), '--encode', 'uastc', '--uastc-quality', '2', '--uastc-rdo', '--uastc-rdo-l', process.env.RDO ?? '1',
-    '--zstd', '18', '--generate-mipmap', '--threads', process.env.THREADS ?? '4', ...pngs, out], { stdio: ['ignore', 'ignore', 'inherit'] });
+  const args = ['create', '--format', 'R8G8B8A8_SRGB', '--assign-tf', 'srgb', '--layers', String(pngs.length), '--encode', 'uastc', '--uastc-quality', '2', '--uastc-rdo', '--uastc-rdo-l', process.env.RDO ?? '1',
+    '--zstd', '18', '--generate-mipmap', '--threads', process.env.THREADS ?? '4', ...pngs, out];
+  execFileSync(KTX, args, { stdio: ['ignore', 'ignore', 'inherit'] }); twin(KTX, args, out); // (D-740: its ETC1S twin, before ready)
   console.log(`scans.ktx2: ${pngs.length} layers, ${((Date.now() - t) / 1000).toFixed(0)} s, ${(readFileSync(out).length / 1048576).toFixed(1)} MB`); }
 writeFileSync(mf, JSON.stringify({ about: 'D-740: the skin, cloth and fold layers as one KTX2 array (tools/bake_world/ktx_humans.ts); humanScans.ts loads it when skin, cloth and folds match', src, size: n,
   skin: meta.skin.length, cloth: meta.cloth.length, folds: F ? { file: F.file, layers: F.layers } : null }, null, 1));

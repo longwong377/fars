@@ -23,6 +23,20 @@
 - Seen in passing, not mine: the porter's headband floats ~2 cm off the scalp all round (C13); a young porter with no beard
   (the reliefs show bearded men: looks, C13).
 
+**Round 2-3 (the leads' asks).** Still open: the toddler's pick-up after a plop needs a crowd "hold in place" state (the
+plop itself is in: anim toddle(…, plop)); the litter's royal woman is not drawn (C13 to hide or seat her: the cabin is
+closed); each body its own idle (C5's poses). Unseen on the T4: the chariot, the litter, reins, wheels, door donkeys.
+Done: the mouth takes the voices' IPA (crowd.voice's 5th argument; world.ts:815 to pass it), mounts trot/gallop by pace with
+the rider's seat following, the wild herds bolt and come back (alarm, hooves, watching, walking home), herds to water at dawn
+and dusk, the domestic cat in town yards (from the leopard body), the child's hand-hold fixed (people_children palms); the
+toddler's gait and the children's stature ±3 %; carts' and chariots' wheels split out and rolled by the distance driven;
+reins and lead ropes from the hands to the bit (people/reins.ts); the royal chariot driven (the king standing in the car,
+anim charioteer; four horses abreast at the yoke, trotting by the pace; activities 'in the royal chariot'); the royal women's
+curtained litter on four bearers' shoulders (workObjects 'litter'; carry_bier variants on a why naming 'curtained litter');
+lane life: strays roam their lanes and bark at a stranger, penned stock mills, household donkeys tied at about one lane door
+in twelve by day (fauna.json donkey; out on errands some hours, in at night, a bray now and then), hens out at the door
+pecking in the lane and back in by the door.
+
 **What a player now meets (measured, node + crude frames).**
 - A person talking to you shapes the mouth: rounded on u/o/w, spread on i/e, lips pressed on m/b/p, the lower lip under the
   teeth on f/v, the jaw opening on the vowels (coarticulated, ~12 phones a second); the brows lift on stressed syllables, the

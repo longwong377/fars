@@ -1564,6 +1564,26 @@ def a_wo_chariot():
     hubs = [xform(lathe([(0.0, -0.16), (0.075, -0.1), (0.075, 0.1), (0.0, 0.16)], 10, 'h'), (x, 0, R), (0, math.pi / 2, 0)) for x in (-0.7, 0.7)]
     return dict(wood_d=join(wd, 'wood_d'), wood=join(w, 'wood'), leather=join(box_ + rail, 'leather'), gilt=join(hubs, 'gilt'))
 @woW
+def a_wo_litter():
+    """a royal woman's curtained litter, carried on the shoulders of four bearers (the closed carriages of the Persian women:
+    Plutarch Them. 26, HDT 7.83, claims, B; C form; D-780): two carrying poles 3.4 m long at the bearers' shoulders (1.45 m,
+    0.30 m either side of the middle: C14's bier crew), a cabin sitting on them (floor 1.35 m, roof 2.5 m) with four gilded
+    posts, a cloth roof under a gilded band and dyed curtains from the roof down over the poles' join"""
+    poles = [log((x, 1.45, -1.7), (x, 1.45, 1.7), 0.035, 0.032, 7, 'pole', seed=370 + i, bark=0.001) for i, x in enumerate((-0.30, 0.30))]
+    floor = boxG(0.72, 0.06, 1.2, 0, 1.33, 0, bevel=0.01)
+    posts = [pathG([(x, 1.39, z), (x, 2.5, z)], 0.022, 6, 'post') for x in (-0.34, 0.34) for z in (-0.58, 0.58)]
+    roof = boxG(0.8, 0.06, 1.28, 0, 2.5, 0, bevel=0.01); band = boxG(0.84, 0.08, 1.32, 0, 2.44, 0, bevel=0.01)
+    cur = []
+    for (w, d, x, z) in ((0.02, 1.18, -0.36, 0), (0.02, 1.18, 0.36, 0), (0.7, 0.02, 0, -0.6), (0.7, 0.02, 0, 0.6)):
+        c = boxG(w, 1.22, d, x, 1.28, z); subdiv(c, 2)
+        for v in c.data.vertices:  # soft folds hanging from the roof
+            k = (v.co.z - 1.28) / 1.22
+            if w < 0.1: v.co.x += 0.008 * math.sin(v.co.y * 40) * (1 - k)
+            else: v.co.y += 0.008 * math.sin(v.co.x * 40) * (1 - k)
+        cur.append(c)
+    return dict(wood=join(poles + [floor], 'wood'), gilt=join(posts + [band], 'gilt'), blue=roof, red=join(cur, 'red'))
+
+@woW
 def a_wo_wagon():
     """a covered four-wheeled wagon (harmamaxa) for the royal women (HDT 7.83: a claim; C form): a box on solid wheels under
     an arched cloth cover on hoops, a pole to the yoke; court setting only"""

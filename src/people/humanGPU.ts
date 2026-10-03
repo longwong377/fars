@@ -148,6 +148,7 @@ export class HumanGPU {
   }
   /** instance counts, bounds (frustum and shadow-cascade culling), uploads */
   end(uploadPrev: boolean) {
+    const now = typeof performance !== 'undefined' ? performance.now() / 1000 : 0; for (const m of this.materials) (m.hairTime as any).value = now % 3600; // (D-790: the hair's sway)
     for (const c of this.all()) {
       c.geo.instanceCount = c.count; c.mesh.visible = c.count > 0;
       if (!c.count) continue;

@@ -118,7 +118,7 @@ describe('population view: the plans in the built world (D-143)', () => {
         // hair, a man in front of the barber, the groom by the bride at the well: at the pair's gap from the partner, not at its own spot)
         if (s.mode === 1 && seg.where !== 'road' && PAIR_FOLLOW.test(o.why) && seg.with !== undefined && byPid.has(seg.with)) { const q = byPid.get(seg.with)!, g = Math.hypot(q.e - o.e, q.n - o.n); paired++;
           if (g > Math.max(...Object.values(PAIR_GAP)) + 0.05) bad.push(`p${s.pid} paired with p${seg.with} at ${seg.place}: ${g.toFixed(2)} m from the partner`); continue; }
-        if (s.mode === 1 && seg.where !== 'road' && !o.moving) { stays++; const sp = geo.spot(s.pid, seg.place, seg.act, d, h, planIndoors(seg, P.cal.ctx(d).wx, sunTimes(d), h) /* D-244: the plan's roof */), aside = Math.hypot(s.sepE - sp.e, s.sepN - sp.n);
+        if (s.mode === 1 && seg.where !== 'road' && !o.moving) { stays++; const sp = s.spot?.what?.includes('(D-692') ? s.spot /* D-692: in the lane by the street door: the view's own spot */ : geo.spot(s.pid, seg.place, seg.act, d, h, planIndoors(seg, P.cal.ctx(d).wx, sunTimes(d), h) /* D-244: the plan's roof */), aside = Math.hypot(s.sepE - sp.e, s.sepN - sp.n);
           if (!s.what.includes('leaves')) { if (Math.hypot(s.sepE - o.e, s.sepN - o.n) > 0.01) bad.push(`p${s.pid} at ${seg.place}: drawn ${Math.hypot(s.sepE - o.e, s.sepN - o.n).toFixed(2)} m off its place`);
             if (aside > (s.spot?.inside ? SPREAD_R.inside : SPREAD_R.out) + 0.1) bad.push(`p${s.pid} at ${seg.place}: ${aside.toFixed(2)} m from its spot`); } }
         if (s.mode === 2 && s.route && seg.where === 'road') { walks++; const r: Route = s.route; let best = Infinity; const q = { e: 0, n: 0, heading: 0 };

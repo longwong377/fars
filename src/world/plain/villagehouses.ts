@@ -48,6 +48,27 @@ const STRUCT: (keyof HB)[] = ['plaster', 'stone', 'timber', 'brick'], THINGS: (k
 const SRC = 'SUMNER1986;RECON';
 const MUD: RGB = [0.56, 0.47, 0.36];
 const sh = (c: RGB, k: number): RGB => [c[0] * k, c[1] * k, c[2] * k];
+const mixc = (a: RGB, b: RGB, t: number): RGB => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+/** s18 C15 (D-800): the household's wash on the far level, the same draw as the near level's (settlement/houses.ts washOf, C2's
+ *  D-661: gypsum and lime whites, yellow and red ochre earths, most of the poor the bare mud; the lane face's thinner coat, fading
+ *  in the months since the house was last plastered), so a village reads from afar as the patchwork of white, ochre and mud it
+ *  is near, not as one buff mass. The values are houses.ts's (kept equal by tests/villages_life.test.ts) */
+export const WASH_VILLAGE = { white: [[0.86, 0.83, 0.76], [0.82, 0.8, 0.74], [0.88, 0.84, 0.75]] as RGB[], ochre: [[0.78, 0.62, 0.38], [0.74, 0.6, 0.4], [0.8, 0.66, 0.44]] as RGB[], red: [[0.66, 0.4, 0.28], [0.6, 0.36, 0.26], [0.7, 0.46, 0.33]] as RGB[] };
+export function villageWash(id: string, standing: number): { c: RGB; k: number } | null {
+  const h = (hashString(`${id}:wash`) % 100000) / 100000, h2 = (hashString(`${id}:wash2`) % 1000) / 1000, W = WASH_VILLAGE, st = standing;
+  const pW = 0.12 + 0.4 * st, pO = 0.1 + 0.08 * st, pR = 0.04 + 0.06 * st;
+  return h < pW ? { c: lin(W.white[Math.floor(h2 * W.white.length)]), k: 0.7 + 0.25 * h2 } : h < pW + pO ? { c: lin(W.ochre[Math.floor(h2 * W.ochre.length)]), k: 0.55 + 0.3 * h2 } : h < pW + pO + pR ? { c: lin(W.red[Math.floor(h2 * W.red.length)]), k: 0.45 + 0.3 * h2 } : null;
+}
+/** the lane face's tone of a compound on the far level (houses.ts tone(plot, 0, false)) */
+function farTone(id: string, L: { standing: number; sincePlaster: number }, c: RGB): RGB {
+  const fresh = Math.max(0, 1 - L.sincePlaster / 18), k = (0.96 + 0.05 * (1 - fresh)) * 0.99;
+  const m: RGB = [c[0] * k * (1 + 0.02 * fresh), c[1] * k, c[2] * k * (1 - 0.03 * fresh)], W = villageWash(id, L.standing);
+  return W ? mixc(m, W.c, W.k * 0.62 * (0.55 + 0.45 * Math.max(0, 1 - L.sincePlaster / 30))) : m;
+}
+/** s18 C15 (D-800): the cloths a household lays to dry over its range's eave (dyes of the period: madder red, woad blue, weld
+ *  yellow, undyed and brown wool: C), and the dung cakes slapped on the lane face of the yard wall to dry for fuel (the region's
+ *  fuel by analogy, C); sRGB */
+const CLOTH: RGB[] = [[0.62, 0.2, 0.16], [0.25, 0.32, 0.5], [0.8, 0.68, 0.3], [0.85, 0.8, 0.7], [0.45, 0.33, 0.24], [0.7, 0.3, 0.2], [0.3, 0.4, 0.3]];
 interface ColBox { x: number; y: number; z: number; hx: number; hy: number; hz: number; rot: number }
 interface VNear { hs: SiteHouses; vi: number; geo: Partial<Record<keyof HB, { g: THREE.BufferGeometry; owner: Int32Array }>>; tris: number; desc: Desc[] }
 interface VCell { key: string; far: Batch; desc: Desc[]; centres: [number, number][] }
@@ -107,7 +128,7 @@ export class VillageHouses {
         this.info.compounds++; this.info.rooms += c.rooms.length;
         if (!k.inb) { lampRow.push(null); return; }
         const roomIds = c.rooms.map(() => rid++);
-        this.farCompound(cell.far, fr, c, S.tile[ci], S.base[ci], S.pcol[ci], S.pdesc[ci], parapetOf({ id } as Plot, L.standing), lay.yard_wall_h_m);
+        this.farCompound(cell.far, fr, c, S.tile[ci], S.base[ci], farTone(id, L, S.pcol[ci]), S.pdesc[ci], parapetOf({ id } as Plot, L.standing), lay.yard_wall_h_m, S.pcol[ci], id);
         // the gate's leaf (as SiteHouses makes a street door: hinge on the inner face at the jamb the household's life names)
         { const mid: P2 = [cu + c.gateU, cv - c.d / 2], nu = 0, nv = 1, t = lay.wall_m / 2 + 0.04, hsg = L.hinge, tu = -nv * hsg, tv = nu * hsg;
           const cs2 = Math.cos(fr.frame.theta), sn2 = Math.sin(fr.frame.theta), worldYaw = (lu: number, lv: number) => { const a = lu * cs2 - lv * sn2, b = -(lu * sn2 + lv * cs2); return Math.atan2(-b, a); };
@@ -153,7 +174,7 @@ export class VillageHouses {
    *  shares its rect and tile: villagesite.ts). D-324: the ranges' roofs at the roof, the parapet round their outer sides, the
    *  eave over the yard (its earth front over the dark band of the pole ends), the gateway dark (no longer one box to the
    *  parapet's top) */
-  private farCompound(b: Batch, fr: { frame: Frame }, c: Compound, tile: number, base: number, col: RGB, pd: number, parapet: number, yardH: number) {
+  private farCompound(b: Batch, fr: { frame: Frame }, c: Compound, tile: number, base: number, col: RGB, pd: number, parapet: number, yardH: number, mud: RGB = col, id = '') {
     const lay = feature('villages_unlocated').layout, W = c.w / 2, D = c.d / 2, t = Math.min(lay.wall_m, 0.55), tr = lay.wall_m;
     const own = pd * 32 + 1, ownR = pd * 32 + 3, yard = base + yardH, roomTop = base + (c.rooms[0]?.h ?? 2.6) + parapet, pen0 = base + PEN_WALL, y0 = base - 0.4;
     const [lu, lv] = [c.x, c.y]; void fr;
@@ -174,7 +195,7 @@ export class VillageHouses {
     // the pen's walls to the yard (PEN_T, to the yard wall's height: the taller side, houses.ts wallSpan)
     box(P.u0, P.v1 - PEN_T / 2, P.u1, P.v1 + PEN_T / 2, yard, col, own); { const xi = penW ? P.u1 : P.u0; box(xi - PEN_T / 2, -D, xi + PEN_T / 2, P.v1, yard, col, own); }
     // the room ranges: the main range across the N side, the wing (its rooms' extent), out to the outer walls' faces
-    const roofC = sh(col, 0.92 + 0.1 * hi(c.seed, 7)), roof = roomTop - parapet, pt = 0.35;
+    const roofC = sh(mud, 0.92 + 0.1 * hi(c.seed, 7)), roof = roomTop - parapet, pt = 0.35; // (the roof's earth coat, not the walls' wash)
     const L = (u: number, v: number, y: number) => [lu + u * ca - v * sa, y, -(lv + u * sa + v * ca)];
     const N = (du: number, dv: number) => [du * ca - dv * sa, 0, -(du * sa + dv * ca)];
     // the eave over the yard along a range's yard face (u or v = const at `at`, from a to b, out toward d): the earth front over the
@@ -193,6 +214,15 @@ export class VillageHouses {
       box(wu0, wv0, wu1, v1, roof, roofC, ownR);
       const west = u0 <= -W + 1e-6;
       eave(false, west ? u1 : u0, wv0 + 0.3, v1, west ? 1 : -1); }
+    // s18 C15 (D-800): a cloth or two laid to dry over the main range's eave (38 % of households), the dung cakes on the S wall's
+    // lane face (30 %): each a thin box / quads in the far batch (C)
+    if (id && hi(c.seed, 11) < 0.38) { const nC = 1 + (hi(c.seed, 12) < 0.35 ? 1 : 0);
+      for (let k = 0; k < nC; k++) { const w = 0.9 + 0.9 * hi(c.seed, 13 + k), uc = -W + 1.5 + (2 * W - 3) * hi(c.seed, 15 + k), cc = lin(CLOTH[Math.floor(hi(c.seed, 17 + k) * CLOTH.length)]), drop = 0.6 + 0.5 * hi(c.seed, 19 + k);
+        b.set('y0', -1000).set('ytop', 1e4); const p = L(uc, rv0 - 0.36, 0); b.box(p[0], -p[2], c.angle, w / 2, 0.015, roof - drop, roof + 0.03, sh(cc, 0.85), cc, pd * 32 + 5); } }
+    if (id && hi(c.seed, 21) < 0.3) { const dk = lin([0.3, 0.25, 0.19]), n0 = 4 + Math.floor(hi(c.seed, 22) * 6), us = penW ? g1 + 0.6 : -W + 0.6;
+      b.set('y0', -1000).set('ytop', 1e4);
+      for (let r = 0; r < 3; r++) for (let k = 0; k < n0; k++) { const u = us + k * 0.36 + (r % 2) * 0.18, y = base + 0.6 + r * 0.38; if (u > (penW ? W - 0.4 : g0 - 0.4)) continue;
+        b.quad(L(u, -D - t / 2 - 0.012, y), L(u + 0.27, -D - t / 2 - 0.012, y), L(u + 0.27, -D - t / 2 - 0.012, y + 0.27), L(u, -D - t / 2 - 0.012, y + 0.27), N(0, -1), dk, dk, sh(dk, 1.1), sh(dk, 1.1), own); } }
     // the gateway: dark behind the opening (the leaf, when shut, stands in front of it)
     { const dk = sh(col, 0.1), y1 = base + 2.0; b.set('ao', 0.15); b.quad(L(g0, -D + t / 2 + 0.14, base - 0.3), L(g1, -D + t / 2 + 0.14, base - 0.3), L(g1, -D + t / 2 + 0.14, y1), L(g0, -D + t / 2 + 0.14, y1), N(0, -1), dk, dk, dk, dk, own); b.set('ao', 1); }
   }
@@ -311,7 +341,8 @@ export class VillageHouses {
       return { g, ranges }; };
     const Sg = build(STRUCT); yield; const Tg = build(THINGS); yield;
     for (const [m, x] of [[this.structMesh, Sg], [this.thingsMesh, Tg]] as const) {
-      m.geometry.dispose(); if (!x) { m.geometry = emptyGeometry(); m.visible = false; continue; }
+      this.retire.push({ g: m.geometry, frames: 4 }); // (disposed a few frames later: the shadow pass may still hold the old buffers bound, the T4 black screen's class of fault)
+      if (!x) { m.geometry = emptyGeometry(); m.visible = false; continue; }
       m.geometry = x.g; m.visible = true; const ranges = x.ranges;
       m.userData = { ...m.userData, describe: (hit: any) => { const f = hit?.faceIndex ?? -1; let lo = 0, hi2 = ranges.length - 1; while (lo < hi2) { const mid = (lo + hi2 + 1) >> 1; if (ranges[mid].f0 <= f) lo = mid; else hi2 = mid - 1; } const r = ranges[lo]; return r && f >= r.f0 && f < r.f1 ? partDesc(r.desc, r.owner[f - r.f0], false) : null; } }; }
     const stt = VILLAGE_NEAR_STATE.image.data as Uint8Array; for (const t of this.shownSet) stt[(t + 1) * 4] = 0; this.shownKey = new Set(parts.map(q => q.t)); this.shownSet = new Set(parts.map(q => q.t >> 1)); for (const t of this.shownSet) stt[(t + 1) * 4] = 255; VILLAGE_NEAR_STATE.needsUpdate = true;
@@ -334,7 +365,10 @@ export class VillageHouses {
       else if (d > 300 && col.live) { for (const k of col.live) this.phys.world.removeCollider(k, false); this.info.liveColliders -= col.live.length; col.live = null; } }
   }
   /** the frame: a step of building the nearest village in reach, the colliders, the near tiles, the gates */
+  /** merged near geometries swapped out, disposed once the renderer has drawn a few frames without them */
+  private retire: { g: THREE.BufferGeometry; frames: number }[] = [];
   update(dt: number, cam: THREE.Vector3, player: THREE.Vector3, day: number, sunAlt: number) {
+    if (this.retire.length) this.retire = this.retire.filter(r => (--r.frames > 0 ? true : (r.g.dispose(), false)));
     const reach = this.inReach(player, cam); for (const q of reach) if (!this.st[q.vi].hs) { this.buildStep(q.vi); break; }
     this.streamColliders(player, cam, 1500);
     if (seasonOf(day) !== seasonOf(this.nearDay)) this.resetNear(); this.nearDay = day;

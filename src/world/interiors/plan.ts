@@ -278,6 +278,10 @@ function recipe(c: Ctx) {
         if (!poor || h('herbs') < 0.3) hang(c, h('ho') < 0.5 ? 'herbs' : 'onions', (r.ceil ?? 2.3) - 0.65, 0.35, 0.5, { note: h('ho') < 0.5 ? 'a bunch of herbs drying from the poles (C)' : 'onions plaited on a cord, hung from the poles (C)' });
       }
       const pegs = poor ? 1 : clamp(Math.round(1 + st * 2 + p.members / 6 + h('pg') - 0.5), 1, 4); for (let i = 0; i < pegs; i++) hang(c, 'peg_cloth', 1.4 + 0.15 * h('py' + i), 0.5, 0.9, { note: 'clothes and a bag hung on wooden pegs in the wall (C)' });
+      // s18 C2 (D-670, C12 row 19): the household's own cult in the living room: a niche in the wall with a saucer lamp and a
+      // pinch of the meal set out in it (C: household offerings and lamps in wall niches, the region's houses; what each
+      // household honours its own: no words, no image of a named god)
+      if (living) hang(c, 'lamp', 1.3, 0.22, 0.05, { note: 'the household\'s niche: a saucer lamp and a little of the meal set out as an offering (C)' });
       if (st > 0.6 && h('lamp2') < 0.7) hang(c, 'lamp', 1.1, 0.2, 0.04, { note: 'a second saucer lamp on its ledge of mud, unlit by day (saucer lamps B by analogy, Q-516; C)' });
       if (rich && h('jars') < 0.6) for (let i = 0; i < 2; i++) onWall(c, 'jar_neck', 0.3, 0.3, 0.44, 0.95 - 0.1 * i, { note: 'jars of oil and wine (C)' });
       if (!rich && h('sacks') < 0.3) onWall(c, 'sack', 0.42, 0.42, 0.6, 0.95, { note: 'a sack of barley (C)' });

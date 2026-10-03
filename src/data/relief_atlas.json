@@ -1,7 +1,7 @@
 {
  "about": "The carved-relief atlas (D-320): per relief figure definition (kind|seed) its texel rectangle in the array pages, the figure-frame position of its first texel, figure units per texel and the depth ratio its normals were baked at. Built by tools/blender/relief_atlas.ts (census of the world, heightfield + undercut surfaces, Cycles bakes in tools/blender/relief_bake.py, KTX2 by the KTX-Software CLI); tests/relief_atlas.test.ts checks it is complete, current and reproduced.",
  "version": 1,
- "inHash": "5096ffeebf86982f6fc91abe0a1f6831f767c8dc488e4a4c1fa70adf3fcec5dd",
+ "inHash": "1a3b4a6788541832df99b227547c4e039bfbf9f629508ac7a35700820d005c6c",
  "size": 4096,
  "layers": 4,
  "texel_m": 0.0016,
@@ -12,11 +12,11 @@
  },
  "sha": {
   "nao": "7341693fc48f7c36c7a510aaca86408d8a672067a0b7a1535d601686364f0699",
-  "paint": "f310d266d34313663b959329cd92f3d8f783d42e7f0fe907529b24f6bc6bb2d9"
+  "paint": "c1eac52cda5adc76b3c96a0cd66a440c8fbefe05eac00816e2e443a90617a291"
  },
  "bytes": {
   "nao": 28351402,
-  "paint": 3955722
+  "paint": 4987128
  },
  "blender": "5.0.1",
  "device": "CPU",
@@ -3336,5 +3336,6 @@
    "cell": 0.00066636505,
    "rho": 0.041667
   }
- }
+ },
+ "paintRebuilt": "D-752: the paint layer rebuilt alone by tools/blender/relief_paint.ts (the carving unchanged: nao.ktx2 as baked)"
 }

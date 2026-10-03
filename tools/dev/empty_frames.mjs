@@ -13,6 +13,9 @@ import { join, resolve } from 'node:path';
 
 const a = process.argv.slice(2), opt = (k, d) => { const i = a.indexOf(k); return i >= 0 ? a[i + 1] : d; };
 const dist = resolve(a[0]), out = resolve(a[1]), spec = a[2] && !a[2].startsWith('--') ? a[2] : 'cov-252,cov-037';
+// --test: the frozen test world drawn by renderOnce (final2's method, tests/e2e/coverage.spec.ts): the live loop on the T4 drew
+// 0 calls (s18); the wait is then the sim advanced (advanceWorld) before the frames
+const TESTMODE = a.includes('--test');
 const waitS = +opt('--wait', 60), q = opt('--q', 'high'), port = +opt('--port', 4181);
 mkdirSync(out, { recursive: true });
 const PTS = JSON.parse(readFileSync(join(dist, '..', 'tests/data/coverage_points.json'), 'utf8'));
@@ -27,14 +30,21 @@ const log = (...x) => console.log(new Date().toISOString().slice(11, 19), ...x);
 const ctx = await chromium.launchPersistentContext(mkdtempSync(join(tmpdir(), 'parsa-look-')), { channel: process.env.PW_CHANNEL ?? 'chrome', headless: !process.env.HEADED,
   args: ['--enable-unsafe-webgpu', '--ignore-gpu-blocklist'], viewport: { width: 1920, height: 1080 } });
 const page = ctx.pages()[0] ?? await ctx.newPage();
+// s18: --guard skips the GPU calls that throw (a destroyed buffer, a DataTexture without data: asks_cloud s18) so the frame is
+// not aborted; the skipped calls are counted in the report (window.__bad)
+if (a.includes('--guard')) await page.addInitScript(() => { const bad = window.__bad = { writeBuffer: 0, writeTexture: 0 };
+  const Q = globalThis.GPUQueue?.prototype; if (!Q) return; const wb = Q.writeBuffer, wt = Q.writeTexture;
+  Q.writeBuffer = function (b, ...r) { if (!(b instanceof GPUBuffer)) { bad.writeBuffer++; return; } return wb.call(this, b, ...r); };
+  Q.writeTexture = function (...x) { try { return wt.apply(this, x); } catch { bad.writeTexture++; } }; });
 const errs = [], warns = [];
 page.on('pageerror', e => errs.push(String(e).slice(0, 400)));
 page.on('console', m => { const t = m.text(); if (m.type() === 'error') errs.push(t.slice(0, 400)); else if (m.type() === 'warning' && /people|human|impostor|crowd|skinn|validation|lowfirst/i.test(t)) warns.push(t.slice(0, 300)); });
 const v0 = views[0], t0 = Date.now();
-await page.goto(`${host}/fars/?quality=${q}&day=${v0.day}&hour=${v0.hour}&weather=${v0.w}&court=seasonal&seed=${opt('--seed', 1)}`); // final2 ran ?test: world seed 1 (WORLD_SEED_DEFAULT); 515948316 is the points' sample seed
+await page.goto(`${host}/fars/?quality=${q}&day=${v0.day}&hour=${v0.hour}&weather=${v0.w}&court=seasonal&seed=${opt('--seed', 1)}${TESTMODE ? '&test' : ''}`); // final2 ran ?test: world seed 1 (WORLD_SEED_DEFAULT); 515948316 is the points' sample seed
 await page.waitForFunction(() => window.__parsa?.ready === true || window.__parsa?.error, null, { timeout: 3_600_000, polling: 500 });
 log(`ready in ${((Date.now() - t0) / 1000).toFixed(0)} s; error ${await page.evaluate(() => window.__parsa.error ?? null)}`);
-await page.getByRole('button', { name: /^(Enter|Continue the visit)$/ }).first().click({ timeout: 30_000 }).catch(e => log('no Enter button: ' + e.message.slice(0, 120)));
+if (TESTMODE) await page.evaluate(() => window.__parsa?.renderer?.setAnimationLoop(null)); // frozen: no frames behind the screenshots
+log('enter clicked: ' + await page.evaluate(() => { const b = [...document.querySelectorAll('button')].find(x => /^(Enter|Continue the visit)$/.test(x.textContent)); b?.click(); return !!b; }));
 for (let i = 0; i < 3; i++) { await page.waitForTimeout(2000); await page.keyboard.press('Space').catch(() => {}); } // skip the wordless opening
 writeFileSync(join(out, 'after-enter.png'), await page.screenshot());
 const report = { dist, seed: +opt('--seed', 1), pointsSeed: PTS.meta.seed, q, viewport: '1920x1080', views: [] };
@@ -52,7 +62,7 @@ const census = () => page.evaluate(() => {
   let humans = null; try { humans = p.humans(); } catch (e) { humans = 'threw ' + e; }
   let sample = null; try { sample = p.popSample(400); } catch (e) { sample = 'threw ' + e; }
   const s = p.stats();
-  return { pop, popLine, terraceLine, summary: summary?.slice(0, 6000) ?? null, meshes, humans, sample, drawCalls: s.drawCalls, triangles: s.triangles, clock: p.clockLabel(), pageErrors: p.errors?.slice(-20) };
+  return { guarded: window.__bad ?? null, pop, popLine, terraceLine, summary: summary?.slice(0, 6000) ?? null, meshes, humans, sample, drawCalls: s.drawCalls, triangles: s.triangles, clock: p.clockLabel(), pageErrors: p.errors?.slice(-20) };
 });
 for (const v of views) {
   const t1 = Date.now();
@@ -61,10 +71,16 @@ for (const v of views) {
     const cam = [v.e, v.n, v.eye, v.az, v.pitch, undefined, { cast: v.cast ?? null, rigClear: 0 }];
     await page.evaluate(c => window.__parsa.view(...c), cam);
     const w = v.wait ?? 20; log(`${v.id}: d${v.day} ${v.hour} h ${v.w}, waiting ${w} s`);
-    for (const until = Date.now() + w * 1000; Date.now() < until;) { await page.evaluate(c => window.__parsa.view(...c), cam); await page.waitForTimeout(Math.min(5000, Math.max(100, until - Date.now()))); }
-    await page.evaluate(c => window.__parsa.view(...c), cam); await page.waitForTimeout(1500);
+    if (TESTMODE) {
+      await page.evaluate(() => window.__parsa.tick()); await page.evaluate(c => window.__parsa.view(...c), cam);
+      await page.evaluate(s => window.__parsa.advanceWorld(s, 0.5), w); await page.evaluate(c => window.__parsa.view(...c), cam);
+      for (let i = 0; i < 6; i++) await page.evaluate(() => window.__parsa.renderOnce());
+    } else {
+      for (const until = Date.now() + w * 1000; Date.now() < until;) { await page.evaluate(c => window.__parsa.view(...c), cam); await page.waitForTimeout(Math.min(5000, Math.max(100, until - Date.now()))); }
+      await page.evaluate(c => window.__parsa.view(...c), cam); await page.waitForTimeout(1500);
+    }
     writeFileSync(join(out, `${v.id}.png`), await page.screenshot()); // the frame as the player sees it
-    await page.keyboard.press('F3'); await page.waitForTimeout(2500);
+    await page.keyboard.press('F3'); await page.waitForTimeout(TESTMODE ? 300 : 2500); if (TESTMODE) await page.evaluate(() => window.__parsa.renderOnce());
     writeFileSync(join(out, `${v.id}-f3.png`), await page.screenshot());
     const r = await census(); await page.keyboard.press('F3');
     const rec = { id: v.id, why: v.why, cam: [v.e, v.n, v.eye, v.az, v.pitch], day: v.day, hour: v.hour, w: v.w, ...r };
@@ -76,7 +92,8 @@ for (const v of views) {
         const az = (side + 0) % 360, rad = az * Math.PI / 180; // the camera stands 0.5 m from the person, looking along az at them
         const ce = near.e - Math.sin(rad) * 0.5, cn = near.n - Math.cos(rad) * 0.5;
         await page.evaluate(([e, n, a]) => window.__parsa.view(e, n, 1.55, a, -3, undefined, { cast: null, rigClear: 0 }), [ce, cn, az]);
-        await page.waitForTimeout(1500); writeFileSync(join(out, `${v.id}-az${az}.png`), await page.screenshot());
+        if (TESTMODE) { for (let i = 0; i < 3; i++) await page.evaluate(() => window.__parsa.renderOnce()); } else await page.waitForTimeout(1500);
+        writeFileSync(join(out, `${v.id}-az${az}.png`), await page.screenshot());
       }
     }
     log(`${v.id}: "${r.pop ?? r.popLine ?? '-'}" | within 60 m ${rec.within60} | ${r.meshes.length} people objects | draws ${r.drawCalls} (${((Date.now() - t1) / 1000).toFixed(0)} s)`);
