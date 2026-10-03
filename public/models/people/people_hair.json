@@ -225,126 +225,44 @@
     "t": "u16"
    }
   },
-  "beard_long": {
-   "n": 2942,
-   "tris": 2282,
-   "cards": 172,
-   "note": "the long beard (the reliefs: long and squared, in rows of curls): guide curves down from the cheeks, chin and upper lip, the moustache out to the mouth's corners, hanging below the jaw to a square cut 12 cm below the chin; inner, middle and outer layers, two-sided where they hang",
-   "anchor": {
-    "o": 338676,
-    "n": 8826,
-    "t": "u16"
-   },
-   "bary": {
-    "o": 356328,
-    "n": 5884,
-    "t": "f32"
-   },
-   "off": {
-    "o": 379864,
-    "n": 8826,
-    "t": "f32"
-   },
-   "uv": {
-    "o": 415168,
-    "n": 5884,
-    "t": "f32"
-   },
-   "cell": {
-    "o": 438704,
-    "n": 2942,
-    "t": "u8"
-   },
-   "ao": {
-    "o": 441648,
-    "n": 2942,
-    "t": "u8"
-   },
-   "index": {
-    "o": 444592,
-    "n": 6846,
-    "t": "u16"
-   }
-  },
   "beard_short": {
-   "n": 1056,
-   "tris": 704,
-   "cards": 176,
+   "n": 1038,
+   "tris": 692,
+   "cards": 173,
    "note": "the short beard: short cards lying close, down and out, two layers",
    "anchor": {
-    "o": 458284,
-    "n": 3168,
+    "o": 338676,
+    "n": 3114,
     "t": "u16"
    },
    "bary": {
-    "o": 464620,
-    "n": 2112,
+    "o": 344904,
+    "n": 2076,
     "t": "f32"
    },
    "off": {
-    "o": 473068,
-    "n": 3168,
+    "o": 353208,
+    "n": 3114,
     "t": "f32"
    },
    "uv": {
-    "o": 485740,
-    "n": 2112,
+    "o": 365664,
+    "n": 2076,
     "t": "f32"
    },
    "cell": {
-    "o": 494188,
-    "n": 1056,
+    "o": 373968,
+    "n": 1038,
     "t": "u8"
    },
    "ao": {
-    "o": 495244,
-    "n": 1056,
+    "o": 375008,
+    "n": 1038,
     "t": "u8"
    },
    "index": {
-    "o": 496300,
-    "n": 2112,
-    "t": "u16"
-   }
-  },
-  "brows": {
-   "n": 210,
-   "tris": 140,
-   "cards": 35,
-   "note": "the brows: short cards along the brow, out from the nose and up at the inner end",
-   "anchor": {
-    "o": 500524,
-    "n": 630,
-    "t": "u16"
-   },
-   "bary": {
-    "o": 501784,
-    "n": 420,
-    "t": "f32"
-   },
-   "off": {
-    "o": 503464,
-    "n": 630,
-    "t": "f32"
-   },
-   "uv": {
-    "o": 505984,
-    "n": 420,
-    "t": "f32"
-   },
-   "cell": {
-    "o": 507664,
-    "n": 210,
-    "t": "u8"
-   },
-   "ao": {
-    "o": 507876,
-    "n": 210,
-    "t": "u8"
-   },
-   "index": {
-    "o": 508088,
-    "n": 420,
+    "o": 376048,
+    "n": 2076,
     "t": "u16"
    }
   }
