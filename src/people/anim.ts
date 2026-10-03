@@ -22,7 +22,9 @@ export type AnimId = 'idle' | 'walk' | 'carry_shoulder' | 'carry_head' | 'carry_
   | 'bake' | 'draw_water' | 'write' | 'eat' | 'sleep' | 'talk' | 'sit' | 'dice' | 'inspect' | 'play' | 'enthroned' | 'ride'
   /** s18 C14 (D-790): the court's service: pouring from a jug, carrying and setting down a dish, a fly-whisk over the king
    *  (the bow is workAnims' proskynesis) */
-  | 'pour' | 'serve' | 'fan' | WorkAnim;
+  | 'pour' | 'serve' | 'fan'
+  /** s18 C14: standing in the chariot's car, the reins in both hands, riding its motion */
+  | 'charioteer' | WorkAnim;
 export type E3 = [number, number, number];
 export interface Pose { rot: Partial<Record<BoneName, E3>>; hips: E3; /** strike/impact event this frame (for tool sounds) */ hit?: boolean;
   /** D-255: the sound of this frame's strike when it is not the performance's own (the smith's bellows and the hiss of the
@@ -241,6 +243,12 @@ export function pose(id: AnimId, t: number, ph: number, k: number, g: Gait = GAI
       p = loopAt(['idle_a', 'idle_c'][pickOf(k, 2, 6)], t, k, 0.8); r = p.rot; const w = Math.sin(t * 2.6 + k * 6);
       r.r_upper = [-1.45, 0.2 * w, -0.25 + 0.12 * w]; r.r_fore = [-0.9, 0, 0.12 * w]; r.r_hand = [0, 0, 0]; r.l_hand = [0, 0, 0]; r.l_upper = [0.04, 0, 0.1]; r.l_fore = [-0.35, 0, 0];
       r.head = [0.1, 0.1 * w, 0]; p.grip = [0.5, 1]; break; }
+    case 'charioteer': { // standing braced in the car, knees soft, both hands forward at the reins, riding the car's jolts (C)
+      p = loopAt(['idle_a', 'idle_c'][pickOf(k, 2, 6)], t, k, 0.8); r = p.rot; const j = 0.5 * S(t * 7.1 + k) + 0.5 * S(t * 4.3 + 2 * k);
+      p.hips = [p.hips[0], p.hips[1] - 0.03 - 0.008 * j, p.hips[2]]; for (const key of ['l_thigh', 'r_thigh'] as const) { const q = r[key] ?? [0, 0, 0]; r[key] = [q[0] - 0.12, q[1], q[2]]; }
+      for (const key of ['l_shin', 'r_shin'] as const) { const q = r[key] ?? [0, 0, 0]; r[key] = [q[0] + 0.22, q[1], q[2]]; }
+      r.l_upper = [-0.55, 0, 0.12]; r.r_upper = [-0.55, 0, -0.12]; r.l_fore = [-0.9 + 0.04 * j, 0, -0.25]; r.r_fore = [-0.9 + 0.04 * j, 0, 0.25]; r.l_hand = [0, 0, 0]; r.r_hand = [0, 0, 0];
+      r.spine = [0.06 + 0.01 * j, 0, 0]; p.grip = [0.8, 0.8]; break; }
     case 'play': { // running about in place (children; D-333: a running capture)
       p = gaitPose('run', t * 7 + k, k, 2.8); break;
     }
@@ -255,7 +263,7 @@ export function pose(id: AnimId, t: number, ph: number, k: number, g: Gait = GAI
 }
 const DEV = new Float32Array(54);
 /** the layer's weight per authored cycle (the king on his throne keeps nearly still: the relief's stillness, C) */
-const LAYERED: Partial<Record<AnimId, number>> = { chisel: 0.6, draw_water: 0.6, grind: 0.35, knead: 0.35, bake: 0.35, write: 0.4, eat: 0.5, dice: 0.5, enthroned: 0.2, ride: 0.4, inspect: 0, pour: 0, serve: 0, fan: 0 };
+const LAYERED: Partial<Record<AnimId, number>> = { chisel: 0.6, draw_water: 0.6, grind: 0.35, knead: 0.35, bake: 0.35, write: 0.4, eat: 0.5, dice: 0.5, enthroned: 0.2, ride: 0.4, inspect: 0, pour: 0, serve: 0, fan: 0, charioteer: 0 };
 const SEATED_L = new Set<AnimId>(['write', 'eat', 'dice']);
 const WORK = new Set<string>(WORK_ANIMS);
-export const ANIMS: AnimId[] = ['idle', 'walk', 'carry_shoulder', 'carry_head', 'carry_front', 'guard', 'guard_walk', 'chisel', 'grind', 'knead', 'bake', 'draw_water', 'write', 'eat', 'sleep', 'talk', 'sit', 'dice', 'inspect', 'play', 'enthroned', 'ride', 'pour', 'serve', 'fan', ...WORK_ANIMS];
+export const ANIMS: AnimId[] = ['idle', 'walk', 'carry_shoulder', 'carry_head', 'carry_front', 'guard', 'guard_walk', 'chisel', 'grind', 'knead', 'bake', 'draw_water', 'write', 'eat', 'sleep', 'talk', 'sit', 'dice', 'inspect', 'play', 'enthroned', 'ride', 'pour', 'serve', 'fan', 'charioteer', ...WORK_ANIMS];

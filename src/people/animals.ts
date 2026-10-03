@@ -387,6 +387,11 @@ export function animalsFor(spec: AnimalSpec, t: number, seed: number, path?: { s
       if (spec.dogs) for (let i = 0; i < spec.dogs; i++) { const B = ANIMAL_BUILD.dog, side = i % 2 ? -1 : 1, z = 3.5 + 3 * Math.sin(t * 0.21 + i * 2.4 + seed), x = side * (3.4 + 0.6 * Math.sin(t * 0.37 + i));
         out.push({ sp: 'dog', x, z, yaw: 0.5 * Math.cos(t * 0.21 + i * 2.4 + seed) * side, phase: (TWO_PI * t * pace * 1.3) / B.stride + i, walk: 1, graze: 0, lie: 0, coat: h1(seed + i, 11) }); }
       break; }
+    // s18 C14 (D-790): the royal chariot's team: four horses abreast, their necks at the yoke 2.9 m ahead of the car's axle
+    // (workObjects 'chariot'), trotting or galloping by the pace
+    case 'chariot': { const pace = spec.pace ?? 2.2, Gp = gaitOfPace(pace); for (let i = 0; i < 4; i++) { const s = sp(i), B = ANIMAL_BUILD[s];
+      out.push({ sp: s, x: (i - 1.5) * 0.72, z: CHARIOT_YOKE - 0.4 * B.len, yaw: 0, phase: (TWO_PI * t * Math.max(pace, 0.5)) / (B.stride * Gp.stride) + i * 0.7, walk: pace > 0 ? 1 : 0, graze: 0, lie: 0, coat: h1(seed + i, 5), gait: Gp.gait, follow: true }); }
+      break; }
     case 'team': { const s = path?.s ?? 0; for (let i = 0; i < 2; i++) out.push({ sp: sp(i), x: i ? -0.55 : 0.55, z: 3.35, yaw: 0, phase: (TWO_PI * s) / ANIMAL_BUILD[sp(i)].stride + i * 0.9, walk: 1, graze: 0, lie: 0, coat: h1(seed + i, 5), follow: true }); break; }
     case 'circle': { const a = path?.yaw ?? 0, n = spec.n ?? 2;
       for (let i = 0; i < n; i++) { const r = 2.1 + 0.8 * i, ph = a + 0.25; const x = r * Math.sin(ph), z = r * Math.cos(ph);
@@ -447,6 +452,8 @@ export function animalsFor(spec: AnimalSpec, t: number, seed: number, path?: { s
 /** D-256: a fold's radius (m) and how far ahead of the performer its centre is (work object 'fold' at [0, 0, FOLD_AT]) */
 export const FOLD_R = 6, FOLD_AT = 7.5;
 /** where the cart stands behind its draught pair (the performer's frame: the axle, m; workObjects 'cart') */
+/** s18 C14: the chariot's yoke ahead of its axle (m; workObjects 'chariot': the pole ends at z 2.9), and the car's floor (m) */
+export const CHARIOT_YOKE = 2.95, CHARIOT_FLOOR = 0.55;
 export const CART_AT: [number, number, number] = [0, 0, -(1.2 + 1.85 + 0.45 + 1.2)];
 
 /** the animals: one instanced mesh per species and level, filled every frame by the crowd and the fauna (begin / push /
