@@ -3,12 +3,12 @@
  "day": 60,
  "season": 91,
  "mode": "own",
- "generated": "2026-10-03T03:25:23.779Z",
- "repliesGrounded": 0.96,
+ "generated": "2026-10-03T03:36:34.161Z",
+ "repliesGrounded": 0.987,
  "thinShare": {
   "deeds": 0.267,
   "reasons": 0.067,
-  "replies": 0.2,
+  "replies": 0.067,
   "work": 0.033
  },
  "missing": [],
@@ -104,7 +104,7 @@
      "fact": "your work: a gardener on an estate of the plain; right now: the midday meal in the shade of the trees, then home out",
      "factOk": true,
      "tokens": 437,
-     "reply": "I am a gardener on an estate of the plain. Just now it is the midday meal in the shade of the trees, then home out.",
+     "reply": "I am a gardener on an estate of the plain. Just now it is the midday meal in the shade of the trees.",
      "grounded": true
     },
     {
@@ -113,7 +113,7 @@
      "fact": "the house of Baduzarma son of Bakumarda gave them grain when the house ran; yesterday: opening and closing the runnels between the beds; barley harvest",
      "factOk": true,
      "tokens": 437,
-     "reply": "The house of Baduzarma son of Bakumarda gave us grain when the house ran short.",
+     "reply": "The house of Baduzarma son of Bakumarda gave us grain when the house ran short. Have you news from the road?",
      "grounded": true
     },
     {
@@ -244,7 +244,7 @@
      "fact": "your work: keeper of the household: grinding, baking, water, spinning and the; right now: sleeping through the heat of the day",
      "factOk": true,
      "tokens": 447,
-     "reply": "I keep the house: grinding, baking, water, spinning and the children. Just now I am sleeping through the heat of the day. By Auramazda, it is so. And what brings you here?",
+     "reply": "I keep the house: grinding, baking, water, spinning and the children. Just now I am sleeping through the heat of the day.",
      "grounded": true
     },
     {
@@ -253,8 +253,8 @@
      "fact": "yesterday: kneading the dough; barley harvest",
      "factOk": true,
      "tokens": 447,
-     "reply": "Nothing much this year. Yesterday I was kneading the dough. Have you news from the road?",
-     "grounded": false
+     "reply": "Nothing much this year. Yesterday I was kneading the dough.",
+     "grounded": true
     },
     {
      "q": "What troubles you?",
@@ -262,12 +262,11 @@
      "fact": "you are worried about Appumanya growing weak; you hope for a good harvest",
      "factOk": true,
      "tokens": 447,
-     "reply": "I worry about Appumanya growing weak. I hope for a good harvest. Have you news from the road?",
+     "reply": "I worry about Appumanya growing weak. I hope for a good harvest.",
      "grounded": true
     }
    ],
    "thin": {
-    "replies": "1/5 replies ignore their life (year)",
     "deeds": "nothing done by or to them this year that they know of"
    }
   },
@@ -368,7 +367,7 @@
      "fact": "your work: a woodworker of the Treasury (the fourteenth treasury workers' group); right now: the midday meal",
      "factOk": true,
      "tokens": 440,
-     "reply": "I am a woodworker of the Treasury, with the fourteenth treasury workers' group. Just now it is the midday meal. And what brings you here?",
+     "reply": "I am a woodworker of the Treasury, with the fourteenth treasury workers' group. Just now it is the midday meal.",
      "grounded": true
     },
     {
@@ -377,7 +376,7 @@
      "fact": "the house of Balāṭu son of Bēl-ēṭir gave them grain when the house ran; yesterday: treasury workshop: working wood at home; barley harvest",
      "factOk": true,
      "tokens": 440,
-     "reply": "The house of Balāṭu son of Bēl-ēṭir gave us grain when the house ran short. Yesterday there was treasury workshop: working wood at home.",
+     "reply": "The house of Balāṭu son of Bēl-ēṭir gave us grain when the house ran short. Yesterday I was working wood at home.",
      "grounded": true
     },
     {
@@ -445,7 +444,7 @@
      "fact": "in your house: your husband Hadda and Iššante (kinsman of the house) and Basakka (the old man of the house)",
      "factOk": true,
      "tokens": 447,
-     "reply": "In my house: my husband Hadda, Basakka, the old man of the house and a kinsman.",
+     "reply": "In my house: my husband Hadda, Basakka, the old man of the house and Iššante, of my kin.",
      "grounded": true
     },
     {
@@ -463,7 +462,7 @@
      "fact": "barley harvest",
      "factOk": true,
      "tokens": 447,
-     "reply": "This year has been quiet. My mother died, two years ago.",
+     "reply": "Ah, stranger. This year has been quiet. My mother died, two years ago.",
      "grounded": true
     },
     {
@@ -670,7 +669,7 @@
      "fact": "in your house: Manmakka (kinsman of the house) and Parzizi (kinsman of the house) and Bakabana (kinsman of the house)",
      "factOk": true,
      "tokens": 450,
-     "reply": "Ah, stranger. In my house: some of my kin. My kin keep Nabbaba’s house and others nearby.",
+     "reply": "In my house: Manmakka, Parzizi and Bakabana, of my kin. My kin keep Nabbaba’s house and others nearby.",
      "grounded": true
     },
     {
@@ -697,7 +696,7 @@
      "fact": "you are worried about an accident at the stone; you hope for to go home one day to their own country",
      "factOk": true,
      "tokens": 450,
-     "reply": "Ah, stranger. I worry about an accident at the stone. I hope to go home one day to my own country.",
+     "reply": "I worry about an accident at the stone. I hope to go home one day to my own country.",
      "grounded": true
     }
    ],
@@ -799,7 +798,7 @@
      "factOk": true,
      "tokens": 446,
      "reply": "I help my mother. Just now I am at home.",
-     "grounded": false
+     "grounded": true
     },
     {
      "q": "What has happened to you this year?",
@@ -820,9 +819,7 @@
      "grounded": true
     }
    ],
-   "thin": {
-    "replies": "1/5 replies ignore their life (work)"
-   }
+   "thin": {}
   },
   {
    "seed": 1,
@@ -1043,7 +1040,7 @@
      "factOk": true,
      "tokens": 437,
      "reply": "Nothing much this year. Yesterday I was waiting for the ration issue.",
-     "grounded": false
+     "grounded": true
     },
     {
      "q": "What troubles you?",
@@ -1056,7 +1053,6 @@
     }
    ],
    "thin": {
-    "replies": "1/5 replies ignore their life (year)",
     "deeds": "nothing done by or to them this year that they know of"
    }
   },
@@ -1105,7 +1101,7 @@
      "fact": "you are Utira, son of Parzizi, fifty-three, a Persian of Parsa; your wife Čiθrazātā and your son Mardunuya live with you",
      "factOk": true,
      "tokens": 449,
-     "reply": "I am Utira, son of Parzizi. I am a craftsman of the town.",
+     "reply": "I am Utira, son of Parzizi. I am a craftsman of the town. The gods willing, it is so.",
      "grounded": true
     },
     {
@@ -1114,7 +1110,7 @@
      "fact": "in your house: your wife Čiθrazātā and your son Mardunuya and your daughter Vahubāmā",
      "factOk": true,
      "tokens": 449,
-     "reply": "In my house: my wife Čiθrazātā, my son Mardunuya and my daughter Vahubāmā. The gods willing, it is so.",
+     "reply": "In my house: my wife Čiθrazātā, my son Mardunuya and my daughter Vahubāmā.",
      "grounded": true
     },
     {
@@ -1132,7 +1128,7 @@
      "fact": "barley harvest",
      "factOk": true,
      "tokens": 449,
-     "reply": "This year has been quiet. I lost a daughter in the first year, eight years ago. The gods willing, it is so.",
+     "reply": "This year has been quiet. I lost a daughter in the first year, eight years ago.",
      "grounded": true
     },
     {
@@ -1141,7 +1137,7 @@
      "fact": "you hope for a good name for their work in the market; you hope for a boy to learn the craft",
      "factOk": true,
      "tokens": 449,
-     "reply": "I hope for a good name for our work in the market. The gods willing, it is so.",
+     "reply": "I hope for a good name for our work in the market.",
      "grounded": true
     }
    ],
@@ -1239,7 +1235,7 @@
      "fact": "came to Parsa with the king’s household from Šušan in the month Ādukanaiša; an express courier left the road station with a sealed letter for the Treasury",
      "factOk": true,
      "tokens": 435,
-     "reply": "I came to Parsa with the king’s household from Šušan in the month Ādukanaiša. And you, where are you from?",
+     "reply": "I came to Parsa with the king’s household from Šušan in the month Ādukanaiša.",
      "grounded": true
     },
     {
@@ -1248,7 +1244,7 @@
      "fact": "you are worried about a horse gone lame; you hope for a good year for the house",
      "factOk": true,
      "tokens": 435,
-     "reply": "I worry about a horse gone lame. I hope for a good year for the house. And you, where are you from?",
+     "reply": "I worry about a horse gone lame. I hope for a good year for the house.",
      "grounded": true
     }
    ],
@@ -1345,7 +1341,7 @@
      "fact": "in your house: Bēl-ēṭir (kinsman of the house) and Irdaša (kinsman of the house) and Mahseiah (kinsman of the house)",
      "factOk": true,
      "tokens": 446,
-     "reply": "In my house: many of my kin. My kin keep Bakubeša’s house and others nearby.",
+     "reply": "In my house: Bēl-ēṭir, Irdaša and others of the house. My kin keep Bakubeša’s house and others nearby.",
      "grounded": true
     },
     {
@@ -1457,7 +1453,7 @@
      "fact": "your work: a child of the household (the fifth treasury workers' group); right now: eating with the mother",
      "factOk": true,
      "tokens": 450,
-     "reply": "I am too little for work. Just now I am eating with the mother.",
+     "reply": "I am too little for work. Just now I am eating with my mother.",
      "grounded": true
     },
     {
@@ -1552,7 +1548,7 @@
      "fact": "you are Cincaxri, son of Apzizi, sixty-seven, an Elamite; Saktiti (kinsman of the house) and Hučiθrā (kinswoman of the house) live with you",
      "factOk": true,
      "tokens": 436,
-     "reply": "I am Cincaxri, son of Apzizi. I am an elder of the household, past heavy work. I am an Elamite, born in Šušan.",
+     "reply": "Listen, stranger. I am Cincaxri, son of Apzizi. I am an elder of the household, past heavy work. I am an Elamite, born in Šušan. It was different under the king’s father.",
      "grounded": true
     },
     {
@@ -1561,7 +1557,7 @@
      "fact": "in your house: Saktiti (kinsman of the house) and Hučiθrā (kinswoman of the house)",
      "factOk": true,
      "tokens": 436,
-     "reply": "In my house: some of my kin. My kin keep Iršena’s house and others nearby. And you, where are you from?",
+     "reply": "In my house: Saktiti and Hučiθrā, of my kin. My kin keep Iršena’s house and others nearby. And you, where are you from?",
      "grounded": true
     },
     {
@@ -1570,7 +1566,7 @@
      "fact": "your work: an elder of the household, past heavy work; right now: resting at home",
      "factOk": true,
      "tokens": 436,
-     "reply": "Listen, stranger. I am an elder of the household, past heavy work. Just now I am resting at home.",
+     "reply": "I am an elder of the household, past heavy work. Just now I am resting at home.",
      "grounded": true
     },
     {
@@ -1673,7 +1669,7 @@
      "fact": "in your house: your wife Vahugaunā and your son Šakada and your son Umišduma",
      "factOk": true,
      "tokens": 418,
-     "reply": "In my house: my wife Vahugaunā, my sons Šakada, Umišduma, Appirmarša and Appišukka and my daughter Xšaθragaunā. My kin keep Psamtek’s house and others nearby.",
+     "reply": "In my house: my wife Vahugaunā, my sons Šakada, Umišduma, Appirmarša and Appišukka and my daughter Xšaθragaunā. My kin keep Psamtek’s house and others nearby. The gods willing, it is so.",
      "grounded": true
     },
     {
@@ -1682,7 +1678,7 @@
      "fact": "your work: a spearman of the Terrace garrison (a company of a (the Terrace garrison); right now: resting",
      "factOk": true,
      "tokens": 418,
-     "reply": "I am a spearman of the Terrace garrison, with the Terrace garrison. Just now I am resting. The gods willing, it is so.",
+     "reply": "I am a spearman of the Terrace garrison. Just now I am resting.",
      "grounded": true
     },
     {
@@ -1700,7 +1696,7 @@
      "fact": "you are worried about the inspection of the watch; you hope for a trade for Umišduma",
      "factOk": true,
      "tokens": 418,
-     "reply": "I worry about the inspection of the watch. The gods willing, it is so.",
+     "reply": "I worry about the inspection of the watch.",
      "grounded": true
     }
    ],
@@ -1760,7 +1756,7 @@
      "fact": "in your house: your wife Bagazātā and your son Yamakšedda",
      "factOk": true,
      "tokens": 436,
-     "reply": "In my house: my wife Bagazātā and my son Yamakšedda. And you, where are you from?",
+     "reply": "In my house: my wife Bagazātā and my son Yamakšedda.",
      "grounded": true
     },
     {
@@ -1985,7 +1981,7 @@
      "fact": "in your house: your wife Archidike and your son Daphnis and your son Hippoklos",
      "factOk": true,
      "tokens": 446,
-     "reply": "In my house: my wife Archidike and my sons Daphnis, Hippoklos, Metrodoros and Strattis. My kin keep Anani’s house and others nearby. And you, where are you from?",
+     "reply": "In my house: my wife Archidike and my sons Daphnis, Hippoklos, Metrodoros and Strattis. My kin keep Anani’s house and others nearby.",
      "grounded": true
     },
     {
@@ -2099,7 +2095,7 @@
      "fact": "your work: a child of the household; right now: the midday meal with his father",
      "factOk": true,
      "tokens": 434,
-     "reply": "I am a child of the household. Just now it is the midday meal with his father.",
+     "reply": "I am a child of the household. Just now it is the midday meal with my father.",
      "grounded": true
     },
     {
@@ -2224,7 +2220,7 @@
      "fact": "was sick for six days in the last month; yesterday: reaping the barley; an express courier left the road station with a sealed letter for the Treasury",
      "factOk": true,
      "tokens": 450,
-     "reply": "I was sick for six days in the last month. Our harvest was poor. The gods willing, it is so.",
+     "reply": "I was sick for six days in the last month. Our harvest was poor.",
      "grounded": true
     },
     {
@@ -2324,7 +2320,7 @@
      "fact": "you live with your work group; your work: a woodworker of the Treasury",
      "factOk": true,
      "tokens": 447,
-     "reply": "I live with the others of the second treasury workers' group. My kin keep Mibṭaḥiah’s house.",
+     "reply": "I live with the others of the second treasury workers' group. My kin keep Mibṭaḥiah’s house. And you, where are you from?",
      "grounded": true
     },
     {
@@ -2333,7 +2329,7 @@
      "fact": "your work: a woodworker of the Treasury (the second treasury workers' group); right now: the midday meal",
      "factOk": true,
      "tokens": 447,
-     "reply": "I am a woodworker of the Treasury, with the second treasury workers' group. Just now it is the midday meal. Have you news from the road?",
+     "reply": "I am a woodworker of the Treasury, with the second treasury workers' group. Just now it is the midday meal.",
      "grounded": true
     },
     {
@@ -2516,7 +2512,7 @@
      "fact": "you are Irdabada, son of Kurizza, thirty-eight, an Elamite; your companion Marduk-šum-iddin and your companion Rauzazza live with you",
      "factOk": true,
      "tokens": 421,
-     "reply": "I am Irdabada, son of Kurizza. I am a porter. I am an Elamite, born in Hidali in the hills between Šušan and Pārsa. Have you news from the road?",
+     "reply": "Well now, friend. I am Irdabada, son of Kurizza. I am a porter. I am an Elamite, born in Hidali in the hills between Šušan and Pārsa. Have you news from the road?",
      "grounded": true
     },
     {
@@ -2525,7 +2521,7 @@
      "fact": "in your house: your companion Marduk-šum-iddin and your companion Rauzazza and your companion Utāna",
      "factOk": true,
      "tokens": 421,
-     "reply": "In my house: my companions Marduk-šum-iddin, Rauzazza, Utāna, Bakiš, Babena, Vindafarnā, Bēl-iddin, Balāṭu and Bagabuxša. And you, where are you from?",
+     "reply": "In my house: my companions Marduk-šum-iddin, Rauzazza, Utāna, Bakiš, Babena, Vindafarnā, Bēl-iddin, Balāṭu and Bagabuxša.",
      "grounded": true
     },
     {
@@ -2534,7 +2530,7 @@
      "fact": "your work: a porter; right now: the midday meal at the camp",
      "factOk": true,
      "tokens": 421,
-     "reply": "Listen, friend. I am a porter. Just now it is the midday meal at the camp.",
+     "reply": "I am a porter. Just now it is the midday meal at the camp.",
      "grounded": true
     },
     {
@@ -2543,7 +2539,7 @@
      "fact": "came to Parsa with the king’s household from Šušan in the month Ādukanaiša; yesterday: knucklebones at the camp; an express courier arrived at the road station",
      "factOk": true,
      "tokens": 421,
-     "reply": "I came to Parsa with the king’s household from Šušan in the month Ādukanaiša. Yesterday there was knucklebones at the camp. And what brings you here?",
+     "reply": "I came to Parsa with the king’s household from Šušan in the month Ādukanaiša. Yesterday, knucklebones at the camp.",
      "grounded": true
     },
     {
@@ -2552,7 +2548,7 @@
      "fact": "you are worried about a strained back; you hope for a lighter load",
      "factOk": true,
      "tokens": 421,
-     "reply": "Listen, friend. I worry about a strained back. I hope for a lighter load.",
+     "reply": "I worry about a strained back. I hope for a lighter load.",
      "grounded": true
     }
    ],
@@ -2885,7 +2881,7 @@
      "fact": "your work: a farmer of the plain (barley, wheat, sesame, vines); right now: sleeping in the shade at the field edge through the heat",
      "factOk": true,
      "tokens": 435,
-     "reply": "I am a farmer of the plain. Just now I am sleeping in the shade at the field edge through the heat. And what brings you here?",
+     "reply": "I am a farmer of the plain. Just now I am sleeping in the shade at the field edge through the heat.",
      "grounded": true
     },
     {
@@ -2894,7 +2890,7 @@
      "fact": "the house of Ištimanka son of Ardumaniš gave them grain when the house ran; yesterday: threshing: driving the animals round over the sheaves on the village floor; an express courier arrived at the road station",
      "factOk": true,
      "tokens": 435,
-     "reply": "The house of Ištimanka son of Ardumaniš gave us grain when the house ran short. And what brings you here?",
+     "reply": "The house of Ištimanka son of Ardumaniš gave us grain when the house ran short.",
      "grounded": true
     },
     {
@@ -2903,7 +2899,7 @@
      "fact": "you are worried about Vahutausā growing weak; you are worried about hail or blight before the harvest is in",
      "factOk": true,
      "tokens": 435,
-     "reply": "I worry about Vahutausā growing weak. Have you news from the road?",
+     "reply": "I worry about Vahutausā growing weak.",
      "grounded": true
     }
    ],
@@ -3010,7 +3006,7 @@
      "fact": "yesterday: treasury workshop: working wood at home; an express courier arrived at the road station",
      "factOk": true,
      "tokens": 435,
-     "reply": "Nothing much this year. Yesterday there was treasury workshop: working wood at home.",
+     "reply": "Nothing much this year. Yesterday I was working wood at home.",
      "grounded": true
     },
     {
@@ -3071,7 +3067,7 @@
      "fact": "you are Amazātā, wife of Ušaya, twenty, a Persian of Parsa; your husband Ušaya and Tiriya (kinsman of the house) live with you",
      "factOk": true,
      "tokens": 430,
-     "reply": "I am Amazātā, wife of Ušaya. I keep the house: grinding, baking, water, spinning and the children.",
+     "reply": "I am Amazātā, wife of Ušaya. I keep the house: grinding, baking, water, spinning and the children. And what brings you here?",
      "grounded": true
     },
     {
@@ -3080,7 +3076,7 @@
      "fact": "in your house: your husband Ušaya and Tiriya (kinsman of the house) and Xšaθratausā (kinswoman of the house)",
      "factOk": true,
      "tokens": 430,
-     "reply": "In my house: my husband Ušaya and some of my kin. And what brings you here?",
+     "reply": "In my house: my husband Ušaya and Tiriya and Xšaθratausā, of my kin.",
      "grounded": true
     },
     {
@@ -3089,7 +3085,7 @@
      "fact": "your work: keeper of the household: grinding, baking, water, spinning and the; right now: at kin’s in Pārsa for the night",
      "factOk": true,
      "tokens": 430,
-     "reply": "I keep the house: grinding, baking, water, spinning and the children. Just now I am at kin’s in Pārsa for the night. Have you news from the road?",
+     "reply": "Listen, stranger. I keep the house: grinding, baking, water, spinning and the children. Just now I am at kin’s in Pārsa for the night.",
      "grounded": true
     },
     {
@@ -3107,7 +3103,7 @@
      "fact": "you hope for to see a sister again",
      "factOk": true,
      "tokens": 430,
-     "reply": "I hope to see a sister again. And what brings you here?",
+     "reply": "I hope to see a sister again.",
      "grounded": true
     }
    ],
@@ -3193,7 +3189,7 @@
      "fact": "you are Uštana, son of Ištimanka, twenty-three, a Persian of Parsa; your companion Hašina and your companion Irdaša live with you",
      "factOk": true,
      "tokens": 433,
-     "reply": "I am Uštana, son of Ištimanka. I am a steward of an estate.",
+     "reply": "Ah, stranger. I am Uštana, son of Ištimanka. I am a steward of an estate.",
      "grounded": true
     },
     {
@@ -3202,7 +3198,7 @@
      "fact": "in your house: your companion Hašina and your companion Irdaša and your companion Bakabada",
      "factOk": true,
      "tokens": 433,
-     "reply": "Listen, stranger. In my house: my companions Hašina, Irdaša, Bakabada, Miššabadda, Irdabada, Bagābigna, Kadukku, Ardumaniš and Gaubaruva.",
+     "reply": "In my house: my companions Hašina, Irdaša, Bakabada, Miššabadda, Irdabada, Bagābigna, Kadukku, Ardumaniš and Gaubaruva.",
      "grounded": true
     },
     {
@@ -3305,7 +3301,7 @@
      "fact": "you are Jedaniah, son of Mardunuya, forty, a man of Syria (Across-the-River); Hiduš (kinsman of the house) and Paktyes (kinsman of the house) live with you",
      "factOk": true,
      "tokens": 428,
-     "reply": "I am Jedaniah, son of Mardunuya. I am a labourer in the labour gang: earth, rubble and stone chips on the Hall. I am a man of Syria (Across-the-River), born in Damascus.",
+     "reply": "I am Jedaniah, son of Mardunuya. I am a labourer in the labour gang: earth, rubble and stone chips on the Hall. I am a man of Syria (Across-the-River), born in Damascus. And what brings you here?",
      "grounded": true
     },
     {
@@ -3314,8 +3310,8 @@
      "fact": "in your house: Hiduš (kinsman of the house) and Paktyes (kinsman of the house) and Psamtek (kinsman of the house); is to be married this year to Čiθrazātā (the families have agreed)",
      "factOk": true,
      "tokens": 428,
-     "reply": "In my house: many of my kin. I am to be married this year to Čiθrazātā.",
-     "grounded": false
+     "reply": "In my house: Hiduš, Paktyes and others of the house. I am to be married this year to Čiθrazātā.",
+     "grounded": true
     },
     {
      "q": "What work do you do?",
@@ -3341,13 +3337,11 @@
      "fact": "you are worried about the debt that falls due; you are worried about an accident at the stone",
      "factOk": true,
      "tokens": 428,
-     "reply": "I worry about the debt that falls due. I hope for the wedding with Čiθrazātā. Have you news from the road?",
+     "reply": "I worry about the debt that falls due. I hope for the wedding with Čiθrazātā.",
      "grounded": true
     }
    ],
-   "thin": {
-    "replies": "1/5 replies ignore their life (family)"
-   }
+   "thin": {}
   }
  ]
 }
