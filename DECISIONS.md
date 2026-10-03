@@ -10590,3 +10590,4 @@ touched; the budget baseline is not re-accepted from such a head.
   blocked, 1,291,033 walkable. Bots: approach 40/40 (0.64 % stuck), town 40/40 (8.25 % stuck time: up from 0.40 % this
   morning, not yet traced). Walkers drawn within 60 m: cov-142 1 of 58, q_s1 lane 5 of 307 (the plans: 42 of 69 and 67 of 97
   residents within 400 m on the move walk).
+| D-812 | s18 lead 4 | Deployed s17-int fd762af7 to s14-int (Pages): C9 DEPLOY OK (dist 900.6 MiB, WebGL low lit at ready, 0 faults, heap 3,185 MB). Adds C4 daytime light, C2 decals off, C10 kit, C5 gift-day crowds over e8e271e8. Final candidate ab009bc8 under check (UD-40 freeze). |
