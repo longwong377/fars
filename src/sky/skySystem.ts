@@ -61,7 +61,8 @@ export const NIGHT_GREY = 0.05;
 // on the land (NIGHT_GREY) the moonless land drew ~5x brighter than the sky at the horizon, so Kuh-e Rahmat and the Terrace
 // stood lit flat brown against a black sky (C6's pre-dawn frame); now the sky at the horizon is about as bright as the land
 // and ridges, walls and trees stand as silhouettes against a luminous deep-blue night (the art direction's night). C
-export const NIGHT_SKY_ZENITH: [number, number, number] = [0.00105, 0.0012, 0.00172], NIGHT_SKY_HORIZON: [number, number, number] = [0.0036, 0.0039, 0.005], NIGHT_MOON_SKY = 2.5;
+// (and bluer at about the same luminance: through AgX the weaker tint read lavender-grey, the comet frames of day 125)
+export const NIGHT_SKY_ZENITH: [number, number, number] = [0.0006, 0.001, 0.0026], NIGHT_SKY_HORIZON: [number, number, number] = [0.0024, 0.0035, 0.0068], NIGHT_MOON_SKY = 2.5;
 const nightSkyAt = (y: number, k: number): [number, number, number] => { const t = Math.sqrt(Math.max(0, Math.min(1, y))); return [0, 1, 2].map(i => k * (NIGHT_SKY_HORIZON[i] + (NIGHT_SKY_ZENITH[i] - NIGHT_SKY_HORIZON[i]) * t)) as [number, number, number]; };
 export const groundRho = (snowCover: number): [number, number, number] => { const s = Math.min(1, Math.max(0, snowCover)); return [0, 1, 2].map(c => GROUND_RHO[c] + (SNOW_RHO[c] - GROUND_RHO[c]) * s) as [number, number, number]; };
 const _mdir = new THREE.Vector3();
