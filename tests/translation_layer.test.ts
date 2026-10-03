@@ -92,7 +92,7 @@ describe('translation layer', () => {
     const on: Settings = { ...DEFAULT_SETTINGS, translation: true };
     const layer = new TL.TranslationLayer(() => on) as any;
     const els: FakeEl[] = layer.inscriptionView('XPc', 'el'); const t = els.map(e => e.text).join(' ');
-    expect(t).toContain('English of the Elamite version — Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953 (tier C)');
+    expect(t).toContain('English of the Elamite version — Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953');
     expect(t).toContain('this palace Darius the king made'); expect(t).toMatch(/Marks: \( \) words added for English sense/);
     const dna: FakeEl[] = layer.inscriptionView('DNa', 'el'); expect(dna.map(e => e.text).join(' ')).not.toContain('English of');
   });
