@@ -283,7 +283,16 @@ export function animalGeometry(sp: Species): THREE.BufferGeometry {
  *  the hind pair half a cycle later); weights [walk, trot, bound] */
 export const gaitW = (g: number): [number, number, number] => { const t = Math.min(1, Math.max(0, g)), h = Math.min(1, Math.max(0, g - 1)); return [1 - t, t - h, h]; };
 /** a leg's phase offset in a gait, from its walk offset (LH 0, LF pi/2, RH pi, RF 3pi/2) and fore/hind */
-export const gaitOffset = (walkOff: number, fore: number, G: [number, number, number]) => G[0] * walkOff + G[1] * Math.PI * (1 - Math.cos(walkOff) + Math.sin(walkOff)) / 2 + G[2] * Math.PI * fore;
+export const gaitOffset = (walkOff: number, fore: number, G: [number, number, number]) => G[0] * walkOff + G[1] * Math.PI * (1 - Math.cos(walkOff) + Math.sin(walkOff)) / 2 + G[2] * (Math.PI * fore + GALLOP_LEAD * (walkOff > 2.5 ? 1 : 0));
+/** s18 C14 (D-790): the gallop's lead (rad): the right legs of each pair land a beat after the left (the transverse gallop of a
+ *  horse, four beats; the hare's half-bound), where the bound set the pairs down together (C) */
+export const GALLOP_LEAD = 0.65;
+/** s18 C14: a mount's or a driven animal's gait (gaitW's 0 walk .. 1 trot .. 2 gallop) and stride factor from its pace (m/s;
+ *  C: a horse walks to ~1.8 m/s, trots ~2.5-4, canters/gallops above; the stride lengthens ~1.3x trotting, ~2.4x galloping) */
+export function gaitOfPace(pace: number): { gait: number; stride: number } {
+  const t = Math.min(1, Math.max(0, (pace - 1.7) / 0.9)), h = Math.min(1, Math.max(0, (pace - 3.6) / 1.4));
+  return { gait: t + h, stride: 1 + 0.3 * t + 1.1 * h };
+}
 /** rig constants: leg swing and knee flex at a full walk */
 export const RIG = { swing: 0.42, knee: 0.75 } as const;
 /** the lying drop: the belly on the ground */
@@ -389,8 +398,9 @@ export function animalsFor(spec: AnimalSpec, t: number, seed: number, path?: { s
       break; }
     // a rider's mount under him: its seat (mountSeat) under the rider's pelvis; walking at `pace` (0: standing, a step now
     // and then) — the rider's root is lifted onto it by the crowd (anim RIDE)
-    case 'mount': { const s = sp(0), B = ANIMAL_BUILD[s], pace = spec.pace ?? 0, st = pace > 0 ? 1 : fr(t / 23 + h1(seed)) < 0.08 ? 1 : 0;
-      out.push({ sp: s, x: 0, z: -mountSeat(s).z, yaw: 0, phase: (TWO_PI * t * Math.max(pace, 0.5)) / B.stride, walk: st, graze: 0, lie: 0, coat: h1(seed, 8) }); break; }
+    // (s18 C14: trotting and galloping by the pace: the hunt's riders, the couriers)
+    case 'mount': { const s = sp(0), B = ANIMAL_BUILD[s], pace = spec.pace ?? 0, st = pace > 0 ? 1 : fr(t / 23 + h1(seed)) < 0.08 ? 1 : 0, Gp = gaitOfPace(pace);
+      out.push({ sp: s, x: 0, z: -mountSeat(s).z, yaw: 0, phase: (TWO_PI * t * Math.max(pace, 0.5)) / (B.stride * Gp.stride), walk: st, graze: 0, lie: 0, coat: h1(seed, 8), gait: Gp.gait }); break; }
     // an ox pair drawing a cart behind its carter (the cart: work object 'cart' at CART_AT), walking at `pace`
     // (D-256: `n` 4 = two yoke pairs, one behind the other, for the drum sledge from the quarry)
     case 'draught': { const pace = spec.pace ?? 0.9, pairs = Math.max(1, Math.round((spec.n ?? 2) / 2)); let z0 = -1.2;
@@ -463,7 +473,7 @@ export class Animals {
     // the gait's weights (walk, trot, bound: gaitW) and each leg's phase offset in it (gaitOffset)
     const G2 = attribute('aGait', 'vec2'), Gt = G2.x, seedN = G2.y, gT = Gt.clamp(0, 1), gH = Gt.sub(1).clamp(0, 1), gW0 = float(1).sub(gT), gW1 = gT.sub(gH);
     const fore = max(L.w, float(0));
-    const ph = S.x.add(L.x.mul(gW0)).add(gW1.mul(Math.PI / 2).mul(float(1).sub(cos(L.x)).add(sin(L.x)))).add(gH.mul(Math.PI).mul(fore));
+    const ph = S.x.add(L.x.mul(gW0)).add(gW1.mul(Math.PI / 2).mul(float(1).sub(cos(L.x)).add(sin(L.x)))).add(gH.mul(fore.mul(Math.PI).add(step(2.5, L.x).mul(GALLOP_LEAD))));
     // arithmetic masks only (no select: D-012): fore = 1 for fore legs, 0 for hind
     const fo = foldOf(sp);
     const a1 = L.y.mul(S.y.mul(gW1.add(gH).mul(0.14).add(RIG.swing)).mul(sin(ph)).add(S.w.mul(fore.mul(fo[0] - fo[2]).add(fo[2]))));
