@@ -10591,3 +10591,4 @@ touched; the budget baseline is not re-accepted from such a head.
   morning, not yet traced). Walkers drawn within 60 m: cov-142 1 of 58, q_s1 lane 5 of 307 (the plans: 42 of 69 and 67 of 97
   residents within 400 m on the move walk).
 | D-812 | s18 lead 4 | Deployed s17-int fd762af7 to s14-int (Pages): C9 DEPLOY OK (dist 900.6 MiB, WebGL low lit at ready, 0 faults, heap 3,185 MB). Adds C4 daytime light, C2 decals off, C10 kit, C5 gift-day crowds over e8e271e8. Final candidate ab009bc8 under check (UD-40 freeze). |
+| D-813 | s18 lead 4 | Deployed s17-int ab009bc8 to s14-int (Pages): C9 DEPLOY OK (dist 892.9 MiB, WebGL low lit at ready, 0 faults, heap 3,185 MB). The UD-40 freeze head: C14 anatomy bodies + impostors, C10 Terrace building sites, C2 lane windows and beam ends, C3 blended fields, C5 nav, C4 enclosed-room exposure, C8 talk from the economy. C13 robe held (lost_work.md). |
