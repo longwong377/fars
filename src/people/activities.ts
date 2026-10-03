@@ -371,7 +371,11 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
       { when: /mending clothes/, prop: 'awl', prop2: 'cloth', note: 'mending clothes on the doorstep, a needle of bone or bronze (C)' }] },
   carry_bier: { anim: 'bier_r', moving: true, sound: 'footsteps', tier: 'C', work: [{ kind: 'bier', at: [-0.46, 0, 0], shared: 'group', follow: true }],
     note: 'carrying the dead out of the settlement on a bier, four bearers (E-71; HDT 1.140 for burial in the earth: B claim). Exposure is never shown',
-    variants: [{ when: 0.5, anim: 'bier_l', work: [{ kind: 'bier', at: [0.46, 0, 0], shared: 'group', follow: true }], note: 'a bearer with the bier’s pole on the left shoulder (C)' }] },
+    variants: [
+      // s18 C14 (D-790): the royal women's curtained litter, carried as the bier is (four bearers, the poles on the shoulders)
+      { when: /curtained litter.*left shoulder/, anim: 'bier_l', work: [{ kind: 'litter', at: [0.46, 0, 0], shared: 'group', follow: true }], note: 'a bearer of a royal woman’s curtained litter, the pole on his left shoulder (claims, B; C)' },
+      { when: /curtained litter/, work: [{ kind: 'litter', at: [-0.46, 0, 0], shared: 'group', follow: true }], note: 'a bearer of a royal woman’s curtained litter (Plutarch Them. 26, HDT 7.83: claims, B; C)' },
+      { when: 0.5, anim: 'bier_l', work: [{ kind: 'bier', at: [0.46, 0, 0], shared: 'group', follow: true }], note: 'a bearer with the bier’s pole on the left shoulder (C)' }] },
   wash: { anim: 'wash', prop: 'cloth', sound: 'wash', tier: 'C', work: [{ kind: 'wash_stone', at: [0, 0, 0.55] }, { kind: 'drying_rack', at: [1.7, 0, -0.6] }],
     note: 'washing clothes and wool at the water: rinsed, beaten on a stone, wrung, hung to dry (C)',
     // D-292 (gap hunter C, C-D46): a Persian or a guard does it on the bank from a jar, never in the stream
