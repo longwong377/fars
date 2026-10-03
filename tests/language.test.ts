@@ -267,6 +267,7 @@ describe('language lint: every source that can reach the canvas', () => {
     'public/generated/humans/eye.png': 'MakeHuman eye texture, no longer sampled (viewed: no text)',
     'public/generated/humans/hair.png': 'hair strand texture (viewed: no text)',
     'public/favicon.svg': 'browser tab icon (out of the world; checked above for SVG text)',
+    'public/film/parsa_title.jpg': 'the title film\'s poster (D-761; viewed by C11, s18): the place\'s name in its own script, 𐎱𐎠𐎼𐎿 (Old Persian p-a-r-s, DB I 5, Kent 1953: a published word in a period script), gold over black with embers; no English, no modern text',
     'public/textures/Fabric043/diff.jpg': 'CC0 scan albedo (Fabric043; viewed in a contact sheet, session 11 D-301: no text)',
     'public/textures/Fabric043/arm.jpg': 'CC0 scan AO/roughness/metal pack (Fabric043; viewed in a contact sheet, session 11 D-301: no text)',
     'public/textures/Leather014/diff.jpg': 'CC0 scan albedo (Leather014; viewed in a contact sheet, session 11 D-301: no text)',
