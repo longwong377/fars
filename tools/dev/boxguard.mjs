@@ -8,7 +8,7 @@ import { freemem } from 'node:os';
 import { existsSync, readdirSync, readFileSync, writeFileSync, utimesSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
-export const MIN_FREE_GB = Math.max(12, +(process.env.MIN_FREE_GB ?? 12)); // s17 (D-472): a probe page commits ~5-10 GB; free = min(RAM, commit)
+export const MIN_FREE_GB = Math.max(9, +(process.env.MIN_FREE_GB ?? 9)); // s17 (D-472): a probe page commits ~5-10 GB; free = min(RAM, commit)
 export const MAX_AGENTS = +(process.env.MAX_AGENTS ?? 2); // session 15: 4 agents + their jobs pinned 4 cores at 100 %
 export const WT_ROOT = resolve(process.env.WT_ROOT ?? 'C:/Users/Administrator/fars-wt');
 export const SLOT_ROOTS = { gpu: 'T:/gpu-slots', cpu: process.env.CPU_SLOT_ROOT ?? 'C:/Users/Administrator/fars-train/cpu-slots' };
