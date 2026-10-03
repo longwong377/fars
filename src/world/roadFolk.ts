@@ -116,7 +116,10 @@ function errandOf(seed: number, H: Household, d: number, month: number, festival
       return { kind: 'hire', who: ['head', 'son'], pace: FOLK_PACE.foot, stay: [6, 8], inAct: ['walk', 'walk'], inWhy: [month >= 2 && month <= 4 ? `walking in to ${town} to hire on for the harvest of the crown’s fields` : `walking in to ${town} to settle the household’s barley dues with the storekeeper`, 'walking in with his father'],
         outAct: ['carry_sack', 'walk'], outWhy: ['carrying home the day’s wage in barley in a sack', `walking home to ${home} with his father`] };
     case 'herder':
-      if (r < 0.5) return { kind: 'goat', who: ['head'], pace: FOLK_PACE.foot, stay: [1.5, 3], inAct: ['walk'], inWhy: [`leading a goat to sell at ${town}’s exchange`], outAct: ['carry_sack'], outWhy: [`carrying home the barley the goat fetched, to ${home}`] };
+      // (D-570, V3's 'driving a flock': the household's wethers driven in to the exchange, the man and his son, home with the barley)
+      if (r < 0.3) return { kind: 'flock', who: H.kids ? ['head', 'son'] : ['head'], pace: 0.85, stay: [1.5, 3], inAct: ['walk', 'walk'], inWhy: [`driving a flock of wethers to sell at ${town}’s exchange`, 'walking behind the flock with his father, his sling ready'],
+        outAct: ['carry_sack', 'walk'], outWhy: [`carrying home to ${home} the barley the wethers fetched`, `walking home to ${home} with his father`] };
+      if (r < 0.6) return { kind: 'goat', who: ['head'], pace: FOLK_PACE.foot, stay: [1.5, 3], inAct: ['walk'], inWhy: [`leading a goat to sell at ${town}’s exchange`], outAct: ['carry_sack'], outWhy: [`carrying home the barley the goat fetched, to ${home}`] };
       return { kind: 'basket', who: H.kids ? ['wife', 'daughter'] : ['wife'], pace: FOLK_PACE.foot, stay: [1.5, 3], inAct: ['carry_bread', 'carry_jar_head'], inWhy: [`carrying a basket of ${goods} to sell in ${town}`, 'carrying a jar of buttermilk on her head to sell'], outAct: ['walk', 'walk'], outWhy: [`walking home to ${home} with salt and a little silver for the ${goods.split(' ')[0]}`, 'walking home beside her mother'] };
     case 'gardener':
       return { kind: 'basket', who: H.kids ? ['wife', 'son'] : ['wife'], pace: FOLK_PACE.foot, stay: [1.5, 3.5], inAct: ['carry_bread', 'carry_sack'], inWhy: [`carrying a basket of ${goods} to sell in ${town}`, `carrying a sack of ${goods.split(',')[0]} for his mother`], outAct: ['walk', 'walk'], outWhy: [`walking home to ${home}, the basket empty`, 'walking home with his mother'] };
@@ -154,6 +157,8 @@ type InRec = { H: Household; E: Errand; tArr: number; t0: number };
 export class RoadFolk {
   private paths: { inn: Route; out: Route; road: number; tail: number }[] = []; private through: { sw: Route; ws: Route; w: number; c: number; s: number } | null = null;
   private days = new Map<number, Trip[]>(); private inbound = new Map<number, { trips: Trip[]; recs: Map<number, InRec[]> }>();
+  /** the town plan, when the instance was made without it (the population's: Traffic gives it): keeps the verges off the plots */
+  setPlan(plan: TownPlan | null) { if (plan && !this.plan) { this.plan = plan; this.verges.clear(); } }
   constructor(private seed: number, private cal: { ctx(d: number): any }, private plan: TownPlan | null = null) {
     for (const R of ROADS) { const cut = farCut(FEAT[R.id].polyline as P2[]), road = route(cut).len, tail = route([cut[0], ...R.tail]).len;
       const inn = route([...cut.slice().reverse(), ...R.tail]); this.paths.push({ inn, out: route([...inn.pts].reverse()), road, tail }); }
@@ -238,7 +243,7 @@ export class RoadFolk {
     const P = this.paths[ri], path = dir === 1 ? P.inn : P.out, acts = leg === 'in' ? E.inAct : E.outAct, whys = leg === 'in' ? E.inWhy : E.outWhy;
     const has = membersOf(H), people = E.who.map((w, i) => ({ w, i })).filter(x => has.includes(x.w)).map(({ w, i }) => ({ look: lookOf(this.seed, H, w), act: acts[i] ?? 'walk', why: whys[i] ?? whys[0], life: lifeOf(H, w), m: w }));
     // a halt on the way (C: a third of the trips): bread or a rest by the road, in the outer half of the near road
-    const u = h01(this.seed, 39000 + ri, Math.floor(t0 * 60)), halt = u < 0.33 ? (() => { const s = path.len * (dir === 1 ? 0.15 + 0.35 * u * 3 : 0.5 + 0.35 * u * 3), a = t0 + s / E.pace / 3600, dur = 0.12 + 0.25 * h01(this.seed, 39500 + ri, Math.floor(t0 * 60));
+    const u = h01(this.seed, 39000 + ri, Math.floor(t0 * 60)), halt = u < 0.33 && !/driving a flock/.test(whys[0] ?? '') ? (() => { const s = path.len * (dir === 1 ? 0.15 + 0.35 * u * 3 : 0.5 + 0.35 * u * 3), a = t0 + s / E.pace / 3600, dur = 0.12 + 0.25 * h01(this.seed, 39500 + ri, Math.floor(t0 * 60));
       const string = /string|ox cart|driving the ewes/.test(people[0]?.why ?? '');
       return { s, a, b: a + dur, act: (string ? 'tend_animals' : u < 0.16 ? 'eat' : 'rest') as ActivityId, why: string ? (/ox cart/.test(people[0].why) ? 'holding the ox cart by the road while the oxen rest' : 'holding the string by the road while the donkeys rest') : u < 0.16 ? 'bread and onions by the road on the way' : 'resting by the road on the way' }; })() : null;
     const kind: Mover['kind'] = /string of pack|unloaded string/.test(people[0]?.why ?? '') ? 'pack' : /ox cart/.test(people[0]?.why ?? '') ? 'cart' : 'foot';
@@ -388,16 +393,17 @@ export class RoadFolk {
     if (v.H.kids) out.push({ key: `${v.key}:1`, kind: 'foot', e: e + c * Math.sign(v.side) * 9 + sn * 6, n: n - sn * Math.sign(v.side) * 9 + c * 6, heading: a.heading, act: 'herd', why: 'watching the flock on the verge with his father, keeping it off the road', look: lookOf(this.seed, v.H, 'son'), life: lifeOf(v.H, 'son'), ...pid('son') });
     return out;
   }
-  /** everyone of the road streams at time t (h), within `near` (all if omitted), appended to `out` */
-  at(t: number, out: Mover[], near?: { e: number; n: number; r: number }) {
+  /** everyone of the road streams at time t (h), within `near` (all if omitted), appended to `out`; `all`: the people bound to the
+   *  population too (the census: the population view draws them in the game) */
+  at(t: number, out: Mover[], near?: { e: number; n: number; r: number }, all = false) {
     const d = Math.floor(t / 24);
-    for (const g of this.grazers(d)) for (const mv of this.grazerMovers(g, t)) { if ((mv.pid ?? -1) >= 0) continue; if (near && Math.hypot(mv.e - near.e, mv.n - near.n) > near.r + 20) continue; out.push(mv); }
-    for (const v of this.vergeFlocks(d)) { if (t < v.t0 || t > v.t1) continue; for (const mv of this.vergeMovers(v, t)) { if ((mv.pid ?? -1) >= 0) continue;
+    for (const g of this.grazers(d)) for (const mv of this.grazerMovers(g, t)) { if (!all && (mv.pid ?? -1) >= 0) continue; if (near && Math.hypot(mv.e - near.e, mv.n - near.n) > near.r + 20) continue; out.push(mv); }
+    for (const v of this.vergeFlocks(d)) { if (t < v.t0 || t > v.t1) continue; for (const mv of this.vergeMovers(v, t)) { if (!all && (mv.pid ?? -1) >= 0) continue;
       if (near && Math.hypot(mv.e - near.e, mv.n - near.n) > near.r + 20) continue; out.push(mv); } }
     for (const dd of [d - 1, d]) { if (dd < 0) continue; for (const T of this.dayTrips(dd)) {
       const q = this.pos(T, t); if (!q) continue; const { a, act, why, at } = q;
       if (near && Math.hypot(a.e - near.e, a.n - near.n) > near.r + 20) continue;
-      T.people.forEach((p, i) => { if (this.pidOf && p.m && T.hh !== undefined && this.pidOf(T.road, T.hh, p.m) >= 0) return; // (a person of the population: popview draws them, from spotOf)
+      T.people.forEach((p, i) => { if (!all && this.pidOf && p.m && T.hh !== undefined && this.pidOf(T.road, T.hh, p.m) >= 0) return; // (a person of the population: popview draws them, from spotOf)
         out.push(this.member(T, i, a, act, why, !!at)); });
     } }
     return out;
