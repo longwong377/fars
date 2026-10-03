@@ -14,6 +14,8 @@ the head of `cloud-s17-int` named in the last cloud-lead line of handoff/s17/ask
   ROOFLESS houses (rooms open to the sky: a far-LOD or roof draw-distance fault, to check on the T4 first); the plain reads as
   a smeared khaki sheet with flat green patches and little standing on it at 0.3-2 km; a walled enclosure west of the town
   draws as a flat grey box; a dark dotted seam crosses the near plain. Sent to Vagon (asks_vagon.md).
+- **More from the crude frames:** the river Pulvar is a ruler-straight canal with a fence of reeds standing in the water; the
+  fields are flat saturated-green rectangles; a bright vertical streak runs down Kuh-e Rahmat's face.
 - **The night (T4 frames):** a magenta-purple band along the horizon, a fan of light streaks rising from one horizon point,
   clouds as dark cotton blobs (V1's; the ground was pitch black before light v1 and now reads).
 - **Far views have no sun shadow past 600 m** (sunShadows.ts maxFar): the Terrace and town from the plain are flat-lit (C6's
