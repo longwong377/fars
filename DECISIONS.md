@@ -10341,3 +10341,8 @@ touched; the budget baseline is not re-accepted from such a head.
 - 4-3: a stranger stopped at a post is walked back 0.8 m from its line at about 1.2 m/s (controller.ts PUSH_M, PUSH_STEP),
   not held at an invisible line; main.ts still applies the position (a teleport each frame of 4 cm).
 - settings.ts: playerMode defaults to 'visitor'. Ask (main.ts, not mine): keep ?test pages observer unless &visitor.
+- (D-696, the walk) a post held keeps its place, but two people of a post are never on one spot (SEP_POST 0.1 m: a shared spot
+  is spread, the court's files keep their own spacing), and a guard at his post gives half a step (0.5 m) to the stranger;
+  the court's waiting keep facing what they wait on (no group facing for FACING_ACTS). Terrace bots seed 1: stuck time 4.8-6.6 %
+  -> 0.47 % (gate 0.5 %), 40/40; seed 2: 1.56 %, 40/40, the rest at the Hall of 100's site where detailed agents (masons,
+  sim.ts) stand in the way: they do not make way yet (sim.ts, C1). tools/dev/walkers.ts --stuck: where the time is spent.
