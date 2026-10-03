@@ -15,7 +15,7 @@
 // radius is the sun's own penumbra at a typical occluder distance (0.53°, ~1 cm per metre) but never under 1.25 texels.
 // Ultra adds the cascade fade (no visible seam where one cascade hands over to the next).
 import * as THREE from 'three/webgpu';
-import { Fn, texture, vec2, float, add, screenCoordinate, interleavedGradientNoise, vogelDiskSample, reference, renderGroup } from 'three/tsl';
+import { Fn, If, texture, textureLoad, vec2, ivec2, float, add, floor, fract, clamp, step, mix, smoothstep, positionView, screenCoordinate, interleavedGradientNoise, vogelDiskSample, reference, renderGroup } from 'three/tsl';
 import { CSMShadowNode } from 'three/addons/csm/CSMShadowNode.js';
 import type { Quality } from '../core/settings';
 
@@ -31,6 +31,8 @@ export const CASCADE_PERIOD = [1, 1, 2, 4];
 export const CASCADE_MOVE = 0.01, CASCADE_TURN_COS = Math.cos(THREE.MathUtils.degToRad(1.5)), CASCADE_SUN_COS = Math.cos(THREE.MathUtils.degToRad(0.05));
 export const CASCADE_AMORTISE = { on: !(typeof location !== 'undefined' && new URLSearchParams(location.search).has('csmall')) };
 if (typeof globalThis !== 'undefined') (globalThis as any).__parsaCascades = CASCADE_AMORTISE; // A/B at run time (tests/e2e/dbg_perf.spec.ts)
+/** D-680: the far cascade on (?farcsm=0 for the A/B) */
+export const FAR_ON = { on: !(typeof location !== 'undefined' && new URLSearchParams(location.search).get('farcsm') === '0') };
 const _cp = new THREE.Vector3(), _cd = new THREE.Vector3(), _sd = new THREE.Vector3();
 /** the old profile (session 11), kept for the A/B measurement (?csm=old) */
 export const SUN_CASCADES_OLD: SunCascadeProfile = { size: 2048, breaks: [], fade: false, taps: 5 };
@@ -61,6 +63,64 @@ function vogelPCF(n: number) {
   });
 }
 
+// D-680 (s18, C4): the far cascade. Past the last cascade (600 m) nothing had a sun shadow, so the Terrace and the town seen
+// from the plain read flat-lit (no wall shading its lane, no portico its hall, no house its neighbour). One more map, fitted
+// once to the box holding the Terrace and the town (not to the view), drawn only when the sun has moved FAR_SUN_DEG or the
+// sun comes up: a static map costs nothing per frame. Read with textureLoad and a hand-made 2×2 bilinear comparison, so it
+// adds no sampler to any material (the T4's 16 per fragment stage, D-300: the page is at its limit; a comparison sampler
+// per map is what the cascades cost). It shades fragments past FAR_START − FAR_FADE m from the lens, faded in to FAR_START.
+/** the far cascade's box (world m: x = east, z = −north): the Terrace (TERRACE_BOX), the town's quarters, compounds and
+ *  orchards round it (settlement plan: east −1450…300, north −1560…820), the ground −20…85 m and its buildings */
+export const FAR_BOX = { x0: -1480, x1: 330, z0: -840, z1: 1580, y0: -25, y1: 110 } as const;
+export const FAR_CASCADE = { size: 4096, start: 600, fade: 40, sunDeg: 0.4, margin: 400 } as const;
+const FAR_SUN_COS = Math.cos(THREE.MathUtils.degToRad(FAR_CASCADE.sunDeg));
+export interface FarFit { pos: THREE.Vector3; target: THREE.Vector3; left: number; right: number; top: number; bottom: number; near: number; far: number; texel: number }
+const _fc = new THREE.OrthographicCamera(), _v = new THREE.Vector3();
+/** CPU: the far cascade's light camera for a sun direction (unit, towards the sun): every corner of FAR_BOX inside its
+ *  frustum, casters up to FAR_CASCADE.margin m sunward of the box inside its near plane */
+export function farCascadeFit(sunDir: THREE.Vector3, box = FAR_BOX): FarFit {
+  const B = box, c = new THREE.Vector3((B.x0 + B.x1) / 2, (B.y0 + B.y1) / 2, (B.z0 + B.z1) / 2);
+  const R = Math.hypot(B.x1 - B.x0, B.y1 - B.y0, B.z1 - B.z0) / 2, d = R + FAR_CASCADE.margin;
+  const pos = c.clone().addScaledVector(sunDir, d);
+  _fc.position.copy(pos); _fc.up.set(0, 1, 0); _fc.lookAt(c); _fc.updateMatrixWorld(true);
+  let l = Infinity, r = -Infinity, b = Infinity, t = -Infinity, zn = Infinity, zf = -Infinity;
+  for (const x of [B.x0, B.x1]) for (const y of [B.y0, B.y1]) for (const z of [B.z0, B.z1]) {
+    _v.set(x, y, z).applyMatrix4(_fc.matrixWorldInverse);
+    l = Math.min(l, _v.x); r = Math.max(r, _v.x); b = Math.min(b, _v.y); t = Math.max(t, _v.y); zn = Math.min(zn, -_v.z); zf = Math.max(zf, -_v.z);
+  }
+  // square texels: the map is square, so the shorter side takes the longer's extent
+  const w = Math.max(r - l, t - b), cx = (l + r) / 2, cy = (b + t) / 2;
+  return { pos, target: c, left: cx - w / 2, right: cx + w / 2, bottom: cy - w / 2, top: cy + w / 2, near: Math.max(1, zn - FAR_CASCADE.margin), far: zf + 10, texel: w / FAR_CASCADE.size };
+}
+
+/** the far map's filter: 4 texels read without a sampler, compared by hand, weighted bilinearly (a 2×2 PCF) */
+function loadPCF(size: number, reversed: boolean) {
+  return Fn(({ depthTexture, shadowCoord }: any) => {
+    const p: any = shadowCoord.xy.mul(size).sub(0.5), i0: any = floor(p), f: any = fract(p), z = shadowCoord.z;
+    const tap = (dx: number, dy: number) => {
+      const d = (textureLoad(depthTexture, (ivec2 as any)(clamp(i0.add(vec2(dx, dy)), 0, size - 1))) as any).x;
+      return reversed ? step(d, z) : step(z, d);
+    };
+    // read only where it is used (past the fade's start): the town round a player inside it pays nothing
+    const r = float(1).toVar('farLit');
+    If(positionView.z.negate().greaterThan(FAR_CASCADE.start - FAR_CASCADE.fade), () => {
+      r.assign(mix(mix(tap(0, 0), tap(1, 0), f.x), mix(tap(0, 1), tap(1, 1), f.x), f.y));
+    });
+    return r;
+  });
+}
+/** a ShadowNode whose depth map has no comparison and no filtering: textureLoad needs no sampler binding */
+class FarShadowNode extends (THREE as any).ShadowNode {
+  setupRenderTarget(shadow: any, builder: any) {
+    const o = super.setupRenderTarget(shadow, builder); o.depthTexture.compareFunction = null; o.depthTexture.name = 'FarShadowDepth'; return o;
+  }
+  setupShadow(builder: any) {
+    const n = super.setupShadow(builder), dt = this.shadowMap.depthTexture;
+    dt.minFilter = dt.magFilter = THREE.NearestFilter; dt.generateMipmaps = false;
+    return n;
+  }
+}
+
 /** CSMShadowNode with fixed breaks, per-cascade biases from each cascade's texel, and the wider PCF */
 class SunCSM extends (CSMShadowNode as any) {
   constructor(light: THREE.DirectionalLight, private prof: SunCascadeProfile) {
@@ -68,12 +128,44 @@ class SunCSM extends (CSMShadowNode as any) {
     if (prof.breaks.length) (this as any).customSplitsCallback = (_n: number, _near: number, far: number, target: number[]) => { for (const b of prof.breaks) target.push(Math.min(b, far) / far); };
     (this as any).fade = prof.fade;
   }
+  /** D-680: the far cascade (its light, its shadow, its node), made in _init */
+  far: { light: THREE.Object3D & { target: THREE.Object3D }; shadow: any; node: any; sun: THREE.Vector3; drawn: boolean } | null = null;
+  setup(builder: any) {
+    const base = super.setup(builder);
+    if (!this.far) return base;
+    const near = FAR_CASCADE.start - FAR_CASCADE.fade, viewD = positionView.z.negate();
+    // past FAR_START − FAR_FADE the cascades are fading out (their last ends at 600 m: lit beyond); the far map takes over
+    return Fn(() => {
+      const r = (base as any).toVar('sunShadowWithFar');
+      (r as any).assign(r.mul(mix(float(1), this.far!.node, smoothstep(near, FAR_CASCADE.start, viewD))));
+      return r;
+    })();
+  }
   _init(builder: any) {
     super._init(builder);
     if (!this.prof.breaks.length) return;
     const filt = vogelPCF(this.prof.taps);
     for (const L of (this as any).lights) L.shadow.filterNode = filt;
     this.biasFromTexels();
+    if (FAR_ON.on) {
+      const light = Object.assign(new THREE.Object3D(), { target: new THREE.Object3D() });
+      const shadow = ((this as any).light as THREE.DirectionalLight).shadow.clone(); shadow.mapSize.set(FAR_CASCADE.size, FAR_CASCADE.size); shadow.autoUpdate = false;
+      (shadow as any).filterNode = loadPCF(FAR_CASCADE.size, !!builder.renderer?.reversedDepthBuffer);
+      const node = new (FarShadowNode as any)(light, shadow);
+      this.far = { light, shadow, node, sun: new THREE.Vector3(0, -1, 0), drawn: false };
+    }
+  }
+  /** D-680: refit and redraw the far map when the sun has moved FAR_CASCADE.sunDeg (or never drawn); never while the sun is
+   *  down after the first draw (as the cascades, D-473) */
+  private updateFar(sun: THREE.Vector3, up: boolean) {
+    const F = this.far; if (!F) return;
+    if (F.drawn && (!up || F.sun.dot(sun) >= FAR_SUN_COS)) { F.shadow.needsUpdate = false; return; }
+    const fit = farCascadeFit(sun), cam = F.shadow.camera;
+    F.light.position.copy(fit.pos); F.light.target.position.copy(fit.target); F.light.updateMatrixWorld(true); F.light.target.updateMatrixWorld(true);
+    cam.left = fit.left; cam.right = fit.right; cam.top = fit.top; cam.bottom = fit.bottom; cam.near = fit.near; cam.far = fit.far; cam.updateProjectionMatrix();
+    const range = Math.max(1, fit.far - fit.near);
+    F.shadow.bias = -Math.max(0.3, 1.0 * fit.texel) / range; F.shadow.normalBias = 1.0 * fit.texel; F.shadow.needsUpdate = true;
+    F.sun.copy(sun); F.drawn = true;
   }
   updateFrustums() { super.updateFrustums(); if (this.prof.breaks.length) this.biasFromTexels(); }
   private drawn = false;
@@ -88,6 +180,7 @@ class SunCSM extends (CSMShadowNode as any) {
     // D-473: the sun below the horizon stays in the scene at intensity 0 (skySystem): its cascades are not redrawn; at sunrise
     // the sun's move (CASCADE_SUN_COS) or the period redraws them. Drawn once even so (a page loaded at night compiles the shadow
     // pipelines behind the loading screen, not at the first sunrise: 199 pipelines, measured)
+    { const L = (this as any).light as THREE.DirectionalLight; this.updateFar(_sd.subVectors(L.position, L.target.position).normalize(), L.intensity > 0); }
     if (!((this as any).light as THREE.DirectionalLight).intensity && this.drawn) { for (const lw of (this as any).lights) { lw.shadow.autoUpdate = false; lw.shadow.needsUpdate = false; } return; }
     this.drawn = true;
     if (!CASCADE_AMORTISE.on) { for (const lw of (this as any).lights) lw.shadow.autoUpdate = true; return; }
