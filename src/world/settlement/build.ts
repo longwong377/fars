@@ -449,6 +449,12 @@ export function fittingGeom(s: Site, f: Site['fittings'][0], mud: Batch, H: (e: 
       const q0 = at(0, 0); mud.box(q0[0], q0[1], th, L - kt, Wd - kt, y - 0.1, y + kh - 0.05, soilD, soil, d, false, 1);
       for (let k = 1; k < 5; k++) { const fv = -Wd + kt + (2 * (Wd - kt) * k) / 5, q = at(0, fv); mud.box(q[0], q[1], th, L - kt - 0.1, 0.05, y + kh - 0.05, y + kh - 0.035, soilD, sh(soilD, 0.8), d, false, 1); }
       break; }
+    case 'sluice': { // s18 C2 (D-671): two dressed stone cheeks either side of the channel, a timber board in their slots, its lifting bar
+      const wd = 0.3, tb = lin([0.4, 0.33, 0.25]);
+      for (const sg of [-1, 1]) { const q = at(0, sg * (wd + 0.18)); mud.box(q[0], q[1], th, 0.22, 0.18, y - 0.3, y + 0.75, sh(st, 0.85), st, d); }
+      mud.box(g[0], g[1], th, 0.04, wd + 0.12, y - 0.25, y + 0.45, sh(tb, 0.8), tb, d);
+      { const q = at(0, 0); mud.box(q[0], q[1], th, 0.05, wd + 0.42, y + 0.8, y + 0.88, sh(tb, 0.8), tb, d); }
+      break; }
     case 'path': { // s18 C2 (D-666): a garden walk: packed pale gravel between low stone edges, worn darker down its middle (C)
       const L = (f.len ?? 8) / 2, Wd = (f.wid ?? 2) / 2, grav = lin([0.66, 0.6, 0.5]), worn = lin([0.56, 0.5, 0.41]);
       mud.box(g[0], g[1], th, L, Wd, y - 0.05, y + 0.03, grav, grav, d, false, 1);
