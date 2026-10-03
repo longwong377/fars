@@ -30,6 +30,7 @@ import { nearCrops } from './crops';
 import { buildNaqsh } from './naqsh';
 import { buildQuarries, quarrySites } from './quarries';
 import { Qanats } from './qanats';
+import { Works } from './works';
 import { setWindField } from './windField';
 import { buildCrossings, keepOffChannels, roadRiverCrossings, type FordDetailSites } from './crossings';
 import { doyOf, riverState, marginState } from './seasonal';
@@ -127,6 +128,8 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     (e, n) => landUseAt(zones, e, -n).use === 'natural' && !villages.some(v => Math.hypot(v.x - e, v.y - n) < v.r + 20));
   // D-670: qanat lines (shaft mounds) on the hill-foot fans (qanats.ts; tier C), their own group beside the plain's
   const qanats = new Qanats(terrain, rivers.rivers, villages); scene.add(qanats.group);
+  // D-670: the plain-side works built at town.json's facilities (works.ts; C1's people work at works.layout.spots)
+  const works = new Works(opts.town ?? null, terrain, phys); scene.add(works.group);
   scene.add(fieldFill.group); // (its own group beside the plain's, as the town's fill: the plain's D-039 handful of meshes is unchanged)
   // trees (D-120): one kit (models, leaf atlas, impostor atlas) shared with the town gardens
   const kit = TreeKit.get({ deferBake: true, impostorPx: impostorPx(opts.quality) }); registerShadowLight(scene); kit.lod0R.value = Q.lod0R; kit.configure(opts.quality);

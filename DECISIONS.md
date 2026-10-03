@@ -9906,6 +9906,12 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   second tomb at Naqsh-e Rustam is a royal tomb being cut, later attributed to Xerxes (alive in 467). The people's lines and
   chronology.json (C1/C8's, not mine) keep their own wording. Millet (W19) not added: a new crop row touches the crop table,
   the shader's rows and the mix tests (left for a later package; sesame stands for the summer crops).
+- The plain-side works built (C1's ask: staffed, not built): works.ts lays out, at town.json's facilities (moved to the nearest
+  clear ground within 160 m when a town site or road is in the way), the brickyard by the canal (mixing pits, ~600 brick
+  moulds drying in rows, dry stacks, straw stacks) plus a drying field at the Terrace's N foot by the Hall of 100 Columns'
+  works (94,279), the walled stockyard (hurdle pens, mangers, trough), tannery (vats, hide frames, hides), press house (wine
+  and oil presses, jars), mill (querns, sacks), bakery-brewery (ovens, vats, jars) and the clay pit (heaps), from the period
+  kit, walls of mud brick with colliders; 55 work spots (worksLayout(plan).spots: facility, act, e, n, yaw) for C1's people.
 
 ## D-720 Follow thirty: the people answer from their own lives without the model, and the town's deeds and yesterday reach their talk (session 18, cloud C8; UD-07, UD-08, UD-11, UD-21, UD-24, UD-32)
 - Measured (tools/dev/follow30.ts; REVIEWS/follow30.json): thirty people drawn by seed across the town, the villages, the Terrace's
