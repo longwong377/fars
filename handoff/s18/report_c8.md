@@ -39,6 +39,24 @@ do you do, what has happened to you this year, what troubles you). The full repl
 - **Pre-existing, not mine:** tests/econ_plans.test.ts "nobody moves without a walk" fails on clean s17-int too (49 market
   stall stretches without a walk, days 120-123).
 
+## The lead's later asks (C12's fourth pass, C7's root cause)
+- **C7 (market):** the court's people, travellers and herders are never sent to keep or buy at a market stall (plans.ts pick); the
+  deeds world lays no stretch on a court person's day. **Still failing, not mine:** tests/court_fill audience (the king's day 15
+  has an `offer` and two enthronements: the court's own schedule after the merge) and a court-camp tent (52162: no tent).
+- **4-12:** the stranger buys bread, beer or a meal from a house (only from its spare) or the market's sellers, eats it there,
+  pays weighed silver or barley (barter), at the market's price of the day (season and shortage) with the seller's margin.
+  **Not mine:** the market ground's seasonal goods and fewer squares (fillPlan.ts, C2).
+- **4-1:** sight.ts takes where the stranger is (`inside`: a house, a palace hall, the women's palace, a store): an uninvited
+  stranger is shouted out of a house, stopped by a place's keepers; once a place and day the deeds world lays it (anger, the
+  house's trust down, a trespass rumour on the lane). **Not wired:** the render side must pass `inside` to strangerSeen (sim.ts,
+  world.ts), and react.ts plays a challenge as a stare until a shout and a pointing arm are added.
+- **Cheap fixes:** no weeks (W5); the day's hire paid in barley worth the hire (W6); hums, not bare nouns, as padding (W13);
+  "my lord" and the king named as Xšayaršā son of Dārayavauš in his nineteenth year (W14); coins puzzle the person ("silver is
+  weighed here"), Asia and Europe allowed, modern talk fenced in replies only (W15); loan interest a fifth a year by the months
+  it runs (W17); src/data/lives_baked_s1.json deleted (W22).
+- **Kokoro accents:** no regional colour pool; four style voices of four trained languages, near-even. **Unheard** (no
+  listening in the cloud): PLACEHOLDER-QUALITY until the T4 hears it; voices_eval's uniqueness should be re-measured on Vagon.
+
 ## The thirty, before → after (replies grounded of 5; thin spots)
 | seed/pid | kind | person | replies | thin before | thin after |
 |---|---|---|---|---|---|

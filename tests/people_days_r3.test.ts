@@ -62,8 +62,9 @@ describe('small children, nursing and water (S4, S5; D-137)', () => {
           expect(`${pid} d${d} ${a.place} → ${b.place} at ${b.t0.toFixed(2)}: ${b.why}`).toBe('a walk between'); } } }
   }, 120_000);
   it('water carried home was drawn; a feed never takes the place of drawing it', () => {
+    // (a jar of water: road folk carry other jars on the head, buttermilk to sell from the hamlets: roadFolk.ts D-640; D-710)
     for (let pid = 0; pid < P.persons.length; pid += 9) for (const d of [40, 140, 240, 340]) { if (!P.present(pid, d)) continue; const segs: Seg[] = P.plan(pid, d);
-      for (let i = 1; i < segs.length; i++) if (segs[i].act === 'carry_jar_head' && segs[i].with === undefined) expect(segs[i - 1].act, `${pid} d${d} ${segs[i - 1].why}`).toBe('draw_water'); }
+      for (let i = 1; i < segs.length; i++) if (segs[i].act === 'carry_jar_head' && segs[i].with === undefined && /water/.test(segs[i].why)) expect(segs[i - 1].act, `${pid} d${d} ${segs[i - 1].why}`).toBe('draw_water'); }
   }, 120_000);
 });
 

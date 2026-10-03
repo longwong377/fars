@@ -21,7 +21,7 @@ export interface TreeAssets {
   manifest: TreeManifest; atlas: Atlas; wood: [WoodLevel, WoodLevel];
   /** the bark scans as one array texture (layer per scan: R luminance / (2 x mean), G B the normal's x y, A the warm-cool
    *  axis 0.5 + 1.5 w) and each species' layer and weights; browser only */
-  bark: { tex: THREE.DataArrayTexture; layer: Record<string, number>; scans: string[] } | null;
+  bark: { tex: THREE.DataArrayTexture | THREE.CompressedArrayTexture; layer: Record<string, number>; scans: string[] } | null;
 }
 let ASSETS: TreeAssets | null = null; let OFF = false;
 const STATS = { ms: 0, loaded: false, error: '' as string, bytes: 0 };
@@ -88,21 +88,38 @@ export async function loadTreeAssets(base = BASE, rows = SPECIES.length * 3): Pr
   return treeAssetStats();
 }
 
+const LIN = new Float32Array(256); for (let i = 0; i < 256; i++) { const c = i / 255; LIN[i] = c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
+/** one bark layer's texels (RGBA, rows as the images'): the colour's luminance over twice its mean, the normal's x y, the
+ *  warm-cool axis; shared by the page and tools/bake_world/ktx_bark.ts */
+export function barkTexels(dif: ArrayLike<number>, nor: ArrayLike<number>, R: number, data: Uint8Array, o: number, stride = 4) {
+  let ml = 0, mw = 0; const n = R * R, L = new Float32Array(n), Wm = new Float32Array(n), lin = LIN;
+  for (let i = 0; i < n; i++) { const r = lin[dif[i * stride]], g = lin[dif[i * stride + 1]], b = lin[dif[i * stride + 2]], l = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    L[i] = l; Wm[i] = (r - b) / (l + 0.02); ml += l; mw += Wm[i]; }
+  ml /= n; mw /= n;
+  for (let i = 0; i < n; i++) { data[o + i * 4] = Math.min(255, Math.round((L[i] / (2 * ml)) * 255)); data[o + i * 4 + 1] = nor[i * stride]; data[o + i * 4 + 2] = nor[i * stride + 1];
+    data[o + i * 4 + 3] = Math.max(0, Math.min(255, Math.round((0.5 + 1.5 * (Wm[i] - mw) * 0.5) * 255))); }
+}
+async function barkKTX2(base: string, scans: readonly string[]): Promise<any> {
+  if (typeof location === 'undefined' || new URLSearchParams(location.search).has('scanjpg')) return null;
+  try { const m = await fetch(`${base}models/trees/bark/bark.json`).then(r => (r.ok && (r.headers.get('content-type') ?? '').includes('json') ? r.json() : null));
+    if (!m || m.scans?.join() !== scans.join()) return null;
+    const { sharedKTX2 } = await import('../../render/loaders'), t = await (await sharedKTX2(base)).loadAsync(`${base}models/trees/bark/bark.ktx2`);
+    t.colorSpace = THREE.NoColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearMipmapLinearFilter; t.anisotropy = 8; t.needsUpdate = true;
+    STATS.bytes += m.bytes ?? 0; return t;
+  } catch (e) { console.warn(`[trees] bark.ktx2: ${(e as Error).message}; the jpgs`); return null; }
+}
 /** the bark array: per scan, its colour's luminance over twice its mean (R), the normal map's x y (G B) and the warm-cool
  *  axis (A); all at the same size */
 async function loadBark(base: string, pixels: (f: string) => Promise<{ d: Uint8ClampedArray; W: number; H: number }>) {
   const scans = BARK_SCANS, N = scans.length; let R = 0; let data: Uint8Array | null = null;
-  const lin = new Float32Array(256); for (let i = 0; i < 256; i++) { const c = i / 255; lin[i] = c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
+  // D-740 (s18 C9, format only): the same layers baked as one KTX2 array (tools/bake_world/ktx_bark.ts: BC7, a quarter of the
+  // RGBA8 array's memory, nothing decoded here) when bark.json lists these scans; else packed here as before
+  const kx = await barkKTX2(base, scans); if (kx) { const layer: Record<string, number> = {}; for (const s of SPECIES) layer[s.id] = scans.indexOf(BARK_SPECIES[s.id].scan); return { tex: kx, layer, scans }; }
   for (let k = 0; k < N; k++) {
     const [dif, nor] = await Promise.all([pixels(`bark/${scans[k]}_diff.jpg`), pixels(`bark/${scans[k]}_nor.jpg`)]);
     if (!data) { R = dif.W; data = new Uint8Array(R * R * 4 * N); }
     if (dif.W !== R || dif.H !== R || nor.W !== R) throw new Error(`bark ${scans[k]}: ${dif.W}x${dif.H} (want ${R})`);
-    let ml = 0, mw = 0; const n = R * R, L = new Float32Array(n), Wm = new Float32Array(n);
-    for (let i = 0; i < n; i++) { const r = lin[dif.d[i * 4]], g = lin[dif.d[i * 4 + 1]], b = lin[dif.d[i * 4 + 2]], l = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-      L[i] = l; Wm[i] = (r - b) / (l + 0.02); ml += l; mw += Wm[i]; }
-    ml /= n; mw /= n; const o = k * n * 4;
-    for (let i = 0; i < n; i++) { data[o + i * 4] = Math.min(255, Math.round((L[i] / (2 * ml)) * 255)); data[o + i * 4 + 1] = nor.d[i * 4]; data[o + i * 4 + 2] = nor.d[i * 4 + 1];
-      data[o + i * 4 + 3] = Math.max(0, Math.min(255, Math.round((0.5 + 1.5 * (Wm[i] - mw) * 0.5) * 255))); }
+    barkTexels(dif.d, nor.d, R, data, k * R * R * 4);
   }
   const tex = new THREE.DataArrayTexture(data!, R, R, N);
   tex.format = THREE.RGBAFormat; tex.type = THREE.UnsignedByteType; tex.colorSpace = THREE.NoColorSpace;

@@ -83,4 +83,7 @@ console.log(`[site] dist: ${files.length} files, ${MB(total)}; largest: ${top.ma
 writeFileSync(join(dist, 'site.json'), JSON.stringify({ base, builtAt: new Date().toISOString(), commit: (() => { try { return execSync('git rev-parse HEAD', { cwd: root }).toString().trim(); } catch { return null; } })(), files: files.length, bytes: total }, null, 1));
 if (big.length) throw new Error(`files over GitHub Pages' 100 MB limit: ${big.map(([f, b]) => `${f} ${MB(b)}`).join(', ')}`);
 if (total > 1e9) throw new Error(`the site is ${MB(total)}: over GitHub Pages' 1 GB limit`);
+// s18 C9 (D-740): the deploy's own ceiling, under Pages' 1 GB so a growth is caught before it breaks the site (the budget, by
+// part, in handoff/s18/report_c9.md: the title film 12 MB, the score 44 MB); SITE_MAX_MB=… overrides for a local check
+{ const max = +(process.env.SITE_MAX_MB ?? 950) * 1048576; if (total > max) throw new Error(`the site is ${MB(total)}: over the deploy's ${MB(max)} ceiling (D-740); prune or re-encode before adding`); }
 lap('done');

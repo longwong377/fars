@@ -100,6 +100,17 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
   walk: { anim: 'walk', moving: true, sound: 'footsteps', tier: 'C', note: 'walking',
     // D-210 (gap audit item 6): the animals that travel with the people who lead them (world/traffic.ts, the court's parties)
     variants: [
+      // D-780 (s18 C13): the court's programme (people/ceremony.ts, court.ts): riding with the king, to the hunt and at exercise;
+      // grooms leading the king's horses; a delegate leading his people's gift animals up the Apadana's stair (the reliefs, B)
+      { when: /on horseback/, anim: 'ride', sound: undefined, animals: { kind: 'mount', species: ['horse_saddle'], pace: 1.8 },
+        note: 'riding with the king, to the hunt or at exercise, on a saddle cloth, no stirrups (blocklist; Cyr. 8.3, 1.4: claims, B; the pace C: D-780)' },
+      { when: /leading the king’s horses|leading the horses back/, animals: { kind: 'string', species: ['horse_saddle', 'horse_saddle', 'horse_saddle'], n: 3, pace: 1.0 }, note: 'a groom leading the king’s saddled horses on a string (C: D-780)' },
+      { when: /leading the gift animals, the horses/, animals: { kind: 'string', species: ['horse', 'horse'], n: 2, pace: 0.9 }, note: 'a delegate leading his people’s gift horses up to the king (the Apadana reliefs: seven delegations lead horses, B; C: D-780)' },
+      { when: /leading the gift animals, the Bactrian camel/, animals: { kind: 'string', species: ['camel'], n: 1, pace: 0.9, gap: 1.2, lead: 1.4 }, note: 'a delegate leading the Bactrian camel up to the king (the Apadana reliefs, B; C: D-780)' },
+      { when: /leading the gift animals, the dromedary/, animals: { kind: 'string', species: ['dromedary'], n: 1, pace: 0.9, gap: 1.2, lead: 1.4 }, note: 'an Arab delegate leading the dromedary up to the king (the Apadana reliefs, B; C: D-780)' },
+      { when: /leading the gift animals, the humped bull/, animals: { kind: 'string', species: ['zebu'], n: 1, pace: 0.8 }, note: 'a delegate leading the humped bull up to the king (the Apadana reliefs, B; C: D-780)' },
+      { when: /leading the gift animals, the fat-tailed rams/, animals: { kind: 'string', species: ['sheep', 'sheep'], n: 2, pace: 0.9 }, note: 'a delegate leading the fat-tailed rams up to the king (the Apadana reliefs, B; C: D-780)' },
+      { when: /leading the gift animals, the wild ass/, animals: { kind: 'string', species: ['onager'], n: 1, pace: 0.9 }, note: 'a delegate leading the wild ass up to the king (the Apadana reliefs, B; C: D-780)' },
       // D-209: a man of the town leading the beast for his sacrifice to the precinct (Herodotus 1.132: B claim; C)
       { when: /leading a sheep/, animals: { kind: 'string', species: ['sheep'], n: 1, pace: 1.0 }, note: 'leading a sheep on a rope to the precinct for a sacrifice (Herodotus 1.132, a Greek claim: B; C)' },
       // D-359: the draught ox or the ewes bought at the exchange after a loss (economy/plans.ts animal_bought)
@@ -143,7 +154,8 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
   carry_bread: { anim: 'carry_front', moving: true, prop: 'basket', sound: 'footsteps', tier: 'C', note: 'basket of bread for the gang’s meal (C)',
     variants: [{ when: /meat of the offering/, note: 'carrying the boiled meat of a sacrifice home in a basket (Herodotus 1.132 "the sacrificer carries away the flesh and uses it as he pleases", read, a Greek claim: B; C: D-209)' }] },
   stand_guard: { anim: 'guard', prop: 'spear', tier: 'B', note: 'spear upright, butt on the ground (guard files on the reliefs: B)' },
-  patrol: { anim: 'guard_walk', moving: true, prop: 'spear', sound: 'footsteps', tier: 'C', note: 'guard walking a round (C)' },
+  patrol: { anim: 'guard_walk', moving: true, prop: 'spear', sound: 'footsteps', tier: 'C', note: 'guard walking a round (C)',
+    variants: [{ when: /beating the reeds/, prop: 'stick', note: 'a beater driving the game out of the river reeds toward the riders (Cyr. 1.4: a claim, B; C: D-780)' }] },
   dress_stone: { anim: 'chisel', prop: 'mallet', sound: 'chisel', tier: 'B', note: 'dressing a block with mallet and chisel (tool marks on the stone: B)' },
   grind: { anim: 'grind', sound: 'quern', tier: 'B', note: 'kneeling at a saddle quern (saddle querns are the period type: B)' },
   knead: { anim: 'knead', tier: 'C', note: 'kneading dough in a trough (C)' },
@@ -155,7 +167,8 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
     variants: [{ when: /in Aramaic/, prop: 'leather', prop2: 'pen', note: 'writing Aramaic with a reed pen and ink on a sheet of leather on the left palm (Aramaic ink epigraphs on Persepolis tablets: B; leather documents in the chancery: B by analogy; posture C; the writing on the sheet is not drawn: D-221)' }] },
   eat: { anim: 'eat', sound: 'murmur', tier: 'C', note: 'sitting and eating bread (rations: B)',
     // D-359: the bread brought along on an errand or a summons (economy/plans.ts feed)
-    variants: [{ when: /^bread and water brought along/, prop: 'bread', note: 'eating a flat loaf brought along from home, wrapped in a cloth, where the day’s business holds them (C: D-359)' }] },
+    variants: [{ when: /at the king’s banquet/, anim: 'sit', prop: 'bowl', note: 'seated at a low table at the king’s banquet, eating and drinking (Heracleides in Athenaeus 4.145: a claim, B; C: D-780)' },
+      { when: /^bread and water brought along/, prop: 'bread', note: 'eating a flat loaf brought along from home, wrapped in a cloth, where the day’s business holds them (C: D-359)' }] },
   sleep: { anim: 'sleep', tier: 'C', note: 'lying asleep on a mat (C)',
     variants: [
       // D-256: the drum haul's night halt by the road (world/traffic.ts), the oxen unyoked and lying by it
@@ -175,7 +188,12 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
       { when: /a jar of (beer|wine)/, work: [{ kind: 'jar', at: [0.5, 0, 0.4] }], note: 'drinking the ration in company of an evening, a jar of beer or wine set on the ground between them, poured into cups in turn (the rations: E-02, A; the evening company C: D-283)' }] },
   rest: { anim: 'sit', tier: 'C', note: 'sitting and resting' },
   gamble: { anim: 'dice', sound: 'dice', tier: 'C', note: 'throwing knucklebones (astragali are common finds of the period: B object, C scene)' },
-  inspect: { anim: 'inspect', tier: 'C', note: 'official looking over work, hands clasped (C)' },
+  inspect: { anim: 'inspect', tier: 'C', note: 'official looking over work, hands clasped (C)',
+    // D-780: the court's audience and banquet (court.ts): the bow before the king (drawn with the bowed head and joined hands
+    // of the mourning pose until a proskynesis pose exists: C), and the servers at the banquet's tables
+    variants: [{ when: /bowing low before the king|right hand raised before his mouth/, anim: 'proskynesis', note: 'proskynesis before the king: bowing from the hips, the right hand raised before the mouth (the Treasury relief, B; HDT 1.134, a claim: B; the depth and timing C: D-780)' },
+      { when: /pouring wine at the tables/, prop: 'jar', note: 'pouring wine at the king’s banquet (C: D-780)' },
+      { when: /serving at the tables/, prop: 'bowl', note: 'serving dishes at the king’s banquet (C: D-780)' }] },
   shelter: { anim: 'idle', tier: 'C', note: 'waiting out rain under a roof (the Gate’s, a hut’s); in the open only a passing shower, the cloak drawn over the head: a longer rain sends people home (S1 of shadow review r5)' },
   play: { anim: 'play', tier: 'C', note: 'children playing: hopping and skipping about (C)',
     // D-215 (gap audit item 26; D-207): the kinds of play, by share and age (all C: no Persepolis evidence either way)
