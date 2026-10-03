@@ -2,7 +2,9 @@
 import { chromium } from '/home/user/fars/node_modules/playwright/index.mjs';
 import { readFileSync, mkdirSync, existsSync, appendFileSync } from 'node:fs';
 const [setFile, outDir] = process.argv.slice(2); mkdirSync(outDir, { recursive: true });
-const S = JSON.parse(readFileSync(setFile, 'utf8')); const P = JSON.parse(readFileSync('/home/user/fars/tests/data/coverage_points.json', 'utf8')).points;
+const S = JSON.parse(readFileSync(setFile, 'utf8'));
+const PROBES = process.env.PROBES ? JSON.parse(readFileSync(process.env.PROBES, 'utf8')) : {}; // {viewId: [js expression, ...]} evaluated after the view is set
+const P = JSON.parse(readFileSync('/home/user/fars/tests/data/coverage_points.json', 'utf8')).points;
 const work = [...P.filter(p => (S.ids ?? []).includes(p.id)), ...(S.extra ?? [])].filter(v => !existsSync(`${outDir}/${v.id}.png`));
 work.sort((a, b) => a.day - b.day || a.hour - b.hour || String(a.w).localeCompare(String(b.w)));
 console.log('views', work.length); if (!work.length) process.exit(0);
@@ -29,6 +31,7 @@ for (const v of work) {
     const a = [v.e, v.n, v.eye, v.az, v.pitch, undefined, { cast: v.cast ?? null, rigClear: 0 }];
     await p.evaluate(a => window.__parsa.view(...a), a); await p.evaluate(() => window.__parsa.tick()); await p.evaluate(a => window.__parsa.view(...a), a);
     for (let i = 0; i < +(process.env.FRAMES ?? 3); i++) await p.evaluate(() => window.__parsa.renderOnce());
+    for (const js of PROBES[v.id] ?? []) { const r = await p.evaluate(js).catch(e => 'ERR ' + String(e).slice(0, 300)); appendFileSync(`${outDir}/probes.txt`, `## ${v.id}\n${js.slice(0, 200)}\n=> ${typeof r === 'string' ? r : JSON.stringify(r)}\n\n`); }
     await p.screenshot({ path: `${outDir}/${v.id}.png`, timeout: 1800000 });
     const st = await p.evaluate(() => { const s = window.__parsa.stats(); return { dc: s.drawCalls, tri: s.triangles, be: s.backend }; }).catch(() => ({}));
     const line = `${v.id} ${((Date.now() - t1) / 1000).toFixed(0)}s ${JSON.stringify(st)}`; console.log(T(), line); appendFileSync(`${outDir}/log.txt`, line + '\n');

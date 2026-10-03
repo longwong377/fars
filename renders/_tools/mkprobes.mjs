@@ -1,0 +1,4 @@
+import { writeFileSync } from 'node:fs';
+const c1 = `(() => { const c=__parsa.world.root.getObjectByName('fill'); if(!c) return 'no fill object'; const v={},near=[]; const P=new __parsa.world.root.position.constructor(), M=new __parsa.world.root.matrix.constructor(); c.traverse(o=>{ if(!o.isInstancedMesh) return; if(o.visible&&o.count) v[o.name]=o.count; for(let i=0;i<o.count;i++){ o.getMatrixAt(i,M); P.setFromMatrixPosition(M); if(Math.hypot(P.x+478,P.z-881)<12) near.push([o.name,o.visible,P.x.toFixed(1),P.y.toFixed(2),P.z.toFixed(1)]); } }); return JSON.stringify({meshes:Object.keys(v).length,near}); })()`;
+const pick = (x, y) => `JSON.stringify(__parsa.pick(${x}, ${y}))`;
+writeFileSync(process.argv[2], JSON.stringify({ 'ask-c1-1': [c1, pick(-0.31, -0.5), pick(-0.41, -0.67), pick(-0.36, -0.58)] }, null, 1));
