@@ -58,7 +58,10 @@ describe('Blender-built assets (D-305)', () => {
         expect(G.images[G.textures[mat.normalTexture].source].w).toBe(E.lods[i].tex);
       });
       // the maps are not blank: the occlusion's mean is recorded by the bake and lies strictly between 0 and 1
-      for (const L of M.lods) { expect(L.ao_mean).toBeGreaterThan(0.2); expect(L.ao_mean).toBeLessThan(0.99); }
+      // (D-753: the plastered shaft is a plain convex cylinder, no carving: nothing occludes it and its occlusion is 1 everywhere;
+      // its normal map carries the plaster's float marks. The bound is for the carved members)
+      const convex = id === 'column_shaft_plaster';
+      for (const L of M.lods) { expect(L.ao_mean).toBeGreaterThan(0.2); if (convex) expect(L.ao_mean).toBeLessThanOrEqual(1); else expect(L.ao_mean).toBeLessThan(0.99); }
     });
     it('the ledger lists it', () => expect(readFileSync('ASSET_LEDGER.md', 'utf8')).toContain(E.ledger));
   });

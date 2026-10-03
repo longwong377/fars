@@ -18,7 +18,10 @@ import { SEASON } from '../../render/materials';
  *  the fog colour). Shared by every water material. */
 export const WATER_SKY = { sky: uniform(new THREE.Color(0.5, 0.6, 0.8)), horizon: uniform(new THREE.Color(0.7, 0.72, 0.75)) };
 /** ripple octaves: wavelength (m), slope amplitude (C) */
-export const RIPPLE_OCTAVES: [number, number][] = [[2.4, 0.075], [1.0, 0.07], [0.42, 0.06], [0.17, 0.05]];
+// D-670 (the cloud riv-a frame: the river a patchwork of sky-blue and bank-brown blotches 2-10 m across): the long octaves'
+// slopes swung the reflected ray over the far bank's whole height; a slow lowland river's surface is mostly fine wind ripple
+// on a smooth swell, so the long octaves are calmer (0.075, 0.07 -> 0.04, 0.05) and the reflection breaks in streaks (C)
+export const RIPPLE_OCTAVES: [number, number][] = [[2.4, 0.04], [1.0, 0.05], [0.42, 0.06], [0.17, 0.05]];
 
 /** Rippled water normal (world, unit) and the slope lost to band-limiting (0..~0.25). s, u: position along and across
  *  the flow (m); T, B: world unit vectors along and across the flow; speed (m/s); amp: slope scale (1 = a brisk river) */

@@ -328,8 +328,8 @@ export class PlainGround {
       const soilP = soil0.mul(det(mix(dustC, G.tilled.c, S.w.mul(float(1).sub(wetG.mul(0.5))))));
       const soilT = soilP.mul(float(1).sub(tilled.mul(0.28).mul(furrow.mul(0.6).add(0.4))));
       const speck = mx_noise_float(positionWorld.mul(3.1)).mul(0.12).add(1);
-      // each plot its own shade (sowing density, soil, weeding: +-12 %, C), so neighbouring plots of one crop still read apart
-      const tint = unitN(hash2N(ph, uint(5), 43)).mul(0.34).add(0.83).mul(plotKeep).add(float(1).sub(plotKeep).mul(hs.mul(0.14).mul(hKeep).add(1)));
+      // each plot its own shade (sowing density, soil, weeding: +-12 %, C; D-670 s18 review: was +-17 %), so neighbouring plots of one crop still read apart
+      const tint = unitN(hash2N(ph, uint(5), 43)).mul(0.24).add(0.88).mul(plotKeep).add(float(1).sub(plotKeep).mul(hs.mul(0.14).mul(hKeep).add(1)));
       let plotAlb: any = soilT.mul(bare).add(green.mul(gCov).mul(speck)).add(straw.mul(sCov).mul(speck)).mul(tint);
       let plotH: any = mix(G.dust.h, G.tilled.h, S.w).mul(bare).add(G.green.h.mul(gCov)).add(G.straw.h.mul(sCov)).mul(0.012);
       // bunds on plot edges (0.35 m) and a track along district edges (2.5 m wide), near only, in fields
@@ -358,6 +358,12 @@ export class PlainGround {
       const track = float(1).sub(smoothstep(float(1.3).sub(fwDd), float(1.3).add(fwDd), dEdge)).mul(clamp(float(1.3).div(fwDd), 0, 1)).mul(near).mul(mask);
       plotAlb = mix(plotAlb, plotAlb.mul(vec3(0.8, 0.84, 0.86)), wetB.mul(0.8));
       const weedC = mix(mix(lin(...SEASON_PALETTE.straw).mul(det(G.straw)), lin(...SEASON_PALETTE.green).mul(det(G.green)), SEASON.green.div(SEASON.green.add(SEASON.dry).max(0.001))), soil, 0.3);
+      // D-670 (blind review, s18: "fields in hard-edged colour strips"): the crop thins toward every edge over 3-8 m (the
+      // plough's turn, poorer seed-bed, weeds coming in), fading into the headland's weeds, so neighbouring plots meet through
+      // one shared weedy band, not a hard step of colour (C)
+      const feather = float(3).add(mx_noise_float(vec3(p.x.mul(0.05), 6.6, p.y.mul(0.05))).mul(0.5).add(0.5).mul(5));
+      const fade = float(1).sub(smoothstep(mw, mw.add(feather), edgeW)).mul(mask).mul(float(1).sub(wOrch)).mul(0.55);
+      plotAlb = mix(plotAlb, mix(plotAlb, weedC, 0.6), fade);
       plotAlb = mix(plotAlb, weedC.mul(float(1).add(vig.mul(0.08))), margin.mul(0.75));
       plotAlb = mix(plotAlb, mix(soil.mul(1.04), weedC, 0.35), ridge.mul(basinOn).mul(0.7));
       plotAlb = mix(plotAlb, mix(soil.mul(1.05), lin(0.36, 0.40, 0.2).mul(det(G.green)), 0.45), bund.mul(0.85));

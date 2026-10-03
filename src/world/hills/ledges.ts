@@ -209,8 +209,12 @@ export class Ledges {
   private strip(ti: number, tj: number, fine: boolean, runs: LedgeRun[]) {
     const key = `${ti}:${tj}:${fine ? 1 : 0}`; let s = this.strips.get(key); if (!s) { s = stripGeometry(runs, this.env, this.seed, fine); this.strips.set(key, s); } return s;
   }
+  /** D-680: swapped-out strip geometries, disposed two updates after the swap (never while a render list may still draw
+   *  them: a geometry disposed mid-frame destroyed its buffers under the shadow pass, "used in submit while destroyed") */
+  private retired: { g: THREE.BufferGeometry; at: number }[] = []; private tick = 0;
   update(cam: THREE.Vector3, force = false): boolean {
-    LEDGE_VIEWER.value.copy(cam);
+    LEDGE_VIEWER.value.copy(cam); this.tick++;
+    if (this.retired.length) this.retired = this.retired.filter(r => { if (this.tick - r.at < 2) return true; r.g.dispose(); return false; });
     if (!force && !this.pending && Math.hypot(cam.x - this.last.x, cam.z - this.last.z) < LEDGES.moveM) return false;
     const t0 = performance.now(); this.last = { x: cam.x, z: cam.z }; this.pending = false; this.budgetT = force ? Infinity : t0 + LEDGES.budgetMs;
     const T = LEDGES.tile, R = LEDGES.R + LEDGES.moveM, parts: Record<'near' | 'mid' | 'far', ReturnType<typeof stripGeometry>[]> = { near: [], mid: [], far: [] };
@@ -228,7 +232,7 @@ export class Ledges {
       for (const p of ps) { pos.set(p.pos, ov * 3); uvA.set(p.uv, ov * 2); col.set(p.col, ov * 3); disp.set(p.disp, ov * 3); for (let i = 0; i < p.idx.length; i++) idx[oi + i] = p.idx[i] + ov; ov += p.pos.length / 3; oi += p.idx.length; }
       const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.BufferAttribute(uvA, 2)); g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.setAttribute('disp', new THREE.BufferAttribute(disp, 3));
       g.setIndex(new THREE.BufferAttribute(idx, 1)); if (nv) g.computeVertexNormals(); g.computeBoundingSphere();
-      m.geometry.dispose(); m.geometry = g; m.visible = ni > 0; return ni / 3;
+      this.retired.push({ g: m.geometry, at: this.tick }); m.geometry = g; m.visible = ni > 0; return ni / 3;
     };
     if (this.phys) for (const [k, c] of this.solids) { const [ti, tj] = k.split(':').map(Number), d = Math.hypot(Math.max(0, Math.abs((ti + 0.5) * T - cam.x) - T / 2), Math.max(0, Math.abs((tj + 0.5) * T - cam.z) - T / 2));
       if (d > LEDGES.SOLID + 30) { this.phys.world.removeCollider(c, false); this.solids.delete(k); } }
