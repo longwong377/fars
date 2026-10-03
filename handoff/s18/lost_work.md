@@ -10,3 +10,4 @@
 ## Data branches by design (not code)
 - assets-archive, models-archive, s18-face-assets, s18-mocap, vagon-audio-partial, vagon-leftovers-s17 (raw assets);
   s17-renders, s17-renders-cloud, s18-renders-cloud (renders).
+- cloud-s18-c13-court 0f68c08c (lead 4, 12:56): D-804 robe on C14's anatomy bodies, cloth reproduced, people_models green; NOT merged under the UD-40 freeze because it stales impostor_assets (impostors.mjs) and ktx_fresh people's layers (scans.ktx2 folds): next session rebuilds those two and merges.
