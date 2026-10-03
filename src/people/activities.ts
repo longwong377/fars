@@ -191,7 +191,7 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
   inspect: { anim: 'inspect', tier: 'C', note: 'official looking over work, hands clasped (C)',
     // D-780: the court's audience and banquet (court.ts): the bow before the king (drawn with the bowed head and joined hands
     // of the mourning pose until a proskynesis pose exists: C), and the servers at the banquet's tables
-    variants: [{ when: /bowing low before the king|right hand raised before his mouth/, anim: 'mourn', note: 'proskynesis before the king: bowing, the hand raised before the mouth (the Treasury relief, B; HDT 1.134, a claim: B); drawn with the bowed head of the mourning pose (C: D-780)' },
+    variants: [{ when: /bowing low before the king|right hand raised before his mouth/, anim: 'proskynesis', note: 'proskynesis before the king: bowing from the hips, the right hand raised before the mouth (the Treasury relief, B; HDT 1.134, a claim: B; the depth and timing C: D-780)' },
       { when: /pouring wine at the tables/, prop: 'jar', note: 'pouring wine at the king’s banquet (C: D-780)' },
       { when: /serving at the tables/, prop: 'bowl', note: 'serving dishes at the king’s banquet (C: D-780)' }] },
   shelter: { anim: 'idle', tier: 'C', note: 'waiting out rain under a roof (the Gate’s, a hut’s); in the open only a passing shower, the cloak drawn over the head: a longer rain sends people home (S1 of shadow review r5)' },
