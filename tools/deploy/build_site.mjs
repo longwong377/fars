@@ -50,6 +50,9 @@ run(`npx vite build${process.env.NOMINIFY ? ' --minify false' : ''}${process.env
   lap(`boot files to warm: ${have.length} of ${want.length} listed, ${(b / 1048576).toFixed(1)} MB`); }
 // D-580: the optional KTX2 lists (src/render/scans.ts reads them and falls back to the jpgs without them) written empty when
 // the build has none, so a visit logs no 404 for them (scans.ts: no maps listed / no matching ground meta -> the jpgs)
+// (and a listed KTX2 scan the build lacks is dropped from the list: the page then loads its jpg, no 404)
+{ const f = join(dist, 'textures/ktx.json'); if (existsSync(f)) { const j = JSON.parse(readFileSync(f, 'utf8')), m = j.maps ?? {}, drop = Object.keys(m).filter(k => !existsSync(join(dist, 'textures', k + '.ktx2')));
+  for (const k of drop) delete m[k]; writeFileSync(f, JSON.stringify(j)); lap(`KTX2 scans listed: ${Object.keys(m).length}${drop.length ? ` (${drop.length} missing, dropped: ${drop.join(', ')})` : ''}`); } }
 for (const [f, v] of [['textures/ktx.json', { about: 'no KTX2 scans in this build (tools/bake_world/ktx_scans.ts)', maps: {} }], ['textures/ground/ground.json', { about: 'no KTX2 ground array in this build (tools/bake_world/ktx_ground.ts)', res: 0, layers: [] }]])
   if (!existsSync(join(dist, f))) { (await import('node:fs')).mkdirSync(join(dist, f, '..'), { recursive: true }); writeFileSync(join(dist, f), JSON.stringify(v)); }
 // GitHub Pages: no Jekyll (it would drop files and folders starting with _), the limits checked
