@@ -9,7 +9,7 @@
 - tests/plain.test.ts fails (106 meshes > 40); it fails the same way on cloud-s17-int.
 
 - **Final run on cloud-s17-int (00:20 UTC, with V3's people and everyone's merges), day 25 at 10:00:** Terrace 36/40
-  (was 34; the 4 misses are still people), town 35/40 (2 are the unroutable q_s2 pen; 2 are legs of TownWalk.route that cut straight through house walls (a 4 m tail from a lane into plot 12 of q_s2, an 18 m lane-to-lane line through houses; the walls are old and correct, the route is C1's walk.ts, points sent to C1); 1 is a passer-by in a lane). Doors with people: Terrace 118/130,
+  (was 34; the 4 misses are still people), town 35/40 (2 are the unroutable q_s2 pen; 2 are unexplained: the player's 0.5 m capsule stopped against party walls (q_s2-0013/0022, 0042/0054) near street doors; C1 checked that their route legs are valid for a 0.56 m body, so the next look is the walker at those two doors; 1 is a passer-by in a lane). Doors with people: Terrace 118/130,
   street 555/598, inner 502/503; 37 failures touch a person standing in the opening. The V3/C10 ask for standing people
   to make way still holds.
 
