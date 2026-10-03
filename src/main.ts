@@ -46,7 +46,7 @@ import { seasonAt } from './world/season';
 import { installSunCascades } from './render/sunShadows';
 import { loadScans } from './render/scans';
 import { BASE } from './core/base';
-import { installProgressiveCompile, installRenderSafetyNet } from './render/progressive';
+import { installProgressiveCompile, installRenderSafetyNet, guardLiveDisposals } from './render/progressive';
 import { installShaderLog, installDeviceCounters } from './dev/shaderLog';
 import { upgradeLowFirst, lowFirstStats } from './render/lowfirst';
 installWebGPUCompat();
@@ -632,6 +632,7 @@ async function boot() {
     onDrawStart = pc.drawStart; onDrawEnd = pc.drawEnd; (api as any).compiling = pc.stats;
   }
   renderer.setAnimationLoop(() => { inAnimationLoop = true; try { void frame(); } finally { inAnimationLoop = false; } });
+  if (!P.has('nosafetynet')) guardLiveDisposals(scene, THREE); // D-740: from ready on, never free what a mesh in the scene still draws (a scene walk per dispose: not during the build)
   prog.finish(); api.ready = true; (api as any).readyAt = Math.round(performance.now()); // (D-580: the page clock at ready; the harness sees it late when the main thread is busy)
   // (D-393: a ?norender page shows no frames, so the talk's model streams in from here instead of after the 5th frame)
   if (NORENDER) void startTalk();

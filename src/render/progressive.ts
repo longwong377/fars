@@ -65,3 +65,21 @@ export function installRenderSafetyNet(renderer: THREE.WebGPURenderer) {
     try { return direct.call(this, object, ...rest); } catch (e) { note('draw', e); } finally { cur = prev; } };
   R._handleObjectFunction = R._renderObjectDirect;
 }
+
+/** D-740 (s18, the T4's last validation error: "[Buffer bindingBuffer863] used in submit while destroyed" on a
+ *  MeshBasicNodeMaterial): a material or geometry disposed while a mesh in the scene still draws it frees the GPU buffers that
+ *  mesh binds, and the next submit is invalid as a whole (nothing of the frame is drawn). Such a dispose is refused (a small
+ *  leak, or a later dispose once the mesh has left the scene) and logged once with the mesh's path and the material's name
+ *  (window.__liveDisposals), so the disposer can be fixed. Disposals of things no mesh in the scene uses go through. */
+export function guardLiveDisposals(scene: THREE.Object3D, T: { Material: any; BufferGeometry: any }) {
+  const log: Record<string, number> = ((globalThis as any).__liveDisposals = {}), cost = ((globalThis as any).__disposeChecks = { n: 0, ms: 0 });
+  const userOf = (x: any, geo: boolean) => { let hit: any = null; scene.traverse((o: any) => { if (hit || !o.isMesh && !o.isLine && !o.isPoints && !o.isSprite) return;
+    if (geo ? o.geometry === x : (Array.isArray(o.material) ? o.material.includes(x) : o.material === x)) hit = o; }); return hit; };
+  const pathOf = (o: any) => { const p: string[] = []; for (let x = o; x && p.length < 5; x = x.parent) p.push(x.name || x.type); return p.join(' < '); };
+  for (const [C, geo] of [[T.Material, false], [T.BufferGeometry, true]] as const) {
+    const proto = C.prototype; if (proto.__parsaLiveGuard) continue; proto.__parsaLiveGuard = true; const dispose = proto.dispose;
+    proto.dispose = function (this: any) { const t0 = performance.now(), u = userOf(this, geo); cost.n++; cost.ms += performance.now() - t0;
+      if (u) { const k = `${geo ? 'geometry' : 'material'} ${this.name || this.type} on ${pathOf(u)}`; if (!(k in log)) { log[k] = 0; console.warn(`[render] dispose refused: ${k} is still drawn (D-740); fix the disposer`); } log[k]++; return; }
+      return dispose.call(this); };
+  }
+}
