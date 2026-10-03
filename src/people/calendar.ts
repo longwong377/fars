@@ -236,9 +236,12 @@ export class EventCalendar {
   /** the day's context; computes all earlier days first (the stores are processed in order) */
   ctx(day: number): DayCtx {
     const d = Math.max(0, Math.min(REGNAL_DAYS - 1, Math.floor(day)));
-    while (this.days.length <= d) this.days.push(this.computeDay(this.days.length));
+    while (this.days.length <= d) { this.computing = this.days.length; try { this.days.push(this.computeDay(this.days.length)); } finally { this.computing = -1; } }
     return this.days[d];
   }
+  /** D-640: the day being computed now (-1: none): what it asks of the population must not ask the calendar for that day again
+   *  (the road folk's presence is the register's trips, which read the day's context) */
+  computing = -1;
   get lastDay() { return this.days.length - 1; }
   private inst(id: string, d: number) { return this.sched.get(id)?.get(d) ?? []; }
   private lettersCache = new Map<number, { today: { go: number; j: number }[]; late: number[] }>();
