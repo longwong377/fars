@@ -1564,6 +1564,22 @@ def a_wo_chariot():
     hubs = [xform(lathe([(0.0, -0.16), (0.075, -0.1), (0.075, 0.1), (0.0, 0.16)], 10, 'h'), (x, 0, R), (0, math.pi / 2, 0)) for x in (-0.7, 0.7)]
     return dict(wood_d=join(wd, 'wood_d'), wood=join(w, 'wood'), leather=join(box_ + rail, 'leather'), gilt=join(hubs, 'gilt'))
 @woW
+def a_wo_litter():
+    """a royal woman's curtained litter (the closed carriages of the Persian women: Plutarch Them. 26, HDT 7.83, claims, B; C
+    form; D-780): two carrying poles at hip height, four gilded posts, a cloth roof with a gilded band, dyed curtains hanging to
+    0.45 m above the ground (the woman walks inside it in the game: her steps are hidden by the curtains)"""
+    poles = [log((x, 1.0, -1.7), (x, 1.0, 1.7), 0.035, 0.032, 7, 'pole', seed=370 + i, bark=0.001) for i, x in enumerate((-0.5, 0.5))]
+    posts = [pathG([(x, 0.45, z), (x, 2.0, z)], 0.025, 6, 'post') for x in (-0.46, 0.46) for z in (-0.62, 0.62)]
+    roof = boxG(0.98, 0.06, 1.3, 0, 2.0, 0, bevel=0.01); band = boxG(1.02, 0.08, 1.34, 0, 1.94, 0, bevel=0.01)
+    cur = []
+    for (w, d, x, z) in ((0.02, 1.22, -0.47, 0), (0.02, 1.22, 0.47, 0), (0.92, 0.02, 0, -0.63), (0.92, 0.02, 0, 0.63)):
+        c = boxG(w, 1.5, d, x, 0.45, z); subdiv(c, 2)
+        for v in c.data.vertices:  # soft folds hanging from the roof
+            k = (v.co.z - 0.45) / 1.5; v.co.x += 0.008 * math.sin(v.co.y * 40) * (1 - k) if w < 0.1 else 0; v.co.y += 0.008 * math.sin(v.co.x * 40) * (1 - k) if d < 0.1 else 0
+        cur.append(c)
+    return dict(wood=join(poles, 'wood'), gilt=join(posts + [band], 'gilt'), blue=roof, red=join(cur, 'red'))
+
+@woW
 def a_wo_wagon():
     """a covered four-wheeled wagon (harmamaxa) for the royal women (HDT 7.83: a claim; C form): a box on solid wheels under
     an arched cloth cover on hoops, a pole to the yoke; court setting only"""

@@ -791,9 +791,9 @@ class CourtDay {
   womenOuting(H: string) {
     const G = 'garden_pw', [h0, h1] = this.K.womenOutHours(this.d), r = this.r;
     this.fill(h0 - walkHours(this.cur, G), [[H, 'rest', 'resting in the women’s court before going out', 1]]);
-    this.go(G, this.m.g === 'women' ? 'going down to the paradise, veiled, among her attendants and the eunuchs (curtained litters: claims, B; C: D-780)' : 'walking beside the royal women to the paradise');
+    this.go(G, this.m.g === 'women' ? 'going down to the paradise in a curtained litter, among her attendants and the eunuchs (curtained carriages: claims, B; C: D-780)' : 'walking beside the royal women’s litters to the paradise');
     this.fill(h1 - walkHours(G, H), [[G, 'rest', this.m.g === 'women' ? 'sitting in the shade of the paradise with the women of the household' : 'in attendance on the royal women in the paradise', 2], [G, 'talk', this.m.g === 'women' ? 'walking and talking in the paradise with the women of the household' : 'keeping the way clear about the royal women in the paradise', 1.5]]);
-    this.go(H, 'going back up to the women’s court from the paradise'); void r;
+    this.go(H, this.m.g === 'women' ? 'carried back up to the women’s court in a curtained litter' : 'walking back beside the litters to the women’s court'); void r;
   }
   attendant() {
     const r = this.r, f = this.p.sex === 'f', H = 'court_harem';
