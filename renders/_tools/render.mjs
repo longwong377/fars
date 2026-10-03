@@ -26,7 +26,7 @@ for (const v of work) {
   try {
     const k = `${v.day}|${v.hour}|${v.w}`;
     if (k !== key) { await p.evaluate(([d, h, w]) => { const a = window.__parsa; a.setTime(d, h); a.setWeather(w); }, [v.day, v.hour, v.w]); key = k; }
-    const a = [v.e, v.n, v.eye, v.az, v.pitch, undefined, { cast: v.cast ?? null, rigClear: 0 }];
+    const a = [v.e, v.n, v.eye, v.az, v.pitch, v.fov, { cast: v.cast ?? null, rigClear: 0 }];
     await p.evaluate(a => window.__parsa.view(...a), a); await p.evaluate(() => window.__parsa.tick()); await p.evaluate(a => window.__parsa.view(...a), a);
     // s18 (lead/C12): let a time jump's sliced catch-up (D-650) finish placing people before the frame: tick until the sim
     // reaches the view's hour and the population view has nothing pending (at most WAITS s)
