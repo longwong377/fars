@@ -10058,6 +10058,18 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   (pipeline.ts watchMeter/enterSafe, WATCHDOG; tests/black_watchdog_d680.test.ts): after a 20 s grace, 3 black meter samples
   in a row (target unwritten or log-luminance < -20) in daylight with the scene drawing, 10 readback timeouts, or 3 frames of
   a throwing post pass switch to the renderer's own tone-mapped output without post passes (window.__safeMode; ?nosafe off).
+- The night list (s18, leads 2-3): (a) the stars (skySystem.ts): soft round sprites sized and weighted by magnitude, B-V
+  colour 1.5x saturated, coming out through the twilight by a limiting magnitude (starLimitMag: none above -2 deg, the
+  brightest at -6, mag 3 at -9, 6.5 at -18; the full moon takes ~2.2), extinction (~0.25 mag per air mass) and twinkle near
+  the horizon; (b) the moonless night dome x2.5 at the zenith, x4 at the horizon, so the land (NIGHT_GREY fill) stands dark
+  against the sky instead of glowing brown under a black one; (c) the Moon's maria, mottle and Tycho; (d) the night's
+  fires (firePlaces.ts occasionalFires): a brazier per night-watch line (court.ts COURT_NIGHT_FIRES) on the court's nights,
+  16 banquet braziers in the Apadana on banquet nights, a torch in each jamb of the halls' real doors on the court's nights;
+  the fire occlusion re-baked (183 fires, none in a solid); FireSystem.setDay needs world.ts's call (asked); (e) the town's
+  dusk smoke (hearthSmoke.ts): dung-cake emission factors, the inversion's 60 min, a 0.35 m/s drainage floor (tau toward the
+  town from the Terrace 0.23 -> 0.34); (f) the soundscape: the nightingale on spring nights, the dawn chorus, the summer noon
+  hush; (g) ledges.ts disposes a swapped strip geometry two updates later. Dusk measured: sunset 18.36 h on day 0, the sun
+  sinks 12.6 deg/h (30 N), so 19.25 h is the end of nautical twilight. All C.
 - Unseen: the cloud cannot draw Q=high (WebGL2: program validation failures and a lost device with the cascade on AND off;
   WebGPU: SwiftShader's 16-texture cap), so the far cascade is verified node-side only; it needs a T4 frame.
 
