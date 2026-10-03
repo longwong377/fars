@@ -2,6 +2,7 @@
 // DERIVED rows, or `r_*` reconstruction rows (tier C, with a note each) — no literals (brief §3.1, §7; review MJ-1).
 // Positions come from the georeferenced OSM footprints. Output: parts + a manifest of measured features.
 import { hollowTower, roofFlight } from './tower_stairs';
+import { drumRampParts } from './drum_road';
 import { row, v, tierOf, srcOf, present, footprint, SPEC } from './spec';
 import { Part, Pt, Box, Prism, Column, ColumnOrder, Manifest, wallRing, grid, BuildResult, Material, doorFrames, frameTop, FrameDims, cutWall, Doorway, DoorState } from './parts';
 import { ringSide, ringDoorway, openingParts, leafParts } from './openings';
@@ -165,6 +166,7 @@ export function buildTerrace(): BuildResult {
     }
     void topOpen;
     manifest.terrace = { polygonVertices: poly.length };
+    parts.push(...drumRampParts()); // D-754: the drums' ramp from the bank at the N edge down to the court
   }
 
   // ---------------- Grand Stair ----------------

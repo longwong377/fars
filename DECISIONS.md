@@ -10219,3 +10219,46 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
 - A hearth indoors (interiors/plan.ts, drawn with the court hearth's model and its cooking pot): against the back wall of the kitchen, or of the living room where a house has no kitchen, with a quern, a kneading trough and a cooking pot beside it (C: the region's house hearth, the smoke out through the roof; the court keeps the summer hearth). Census (node, 1,931 town houses): a hearth 1,711 (1,259 indoors, 1,251 courts), a quern 1,889, an oven 1,929 (440 their own in the court; the rest the nearest court oven within 40 m of the door, shared with the neighbours: C), rooms walkable as before (interiors.test).
 - interiors/ring.ts houseWorkObjects(plotId, day): a house's work objects in world terms (kind, e, n, y, rot, room or −1 for the court, inside, shared, note) from the same room plans the ring draws and the court's fittings, for C1 to put people at real work objects.
 - C12 W12: a tray-table only in the better-off houses (standing > 0.6); the rest eat from a tray of flat bread on the mat.
+
+## D-751 The cloud frames' black walls: the KTX2 target from the WebGL2 context (s18 cloud C10)
+- The cloud's eyes draw through WebGL2 (?webgl=1) while sharedKTX2 (render/loaders.ts) took its transcode target from the WebGPU
+  adapter's features: BC7, which SwiftShader's WebGL2 cannot upload (compressedTexSubImage2D 'invalid format'), so every KTX2
+  scan sampled black (the Terrace's walls in every cloud frame since D-354). With ?webgl=1 the target now comes from a WebGL2
+  context's extensions. The T4 (WebGPU) path is unchanged. Probe frames before and after (handoff/s18/c10).
+
+## D-752 The Terrace in residence: the polychromy pass (s18 cloud C10; holes.md #3, #6, P2-3; D-771; UD-14, UD-29)
+- Palace walls and towers draw in palace_plaster (meshes.ts renderMaterial): the interior scheme inside (global.r_interior_paint)
+  and PALACE_OUTER_PAINT outside (a yellow-ochre lime ground, a red ochre dado 1.4 m edged by white, Egyptian blue and white
+  bands, a red frieze 1.1 m under the wall's head with a white edge); kept by the court (PALACE_KEPT: no fallen plaster, faint
+  wash and damp). The Treasury keeps its clay paint; the fortification and the working ranges keep PALACE_WEATHER. Pigments B
+  (RELIEFS_AND_COLOUR §3a), layout and tones C.
+- The frames (limestone_dark parts) draw in frame_coat: the whitish fluorapatite-and-calcite coat over the dark stone (Askari
+  Chaverdi et al. 2016, B), burnished (C). limestone_dark itself (the Now view, the Ka'ba) is unchanged (UD-20).
+- 467 stone fresh: no lichen on the Terrace's own stone (grime.ts LICHEN), the boulder scan's mottle at 20 % chroma and two
+  thirds of its weight (scans.ts; ALB_MIN kept). Royal cedar planed and painted red ochre (timber, roof_timber).
+- The protome capitals, the volutes and the Gate's colossi painted and gilded (src/arch/model_paint.ts: zones in each model's own
+  space, vertex colour plus a gilt mask on its own baked material; ~5 new pipelines). Every relief figure painted: flesh, leather,
+  the eye's white with a dark pupil, the animals' coats, the Elamite worshippers (relief_figures.ts); the paint atlas rebuilt
+  alone by tools/blender/relief_paint.ts (same layout, nao.ktx2 as baked; all 221 definitions checked against the index's grid).
+  The inscriptions' signs in Egyptian blue (C). Tests that pinned the ruin changed (polychromy, surfaces_s6, roofedge).
+- The relief triangle gate held: the cypress's error bound x1.6 on the vertex-painted levels (reliefs.ts ERR_K): 1.57 M -> 1.39 M.
+- Not done: the relief backgrounds (the façade stone) bare; the ceilings plain red.
+
+## D-753 The Apadana's tower stairs and walkable roofs (s18 cloud C10; holes.md P2-5, Q-630, D-771)
+- Each corner tower hollow (src/arch/tower_stairs.ts): 2.4 m walls carrying the tower's envelope, a door from its portico, a
+  stair of plastered mud brick climbing round the inside in flights with corner landings to a hatch in the tower's slab; a short
+  flight from the hall roof up to each tower top; the Apadana's roofs solid (walkable where the stairs reach them). The frieze,
+  the standards and the windows read the envelopes (glazed.ts towerEnvelopes). All sizes C.
+- roofedge.ts: an edge where a part continues the top flush at its own level is not free (no parapet between a tower's slab and
+  its walls' heads; also the doubled parapet where a wall's top is flush with a roof). arris_slabs.ts: a stair joint just past a
+  tread's end (under the parapet it abuts) grooved at the end, and clipped joints kept down to 4 mm (was 2 cm): a latent hole at
+  the Tripylon and Hadish stairs that the new faces' resampling of tests/arris_slabs exposed.
+- nav, probes and fire occlusion rebaked (parts hash).
+
+## D-754 The drums' sledge road and ramp (s18 cloud C10; holes.md P2-6, Q-710, D-771)
+- From the drum ground (traffic.ts DRUM_GROUND) south 104 m to the Terrace's N edge, on the ground as the heightfield gives it
+  (src/arch/drum_road_profile.json from tools/blender/drum_road_profile.ts): a packed-earth bed with the runners' ruts, timber
+  sleepers every 0.9 m, fieldstone kerbs; at the drum ground 18 drums on chocks and two sledges. The heightfield's bank stands
+  ~4 m over the court along the whole N edge, so an earth ramp (parts, walkable) comes down westward from a head against the
+  edge (e 146-154) to the court along the strip between the edge and the garrison. All C; the movers (traffic.ts) still stop at
+  the drum ground: their last 250 m onto the ramp is C1's.
