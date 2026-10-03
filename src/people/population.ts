@@ -43,7 +43,10 @@ export const LAND_FAR: Record<string, number> = { meadow: 900, bank: 1200, edge:
  *  scattered plots of a household: the village fields of the region in every period, C). Shared with popgeo.ts, so the
  *  plan's walk out is as long as the walk the view draws */
 export function fieldOffset(seed: number, hh: number, plot: number): [number, number] {
-  const a = u01(seed, salt('field-bearing'), hh, plot) * Math.PI * 2, d = 200 + 1600 * u01(seed, salt('field-dist'), hh, plot);
+  // (D-651: out to 3.2 km, evenly by area (the square root): the land between the villages is worked too. It was 200-1,800 m, so
+  // the irrigated land 1-4.5 km from any village (most of the plain the player crosses) was never worked: s18 C12's census, plain
+  // fields empty 88 % of spring and autumn mornings. An hour's walk out at most, as the region's villages' fields lie, C)
+  const a = u01(seed, salt('field-bearing'), hh, plot) * Math.PI * 2, d = Math.sqrt(250 ** 2 + (3200 ** 2 - 250 ** 2) * u01(seed, salt('field-dist'), hh, plot));
   return [Math.cos(a) * d, Math.sin(a) * d];
 }
 /** D-640: the brushwood and the dung of the hill: Kuh-e Rahmat's lower slopes E and S of the Terrace, where the town's
