@@ -1,4 +1,6 @@
-# C7 interiors everywhere: report (s17, cloud; D-610)
+# C7 interiors everywhere: final report (s17, cloud; D-610)
+
+Final state: merged with origin/cloud-s17-int at 00:10 UTC (V6's interior light, V2's materials); census and tests re-run on it.
 
 **Broken, placeholder or unseen first**
 - Unseen in the real renderer: the furnished rooms were judged only in a crude cut-away probe (tools/dev/interior_probe.*, headless
@@ -21,9 +23,9 @@ stools; jars, sacks, bins; querns, troughs, pots; onions and herbs hung from the
 cradles, toys, tools in the corners; the smith's anvil and bellows, the potter's turntable; a guard's kit at each sleeping mat,
 the squad's spears and shields; the Treasury's goods on its benches. Nothing in a doorway; a body can cross every room.
 
-**Census** (tools/dev/interior_census.ts, 23 008 rooms; --baseline = houses.ts before): bare rooms 66.9 % -> 1.1 %, things
+**Census** (tools/dev/interior_census.ts, 23 033 rooms incl. 26 palace rooms; --baseline = houses.ts before): bare rooms 66.9 % -> 1.1 %, things
 per room 4.6 -> 10.8 (a living room: 10.5 for the poorest households, 17.3 for the richest), same set as a neighbour within 15 m 57 % -> 1.6 %, same set and layout 19.7 % -> 0.0 %, things in a
-doorway's sweep 1604 -> 0, rooms a body cannot cross 1.9 % -> 0 %. Houses' worst near tile 59.9 k -> 49.2 k triangles.
+doorway's sweep 1604 -> 0, rooms a body cannot cross 1.9 % -> 0 %. Houses' worst near tile 59.9 k -> 48.9 k triangles.
 
 **Files**: src/world/interiors/** (plan, household, town, terrace, tents, draw, ring, census), furnish.ts (1 call),
 furnish_palaces.ts (keepers' corners), tools/blender/interior_props.{py,mjs} + 6 m_i_*.glb, tools/dev/interior_census.ts,
@@ -32,7 +34,7 @@ furnish() returns early), settlement/build.ts (the ring's group; its update in n
 courtCamps.ts (registerTentInteriors).
 
 **Tests**: tests/interiors.test.ts 6/6 (incl. the walking grid: the ring adds no solid to a site; 0 of 1381 Terrace sleeping and
-working places under a thing); tests/palace_furnish.test.ts 10/10; tests/houses.test.ts 9/9 (worst tile 49.2 k); guards pass. tests/scribes_room.test.ts: 2 of 4
+working places under a thing); tests/palace_furnish.test.ts 10/10; tests/houses.test.ts 9/9 (worst tile 48.9 k); guards pass. tests/scribes_room.test.ts: 2 of 4
 fail here (the Aramaic secretary's year plan, 'ws:1' vs 'treasury_desk'), sim assertions my files do not touch (furnish.ts only gained
 one import); the comparison run on the pre-C7 base was lost to a container restart, so not proven pre-existing.
 **For C4**: the ring adds two draw calls (interiors:clay, interiors:cloth) and up to 60 k triangles near houses; the houses' near
