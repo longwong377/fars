@@ -24,7 +24,7 @@ export const DRESS = {
   belowCapital: 0.3, tie: 0.36, tieW: 0.4, footW: 0.75, folds: 3.5, foldAmp: 0.07, gatherAmp: 0.16,
   valance: { drop: 1.1, scallops: 0.9 },
   linen: [0.84, 0.82, 0.75], green: [0.16, 0.42, 0.4], blue: [0.16, 0.3, 0.5], purple: [0.36, 0.1, 0.22],
-  standard: { pole: 7.5, poleR: 0.07, flagW: 2.6, flagH: 1.5, tail: 0.6, finial: 0.22, cloth: [0.48, 0.07, 0.12], hem: [0.78, 0.6, 0.22], windAz: -Math.PI / 4 },
+  standard: { pole: 9, poleR: 0.09, flagW: 3.6, flagH: 2.2, tail: 0.8, finial: 0.3, cloth: [0.48, 0.07, 0.12], hem: [0.78, 0.6, 0.22], windAz: -Math.PI / 4 },
   tier: 'C' as const, src: 'ESTHER-1.6;XEN-CYR-7.1.4;RECON',
 };
 
