@@ -23,7 +23,7 @@ SURFACES.nr_works = { albedo: [0.6, 0.55, 0.47], roughness: 0.88, porosity: 0.6,
 
 const L = (c: RGB): RGB => c.map(srgbToLinear) as RGB;
 const C = { pole: L([0.55, 0.47, 0.37]), poleOld: L([0.48, 0.43, 0.37]), plank: L([0.62, 0.53, 0.41]), rope: L([0.66, 0.6, 0.45]), mat: L([0.7, 0.62, 0.42]),
-  chips: L([0.8, 0.77, 0.7]), chipsDust: L([0.74, 0.7, 0.62]), block: L([0.72, 0.69, 0.62]), wash: L([0.86, 0.83, 0.75]), mud: L([0.6, 0.51, 0.39]), roof: L([0.66, 0.58, 0.45]),
+  chips: L([0.9, 0.88, 0.82]), chipsDust: L([0.82, 0.79, 0.72]), path: L([0.62, 0.55, 0.44]), green: L([0.36, 0.45, 0.22]), green2: L([0.5, 0.52, 0.28]), tilled: L([0.45, 0.37, 0.28]), dung: L([0.36, 0.3, 0.22]), block: L([0.72, 0.69, 0.62]), wash: L([0.86, 0.83, 0.75]), mud: L([0.6, 0.51, 0.39]), roof: L([0.66, 0.58, 0.45]),
   dark: L([0.08, 0.07, 0.06]), ochre: L([0.72, 0.42, 0.28]), clay: L([0.66, 0.46, 0.33]), stone: L([0.82, 0.8, 0.74]), wine: L([0.3, 0.07, 0.1]), flour: L([0.9, 0.88, 0.82]),
   barsom: L([0.42, 0.45, 0.25]), flower: L([0.85, 0.3, 0.25]), flower2: L([0.92, 0.82, 0.35]), basket: L([0.62, 0.5, 0.3]), wool: L([0.86, 0.82, 0.72]) } as const;
 
@@ -52,6 +52,8 @@ export interface NaqshLifeInput {
   cut: number; darius: number; top: number;
   /** the keepers' house (grid e, n) */
   house: [number, number];
+  /** the Ka'ba's foot (grid e, n): the paths join it */
+  kaba?: [number, number];
   /** draw the rock burials (Akhor Rostam, the private rock tombs) in this mesh (default true) */
   burials?: boolean;
   /** where they were placed (for the overlay and the people) */
@@ -137,6 +139,38 @@ export function buildNaqshLife(I: NaqshLifeInput): NaqshLife {
     for (let k = 0; k < 3; k++) parts.push(cyl(he + WX - 0.6, g0, -(nR - 1.2 - k * 0.7), 0.25, 0.7, C.clay, 10, 0.18));
     parts.push(box(he - 3, rt + 0.33, -(hn + WY - 0.4), 0.7, 0.02, 0.5, C.wool));
     info.keepersHouse = 1; }
+
+  // ---- s18 C15 (D-800): the keepers' working ground (C): a sheepfold of mud walls with a reed-roofed shelter E of the house (the
+  // tomb's sheep, D-640: their flock is the people's), a well with its stone kerb and a trough, a kitchen garden of beds by the
+  // well, a stack of brushwood and dung cakes; and the paths the keepers, the cutters and the visitors tread (draped strips of
+  // bare earth): from the house W along the foot to the offering table and on to the Ka'ba, from the house to the works
+  { const [he, hn] = I.house, g = (e: number, n: number) => H(e, n);
+    // the fold: 12 x 9 m, walls 1.3 m, the gate W; the shelter along its N wall
+    const fe = he + 17, fn = hn - 1, w2 = (e0: number, n0: number, e1: number, n1: number, h: number, c: RGB) => { const ce = (e0 + e1) / 2, cn = (n0 + n1) / 2, y0 = g(ce, cn) - 0.3, hx = Math.abs(e1 - e0) / 2 + 0.15, hz = Math.abs(n1 - n0) / 2 + 0.15;
+      solid(box(ce, y0 + (h + 0.3) / 2, -cn, hx, (h + 0.3) / 2, hz, c), new THREE.Vector3(ce, y0 + (h + 0.3) / 2, -cn), new THREE.Vector3(hx, (h + 0.3) / 2, hz)); };
+    w2(fe - 6, fn - 4.5, fe + 6, fn - 4.5, 1.3, C.mud); w2(fe - 6, fn + 4.5, fe + 6, fn + 4.5, 1.3, C.mud); w2(fe + 6, fn - 4.5, fe + 6, fn + 4.5, 1.3, C.mud);
+    w2(fe - 6, fn - 4.5, fe - 6, fn - 1, 1.3, C.mud); w2(fe - 6, fn + 1, fe - 6, fn + 4.5, 1.3, C.mud);
+    { const y = g(fe, fn + 3.4); parts.push(box(fe, y + 1.9, -(fn + 3.4), 5.8, 0.05, 1.1, C.mat)); for (const x of [-5.5, 0, 5.5]) parts.push(rod(new THREE.Vector3(fe + x, y - 0.2, -(fn + 2.3)), new THREE.Vector3(fe + x, y + 1.85, -(fn + 2.3)), 0.06, C.pole)); }
+    parts.push(box(fe, g(fe, fn) + 0.02, -fn, 5.8, 0.025, 4.3, C.dung)); // the trodden, dunged floor
+    // the well and its trough, the garden beds W of the house's S wall
+    const we = he - 12, wn = hn - 9, wy = g(we, wn);
+    solid(cyl(we, wy - 0.2, -wn, 0.85, 0.75, C.block, 12, 0.8), new THREE.Vector3(we, wy + 0.2, -wn), new THREE.Vector3(0.85, 0.4, 0.85)); parts.push(cyl(we, wy + 0.5, -wn, 0.55, 0.02, C.dark, 10, 0.55));
+    parts.push(rod(new THREE.Vector3(we - 0.9, wy, -wn), new THREE.Vector3(we - 0.9, wy + 2.1, -wn), 0.06, C.pole)); parts.push(rod(new THREE.Vector3(we + 0.9, wy, -wn), new THREE.Vector3(we + 0.9, wy + 2.1, -wn), 0.06, C.pole)); parts.push(rod(new THREE.Vector3(we - 1.0, wy + 2.05, -wn), new THREE.Vector3(we + 1.0, wy + 2.05, -wn), 0.05, C.pole));
+    parts.push(box(we + 2.2, wy + 0.25, -wn, 1.0, 0.25, 0.35, C.block)); parts.push(box(we + 2.2, wy + 0.47, -wn, 0.85, 0.02, 0.22, C.dark)); // the water in it
+    for (let k = 0; k < 6; k++) { const be = he - 19 + k * 1.6, bn = hn - 14, by = g(be, bn); parts.push(box(be, by + 0.05, -bn, 0.6, 0.06, 3.2, C.tilled)); for (let r = 0; r < 5; r++) parts.push(box(be, by + 0.14, -(bn - 2.6 + r * 1.3), 0.35, 0.09, 0.3, k % 2 ? C.green : C.green2)); }
+    // the fuel stack by the house's E wall
+    { const e = he + 9.2, n = hn - 2, y = g(e, n); parts.push(box(e, y + 0.6, -n, 0.7, 0.6, 1.6, C.poleOld)); for (let k = 0; k < 8; k++) parts.push(cyl(e - 0.9, y + k * 0.09, -(n - 1.2 + (k % 4) * 0.7), 0.17, 0.08, C.dung, 8)); }
+    // the trodden paths (2 m strips draped on the ground, 3 cm over it)
+    const strip = (pts: [number, number][], w: number) => { const pos: number[] = [], col: number[] = [];
+      for (let i = 0; i + 1 < pts.length; i++) { const [a, b] = [pts[i], pts[i + 1]], L2 = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.max(1, Math.ceil(L2 / 3)), nx = -(b[1] - a[1]) / L2 * w / 2, ny = (b[0] - a[0]) / L2 * w / 2;
+        for (let k = 0; k < n; k++) { const P = (t: number, sd: number) => { const e = a[0] + (b[0] - a[0]) * t + nx * sd, nn = a[1] + (b[1] - a[1]) * t + ny * sd; return [e, g(e, nn) + 0.03, -nn]; };
+          const q = [P(k / n, -1), P(k / n, 1), P((k + 1) / n, 1), P((k + 1) / n, -1)]; for (const v of [q[0], q[1], q[2], q[0], q[2], q[3]]) { pos.push(...v); col.push(...C.path); } } }
+      const gg = new THREE.BufferGeometry(); gg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); gg.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); gg.computeVertexNormals(); parts.push(gg); };
+    const tbl = W(I.darius, 0, -14.2), tE = tbl.x, tN = -tbl.z, cutE = I.cut + 13, cutN = -W(I.cut, 0, rows[1] - 6).z;
+    strip([[he - 1, hn - 7], [he - 30, hn - 2], [tE + 2, tN - 1.5], [tE - 1, tN - 1.6]], 1.8);
+    if (I.kaba) strip([[tE - 1, tN - 2], [(tE + I.kaba[0]) / 2 + 4, (tN + I.kaba[1]) / 2], [I.kaba[0] + 1, I.kaba[1] + 12]], 1.6);
+    strip([[he - 1, hn - 7], [cutE + 3, cutN - 3]], 1.4); strip([[he + 1, hn - 7], [he + 2, hn - 40]], 2.2); // to the works; S toward the road
+    info.keepersGround = 1; }
 
   // ---- the offering table before Darius' tomb (the keepers' daily offering, D-640; C)
   { const p = W(I.darius, 0, -15.5), y = H(p.x, -p.z);
