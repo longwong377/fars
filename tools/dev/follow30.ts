@@ -84,13 +84,13 @@ async function main() {
       const deedsOf = latelyOf({ minds: sim.deeds.minds, rec: i => sim.deeds.rec(i), name: a => typeof a === 'number' ? (P.nameOf(a) ?? 'someone').replace(/^\*/, '') : 'the stranger' }, pid, DAY, 6);
       const job = plan.filter(s => !NOT_JOB.has(s.act));
       // the five questions: the prompt path (the fact the model is told) and the reply a player meets without the model
-      const talk: any[] = []; const conv = sim.t;
+      const talk: any[] = []; const conv = sim.t; const own = MODE === 'old' ? null : new (await import('../../src/people/converse/ownlines')).OwnMind(); // (one mind a talk, as ui.ts keeps it)
       for (const { q, key } of QS) {
         const fact = groundFact(L, q), msgs = messages(L, 'none', [], q), tokens = approxTokens(msgs[0].content); // (the system prompt's budget: prompt.ts PROMPT_TOKENS)
         const factOk = !DEFAULT_FACT.test(fact) || key === 'work';
         let reply: string;
         if (MODE === 'old') reply = talk.length === 0 ? 'Greetings, stranger.' : 'I do not understand you, stranger.'; // (ui.ts ownLine before D-720)
-        else { const { OwnMind } = await import('../../src/people/converse/ownlines'); const T = await talkTurn(new OwnMind() as any, sim, pid, q, { conv }); reply = T.answer.ok ? T.answer.text : `(${T.answer.text})`; }
+        else { const T = await talkTurn(own!, sim, pid, q, { conv }); reply = T.answer.ok ? T.answer.text : `(${T.answer.text})`; }
         talk.push({ q, key, fact, factOk, tokens, reply, grounded: grounded(L, key, reply) });
       }
       const thin: Record<string, string> = {};
