@@ -9755,3 +9755,10 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
 - D-523 addendum (s17, V5): the ox (drawn from the cow model) has no udder: tools/blender/animals_real.py `no_udder` presses
   what hangs below the belly line between the hind legs and the navel up to the belly (72 vertices on the cow model) before
   the levels and bakes are made.
+
+## D-524 (s17, V5): wet walls in streaks; the wet sheen and puddles verified with a sky to reflect
+- The ground's wet darkening, wet sheen (sky specular scaled by the wetness on porous surfaces), puddles in level hollows and
+  their dark mud rims were already in materials.ts finish() (D-219, D-335), driven by WEATHER uniforms; they read matte in the
+  weather probe only because the probe had no sky environment. The probe now prefilters a sky/ground sphere into skyEnv.
+- materials.ts (one line, uniform-driven, no new shader state): on walls the wet film runs in vertical streaks (wet 0.4-1.0 of
+  the ground's), not an even 55 % film.

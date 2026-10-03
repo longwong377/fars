@@ -1246,7 +1246,9 @@ function finish(m: THREE.MeshStandardNodeMaterial, L: Layer, d: SurfaceDef) {
   const cellD = vec2(p.x.sub(RAIN_CELL.x), p.z.sub(RAIN_CELL.y)).length();
   const cellWet = RAIN_CELL.w.mul(float(1).sub(smoothstep(RAIN_CELL.z.mul(0.6), RAIN_CELL.z.mul(1.2), cellD)));
   const wetness = max(WEATHER.wetness, cellWet);
-  const wet = wetness.mul(float(0.55).add(up.mul(0.45))).mul(open);
+  // (V5 D-524: on walls the rain runs down in streaks, not as an even film: wet in vertical runs, half-dry between them)
+  const runs = smoothstep(0.35, 0.75, mx_noise_float(vec3(p.x.mul(2.2), p.y.mul(0.25), p.z.mul(2.2))).mul(0.5).add(0.5)).mul(0.6).add(0.4);
+  const wet = wetness.mul(float(0.55).mul(mix(runs, float(1), up)).add(up.mul(0.45))).mul(open);
   alb = alb.mul(float(1).sub(wet.mul(d.porosity * 0.5)));
   // puddles: only in the low spots of a broad noise field (≈15% of flat area at full puddle state), never a uniform sheen;
   // session 9: and only on near-level ground (water stands on slopes under ~3 %, none by 9 %; the beasts renders showed puddles
