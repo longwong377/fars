@@ -13,6 +13,7 @@ import { sunHorizon, moonHorizon, moonPhase, azAltToWorld, j2000ToHorizonMatrix,
 import { VolumetricClouds } from './clouds';
 import { Meteors } from './meteors';
 import { Planets } from './planets';
+import { Comet } from './comet';
 import { skyCalibration, twilightWeight, TW_HI } from './horizon';
 import { Atmosphere, aerosolTauFor, OBSERVER_ALT, SUN_ANGULAR_RADIUS, xyToRenderer, daylightXY, type SkyView, type SkyViewJob } from './atmosphere';
 import { sunNormalLux, skyLux, moonLux, elongationFromFraction, extinctionK, NIGHT_LUX, REN_PER_LUX_SUN, REN_PER_LUX_SKY } from './illuminance';
@@ -142,6 +143,7 @@ export class SkySystem {
   state: SkyState = { sunDir: new THREE.Vector3(0, 1, 0), sunAlt: 45, moonDir: new THREE.Vector3(0, -1, 0), moonAlt: -10, moonFraction: 0, daylight: 1, nightFactor: 0 };
 
   readonly clouds: VolumetricClouds;
+  readonly comet: Comet;
   /** Milky Way + airglow layer (night only; additive, between the sky and the stars) */
   readonly milkyWay: THREE.Mesh;
   private uGal = uniform(new THREE.Matrix3()); // world direction → galactic (l, b) unit vector, per epoch and sidereal time
@@ -330,6 +332,7 @@ export class SkySystem {
     scene.add(this.stars);
     this.meteors = new Meteors(DOME * 0.88); scene.add(this.meteors.group);
     this.planets = new Planets(DOME * 0.9); scene.add(this.planets.points);
+    this.comet = new Comet(DOME * 0.89); scene.add(this.comet.group); // D-680: the comet of 467 (comet.ts, C)
     this.clouds = new VolumetricClouds(DOME * 0.85, quality, this.air); scene.add(this.clouds.mesh);
     EYE_SKY.sunVisibilityAt = (x, y, z) => this.sunVisibilityAt(x, y, z);
   }
@@ -431,6 +434,7 @@ export class SkySystem {
       this.uLimMag.value = starLimitMag(s.altitude) - 2.2 * moonUpS * ph.fraction * this.eclipse.light; this.uStarK.value = 1 - 0.85 * cloudCover; }
     this.meteors.update(jdUT, camPos, this.uNight.value);
     this.planets.update(jdUT, camPos, s.altitude, cloudCover);
+    this.comet.update(jdUT, camPos, this.state.sunDir, this.uLimMag.value, 1 - 0.9 * cloudCover);
     // faint diffuse light (Milky Way, airglow): only in full darkness, washed out by moonlight, hidden by cloud (C)
     const moonUp = smoothstepJS(-2, 8, mo.altitude);
     GRADE.nightLift = 1 - 0.75 * moonUp * Math.min(1, ph.fraction * 1.5) * this.eclipse.light;
