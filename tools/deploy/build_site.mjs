@@ -7,7 +7,7 @@
 // GitHub Pages: no custom headers (no COOP/COEP: the page runs without cross-origin isolation; nothing in it needs
 // SharedArrayBuffer), no Git LFS, 1 GB a site, 100 MB a file. The script fails when the dist breaks a limit.
 import { execSync } from 'node:child_process';
-import { existsSync, readdirSync, readFileSync, writeFileSync, lstatSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, writeFileSync, lstatSync, rmSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 const root = resolve(process.cwd()), dist = join(root, 'dist'), base = process.env.PARSA_BASE ?? '/fars/';
@@ -25,6 +25,17 @@ if (!process.env.SKIP_BAKE && existsSync(join(root, 'tools/bake_world/bake.ts'))
 }
 run(`npx vite build${process.env.NOMINIFY ? ' --minify false' : ''}${process.env.SOURCEMAP ? ' --sourcemap' : ''}`, { PARSA_BASE: base }); // (NOMINIFY=1 / SOURCEMAP=1: names and source files for tools/deploy/boot_profile.mjs) lap('vite build');
 
+// s18 C9 (D-740): the jpgs a visit never asks for leave the dist: every scan map with a KTX2 listed in textures/ktx.json (the
+// page loads the KTX2: its ETC1S twin first on a BC7 GPU, else the full file, src/render/lowfirst.ts), and, when the ground's
+// KTX2 array is there, the ground layers' diff/disp jpgs (src/render/scans.ts GROUND). The dev server keeps them (?scanjpg A/B).
+{ const T = join(dist, 'textures'), lf = join(T, 'ktx.json'); let n = 0, b = 0; const rm = f => { if (existsSync(f)) { b += lstatSync(f).size; rmSync(f); n++; } };
+  const listed = existsSync(lf) ? Object.keys(JSON.parse(readFileSync(lf, 'utf8')).maps ?? {}).filter(k => existsSync(join(T, k + '.ktx2'))) : [];
+  for (const k of listed) rm(join(T, k + '.jpg'));
+  if (existsSync(join(T, 'ground/ground.ktx2'))) { // (the layers' scan ids, read from scans.ts's GROUND table)
+    const src = readFileSync(join(root, 'src/render/scans.ts'), 'utf8'), body = /export const GROUND = \{([\s\S]*?)\} as const/.exec(src)?.[1] ?? '';
+    const ids = [...body.matchAll(/:\s*'([^']+)'/g)].map(m => m[1]); if (ids.length < 8) throw new Error(`build_site: GROUND table not read (${ids.length} ids)`);
+    for (const id of ids) for (const f of ['diff', 'disp']) rm(join(T, id, f + '.jpg')); }
+  lap(`jpgs with a KTX2 left out: ${n} files, ${(b / 1048576).toFixed(1)} MB`); }
 // textures low first (src/render/lowfirst.ts): a 512-px copy of every scan jpg beside it, and textures/low.json (each full
 // file's size): a first visit loads the copies before it can walk and the full scans after (sharp, in the lockfile)
 { const sharp = (await import('sharp')).default, T = join(dist, 'textures'), man = {}; let full = 0, low = 0;
