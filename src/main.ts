@@ -46,7 +46,7 @@ import { seasonAt } from './world/season';
 import { installSunCascades } from './render/sunShadows';
 import { loadScans } from './render/scans';
 import { BASE } from './core/base';
-import { installProgressiveCompile } from './render/progressive';
+import { installProgressiveCompile, installRenderSafetyNet } from './render/progressive';
 import { installShaderLog, installDeviceCounters } from './dev/shaderLog';
 import { upgradeLowFirst, lowFirstStats } from './render/lowfirst';
 installWebGPUCompat();
@@ -109,6 +109,7 @@ async function boot() {
   }
   const backend = (renderer.backend as any).isWebGPUBackend ? 'WebGPU' : 'WebGL2';
   releaseUploadedTextures(renderer); // D-354 (s15, page memory): a static texture's page copy dropped once it is on the GPU
+  if (!P.has('nosafetynet')) installRenderSafetyNet(renderer); // D-740 (s18, the black screen): one bad binding skips one object, never the frame (?nosafetynet: off)
   if (P.has('shaderlog')) installShaderLog(renderer, P.get('shaderlog')); // dev (D-250, D-473): which object and material each new render pipeline came from, and why
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2) * Q.pixelRatio);
   renderer.setSize(innerWidth, innerHeight, false);
