@@ -9,7 +9,10 @@ import type { FireSystem, FireKind, FireSchedule } from '../fire';
 import { surfaceMaterial } from '../../render/materials';
 import { attribute, positionLocal, positionWorld, textureLoad, ivec2, int, float, step, vec2, fract, smoothstep, fwidth, mix, clamp } from 'three/tsl';
 import { SiteHouses, plasterBatch, newHB, TILE, NEAR_R, NEAR0, NEAR0_HYST, HOUSE_PARTS, POLE_GAP, seasonOf, type HB } from './houses';
+import { interiorRing } from '../interiors/ring';
 import { TownDoors } from './towndoors';
+import { RoofWear } from './roofwear';
+import { WallWear, doorLamps } from './wallwear';
 import { livesOf, HOUSE_KINDS } from './houseplan';
 import { registerSettlementSurfaces } from './surfaces';
 import { Batch, RGB, lin } from './geom';
@@ -77,6 +80,12 @@ export class Settlement {
   readonly info = { tris: 0, meshes: 0, colliders: 0, liveColliders: 0, fires: 0, lamps: 0, trees: 0, buildMs: 0, phases: {} as Record<string, number> };
   /** D-234: each site's houses (far and near levels), the near tiles built (tile → meshes), the street doors */
   readonly houses: SiteHouses[] = [];
+  /** s17 C1 (D-550): the roofs' stores and work as fill items (absolute heights; world.ts adds them to the fill) */
+  roofFill() { return this.houses.flatMap(h => h.roofFill()); }
+  /** s17 C1 (D-550): the roofs' wear from the simulation (world.ts gives it the sim's roofOf) */
+  readonly roofWear!: RoofWear;
+  /** s17 C1 (D-550): the lane faces' wear (smoke over the doors, the splashed foot, a fresh coat with the roof's) */
+  readonly wallWear!: WallWear;
   private clusterOfSite = new Map<string, Cluster>();
   private near = new Map<number, NearTile>();
   /** the near tiles shown, merged into one mesh per material (5 draws, 2 of them casting, whatever the number of tiles) */
@@ -92,7 +101,7 @@ export class Settlement {
     const t0 = performance.now();
     this.fire = fire;
     registerSettlementSurfaces();
-    this.group.name = 'settlement';
+    this.group.name = 'settlement'; this.group.add(interiorRing.group); // s17 C7 (D-610): the furnished rooms round the eye
     this.group.userData = { tier: 'C', src: 'RECON', note: 'settlement (Phase 6): zones and named features from settlement.json; town layout reconstructed (C)' };
     this.plan = buildTownPlan();
     let tp = performance.now(); const phase = (n: string) => { const t = performance.now(); this.info.phases[n] = Math.round(t - tp); tp = t; }; phase('plan');
@@ -119,6 +128,8 @@ export class Settlement {
       this.cols.push(col); this.buildSite(s, si, cl, () => B(cl, 'stone'), col, H);
     });
     this.doors = new TownDoors(this.houses.flatMap(h => h.doors), phys); this.group.add(this.doors.group);
+    this.roofWear = new RoofWear(this.houses); this.group.add(this.roofWear.group); // s17 C1 (D-550): leaking and fresh roofs from the sim (setSource)
+    this.wallWear = new WallWear(this.houses); this.group.add(this.wallWear.group); this.roofWear.onSource = f => this.wallWear.setSource(f); // s17 C1: smoke over the doors, splashed feet, fresh coats
     phase('sites');
     // props (Takht-e Rustam, the Dasht-e Gohar hall)
     const groupBase = new Map<string, number>(); for (const [g, pts] of this.plan.groups) groupBase.set(g, Math.min(...pts.map(p => H(p[0], p[1]))));
@@ -240,6 +251,8 @@ export class Settlement {
     // or two after dark, lit again before dawn), no `group` (its light stays in the room: not part of the town's fire light
     // on the smoke, D-227). Not driven by the household's own evening (C)
     for (const p of plots) { const L = hs.lampSpot(p.idx); if (!L) continue; this.fire.add('lamp', new THREE.Vector3(L[0], L[2], -L[1]), { tier: 'C', src: 'RECON', note: `${p.id}: a clay saucer lamp on a ledge in the living room (saucer lamps B by analogy, Q-516; that every house burned one in the evening C, Q-560; D-234)`, sched: 'home', body: false }); this.info.lamps++; }
+    // s17 C1 (D-550): the evening lamps at the street doors (wallwear.ts doorLamps; the fire system lights them)
+    for (const L of doorLamps(hs)) { this.fire.add('lamp', new THREE.Vector3(L.e, L.y, -L.n), { tier: 'C', src: 'RECON', note: `${L.plot}: a clay saucer lamp on a peg by the street door, lit at dusk (saucer lamps B by analogy, Q-516; at the door C; D-550)`, sched: 'home' }); this.info.lamps++; }
     hs.buildFar(cl.far);
     // wall colliders (the plan's walls: the same boxes as before D-234, so the walk and the people agree)
     for (const w of s.walls()) { if (w.door) continue; const sp = hs.wallSpan(w), along = w.v0 === w.v1, len = along ? w.u1 - w.u0 : w.v1 - w.v0;
@@ -302,6 +315,7 @@ export class Settlement {
   /** the full near level's radius (NEAR0; probes set it to compare the levels, D-324b) */
   near0 = NEAR0;
   nearUpdate(x: number, z: number, prefetch = 1, sync = false) {
+    interiorRing.update(x, z, this.nearDay, sync); // s17 C7 (D-610)
     let tiles = 0, tris = 0; const want: number[] = []; let lost = true;
     for (const hs of this.houses) { const s = hs.s, rs = Math.hypot(s.W, s.H) / 2;
       if (Math.hypot(s.frame.c[0] - x, -s.frame.c[1] - z) > rs + NEAR_R + 120) { for (const [k, n] of this.near) if (n.hs === hs) this.dropNear(k); continue; }
@@ -397,7 +411,7 @@ export class Settlement {
     const cp = ctx.camera.position;
     const day = ctx.clock?.dayIndex ?? 0; if (seasonOf(day) !== seasonOf(this.nearDay)) this.resetNear(); this.nearDay = day;
     this.nearUpdate(cp.x, cp.z, 1);
-    this.doors?.update(dt, cp, ctx.clock?.dayIndex ?? 0, ctx.sky?.sunAlt ?? 30, this.nearTile);
+    this.doors?.update(dt, cp, ctx.clock?.dayIndex ?? 0, ctx.sky?.sunAlt ?? 30, this.nearTile); this.roofWear?.update(day, cp); this.wallWear?.update(day, cp);
     for (const m of this.casters) { const bs = m.geometry.boundingSphere!; m.castShadow = bs.center.distanceTo(cp) - bs.radius < SHADOW_RANGE; }
     this.trees.update(ctx.camera, ctx.clock?.dayIndex ?? 0, ctx.cond?.windMs ?? 2); this.wr.update(ctx.camera.position);
     this.haze.update(dt, ctx.camera, ctx.sky?.sunAlt ?? 30, ctx.cond?.windMs ?? 2, ctx.cond?.windDirDeg ?? 0, ctx.clock?.localHour ?? 12, ctx.skyLight);

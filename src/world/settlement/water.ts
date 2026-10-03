@@ -2,6 +2,7 @@
 // Kuh-e Rahmat canal (2 m wide, C course) are ribbons draped on the terrain (heightAt samples, lifted a few centimetres
 // and depth-offset); garden channels, pools, ditches and well water are flat water surfaces. Roads are cut into ~1 km
 // pieces that hide beyond 6 km (they are sub-pixel there). One water mesh for everything.
+import { SEASON_PALETTE, paletteLinear } from '../season';
 import * as THREE from 'three/webgpu';
 import { positionWorld, vec3, float, cameraViewMatrix, vec4, normalize, attribute, abs, fwidth, max, mix, smoothstep, mx_noise_float } from 'three/tsl';
 import { surfaceMaterial, SEASON, type Layer } from '../../render/materials';
@@ -90,7 +91,7 @@ function roadMaterial() {
     const wander = mx_noise_float(vec3(p.x.mul(0.17), 0, p.z.mul(0.17))).mul(R.edgeWander).add(mx_noise_float(vec3(p.x.mul(0.9), 2.1, p.z.mul(0.9))).mul(0.25).mul(near));
     const verge = float(1).sub(smoothstep(0, R.verge, hw.sub(a).add(wander))).mul(0.85);
     const loam = vec3(0.325, 0.226, 0.132); // the plain's loam (terrainMesh groundColour 0.606, 0.512, 0.398 sRGB, D-232) in linear
-    const herb = mix(vec3(0.319, 0.264, 0.107), vec3(0.078, 0.107, 0.027), SEASON.green.div(SEASON.green.add(SEASON.dry).max(0.001))); // straw / green (materials.ts herbs)
+    const herb = mix(vec3(...paletteLinear(SEASON_PALETTE.straw)), vec3(...paletteLinear(SEASON_PALETTE.green)), SEASON.green.div(SEASON.green.add(SEASON.dry).max(0.001))); // straw / green (materials.ts herbs)
     const vergeAlb = mix(loam, herb, SEASON.green.add(SEASON.dry).min(1).mul(0.55)).mul(float(1).add(mx_noise_float(p.mul(1.3)).mul(0.12)));
     const patch = float(1).add(mx_noise_float(vec3(p.x.mul(0.025), 1.3, p.z.mul(0.025))).mul(R.patch * 2));
     // D-227: the approach to the Grand Stair crosses ground trodden bare all round it (the roads cross herbs and fields), so it

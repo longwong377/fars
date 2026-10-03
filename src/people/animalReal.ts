@@ -32,6 +32,6 @@ export function realFrame(R: RealRig, GRAZE_PITCH: number): FrameT {
   for (let g = g0; g >= -nd; g -= 0.05) { if (reach(g) > reach(bestG)) bestG = g; if (reach(g) > base.y + 0.02) { bestG = g; break; } }
   g0 = bestG;
   const bend = ha - g0, muzzleG = top.clone().add(new THREE.Vector3(0, -Math.sin(g0), Math.cos(g0)).multiplyScalar(hl));
-  let lo = 0, hi = 1.9; for (let i = 0; i < 30; i++) { const a = (lo + hi) / 2, d = muzzleG.clone().sub(base); const y = base.y + d.y * Math.cos(a) - d.z * Math.sin(a); if (y > 0.03 + 0.1 * hl) lo = a; else hi = a; } // (the measured muzzle is the foremost point: the chin hangs below it)
+  let lo = 0, hi = 1.9; for (let i = 0; i < 30; i++) { const a = (lo + hi) / 2, d = muzzleG.clone().sub(base); const y = base.y + d.y * Math.cos(a) - d.z * Math.sin(a); if (y > 0.03 + 0.11 * hl) lo = a; else hi = a; } // (the measured muzzle is the foremost point: the chin hangs below it)
   F = { bodyY: R.bodyY, base, top, hd, muzzle, muzzleG, bend, graze: (lo + hi) / 2 }; REAL_FRAMES.set(R, F); return F;
 }

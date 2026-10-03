@@ -58,7 +58,8 @@ button:hover, button:focus-visible { border-color: var(--accent); outline: none;
 .load { pointer-events: auto; position: absolute; inset: 0; overflow: hidden; background: #07060a; animation: fadein .9s var(--ease) both; }
 .load.leaving { pointer-events: none; animation: fadeout 1.8s .2s var(--ease) both; }
 .load svg.sky { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.load .grain { position: absolute; inset: -50%; opacity: .05; pointer-events: none; background-image: radial-gradient(rgba(255,255,255,.6) 0.5px, transparent 0.6px); background-size: 3px 3px; animation: grain 1.2s steps(6) infinite; }
+/* a still grain (C4's measurement, s17: an animated 2x-viewport grain and an animated sheen kept a core busy compositing for the whole load on a software-composited machine; no infinite animation on the loading screen) */
+.load .grain { position: absolute; inset: 0; opacity: .04; pointer-events: none; background-image: radial-gradient(rgba(255,255,255,.6) 0.5px, transparent 0.6px); background-size: 3px 3px; }
 .load .vignette { position: absolute; inset: 0; background: radial-gradient(ellipse 120% 90% at 50% 70%, rgba(0,0,0,0) 40%, rgba(0,0,0,.65) 100%); pointer-events: none; }
 .load .brand { position: absolute; left: clamp(28px, 7vw, 120px); top: clamp(36px, 17vh, 200px); max-width: min(760px, calc(100vw - 56px)); }
 .load .brand .wordmark { font-size: clamp(46px, 8.4vw, 124px); margin: 14px 0 18px; animation: rise 1.6s .15s var(--ease) both; }
@@ -72,7 +73,6 @@ button:hover, button:focus-visible { border-color: var(--accent); outline: none;
 .boot-pct { font: 500 13px var(--ui); letter-spacing: .2em; color: var(--accent-2); font-variant-numeric: tabular-nums; }
 .boot-track { position: relative; height: 2px; background: rgba(239,230,212,.12); overflow: hidden; }
 .boot-bar { height: 100%; width: 0; background: linear-gradient(90deg, rgba(201,164,92,.5), var(--accent-2)); box-shadow: 0 0 12px rgba(230,201,138,.6); transition: width .6s var(--ease); }
-.boot-track::after { content: ''; position: absolute; top: 0; bottom: 0; width: 18%; background: linear-gradient(90deg, transparent, rgba(255,240,210,.35), transparent); animation: sheen 2.6s linear infinite; }
 .boot-net { display: flex; justify-content: space-between; gap: 16px; font: 400 12px var(--ui); letter-spacing: .1em; color: var(--muted); margin-top: 10px; font-variant-numeric: tabular-nums; }
 .boot-net .steps { color: var(--faint); }
 .load .advice { position: absolute; right: clamp(28px, 7vw, 120px); top: clamp(36px, 17vh, 200px); max-width: 300px; text-align: right; font: 400 13px/1.6 var(--ui); color: var(--muted); letter-spacing: .03em; animation: fadein 2s 1s var(--ease) both; }
@@ -183,8 +183,6 @@ body.intro .tl, body.intro .crosshair, body.intro #converse, body.intro .save-no
 @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
 @keyframes fadeout { from { opacity: 1; } to { opacity: 0; } }
 @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-@keyframes sheen { from { left: -20%; } to { left: 110%; } }
-@keyframes grain { 0% { transform: translate(0, 0); } 33% { transform: translate(-1%, 1%); } 66% { transform: translate(1%, -1%); } 100% { transform: translate(0, 0); } }
 @keyframes pulse { 50% { opacity: .5; } }
 @keyframes subin { from { opacity: 0; transform: translate(-50%, 6px); } to { opacity: 1; transform: translate(-50%, 0); } }
 @keyframes notice { 0% { opacity: 0; transform: translateX(16px); } 4% { opacity: 1; transform: none; } 92% { opacity: 1; } 100% { opacity: 0; } }

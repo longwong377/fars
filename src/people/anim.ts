@@ -188,8 +188,8 @@ export function pose(id: AnimId, t: number, ph: number, k: number, g: Gait = GAI
       // in conversation (D-333): captures of people explaining with their hands, one of three per person
       p = loopAt(TALKS[pickOf(k, TALKS.length, 7)], t, k, 0.9 + 0.2 * fr(k * 0.29));
       // (s17 V3, D-500: the captured speakers lecture, a hand flung to head height every few seconds; at 10 m a lane of talkers
-      // read as waving robots: the arms are taken 45 % of the way back to a standing capture's, the gesture kept, smaller; C)
-      blendInto(p, loopAt(IDLES[pickOf(k, IDLES.length, 5)], t, k, 0.9 + 0.2 * fr(k * 0.37)), 0.45, TALK_DAMP); break;
+      // read as waving robots: the arms are taken 60 % of the way back to a standing capture's, the gesture kept, smaller; C)
+      blendInto(p, loopAt(IDLES[pickOf(k, IDLES.length, 5)], t, k, 0.9 + 0.2 * fr(k * 0.37)), 0.6, TALK_DAMP); break;
     }
     case 'play': { // running about in place (children; D-333: a running capture)
       p = gaitPose('run', t * 7 + k, k, 2.8); break;

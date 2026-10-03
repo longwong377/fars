@@ -1,4 +1,5 @@
 import { BASE } from '../core/base';
+import { sharedKTX2 } from '../render/loaders';
 // The people's Blender-built assets (D-307): strand cards for hair, beards and brows, and garment drape from Blender's
 // cloth simulation. Built by `node tools/blender/build.mjs` from tools/blender/people.json (sources in
 // tools/blender/sources/people_*.ts, Blender scripts tools/blender/hair_atlas.py and cloth.py) into public/models/people/,
@@ -108,9 +109,11 @@ export function drapeFrames(pos: Float32Array, index: ArrayLike<number>, n: numb
   return F;
 }
 /** add a drape displacement (local frame components, DRAPE_UNIT) to a placed piece, in place */
-export function applyDrape(pos: Float32Array, index: ArrayLike<number>, d: Int16Array): Float32Array {
-  const n = pos.length / 3, F = drapeFrames(pos, index, n);
-  for (let i = 0; i < n; i++) for (let e = 0; e < 3; e++) pos[i * 3 + e] += (F[i * 9 + e] * d[i * 3] + F[i * 9 + 3 + e] * d[i * 3 + 1] + F[i * 9 + 6 + e] * d[i * 3 + 2]) * DRAPE_UNIT;
+export function applyDrape(pos: Float32Array, index: ArrayLike<number>, d: Int16Array, capOut = Infinity): Float32Array {
+  const n = pos.length / 3, F = drapeFrames(pos, index, n), cap = capOut / DRAPE_UNIT;
+  // (s17 V3, D-500: capOut (m) limits how far out along its normal the settled cloth may stand: the short sleeves' caps settled
+  // 3 cm proud of the shoulder, epaulettes on every working man)
+  for (let i = 0; i < n; i++) { const dn = Math.min(d[i * 3], cap); for (let e = 0; e < 3; e++) pos[i * 3 + e] += (F[i * 9 + e] * dn + F[i * 9 + 3 + e] * d[i * 3 + 1] + F[i * 9 + 6 + e] * d[i * 3 + 2]) * DRAPE_UNIT; }
   return pos;
 }
 
@@ -148,15 +151,10 @@ export async function loadPeopleModels(base = BASE): Promise<PeopleModels & { at
 export async function loadHairAtlas(url: string, base = BASE): Promise<any | null> {
   try {
     const THREE = await import('three/webgpu');
-    const { KTX2Loader } = await import('three/addons/loaders/KTX2Loader.js');
-    let feats = new Set<string>();
-    try { const nav: any = typeof navigator !== 'undefined' ? navigator : null; const ad = nav?.gpu ? await nav.gpu.requestAdapter() : null; if (ad) feats = new Set([...ad.features]); } catch { /* none */ }
-    const k = new KTX2Loader().setTranscoderPath(base + 'models/lib/basis/');
-    k.detectSupport({ isWebGPURenderer: true, hasFeature: (f: string) => feats.has(f) } as any);
+    const k = await sharedKTX2(base); // (D-392: the page's transcoder)
     const t = await k.loadAsync(url);
     t.colorSpace = THREE.NoColorSpace; t.flipY = false; t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.anisotropy = 4;
     t.minFilter = THREE.LinearMipmapLinearFilter; t.magFilter = THREE.LinearFilter; t.needsUpdate = true;
-    k.dispose();
     return t;
   } catch (e) { console.warn(`[people models] hair atlas: ${(e as Error).message}; no strand cards`); return null; }
 }

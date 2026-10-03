@@ -9432,6 +9432,16 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
 - Census first (tools/dev/fill_census.ts, tests/fill_census.test.ts): baseline lanes 20.1 % of cells with nothing within 3 m, the longest bare run 147 m, 107 courts with < 3 fixtures, 111 roofs bare, 230 identical same-model pairs within 15 m; draws at a lane point 51 mean, 56 k triangles.
 - fillPlan.ts: a gap pass (a household thing wherever a lane wall has nothing within 2.4 m: jars, pots, basins, stools, rolled mats, tools leaned on the wall, dung cakes drying, fuel, repair mud and bricks; never the same model within 6 m; lanes kept passable), a litter pass (straw, sherds, twigs, ash dumps, knucklebones in the open middle of wide lanes), door things (tools, stools, the donkey's peg), market goods sold out through the afternoon (fullest in the morning), detwin() (no clone within 15 m). fill.ts: tilt (leaned tools), until, new part materials, the small things at one level only.
 - houseplan.ts: every court >= 3 things, every roof something in every season (drawn after every earlier choice: nothing earlier moves). settlement/tethers.ts: the households' donkeys, goats and sheep tied in the court at night and by the door by day (Animals rig; hooks: 3 lines in world.ts).
+- settlement/roofwear.ts: the sim's roofs drawn (deeds_render.md): roofOf < 0.45 a dark slumped patch over the main room and a drip jar on the floor under it; > 0.93 a pale fresh coat (hook: 1 line in world.ts after the sim; Settlement.roofWear updates on day change / 15 m).
+- New period-kit props built in the cloud with bpy (tools/blender/fill_props.py: litter, matlean, basket_tall, winnow, reed_awning, skin; ASSET_LEDGER): the modelled litter leads the lanes' litter, reed-mat shades over 55 % of the houses' awnings, skins hung by doors, mats, tall baskets and winnowing trays leaned on walls; fewer one-off kinds so a view's draws stay ~83.
+- Roofs: houseplan.ts adds roof_jars (35-55 %), roof_drying (45 %: dung cakes or washed wool on a reed mat), roof_line (22 %); drawn by the fill instanced at absolute heights (SiteHouses.roofFill, FillItem.y; world.ts passes settlement.roofFill() to WorldFill), because the near house tiles were at their triangle gate (worst tile 59.9 k of 60 k, q_s3 589 k of 600 k): unchanged after. 4252 roof things; roofs mean 2.8 things.
+- The sim's market grounds: the population's quarter points (where popgeo stands each seller, market:<q>:<hid>) were 160-226 m from any drawn stall (the fill's markets were only on the plan's squares); townFill now takes those points (world.ts passes sim.pop.quarters) and lays sellers' spreads on reed mats and stalls along the walls within 14-28 m, or two facing rows on open ground where the point lies outside the quarters: all 7 town markets dressed (49-111 things within 30 m each); goods sell out through the afternoon.
+- House variety at the door: the kit's street-door leaf in three more forms (housekit.py leaf_b: leaf3 uneven planks ledged outside, leaf4 a replaced pale plank and a high rail, leaf5 six narrow planks with a middle and a top rail; built alone with HOUSEKIT_ONLY so every other kit piece stays byte-identical); TownDoors draws 6 leaf meshes (the wood's age x 2 forms by a hash of the door): +3 draws.
+- Markets: a second stall form (fill_stall_reed: reed-mat shade on crooked poles, a mud-brick bench counter) for a third of the stalls. Lanes denser after the cloud's first crude frame (house_lab ?fill&webgl): a thing every ~3.8 m along the walls, litter every ~4.6 m; things over 0.3 m cast shadows at the near levels; roof things drawn to 120 m.
+- House variety census (tools/dev/house_census.ts): neighbouring houses (doors within 12 m) with the same street face (height 25 cm, parapet 10 cm, door leaf, door shade) 66 of 1463 pairs -> 0; height follows standing r 0.15 -> 0.61 (the poorer build up to 0.4 m lower; never higher: the tile triangle gate, worst tile 59.8 k); where a neighbour's face still matches, the parapet goes a course up or down (houseplan.ts unlikeNeighbours).
+- Wear per house (settlement/wallwear.ts, instanced soft decals: the house tiles have no triangles left): smoke over the street door by the house's age, time since plastering and trade (bakers, smiths, potters darkest; ~70 % of houses), the splashed foot either side of 55 % of doorways, and a fresh coat over the door and the facade's top while the sim's roof is freshly replastered (RoofWear.onSource). The decals' colours and alpha are written here; V2 may swap the material.
+- The lanes at night: a clay saucer lamp on a peg by the street door at ~2 houses in 5 (more of the better-off; 558), registered with the fire system's 'home' schedule (lit at dusk, out an hour or two after dark; its light is V6's); the washing (lane and roof lines), stools and drying wool brought in at dusk (day-only fill items).
+- The year in the lanes: about 1 in 3 wall spots has a season's thing (FillItem.seas, houses.ts seasonOf): sheaves, grain sacks and straw after the harvest, the fuel stacked higher in the cold, the year's other thing otherwise (3086 seasonal items; world.ts passes the day to fill.update).
 - After: lanes 0.0 % bare (longest 1 m), courts 1447/1447, roofs 1447/1447, clones 0; draws at a lane point 77 mean (+26), triangles 74 k (+33 %). All C (D-207; the region's vernacular lanes).
 
 ## D-560 The plain filled near the walker: the roadside, no copies within 20 m, the census (session 17, cloud C2)
@@ -9457,6 +9467,20 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   JPEG without alpha: since s12 every tuft at the walker's feet drew its card's black ground as a black flame; seen in the
   cloud's crude WebGL probe and in the s12 frames); the tint normaliser averages the drawn pixels only. Verges 6-10 tufts a
   2 m cell at 1.2-1.8x (tuft cap 1800). Fixed fieldFill's model keys (the registry is keyed wo_*, not m_wo_*: nothing drew).
+- fieldFill's draws: once its models loaded it added 66 meshes to the plain group and broke the plain's own gate (tests/plain.test:
+  <= 40 meshes; the plain was at exactly 40). Now one InstancedMesh per model and level (parts merged, one 3-kind material,
+  lod1 and lod2): at most 16, only the season's drawn (April: the folds, 1-2 draws), in its own group beside the plain's
+  as the town's fill is; the plain gate is unchanged and passes. Its draws are outside that gate: C4's budget counts them.
+- Boot (C4's profile: the plain 8.1 s of main-thread JS): the town's ground (0.7 s), the zones (1.5 s, baked before) and the
+  orchard plots (2.0 s) are baked together in the world's 'zones' unit (+0.23 MB gzipped; its source hash covers the plain's
+  modules); the compounds (0.4 s, 0.7 MB gzipped) are not; desire lines computed once a plan (0.4 s saved on every boot).
+- The leaf atlas (trees/assets.ts, ~2 s of main-thread JS at load) is decoded and assembled in a worker (trees/atlas_worker.ts;
+  measured in headless Chromium: built in 2.7 s with the main thread's longest task 64 ms); not baked: its packed levels are
+  16 MB gzipped against the 3.9 MB of WebP shipped. The main-thread path stays as the fallback.
+- For C6's quarries (asked through the cloud lead): the quarrymen's worn path from each quarry down to the nearest track or road
+  (ribbons.ts quarryPaths: A* on a 25 m grid, length weighted by slope, nothing steeper than 1 in 3, smoothed; 82 ms at
+  load), drawn in the tracks' mesh (allowed on the slopes the village tracks are cut on) with the same tread and verge
+  (verge.ts). Majdabad: 4.1 km to a village track, steepest 0.11 (C).
 
 ## D-590 The front end and the opening: one type system, a loading screen that is the place's own dawn, and a wordless in-engine intro (session 17, cloud C5; UD-37)
 - Screens (src/ui/shell.ts, shell.css): Cormorant Garamond (display) and Alegreya Sans (interface), SIL OFL, self-hosted in public/fonts (ASSET_LEDGER); the title and the pause menu are a column of glass over the live world with the place's name in Old Persian (𐎱𐎠𐎼𐎿, p-a-r-s, as carved in DB I 5 and passim), settings a tabbed sheet (World, Display, Sound, Language, Keys; Esc goes back), controls with readable key names; the chronicle (J) a journal grouped by day and rebuilt only when it changes (it was rebuilt every frame); subtitles without the box, eased in once per line.
@@ -9482,12 +9506,18 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
 - **Far hills' shading (terrainMesh.ts ringNormalNode):** the terrain's lighting normal was the vertex normal only; on a coarse level vertices sit 0.02 rad apart (~19 px at the player's lens: the mid ring's 16 m detail is gone past 1.6 km, the far hills shade as smooth blobs and re-shade when their level changes). Now each ring's full-resolution normal (RG8, one 4,099 x 1,793 atlas, 14.7 MB; ~0.2 s to build at the first frame on the cloud's CPU) is read per pixel and moves the material's own normal (its bump and tilts kept) by its difference from the vertex normal: the hills carry their 4 / 16 / 80 m relief at every distance and level. `?ringnormals=0` for the A/B. SwiftShader probe A/B: subtle at 2.5 km in back light (the case it changes least); not yet judged on the T4.
 - **Rock levels by measured gap (bedrock.ts ROCK_LOD_GAP, tools/dev/rock_lod_gap.mjs):** the ground pieces' levels were swapped at 50 / 260 m for every size; decoded from ground.glb, the gap between lod0-1 is 7-13 cm and lod1-2 33-83 cm at unit scale (99th percentile above the ground), so the largest pieces jumped ~8 / ~4 px. Each piece now changes level where its gap spans 2 px (e.g. an outcrop at scale 1.5: 48 / 446 m). Mountain views 0.03-0.13 M triangles (budget 0.25 M).
 - **Load:** a ground-rock tile no longer builds the stratigraphic grid it only needs for ledge pieces (the kit has none): the whole 1 km reach (~1,090 tiles) builds in 17-64 ms on the cloud's CPU, less than the old 260 m reach cost (~66 tiles at ~0.6 ms).
+- **The quarries (far:quarries; src/world/plain/quarries.ts, moved to C6 by the cloud lead):** they were merged boxes, Sivand unbuilt (no slope over 25 % within its 100 m on the 80 m far ring) and Majdabad moved 1.45 km off the point the coverage views look at. Now both are worked at their points (an outcrop face is still used if one lies within 300 m) into a low limestone bed: an outcrop of scanned rock pieces either side and behind (hills/bedrock.ts kit; three merged levels switched by the 2 px rule), three benches cut 2 m a step with a row of half-cut blocks in their channels on each (some lifted out), the working floor, spoil heaps as piles of the rubble scan in the fresh stone's colour with chips round them, blocks waiting by the way out, the camp's huts; the workings face the Terrace on flat ground. 1,464 stone triangles for both (shared with the fords' unculled draw; the village frame budget kept); the drum hauls and quarrymen tests pass with the moved site. Probe (SwiftShader) only; tier C throughout. Then: column drums roughed out (three lying by the way out, one standing half-freed on the lowest bench; 'limestone_carved'), and the rock as one mesh per quarry (each culled on its own, its level swapped by distance). The plain's mesh count goes 106 -> 108 (tests/plain '<= 40' already failed on int at 106).
 
 
 ## D-570 Life on the roads, the camps lived in, the building site's ramp (s17 cloud C3)
 - The roads near Pārsa were empty 99 % of daylight (tools/dev/road_census.ts, the C3 brief's census: 37 stretches of 250 m within 2.5 km of the Terrace; the sim's caravans, deliveries, couriers, timber and drums only). Now src/world/roadFolk.ts: a register of 2,400 households per road beyond the modelled plain (no household twice at once: tested) (home village up that road, livelihood, a man, his wife, children, an old parent; pure in seed, road, household), whose day's trips come from the calendar (the season's goods by regnal month, rain and storm empty the roads, dust slows them, festivals bring families in), the same households going home in the afternoon with what the goods fetched or next morning from their kin, traders passing through Pārsa between Susa and the south, halts by the road, herders grazing flocks on the verges, a third of the trips staying at the stair foot to sell or hold the string; a coverage fill (PASS_SPACING 5.1 min at points every 125 m, both ways counted) keeps every stretch busy in dry daylight. Measured: longest empty spell 1.7 min over 30 days at 10 s steps; ~1,600 trips and ~2,600 people a day on the four roads; ~150-210 alive at once, ~20-40 at the stair foot. All C (D-207): the hinterland's households are not in the population (~44,000 of the plain); purposes from the calendar's day, not from the economy.
 - The court's camps: before every standing tent its things (courtCamps.ts campItems: mats or a carpet, bedding rolls, water jars, baggage, a chest, a hearth and pot at every third tent; the modelled props), shown only while that tent stands; picket lines of horses, mules and camels at every camp (fauna.ts addCampLines; 10 at the royal stud's camp), filled with the share of the camp's tents standing. All C (Q-333).
 - The Hall of 100 Columns' site: the earth ramp the sim's gangs haul drums up (BUILD.raiseDays) to the column being raised, along the aisle beside its row, sleepers, a drum on rollers, a plank bridge to the scaffold; walkable (stepped colliders). C (D-022, Q-710). Census: ~500 at the site per working hour, ~4,300 at the camps in residence (the population's plans).
+- The court's baggage train (traffic.ts trainMovers; UD-09/UD-10): a string per tented household (camels for a pavilion's) along the royal road to its camp's edge, reaching it half an hour before its tent is pitched (court.ts's arrival hours: days 10-15, up to ~650 households in six hours), and out along the road on the leave day after the tents are struck; the southern camps by the south road where a straight leg would cross the town's plots. C (HDT 7.40-41's train a claim, B).
+- Road folk as population people (the lead, after the merge: talk to anyone, UD-08/UD-31): roadFolk.ts made pure and given hinterlandRegister / planOf / spotOf / bindPids (600 households a road, reused only time-disjoint); the persons, their plans and their placement by popview are C10's (asked).
+- Life on the land (the lead's second list): herder households of the register take their flocks out for 12 days in 36 (stubble June-October, slopes in spring and autumn, a few on the steppe in winter; folded at night, watched by turns; place graze:<kind>), drawn near as the herd performance and far (380 m-2.4 km) by fauna.ts from grazingSites; dogs at the camps' lines; bird counts raised within the worst-case triangle gate. All C.
+- Hooks in world.ts (lead's file): no hoof sounds for walkers; fauna.addCampLines; physics to ConstructionView. Later: the grazing sites and the far flocks (one line).
+
 - Hooks in world.ts (lead's file): no hoof sounds for walkers; fauna.addCampLines; physics to ConstructionView.
 ## D-490 (s17, V2 materials): scans lead the town's surfaces
 - First pass (house_lab frames shots/a2, uncommitted): the houses' render takes Dirt Floor (was clay_plaster: a flat brown
@@ -9540,6 +9570,8 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   probe); every second tile turned 35° and offset (detile); the block faces' claw hatching fades to a third past ~4 m (a
   regular diagonal hatching over every block at 5-30 m); the houses' foot damp 0.1 -> 0.2 and run-off 0.12 -> 0.2; the water's
   far-bank reflection follows SEASON (was a hard-coded green).
+- Third pass: the footings take 75 % of the scan's buff (sunlit they read cold white-grey); the palaces' plaster bays 1σ 0.07 -> 0.09
+  and rain wash 0.13 -> 0.17 (the Gate's 20 m wall read as one flat plane). Frames: shots/a4, t4.
 
 ## D-480 (s17, V1 light): light v1, the art direction's light and tone
 - Tone (toneLook.ts): the fitted AgX look re-graded for the art direction (AC Origins / RDR2: rich, warm, controlled highlights,
@@ -9560,6 +9592,19 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   lane door 16:30 0/14/136 → 1/46/164 (photos of Fars mud-brick villages: ~30/110/190).
 - Tests: tone_look (the deepest darks within 14 levels of plain AgX, was 8: the toe lift is intended), exposure (a moonless
   night's displayed grey < 0.08, was 0.03: the night fill is intended).
+- light v2 (night, D-480 cont.): (1) the night dome (skySystem NIGHT_SKY_ZENITH/HORIZON): a deep-blue zenith over a paler
+  blue-grey horizon replaces the Preetham dome's night tail (the baseline train's cov-000: a brown-grey sky brighter than the
+  land); moonlight brightens it ×(1 + 2.5·up·phase); the fog's horizon colour and the air's in-scatter take the same night sky;
+  the airglow layer's green-grey veil cut to (0.00022, 0.00028, 0.00034). (2) The night fill is now a floor (NIGHT_GREY 0.05 of
+  the daylight grey, at most 10x, taken on the moonless sky so moonlight still adds): the evening falls monotonically from civil
+  twilight. (3) The grade's toe lift rises by NIGHT_LIFT 1.2 at night (pipeline.ts), the dark-adapted eye's reading of shapes.
+  (4) Night clouds (clouds.ts): opacity 1 − T^(1+3·night) so a deck that dims the sky also hides its stars, and a night glow
+  (the night dome at 35° × 1.1) so starlit cloud is soft grey-blue, not black holes. Lab, moonless court 22:30: p50 sRGB 1 → 15,
+  the open plain at 01:30 (cov-000's camera) 0 → 20. All C (UD-29: the night must read). Not fixed: the fan of light at the
+  horizon in cov-000 is the clear sky between cloud streets in perspective (gone with the clouds off); softened, not removed.
+- The outdoor field re-bake (node tools/blender/lightmaps.mjs, 192 s on 6 workers) is byte-identical on this tree: it bakes the
+  geometry (relative sky and sun), which the light changes do not touch. It must re-run after the town/Terrace geometry merges
+  (C1's fill, V4), before the final train.
 - (D-500, step 3) The sim's hooks on the body (handoff/briefs/s16/deeds_render.md): a wound of the deeds (DeedWorld.injuryOf)
   drawn as a linen bandage round the head or the left forearm (a cut) or a splinted right forearm, or a broken leg's limp with
   a staff (seeded per person); a healed wound or scald of the past (marks.ts war_scar, burn_arm, crooked_arm) as paler,
@@ -9573,6 +9618,9 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   the head at each edge (one rim stood the upper edge off the sloping forehead: a halo). A skirted walker's knee folds less in
   the swing (SKIRT_KNEE): the heel no longer kicks out through the back of a long dress or robe. people_cloth rebuilt and
   reproduced; the Cycles impostors re-rendered on the new posture and garments.
+- (D-500, step 6) Short sleeves' settled cloth capped at 1.2 cm proud of the arm (applyDrape capOut, outfits DRAPE_CAP: the
+  caps settled 3 cm out, epaulettes on every working man); talkers' arms 60 % back to standing. people_cloth and people_hair
+  rebuilt and reproduced.
 - **D-511 (V4, under D-510): the double-bull protome capitals from the licensed sculpts (B360 closed).** The protome of every
   bull and composite capital (210) is two kneeling bull fore-parts back to back cut from the D-510 W bull (the lamassu
   sculpt's chest, curl rows and forelegs with the bull-head scan): cut at the shoulder where the colossus stands in the round
@@ -9606,3 +9654,90 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   models in the lying fold allowed 30 cm of hide stretch at hock and tail, a 20-cm-deep chest, no ear flick and their own
   tails' swing: B550; tests/animal_motion.test.ts likewise), probe frames
   shots/animal-*-r4.png (not committed). Load: 29 sets of ~1.6-2.3 MB each, the same order as the procedural sets (manifest).
+
+## D-610 Interiors everywhere: one furnishing system for every enterable room, for the household that lives there (session 17, cloud C7)
+- src/world/interiors: plan.ts (a room's rectangle, doorways and back wall, and its household: standing, members, children, infants, women, jobs, craft, animal, season, in; the period kit's things out; every doorway's leaf sweep and approach kept clear, a walking line to the middle; tall things on the walls, flat ones on the floor, hung ones from pegs and poles; the rich full, the poor sparse; the weaver's loom, the infant's cradle, the scribe's tablets, the smith's anvil and bellows, the potter's turntable), household.ts (the population's households by plot and, for the villages, by compound: world.ts hands them over), town.ts (the houses' rooms and their uses: vestibule, living, sleeping, kitchen, store, workroom), terrace.ts (the Terrace's ranges after rooms.ts's fittings: a guard's kit at each mat, the squad's arms, the apartments' households, the stores' goods on their benches one class to a room), tents.ts (the court camps' tents while they stand, nothing through the cloth), census.ts.
+- ring.ts: the houses' near tiles had no triangles to spare (worst tile 59.9 k of 60 k), and a room is seen only through its doorway from close by: the rooms within 22 m of the eye (houses, Terrace, tents) are planned and drawn into two meshes of their own (<= 60 k triangles, nearest first; two draw calls whatever the rooms), rebuilt as the eye moves; houses.ts no longer furnishes inside its tiles (worst tile 59.9 k -> 49.2 k, the near views -50 k). Render-only: no collider, the walking grid unchanged. Hooks: houses.ts (registerHouses in the constructor; furnish() returns early), build.ts (the ring's group, its update in nearUpdate), world.ts (setInteriorPeople), furnish.ts (registerTerraceInteriors), courtCamps.ts (registerTentInteriors).
+- tools/blender/interior_props.py (+ .mjs, run in the cloud on the bpy module): a wool cushion, a plait of onions, a bunch of herbs, a low tray-table, a potter's turntable, quilts on a mud ledge (m_i_*.glb; ASSET_LEDGER).
+- Census (tools/dev/interior_census.ts, --baseline for houses.ts's old furnishing; 23 008 rooms: town, villages, Terrace, tents): bare rooms 66.9 % -> 1.1 %, things per room 4.6 -> 10.8, same set as a neighbour within 15 m 57 % -> 1.6 %, same set and layout 19.7 % -> 0.0 %; a living room holds 10.5 things in the poorest households, 17.3 in the richest; the cradle, loom and tablets once per household, things in a doorway's sweep 1604 -> 0, rooms a body cannot cross 1.9 % -> 0 %; the ring 19.7 k triangles mean at a street door. All C (D-207; the region's houses and camps by analogy; the Treasury's goods' types B).
+
+## D-620 Recorded sound: beds by place, hour, season and weather, recorded foley and footsteps, measured rooms; the synthesis becomes the fallback (session 17, cloud C8; UD-33)
+- **One catalogue** (src/audio/soundplan.ts): 9 sound places (terrace, hall, town, room, village, plain, river, orchard, hillside) classified from what the soundscape already gets (fauna.placeAt, the Terrace room, the listener's position and height; `roofed` and `ground` are the walk's hooks, C9), 4 bed times folded from the coverage hour bands, 4 seasons, the weather as layers (light/heavy rain, rain on a roof, drips, gusts, dust wind, snow's hush). 35 bed layers, 69 one-shot sets (every STRIKE_KIND, every ambient species, thunder, fire pops, herd bells, children's laughter), 12 footstep surfaces (walk; 5 with a run set), 8 room impulse-response kinds. All C.
+- **Recordings cannot be fetched in the cloud**: tools/audio/fetch_list.json lists every need (queries, licence order CC0 > CC BY > CC BY-NC, reject words for modern sounds and speech); tools/audio/fetch.mjs (Vagon, open internet) resolves through freesound (API or its pages), Wikimedia Commons, archive.org, screens beds for speech by the syllable-rate modulation of the 250-900 Hz envelope (measured: this project's speech clips 11.0 dB, in noise 6.9, noise 0.6, crickets 4.7, a barking dog 5.1; limit 5.5), cuts beds to 120 s at -23 LUFS (two-pass loudnorm) Opus 48 kb/s stereo and one-shots/steps into events by silence (mono, peak -3 dBFS, Opus 40 kb/s), pins the picks in tools/audio/fetch_lock.json and writes the ASSET_LEDGER block. Proved offline here on synthetic downloads (a bed measured -22.9 LUFS after it).
+- **Rooms now**: the OpenAIR impulse responses archived on assets-archive, cut by tools/audio/irs.mjs (8 kinds, 156 KB, CC BY 4.0); measured T20 picked the marble hall (~3.7 s) for the great halls, the tennis court (~1.7 s) for the middle halls, the smoking room for rooms, Clifford's Tower for courts and lanes, Trollers Gill for the slopes, Koli for the plain, Wheldrake Wood for orchards, Maeshowe for stone chambers. engine.setSpace takes the measured IR when decoded, else the Sabine one.
+- **Engine** (library.ts, sampler.ts): nothing fetched before the frame loop runs with a running context (after walkable and the first click), then lazily, two files at a time, low fetch priority; decoded bytes under 192 MB (LRU, playing beds pinned). A bed is a chain of crossfaded stretches (22-40 s, 3 s equal-power fades) drawn from the parts of its recordings not heard in the last 60 s (T-G2; tested over 600 s). One-shots never repeat the last two recordings, ±6 % pitch, ±2 dB. Every layer without a decoded recording plays its synthesis (the old soundscape, ducked where a recording covers it: wind to 35 %, rain to 15 %).
+- **Size budget for C4**: public/audio ≤ 40 MB on disk (about 24 MB beds, 3 MB one-shots, <1 MB steps and rooms by the list's numbers); none of it on the load path.
+- **Done measure**: tools/dev/sound_census.ts (43 coverage strata x 8 bands x 9 weathers x 4 seasons = 12,384 cells): every cell's beds listed today; recorded and fetched once Vagon runs the fetch.
+- **Later the same day (cloud)**: raw.githubusercontent.com is reachable from the cloud, so ESC-50 (K. J. Piczak 2015; 2,000 five-second freesound clips with per-clip licences: CC0, CC BY, CC BY-NC) became a fourth source of fetch.mjs. In git now (4.4 MB): 7 beds as PROVISIONAL patchworks of 27-37 clips (rain light/heavy, drips, hearth, gusts, warm-night crickets, orchard birds; speechiness 0.8-3.8 dB, under the 5.5 limit), 17 one-shot sets, 8 footstep surfaces (the other 4 borrow the nearest: FOOT_NEAR). Titles naming modern settings were rejected (an intensive pig farm, a city park, pavement, a factory hall, a drinking glass). All 183 files decode in Chromium at their listed lengths. The full fetch on Vagon replaces the patchworks with long field recordings unless run with --keep-provisional.
+- **Levels by measurement** (tools/dev/sound_mix.ts, the real files in the mock context): each scene's total with the recordings matched to its total without them: BED_LEVEL 1.0, rain x2.5, gusts and dust x1.5, the hearth 2.2; orchard -29.0 vs -28.0, warm night -30.3 vs -28.0, rain -20.8 vs -20.4, storm -14.0 vs -13.2, a fire at 3 m -25.6 vs -25.2 dBFS.
+
+## D-630 The walk: a body with weight, a head that moves with the steps, no snags (s17 cloud C9)
+- Paces (src/player/motion.ts; C, human-factors values): walking 1.35 m/s by default, careful 0.8 (held, Left Alt), brisk 1.95 (held, Left Shift: "walk faster"; the old 3.2 m/s was a jog, against the brief's "no sprinting"), crouched 0.7 (toggle, C). The walk bots keep 3.2 m/s through Player.botSpeed (their measure is the colliders, not the gait).
+- Weight: the velocity is acceleration-limited (3.2 m/s² up, 5.5 down: walking pace in ~0.42 s, a stop in ~0.25 s); a wall takes the velocity into it (a riser, a slope and a person do not: they are climbed, walked and eased past). Uphill slows the body ×1/(1 + 0.8 grade) on top of what the controller loses (grade 0.5: ~0.64 m/s along the ground); the stride shortens on grades toward a tread a step (0.75 m on the level).
+- The head (camera offset, never roll; T-K3 and D-238 stand): bob ±1.8 cm lowest at each footfall, scaled by speed and eased out in ~0.12-0.2 s when the body stops (it froze where the phase stopped before); sway ±1.1 cm once a stride; a landing dip by the height fallen (closed-form critically damped knee, ≤ 10 cm); a 3 mm breath at rest; the head-bob setting turns all of it off. The pin moved from main.ts to motion.ts BOB_AMP (tests/defaults.test.ts).
+- The eye on stairs and steps: every rise and drop walked is eased on a spring (13 rad/s, clamp 0.6 m); across, the eye follows the body with velocity feed-forward (7 rad/s), so a step-up's jump over the edge, its payback (stepDebt: the body pays back the carry before moving on, so climbs keep the walking pace) and a push out of a face glide. Step-up tries lower lifts and shorter reaches (0.26-0.31 m treads: the full reach met the next riser, the body crept up on the controller's slide and stalled at every riser). The feet are set on the floor after each grounded move (the controller sank 7-10 cm at 30 Hz). The visible body rides with the eased eye.
+- No snags: a person or an animal met head-on turns the walk 55° aside for 0.45 s to the freer side; a stall of 0.25 s on an edge (a jamb, an open leaf, a trimesh's inner edges) probes ±23/46/69° for 0.45 m of room and takes the smallest turn (a flat wall offers none: no sliding along walls one did not ask for); held fast in a mesh face's skin (every move zero, the Tachara N doorway), 4 cm straight out of the faces.
+- Crouch: a 1.1 m capsule (new collider; setHalfHeight left the controller's queries at the old size), eye 1.05 m, stands only with room for the full capsule; the visible body is hidden while crouched (no crouch pose in the kit: PLACEHOLDER in that state only, C).
+- Input (src/core/input.ts): raw mouse (pointer lock asks for unadjustedMovement), pointer-lock jumps dropped (one event > 200 px and > 12× the recent motion); gamepad (standard mapping): left stick walks, analog (pace by deflection), right stick looks (dead zone 0.14, square response, eased 70 ms; 2.4 / 1.6 rad/s), L3 brisk, B crouch, A act, Start menu. Keys slow/crouch in Settings → Keys.
+- Footfalls: Player.onStep({ foot, speed, pace, crouched, stair, x, y, z }) one per step (C8's hook); world.ts passes running = pace brisk to the soundscape's footsteps (one line).
+- Measured (node, offline world): tools/dev/walkfeel.ts (the slice and six Terrace walkthroughs at the player's gait): 125/125 targets, 0 snags (before: 117/125, 15 snags in the Tachara and Treasury doorways); eye jerk ≤ 5.8 mm/frame² across (was 20-31), ≤ 16 up and down (was 60, a 0.5 m threshold). tools/dev/doorwalk.ts (every enterable door both ways at the player's gait): Terrace 130/130 (treasury:E sealed, not walked), town street doors 594/594, doors inside the plots 506/506 (the 6 earlier failures were the tool starting walks on top of tall fittings). Unit: tests/walk_feel.test.ts.
+
+## D-580 The load keeper: the files in need order, one decoder, nothing hangs, and where the load goes (session 17, cloud C4; UD-31)
+- The built site's cold load measured on the cloud's 4-core box (bench-reports/load_s17.md): 79.1 s at the day's start; on the
+  s17 tip with everyone's work ~70 s page clock / ~80-85 s as the harness sees it. UD-31's < 60 s is not met here; the main
+  thread is the bottleneck (58-71 CPU-s to ready, ~90 % busy) and its work is in other owners' builders: the per-stage table by
+  source file went to C2, C10 and the lead. Page memory 5.5-5.7 GB (the ground array 192 MB the largest holder: Vagon asked to
+  run ktx_ground.ts). Pages 628 MB.
+- The service worker prefetches a cold visit's files in the order the page asks for them (public/sw.js, src/core/prefetch.ts,
+  tools/deploy/boot_list.mjs); every byte in by 34 s instead of 80 s. On the grown tip no measurable time difference on this
+  CPU-bound box (n=3 each, the box's spread is +-8 s); kept for lines where the network is the long pole.
+- The shared KTX2/Draco decoders re-landed (871d8aab) with an idle reaper: no hang, -0.1 GB, time neutral.
+- A stand-in-able asset set that never answers no longer hangs the boot (300 s, then its stand-ins; tested with a hung file).
+- The spawn's terrain chunks built in the build's idle wait; the measuring tools (measure.mjs, boot_profile.mjs --stages/--heap,
+  boot_mem.mjs) say where time, CPU and memory go. The loading screen's animations cost a software-composited browser ~1 core
+  for the whole load: sent to C5.
+
+- Also (assigned by the cloud lead): src/people/converse/ui.ts's note when a person answers in their own lines now says why, out of world: the talk still arriving (with its share), the talk's model could not be fetched (reload to retry), or the graphics card cannot run it. Text only; the talk's behaviour is unchanged. tools/dev/first_minutes.mjs drives a player's first minutes on the built site end to end (19 steps).
+
+## D-472 (s17, Vagon lead): the 23:20 crash and the one-train rule
+- What happened: the baseline train ran ~13 min a view (shader compiles); to go faster the lead started 3 more train shards
+  in parallel (4 full-world pages) while 6 agents ran probe browsers. Memory spiked, WMI hung (tasklist/taskkill timed out),
+  the T4 was reset (Dawn: device removed) and the Claude app died, stopping all six agents. Lost: the baseline train (one
+  frame published); no code (every agent had pushed; small uncommitted edits stayed in their trees; agents resumed).
+- Rule (CLAUDE.md box safeguards): two full-world pages at most, never parallel shards; scoreboard.mjs holds
+  T:/fars-train/train.lock and refuses under 16 GB free; agents' browsers only through gpu_slot. Train timeout raised to
+  2400 + 900 s a view (the T4's real rate).
+- **D-512 (V4, under D-510): the glazed-brick bands over the Gate's doorways.** The six 'frieze' parts of the Gate of All
+  Nations (glazed, 4.6 x 0.9 m) drew as flat blue slabs at the player's lens. They now carry the Apadana frieze's band
+  (glazed.ts doorFriezeFaces + the shared band builder): both broad faces, border courses and ground with rosettes, the
+  courses fitted to each part's height (10 courses, 5 rosettes a face), a child mesh of the Apadana frieze (one draw; the
+  Apadana frieze's own test unchanged). Colours, layout C as D-214.
+- (D-500, close) Cycles impostors re-rendered after the last cloth change; report handoff/s17/report_people.md.
+- light v2b (D-480 cont.): the cloud deck fades out between 30 and 60 km (the march at grazing angles smeared the noise into
+  streets converging on the vanishing point: cov-000's horizon fan; gone in the lab), and the night toe lift eases by up to
+  75 % under a bright moon (GRADE.nightLift from the SkySystem): the moonlit plain p50 73 → 52, the moonless one unchanged (17).
+
+
+## D-521 (s17, V5): rain that reads (mixed streaks, splashes), dust that shows, a weather probe
+- weatherVfx.ts: each drop its own streak length (0.45-1.25 x) and brightness, the sheet's opacity 0.5 -> 0.34 (a uniform
+  sheet of equal streaks read as scratches on the lens); splashes where drops land within 9 m of the eye (a crown and a
+  rebound droplet, ~0.3 s, closed form in time; brighter than the streak: the sky in the water), none under the halls' roofs;
+  world.ts hook (one line): wvfx.ground = terrain.surfaceAt. shader_build counts the new mesh.
+- dust.ts: the puffs' optical depths 6-10x (the first pass's read as nothing in the probe: tau 0.05-0.12), longer lives,
+  more puffs per animal; a billowing edge (two noise octaves) instead of a disc.
+- tools/dev/weather_probe.{html,ts,mjs}: the plain (plain_probe's ?lite ground, flora, rocks) with the game's Animals in
+  flocks and strings, their dust, the rain, the wet ground and breath; views rain-spring, wet-after, dust-june, herd-5m,
+  herd-30m, cold-morning. Frames judged: shots/wx-*-w6.png (not committed).
+- Not mine, seen in the probe: the wet plain is darker but matte (no sheen, no puddles: the ground material, V2/C2); the
+  ground flora draws black spiky cards on the plain (groundFlora, C2).
+
+## D-522 (s17, V5): the season's palette in one place (season.ts SEASON_PALETTE)
+- The herb layer's green and straw and the stubble's colours lived as copies in materials.ts, terrainPlain.ts (twice),
+  water.ts and groundCover.ts; they now read season.ts SEASON_PALETTE (one-line hooks in each). Spring green moved from an
+  olive (0.31, 0.36, 0.18) that read as summer khaki to a young green (0.34, 0.45, 0.16); straw a little warmer. How much of
+  the ground the herbs cover stays the ground materials' (C2, V2). Probe: shots/pp-small-spring-field-s1.png.
+
+## D-523 (s17, V5): wet coats in the rain
+- animals.ts: a library model's coat darkens to ~0.6 of its albedo with the weather's surface wetness (WEATHER.wetness, the
+  ground's own uniform), loses its fuzz rim and takes a duller sheen. Probe: shots/wx-rain-spring-w7.png, wx-herd-30m-w7.png
+  (the spring green of D-522 reads on the plain at 30 m).

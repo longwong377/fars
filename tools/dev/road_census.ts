@@ -101,7 +101,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
 /** the building site and the camps from the population's plans (Population.plan: what popview draws) */
 export function siteCensus(pop: Population, days: number[]) {
-  const AREAS: [string, RegExp][] = [['hall100 site', /^(hall100_site|worksite|h100_|brickyard)/], ['court camps', /^(court_camp|rcamp:)/]];
+  const AREAS: [string, RegExp][] = [['hall100 site', /^(hall100_site|worksite|h100_|brickyard)/], ['court camps', /^(court_camp|rcamp:)/], ['fields', /^(field:|crown_fields|threshing:)/], ['flocks', /^(flock:|pasture:|route:|stockyard)/]];
   const out: Record<string, { perHour: Record<number, number>; acts: Record<string, number>; daysWith: number }> = {};
   for (const [k] of AREAS) out[k] = { perHour: {}, acts: {}, daysWith: 0 };
   for (const d of days) { const sun = pop.cal.ctx(d).sun, seen: Record<string, boolean> = {};

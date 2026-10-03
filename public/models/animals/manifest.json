@@ -55,7 +55,7 @@
     },
     "calf_nrm.ktx2": {
      "bytes": 822126,
-     "sha256": "847160dcaa5877a36fdb0d3bc23290dd6c1446a49dc3e833261c89d1adea1a0b"
+     "sha256": "4140ad99cd7ec0a1acf72f5dccea4c8b3842d24e6d98c5d2428bd1eb60cdc683"
     }
    },
    "tris": [
@@ -676,8 +676,8 @@
      "sha256": "8399e57cbec344b176e584ef482dd83f52b6df6238a25df597540490aa429570"
     },
     "deer_albedo.ktx2": {
-     "bytes": 694983,
-     "sha256": "e5f21df5fbfbdeefa9f10ccaa36d0da4ebeff74cf64f70c1fd9fc300696d0f4c"
+     "bytes": 694981,
+     "sha256": "45e6a0a25dbf78dc59349b01687b7b59c21eefca934a75ce0776277b0f41b10e"
     },
     "deer_nrm.ktx2": {
      "bytes": 721196,
@@ -821,7 +821,7 @@
     },
     "dog_albedo.ktx2": {
      "bytes": 794620,
-     "sha256": "8f5657e5d1bd30d3da7dc9d2ef4466d106cb1da4cd3ddd41b0ce0485dd438546"
+     "sha256": "cbd0f7e7f09acdc9e9751c474f31c8ba417014198744eb03129cb5b083f40b59"
     },
     "dog_nrm.ktx2": {
      "bytes": 696930,
@@ -1252,8 +1252,8 @@
      "sha256": "41cddab658fcdfafa9006fcf8c44d8b09153f0cd770ff4dba999d70a2799b42d"
     },
     "dromedary_albedo.ktx2": {
-     "bytes": 996897,
-     "sha256": "29ac86a4006479a8ed973d3e86abee48a7cb08090d947c42e3c4728938692109"
+     "bytes": 996893,
+     "sha256": "ca9c498a6548a77306348cf03e4eae2c4d6e7c821f6f705d9381127446df52c4"
     },
     "dromedary_nrm.ktx2": {
      "bytes": 905763,
@@ -1396,12 +1396,12 @@
      "sha256": "18f74802aa376f7ba5bf8f05d2be6511095f35282be2b2a2ff846de9b177f0a5"
     },
     "fox_albedo.ktx2": {
-     "bytes": 749482,
-     "sha256": "76fd32ad4c18992a75439d557b1a4aef9374299d9a06ff8c2bd7b6e8eba36136"
+     "bytes": 749489,
+     "sha256": "72b66726e14ebe6dcdc463728b47817f20c6e4ea7f8dab568d9928f5de0d4b2b"
     },
     "fox_nrm.ktx2": {
-     "bytes": 449518,
-     "sha256": "939a3ff593f26d0be763dde3e2f835c33eeea220765d79a4f5f3ed4c3941f9b2"
+     "bytes": 449515,
+     "sha256": "205d2cc6dc78ab56ec32be1df52393e96f53e664cfd00e1be18a013dea799083"
     }
    },
    "tris": [
@@ -2007,8 +2007,8 @@
      "sha256": "3daa7bbd216394d8cba7673fe679eda55186a52f2616e94439739519046b0cec"
     },
     "hen_albedo.ktx2": {
-     "bytes": 289679,
-     "sha256": "30bec1978ec643324002b7fa23b5438ee2c2f6152beb9201e58dcdcdcde6b2fe"
+     "bytes": 289677,
+     "sha256": "9d1369c2c0a7c068d78ef1136e920ec7cf3f2f980fc23717e9f04462a4b3e5fa"
     },
     "hen_nrm.ktx2": {
      "bytes": 296654,
@@ -2127,8 +2127,8 @@
      "sha256": "77ad9978b2e1dc1d0eccc011a503271bc536e3981f8620ba872a27ca8f979707"
     },
     "horse_nrm.ktx2": {
-     "bytes": 714937,
-     "sha256": "36b308c124ef2176af1c6fd1c3821aa1a4c85b734d2c9199f7af04f59c07baf9"
+     "bytes": 714943,
+     "sha256": "7feb5406e3576bda1a3964eb4464d4cd82578c5f6be034e28211fa34cfb9bcc2"
     }
    },
    "tris": [
@@ -2415,8 +2415,8 @@
      "sha256": "8a967c57964dd895ed65330d7c1f9326179b8bff898d82ea213aac44818ca782"
     },
     "hyena_nrm.ktx2": {
-     "bytes": 1056645,
-     "sha256": "fff882468c6f91380d6e1a51b7508766cb1880bebb720cb600b65af166ed1d61"
+     "bytes": 1056651,
+     "sha256": "118264962e60b63b1d6ff6e0725fbea04ae00016240244b008756bfd423f3509"
     }
    },
    "tris": [
@@ -2556,7 +2556,7 @@
     },
     "leopard_albedo.ktx2": {
      "bytes": 346886,
-     "sha256": "75466c58a97fde4824f836533d70e46c142adeec7c7d25b0f6df1a52d476cf6e"
+     "sha256": "7800c8c3b4e922895ddd78f2628f8d897a43c4af3a02d4220d5c994dc56668aa"
     },
     "leopard_nrm.ktx2": {
      "bytes": 262919,
@@ -2987,12 +2987,12 @@
      "sha256": "6215947a2b1382f820bb9dacab490f05eec4707504c646186e35d4237c1ff9dd"
     },
     "mule_albedo.ktx2": {
-     "bytes": 823488,
-     "sha256": "7166b35b1281ce2cbde9e1cf0885e3f1dd9d47c3f8723b654f79f7769aa2e517"
+     "bytes": 823486,
+     "sha256": "772ca9c9c78a639e3fa0b131ea8f15a1ee4d9f24849d2055546c795e2c715c7d"
     },
     "mule_nrm.ktx2": {
-     "bytes": 799989,
-     "sha256": "11fd00c8d7c20cba4d9ec42b1b595c5c0d4435d4ba0641425f8328a49174a58f"
+     "bytes": 799990,
+     "sha256": "b8f8e21bb5370a04546b764bebdc5c17157ae82d39c16b26e2e9230c8b6559bc"
     }
    },
    "tris": [
@@ -3136,7 +3136,7 @@
     },
     "mule_pack_nrm.ktx2": {
      "bytes": 988020,
-     "sha256": "a0f0e4f33ab41a8d231f1d9c7fecefab54232b59cd3d33d8b18da483d4b386dd"
+     "sha256": "aa16b7db496ac87157d12761a04eeaacd951d46ce71f1a984b198811b2e0e8cd"
     }
    },
    "tris": [
@@ -3275,8 +3275,8 @@
      "sha256": "db604a870faa0cc26d832001d7297c5d41df188c7ee61e2605d280e10d31cf9b"
     },
     "onager_albedo.ktx2": {
-     "bytes": 830163,
-     "sha256": "6380508f073e928655d05fef25d2126372b6771c09dc2b7ad8c53a7a6ce93fad"
+     "bytes": 830166,
+     "sha256": "b8cdb6fe40dda809ee6bdc8ced07b314c78c6ce33595e8d315f4712761d0f4af"
     },
     "onager_nrm.ktx2": {
      "bytes": 769839,
@@ -3419,12 +3419,12 @@
      "sha256": "729c6b7f8ec7746d710e724698ed3cf2a5ea942cb5cc93bf8d461e533e80c882"
     },
     "ox_albedo.ktx2": {
-     "bytes": 885196,
-     "sha256": "86556dfae8c3cd62cb139d239fd535015853e69783fc9ef8191722b3cf99a11b"
+     "bytes": 885197,
+     "sha256": "2813514d133f7c0e45712c796a9dfd24c3de809df9f7f69bd00885a54ec3229a"
     },
     "ox_nrm.ktx2": {
-     "bytes": 884715,
-     "sha256": "5cb0df775d21f82038ee4c8b71c9471215fcf3b546677d85dff66c10e8bb68b2"
+     "bytes": 884717,
+     "sha256": "aadab43484459ce186ddcaee1d7201bb8cfed9678854b538d44c09f94f8b4ed8"
     }
    },
    "tris": [
@@ -3563,12 +3563,12 @@
      "sha256": "c254e541781bd3349b598af975d758709ea0e7014013943f6062d65e8a67ea8a"
     },
     "sheep_albedo.ktx2": {
-     "bytes": 1084439,
-     "sha256": "afc0a54a181e3268ffb182edc03678f446d014a27aecabf3e995f6c2229fdc74"
+     "bytes": 1084443,
+     "sha256": "c542ab130e67290095dc541520a91e2e40b74a3ed3e54eca9aa5f1afe64cbc17"
     },
     "sheep_nrm.ktx2": {
-     "bytes": 1121935,
-     "sha256": "f5b2e2986a85d724e4e3fc1a5133e089555399712bd09bfeaa246e9b00994fe6"
+     "bytes": 1121934,
+     "sha256": "7519776908dc850f448b7142768730a0457d01eecabb16890800131151b82f56"
     }
    },
    "tris": [
@@ -3707,8 +3707,8 @@
      "sha256": "ee88c4faeb98979e1e716ae7babff20f7ac4dd50094d115acb5ea24ad8255126"
     },
     "stag_albedo.ktx2": {
-     "bytes": 870487,
-     "sha256": "e62ca4a22d2b91efd40c91dbe11e5500cdeb07a51d7ca5cb475eff24b54d6999"
+     "bytes": 870490,
+     "sha256": "50a519b5b9c78fc02e99b3b282d66fb3e0a1aab728ed1ed5742f1ff6ab2ce9c6"
     },
     "stag_nrm.ktx2": {
      "bytes": 669358,
@@ -3987,8 +3987,8 @@
      "sha256": "02efe59f16d11f3406597596a126893e4ed20fa1c8b26c4267e41539e70ab719"
     },
     "wild_goat_albedo.ktx2": {
-     "bytes": 867711,
-     "sha256": "95b401d38751354decc1806c0f78f4cacb498ec8ce57b27de3110294a042573e"
+     "bytes": 867707,
+     "sha256": "31758d3914a9f343d861d8c98498787cdc16a3a49f88887b08da74e59f56ad37"
     },
     "wild_goat_nrm.ktx2": {
      "bytes": 859866,
@@ -4128,11 +4128,11 @@
     },
     "wolf_albedo.ktx2": {
      "bytes": 985873,
-     "sha256": "41991e9943f7b6e3664024800595f9488489769c3ef5d02e1b046ad97866ca02"
+     "sha256": "db7fdd24b6048dc9959d312a4e92372959f7155704cf7fe8ae43564007cf7479"
     },
     "wolf_nrm.ktx2": {
-     "bytes": 573793,
-     "sha256": "48a1ded066b6dab6c8b55ef22878a846375d7b68a5cb234676cdec11d2f6aae2"
+     "bytes": 573816,
+     "sha256": "7b59f0912e6e39710228c6a091b4327596b50184eb621f651c28e7a4bf53f1b1"
     }
    },
    "tris": [

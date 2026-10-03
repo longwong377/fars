@@ -21,7 +21,7 @@ describe('a bird takes off without a pop (D-362, B179)', () => {
     const B = new Birds(1, nav, new Terrain(meta, ring('near'), ring('mid'), ring('far')), [[0, 90], [150, 40]]);
     const fly0 = B.meshesOf('sparrow').find(m => m.name.endsWith(':fly0'))!; expect(fly0.geometry.getAttribute('standPos')).toBeTruthy();
     const s: [number, number] = (B as any).sparrowSpots[0], far: [number, number] = [s[0] + 200, s[1] + 200], t0 = 7000.2;
-    const standAmts = () => B.meshesOf('sparrow').filter(m => /:fly[01]$/.test(m.name)).flatMap(m => { const a = m.geometry.getAttribute('standAmt'); return Array.from({ length: m.count }, (_, i) => a.getX(i)); });
+    const standAmts = () => B.meshesOf('sparrow').filter(m => /:fly[01]$/.test(m.name)).flatMap(m => { const a = m.geometry.getAttribute('bA'); return Array.from({ length: m.count }, (_, i) => a.getZ(i)); });
     B.update(5, 11, t0, far, { x: 0, n: 0 }, 0); B.update(5, 11, t0 + 0.05, s, { x: 0, n: 0 }, 0); // (it stands; then someone is beside it: it flushes)
     B.update(5, 11, t0 + 0.1, s, { x: 0, n: 0 }, 0);
     const mid = standAmts().filter(k => k > 0.01 && k < 0.99); expect(mid.length, 'drawn between standing and flying').toBeGreaterThan(0);

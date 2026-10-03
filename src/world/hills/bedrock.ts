@@ -14,6 +14,7 @@
 // cached; three levels per piece (lod2 shared by every ledge far off), shadows from the levels within the cascades' reach.
 // Tiers: the limestone and its bedding B (KR-BEDROCK: the Terrace is cut from it); every ledge's and stone's place C.
 import * as THREE from 'three/webgpu';
+import { sharedDraco } from '../../render/loaders';
 import { texture, uv, vec3, vec2, dot, attribute, float, uniform, positionLocal, smoothstep, distance } from 'three/tsl';
 import type { Terrain } from '../../terrain/heightfield';
 import { mxNoise3 } from '../../render/mx_noise_cpu';
@@ -152,8 +153,8 @@ export async function loadRockKit(base = BASE): Promise<RockKit | null> {
   if (typeof location !== 'undefined' && new URLSearchParams(location.search).get('bedrock') === '0') { KSTAT.failed = 'off (?bedrock=0)'; return null; }
   try {
     const man = await (await fetch(base + 'models/land/manifest.json')).json();
-    const [{ GLTFLoader }, { DRACOLoader }] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), import('three/addons/loaders/DRACOLoader.js')]);
-    const draco = new DRACOLoader().setDecoderPath(base + 'models/lib/draco/'), loader = new GLTFLoader().setDRACOLoader(draco), tl = new THREE.TextureLoader();
+    const [{ GLTFLoader }, draco] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), sharedDraco(base)]); // (D-392: the page's decoders)
+    const loader = new GLTFLoader().setDRACOLoader(draco), tl = new THREE.TextureLoader();
     const kit: RockKit = { ledge: [], ground: [], atlas: {} };
     for (const cls of ['ledge', 'ground'] as RockClass[]) {
       const C = man.classes?.[cls]; if (!C) continue;
@@ -170,7 +171,7 @@ export async function loadRockKit(base = BASE): Promise<RockKit | null> {
       const mean = meanColour(map), Y = (c: number[]) => 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
       kit.atlas[cls] = { map, normal, arm, mean, cellK: [0, 1, 2, 3].map(i => Y(mean) / Math.max(0.01, Y(meanColour(map, i)))) };
     }
-    draco.dispose(); KIT = kit; KSTAT.pieces = kit.ledge.length + kit.ground.length;
+    KIT = kit; KSTAT.pieces = kit.ledge.length + kit.ground.length;
   } catch (e) { KSTAT.failed = String((e as Error).message ?? e); console.warn(`[bedrock] no rock kit (${KSTAT.failed}): the hills keep their texture only`); KIT = null; }
   KSTAT.ms = Math.round(performance.now() - t0); return KIT;
 }
@@ -220,6 +221,22 @@ export function lodDistances(id: string | undefined, scale: number): [number, nu
 /** how deep a piece sinks at the end of its reach (m): as before D-600 (four times its scale), and at least its own height
  *  (a large rock on a slope kept a corner up) */
 export const sinkDepth = (st: RockSite) => Math.max(st.s[1] * 4, st.s[1] * 1.6 + 0.5);
+/** D-600: a rock piece baked into a static geometry (the quarries' outcrops and spoil chips merge many into one draw):
+ *  the piece's level transformed by `m`, with the rock material's per-vertex tint and an origin that never sinks */
+export function bakedRockPiece(kit: RockKit, cls: RockClass, v: number, lod: number, m: THREE.Matrix4, tint: [number, number, number]): THREE.BufferGeometry {
+  const P = kit[cls][v], g = P.lods[Math.min(lod, P.lods.length - 1)].clone().applyMatrix4(m), n = g.getAttribute('position').count;
+  const k = kit.atlas[cls]?.cellK?.[P.cell ?? 0] ?? 1, t = new Float32Array(n * 3), o = new Float32Array(n * 4);
+  for (let i = 0; i < n; i++) { t.set([tint[0] * k, tint[1] * k, tint[2] * k], i * 3); o.set([0, 0, 0, 1e9], i * 4); }
+  g.setAttribute('rtint', new THREE.BufferAttribute(t, 3)); g.setAttribute('rorg', new THREE.BufferAttribute(o, 4));
+  return g.index ? g.toNonIndexed() : g;
+}
+const MATS = new WeakMap<RockAtlas, THREE.MeshStandardNodeMaterial>();
+/** the rock material of a class (shared with the hills' sets; null without the kit's atlas) */
+export function rockMaterialOf(kit: RockKit, cls: RockClass): THREE.MeshStandardNodeMaterial | null {
+  const A = kit.atlas[cls]; if (!A) return null; let m = MATS.get(A); if (!m) { m = rockMaterial(A, `bedrock:${cls}`); MATS.set(A, m); } return m;
+}
+/** the palette tint of a piece (linear rgb): a in 0..1 picks between the rock and its dark patches or the fresh scree */
+export const rockTint = (a: number, b: number, darkShare: number) => tintOf(a, b, darkShare);
 // ------------------------------------------------------------------------------------------------ the drawn rock
 interface Set_ { cls: RockClass; v: number; lod: number; cast: boolean; mesh: THREE.InstancedMesh; tint: THREE.InstancedBufferAttribute; org: THREE.InstancedBufferAttribute; cap: number }
 /** the most instances per drawn set (ledges: per variant near, all variants far; ground: per variant) */
@@ -251,13 +268,13 @@ export class Bedrock {
       mesh.name = name; mesh.userData = this.group.userData; this.sets.push({ cls, v, lod, cast, mesh, tint, org, cap }); this.group.add(mesh);
     };
     if (kit.atlas.ledge && kit.ledge.length) {
-      const mat = rockMaterial(kit.atlas.ledge, 'bedrock:ledge');
+      const mat = rockMaterialOf(kit, 'ledge')!;
       kit.ledge.forEach((p, v) => { add('ledge', v, 0, true, p.lods[0], mat, BEDROCK_CAP.ledge[0], `bedrock-ledge:${p.id}:lod0`); add('ledge', v, 1, true, p.lods[1], mat, BEDROCK_CAP.ledge[1], `bedrock-ledge:${p.id}:lod1`); });
       // far off one shape stands for all (a piece spans a few pixels): the first piece's lod2, cast within the cascades
       add('ledge', -1, 2, true, kit.ledge[0].lods[2], mat, BEDROCK_CAP.ledge[2], 'bedrock-ledge:far:cast'); add('ledge', -1, 3, false, kit.ledge[0].lods[2], mat, BEDROCK_CAP.ledge[3], 'bedrock-ledge:far');
     }
     if (kit.atlas.ground && kit.ground.length) {
-      const mat = rockMaterial(kit.atlas.ground, 'bedrock:ground');
+      const mat = rockMaterialOf(kit, 'ground')!;
       kit.ground.forEach((p, v) => { add('ground', v, 0, true, p.lods[0], mat, BEDROCK_CAP.ground[0], `bedrock-ground:${p.id}:lod0`); add('ground', v, 1, true, p.lods[1], mat, BEDROCK_CAP.ground[1], `bedrock-ground:${p.id}:lod1`);
         // D-600: past the near levels, each variant's own lod2 (no shape swap), cast within the cascades' reach
         add('ground', v, 2, true, p.lods[2], mat, BEDROCK_CAP.ground[2], `bedrock-ground:${p.id}:lod2:cast`); add('ground', v, 3, false, p.lods[2], mat, BEDROCK_CAP.ground[3], `bedrock-ground:${p.id}:lod2`); });

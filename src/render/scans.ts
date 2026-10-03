@@ -9,6 +9,7 @@
 // Tier C (the scans are modern stone and earth standing in for the grain of 467's; the tint is the evidence's).
 // In node (tests, bakes) no texture is loaded and applyScan is the identity, so every CPU mirror of materials.ts still holds.
 import * as THREE from 'three/webgpu';
+import { sharedKTX2 } from './loaders';
 import { texture, positionWorld, normalWorld, vec2, vec3, float, int, abs, pow, mix, dot, max, smoothstep } from 'three/tsl';
 import SCANS from '../data/scans.json';
 import { loadBlockFace } from './blockface';
@@ -66,14 +67,14 @@ export const SCAN_USE: Record<string, ScanUse> = {
   // straw, the roller's lines)
   mud_plaster: { scan: 'dirt_floor', scale: 2.07, scale2: 9.1, alb: 0.75, chroma: 0.45, height: 0.003, rough: 0.4 },
   house_plaster: { scan: 'dirt_floor', scale: 2.07, scale2: 9.1, alb: 0.75, chroma: 0.45, height: 0.003, rough: 0.4 },
-  house_socle: { scan: 'stone_wall', scale: 2.0, alb: 1.0, hue: 0.45, height: 0.01, rough: 0.6, nor: 1.4 },
+  house_socle: { scan: 'stone_wall', scale: 2.0, alb: 1.0, hue: 0.75, chroma: 0.8, height: 0.01, rough: 0.6, nor: 1.4 },
   house_roof: { scan: 'raked_dirt', scale: 1.1, scale2: 6.3, alb: 0.85, chroma: 0.6, height: 0.004, rough: 0.4 },
   mud_roof: { scan: 'raked_dirt', scale: 1.1, scale2: 6.3, alb: 0.85, chroma: 0.6, height: 0.004, rough: 0.4 },
   plaster: { scan: 'clay_plaster', scale: 2.0, alb: 0.35, height: 0.002, rough: 0.3 },
   // D-302: the terrain, the rivers' banks, the tracks and the canal banks lay their own ground layers (GROUND below, groundScan);
   // this entry is the 'earth' of other meshes (the Now view's stumps, the lab ground): dust, not the cracked earth of D-295
   earth: { scan: 'dirt', scale: 2.0, scale2: 9, alb: 0.8, height: 0.008, rough: 0.5 },
-  court_fill: { scan: 'gravelly_sand', scale: 2.0, scale2: 9, alb: 0.7, height: 0.006, rough: 0.5 },
+  court_fill: { scan: 'gravelly_sand', scale: 2.0, scale2: 9, alb: 0.7, hue: 0.3, /* D-490: a share of the sand's buff (flat grey under the probe) */ height: 0.006, rough: 0.5 },
   // D-490: the town's lanes, courts and tracks take Dirt Floor (trodden and swept packed earth: pores, grit, chaff), half its own
   // buff laid over the ground's vertex colour (the court floors read as pale concrete under light v1 with Rocky Trail 02's fine grit)
   road: { scan: 'dirt_floor', scale: 1.9, scale2: 8.3, alb: 0.9, chroma: 0.6, hue: 0.35, height: 0.008, rough: 0.5 }, // D-302: trodden earth and fine gravel (was sandy_gravel_02: too fine to read)
@@ -162,9 +163,7 @@ export async function loadScans(base = BASE, anisotropy = 8): Promise<void> {
   const ktxOf = new Set(Object.values(WALL_BAKE).filter(b => b.ktx).map(b => b.tex));
   const ktxScans = new Set<string>(new URLSearchParams(location.search).has('scanjpg') ? [] : await fetch(`${base}textures/ktx.json`).then(r => (r.ok ? r.json() : null)).then(j => Object.keys(j?.maps ?? {})).catch(() => []));
   let K: any = null;
-  if (ktxOf.size || ktxScans.size) try { const { KTX2Loader } = await import('three/addons/loaders/KTX2Loader.js');
-    const ad = await (globalThis as any).navigator?.gpu?.requestAdapter?.().catch(() => null);
-    K = new KTX2Loader().setTranscoderPath(base + 'models/lib/basis/'); K.detectSupport({ isWebGPURenderer: true, hasFeature: (f: string) => !!ad?.features?.has(f) } as any); } catch { K = null; }
+  if (ktxOf.size || ktxScans.size) try { K = await sharedKTX2(base); } catch { K = null; } // (D-392: the page's transcoder)
   const map = async (id: string, f: string): Promise<THREE.Texture> => {
     if (K && ktxScans.has(`${id}/${f}`)) try { const t: THREE.Texture = await K.loadAsync(`${base}textures/${id}/${f}.ktx2`); t.magFilter = THREE.LinearFilter; return t; } // (once uploaded, no page copy: world/cache/release.ts)
     catch (e) { console.warn(`[scans] ${id}/${f}.ktx2: ${(e as Error).message}; the jpg`); }
@@ -182,7 +181,7 @@ export async function loadScans(base = BASE, anisotropy = 8): Promise<void> {
     const t: THREE.Texture = kt ? await K.loadAsync(`${base}textures/${id}/bake.ktx2`) : await L.loadAsync(`${base}textures/${id}/bake.jpg`);
     t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = anisotropy; if (!kt) t.generateMipmaps = true; else t.magFilter = THREE.LinearFilter;
     t.minFilter = THREE.LinearMipmapLinearFilter; t.colorSpace = THREE.NoColorSpace; t.needsUpdate = true; BAKE.set(id, t); } catch { /* not built: the scan alone */ } }));
-  K?.dispose?.();
+  // (D-463: K is the page's shared transcoder: never disposed here; its dispose ended every later KTX2 load in the page)
 }
 export const scansLoaded = () => TEX.size > 0;
 /** D-334: the baked detail maps loaded (their ids), for the probes and the dev overlay */

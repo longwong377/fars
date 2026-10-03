@@ -22,6 +22,7 @@ import * as THREE from 'three/webgpu';
 import { attribute, positionLocal, positionGeometry, normalGeometry, modelViewMatrix, texture, uv, varying, mix, vec3, vec4, sin, cos, max, min, abs, sign, exp, fract, step, float, uniform, positionViewDirection, dot, pow, luminance } from 'three/tsl';
 import { animalModel } from './animalModels';
 import { realRig, realFrame } from './animalReal';
+import { WEATHER } from '../render/materials';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { nearCascadesOnly } from './humanGPU';
 import { interleave } from './props';
@@ -510,8 +511,11 @@ export class Animals {
       // V5 D-520: the coat's fuzz: hair scatters light forward at grazing angles, so a furred body's silhouette is lighter and
       // paler than its face-on hide (the sheen of fur and wool; a cheap stand-in for a sheen lobe, C). Only on the coat (mask)
       const nv = abs(dot(N, positionViewDirection)).clamp(0, 1), rim = pow(float(1).sub(nv), float(2.5)).mul(ta.a.mul(0.75).add(0.25));
-      mat.colorNode = mix(base, vec3(luminance(base)).mul(1.25).add(base.mul(0.35)), rim.mul(0.55)) as any;
-      mat.roughnessNode = float(0.95).sub(float(1).sub(ta.a).mul(0.35)) as any;
+      // V5 D-523: a coat soaked in the rain darkens (water fills the hair: ~0.6 of the dry albedo, C), loses its fuzz and
+      // takes a dull sheen; it dries with the ground (the weather's surface wetness, the same uniform the ground reads)
+      const wetA = WEATHER.wetness.mul(0.85).clamp(0, 1);
+      mat.colorNode = mix(base, vec3(luminance(base)).mul(1.25).add(base.mul(0.35)), rim.mul(0.55).mul(float(1).sub(wetA))).mul(float(1).sub(wetA.mul(0.4))) as any;
+      mat.roughnessNode = float(0.95).sub(float(1).sub(ta.a).mul(0.35)).sub(wetA.mul(0.35)) as any;
     }
     const mesh = new THREE.InstancedMesh(g, mat, this.cap); mesh.count = 0; mesh.visible = false; mesh.castShadow = mesh.receiveShadow = true; mesh.frustumCulled = true; mesh.boundingSphere = new THREE.Sphere();
     mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); mesh.name = `animals:${sp}${model ? `:lod${lod}` : ''}`; mesh.raycast = () => {};
