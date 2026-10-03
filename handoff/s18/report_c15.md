@@ -26,7 +26,7 @@ settlement/plan.ts (+ new settlement/estates.ts).
 ## What a player now meets (measured)
 
 - **Naqsh-e Rustam.** Both façades' architecture is painted and gilded, while the reliefs' ground stays bare stone:
-  - Darius' tomb: 6,0xx of 21,702 façade vertices painted (tests/naqsh_life.test.ts asserts a share between 15 and 90 %), with
+  - Darius' tomb: a measured share of its 21,702 façade vertices painted (tests/naqsh_life.test.ts asserts a share between 15 and 90 %), with
     gilded horns, throne legs and studs.
   - The Ka'ba is a fresh, finer white.
   - Before the second façade stands a scaffold of 16 standards with ledgers, transoms, 4 plank decks, ladders and the cutters'
@@ -56,7 +56,20 @@ settlement/plan.ts (+ new settlement/estates.ts).
 
 ## Frames (crude, SwiftShader, `?webgl=1`, 1280 × 720, day 25 10:00 clear)
 
-FRAMES_PLACEHOLDER
+Before: `origin/s17-int` 803a0e76 (06:00). After: this branch at 4f3ab187. All frames are in handoff/s18/c15/ as
+before_*.jpg and after_*.jpg. They are crude frames for placement and emptiness only, not for the look.
+
+| view | before | after |
+|---|---|---|
+| naqsh-50 (54 m before Darius' tomb, looking N) | bare stone façades on a bare cliff, empty ground | the façades' bands painted (red/blue/green fasciae, the throne's beams), the second façade under its pole scaffold with 4 decks, the pale spoil and the cutters' lean-to at its foot, the white offering table |
+| naqsh-150 | an empty plain before the cliff; the Ka'ba | the same with the scaffold and spoil readable; the ground still empty of people (C1 ask) |
+| naqsh-tomb2 (after only) | — | the scaffold over the second façade, its painted bands showing through, the spoil, the lean-to |
+| estate1-gate | (camera placed against the outer wall: not comparable) | the gatehouse: two white piers on red dados, the glazed frieze of white/turquoise/yellow, the trees over the wall; the house behind still bare mud |
+| estate1-porch (after only) | — | the garden porch: red-ochre shafts with blue/yellow bands on white bell bases, blue bracket capitals, the glazed frieze, the cushions; the house wall behind bare mud (C2 ask) |
+| pavilion | mud box walls, plain columns, a flat slab | a white room on a red dado and a dark doorframe, red shafts on bell bases, painted beams, the frieze; **the roof reads only as an edge from below** (props have no bottom face: C2 ask) |
+| village-60 | a tree fills the view (camera) | the same tree (the open-view probe did not turn from it): not comparable |
+| village-15m (after only) | — | the near level: compounds full of people (357 drawn), some washed lighter; **the yards were green lawns**, since fixed by trodden-earth yards (1a3863f2, not yet rendered) |
+
 
 ## Tests
 tests/naqsh_life.test.ts, tests/estates.test.ts and tests/villages_life.test.ts are new and pass. tests/plain.test.ts (33),
