@@ -41,7 +41,7 @@ await ctx.addInitScript(({ min, depth }) => {
   for (const k of ['instantiate', 'instantiateStreaming']) { const f = WebAssembly[k]; WebAssembly[k] = function (...x) { return f.apply(this, x).then(r => keep(r, k)); }; }
   const WI = WebAssembly.Instance; WebAssembly.Instance = new Proxy(WI, { construct(t, args, nt) { return keep(Reflect.construct(t, args, nt), 'Instance'); } });
   const d = Object.getOwnPropertyDescriptor(MessageEvent.prototype, 'data');
-  Object.defineProperty(MessageEvent.prototype, 'data', { get() { const v = d.get.call(this); if (this.__seen) return v; this.__seen = 1; const scan = (x, k) => { if (!x || k > 2) return; if (x instanceof AB) rec(x, 'message'); else if (ArrayBuffer.isView(x)) rec(x.buffer, 'message'); else if (Array.isArray(x)) x.forEach(y => scan(y, k + 1)); else if (typeof x === 'object') for (const y of Object.values(x)) scan(y, k + 1); }; try { scan(v, 0); } catch {} return v; } });
+  Object.defineProperty(MessageEvent.prototype, 'data', { get() { const v = d.get.call(this); if (this.__seen) return v; this.__seen = 1; const scan = (x, k) => { if (!x || k > 5) return; if (x instanceof AB) rec(x, 'message'); else if (ArrayBuffer.isView(x)) rec(x.buffer, 'message'); else if (Array.isArray(x)) x.forEach(y => scan(y, k + 1)); else if (typeof x === 'object') for (const y of Object.values(x)) scan(y, k + 1); }; try { scan(v, 0); } catch {} return v; } });
 }, { min, depth });
 const page = ctx.pages()[0] ?? await ctx.newPage(), t0 = Date.now();
 await page.goto(`${host}/fars/?quality=high&trace&${extra}`);
