@@ -228,6 +228,10 @@ export class PeopleSim {
   stepAhead(ms: number): boolean {
     const end = performance.now() + ms, day = Math.floor(this.t / 24) + 1;
     if (!this.living.advanceSliced(day + 1, ms)) return false;
+    return this.warmPlans(day, end);
+  }
+  /** the plans of the sim's people for a day read until `end` (performance.now()), the caches warmed; true when all are */
+  private warmPlans(day: number, end: number): boolean {
     if (this.ahead.day !== day) this.ahead = { day, i: 0 };
     while (this.ahead.i < this.agents.length) { if (performance.now() >= end) return false; const pid = this.agents[this.ahead.i++].pid; if (pid >= 0 && this.pop.present(pid, day)) this.pop.plan(pid, day); }
     return true;
@@ -728,6 +732,8 @@ export class PeopleSim {
     this.t += dt * H_PER_S; this.searches = 0; this.deeds.joint.settle(this.t);
     this.events$(); this.talk.step(this.t, this.player);
     for (const a of this.agents) this.stepAgent(a, dt);
+    this.jumpPend = null; // (a jump left unfinished is dropped: the world steps from where the people are)
+    if (this.aheadMs > 0) this.stepAhead(this.aheadMs); // D-650: tomorrow made ready a little each frame (D-388 stepAhead)
   }
   /** simulation LOD: people within `radius` m of `centre` (the player) walk real routes; the rest travel abstractly.
    *  Promotion mid-journey re-routes from the current position, so nobody jumps; demotion keeps the remaining time. */
@@ -749,10 +755,25 @@ export class PeopleSim {
         a.path = null; a.travel = { from: [...a.pos] as P2, to: [...a.task.spot] as P2, t0: this.t, t1: this.t + d / (a.speed * this.dustF()) * H_PER_S }; a.walking = true; }
     }
   }
-  /** jump to a new time: everyone is placed where their plan puts them (continuity after time skips, loads) */
-  jumpTo(tHours: number) {
+  /** D-650: a jump not yet made, its days still being stepped across frames (jumpTo with a slice): the target, in hours */
+  private jumpPend: number | null = null;
+  /** D-650: true while a jump's catch-up runs across frames (the people stay as they were until the living world reaches the day) */
+  get catchingUp() { return this.jumpPend !== null; }
+  /** D-650: per step, up to this many ms of the days ahead made ready (stepAhead: the living world to the day after tomorrow,
+   *  tomorrow's plans warmed), so the day's turn at midnight finds them made; 0 (tests, soak): off. The world sets it */
+  aheadMs = 0;
+  /** jump to a new time: everyone is placed where their plan puts them (continuity after time skips, loads).
+   *  D-650: sliceMs > 0 (the world's frames): the living world's days up to the target (each day of the economy, the talk,
+   *  the minds; ~0.35 s a day in the page) are stepped within about sliceMs a call, and the people stay as they were until
+   *  the target day is reached; call again each frame with the clock's time (false until the jump is made). The same days
+   *  in the same order as the whole jump (LivingWorld.advanceSliced), so the world after it is the same. 0: all at once */
+  jumpTo(tHours: number, sliceMs = 0): boolean {
+    if (sliceMs > 0) { const day = Math.floor(tHours / 24), end = performance.now() + sliceMs; // (then the people's plans for the day, read a few at a time: ~20 ms each, ~2.5 s for all)
+      if (!this.living.advanceSliced(day + 1, sliceMs) || !this.warmPlans(day, end)) { this.jumpPend = tHours; return false; } } // (to the day after: a day's plans read the economy's next morning, EconPlans.steps)
+    this.jumpPend = null;
     this.t = tHours; this.evT = tHours < this.evT ? tHours - 24 : Math.max(this.evT, tHours - 24); this.events$(); this.deeds.joint.settle(this.t);
     for (const a of this.agents) { if (a.carry === 'sack' && a.sackTo) this.stock[a.sackTo] += 1; a.carry = null; a.sackTo = undefined; a.relieved = true; this.begin(a, this.decide(a), true); } // (a camp sack in hand is set down at its place: S6 r5)
+    return true;
   }
   private strChron = -1;
   private events$() {
