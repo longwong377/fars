@@ -23,7 +23,7 @@ describe('visitor mode', () => {
     const inGate = W('gate_hall');
     const r = v.update(inGate, t0, false, false); expect(r.blocked).toBe(true); expect(r.x).toBeCloseTo(outside.x); // back to the last allowed point
     expect(f.reacted.some(([, i]) => i === 'ask_document')).toBe(true);
-    expect(v.interact(inGate, t0, false, false)).toMatch(/halmi/);
+    expect(v.interact(inGate, t0, false, false)).toMatch(/sealed letter/); // (D-696, W18)
     expect(v.update(inGate, t0 + 0.001, false, false).blocked).toBe(false);
     const court = W('forecourt');
     expect(v.update(court, t0 + 0.01, false, false).blocked).toBe(true); // courts: not alone

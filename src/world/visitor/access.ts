@@ -109,7 +109,11 @@ export interface VisitorCtx {
   /** a guard or official walks beside the visitor */ escorted: boolean;
   /** the guards at this zone's post recognise the visitor with the same errand open (recognition rules) */ recognised: boolean;
 }
-export interface Decision { zone: string; rule: Rule; allowed: boolean; /** what the guard asks for, or why never */ needs: 'nothing' | 'halmi' | 'escort' | 'never'; tier: string }
+export interface Decision { zone: string; rule: Rule; allowed: boolean; /** what the guard asks for, or why never */ needs: 'nothing' | 'halmi' | 'letter' | 'escort' | 'never'; tier: string }
+/** s18 C5 (W18, D-696): the halmi is a travel authorisation, the road's and the ration point's document (PF: B); a palace's
+ *  guard asks for the stranger's business there: the sealed letter carried for an official, or an official's escort (C).
+ *  The zones of the Terrace and its stair ask for the letter; the town's and the road's posts for the halmi */
+export const LETTER_ZONES = new Set(['stair_foot', 'grand_stair', 'gate_nations', 'terrace_courts', 'treasury_street', 'apadana', 'tachara', 'hadish', 'harem', 'tripylon', 'hall100', 'treasury', 'treasury_desk', 'garrison', 'fortification_e', 'pf_archive_findspot', 'palace_h', 'unfinished_gate']);
 /** the zone's rule for this moment: night, the court's presence, recognition */
 export function ruleOf(z: AccessZone, ctx: Pick<VisitorCtx, 'night' | 'court' | 'recognised'>): Rule {
   const r = ctx.night ? z.night : ctx.court ? z.court_resident : z.rule;
@@ -120,7 +124,7 @@ export function decide(zoneId: string, ctx: VisitorCtx): Decision {
   const rule = ruleOf(z, ctx);
   switch (rule) {
     case 'open': case 'none': return { zone: zoneId, rule, allowed: true, needs: 'nothing', tier: z.tier };
-    case 'business': { const ok = ctx.business.has(zoneId) && (ctx.admitted.has(zoneId) || z.checked_at.length === 0 || ctx.recognised); return { zone: zoneId, rule, allowed: ok, needs: ok ? 'nothing' : ctx.business.has(zoneId) ? 'halmi' : 'never', tier: z.tier }; }
+    case 'business': { const ok = ctx.business.has(zoneId) && (ctx.admitted.has(zoneId) || z.checked_at.length === 0 || ctx.recognised); return { zone: zoneId, rule, allowed: ok, needs: ok ? 'nothing' : ctx.business.has(zoneId) ? (LETTER_ZONES.has(zoneId) ? 'letter' : 'halmi') : 'never', tier: z.tier }; }
     case 'escort': return { zone: zoneId, rule, allowed: ctx.escorted, needs: ctx.escorted ? 'nothing' : 'escort', tier: z.tier };
     default: return { zone: zoneId, rule, allowed: false, needs: 'never', tier: z.tier };
   }

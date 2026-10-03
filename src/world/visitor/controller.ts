@@ -59,7 +59,8 @@ export class Visitor {
   update(p: { x: number; z: number; yaw: number }, t: number, night: boolean, court: boolean): { x: number; z: number; blocked: boolean } {
     if (this.s.escortFrom != null && !this.s.escorted && t - this.s.escortFrom >= ESCORT_WAIT_H) { this.s.escorted = true; this.note(t, 'an escort from the Gate guard walks with you'); }
     const { zone, d, guardsHere } = this.check(p.x, p.z, t, night, court);
-    if (this.s.escorted) this.W.escort({ x: p.x + Math.cos(p.yaw) * 1.4, z: p.z - Math.sin(p.yaw) * 1.4, yaw: p.yaw });
+    // (D-696: the escort walks at your right shoulder, a little ahead, not 1.4 m before your eyes)
+    if (this.s.escorted) this.W.escort({ x: p.x + Math.cos(p.yaw) * 0.45 + Math.sin(p.yaw) * 0.9, z: p.z - Math.sin(p.yaw) * 0.45 + Math.cos(p.yaw) * 0.9, yaw: p.yaw });
     if (d.allowed) {
       this.lastOk = { x: p.x, z: p.z };
       if (this.s.escorted && !['gate_nations', 'terrace_courts', 'treasury_street', 'treasury_desk'].includes(zone)) { this.s.escorted = false; this.s.escortFrom = null; this.W.escort(null); }
@@ -71,8 +72,9 @@ export class Visitor {
       .map(g => ({ g, d: Math.hypot(g.pos[0] - p.x, g.pos[1] + p.z) })).filter(q => q.d < 40).sort((a, b) => a.d - b.d)[0]?.g ?? null;
     if (!this.s.stop || this.s.stop.zone !== zone || t - this.s.stop.t > 0.05) {
       this.s.stop = { zone, guard: near?.id ?? null, t, needs: d.needs };
-      if (near) this.W.react(near.id, d.needs === 'halmi' ? 'ask_document' : 'refuse', t);
-      this.note(t, d.needs === 'halmi' ? `stopped at ${zone.replace(/_/g, ' ')}: the guard asks for your sealed document`
+      if (near) this.W.react(near.id, d.needs === 'halmi' || d.needs === 'letter' ? 'ask_document' : 'refuse', t);
+      this.note(t, d.needs === 'halmi' ? `stopped at ${zone.replace(/_/g, ' ')}: the guard asks for your sealed travel document`
+        : d.needs === 'letter' ? `stopped at ${zone.replace(/_/g, ' ')}: the guard asks your business here`
         : d.needs === 'escort' ? `stopped at ${zone.replace(/_/g, ' ')}: you may not walk here alone`
         : `turned back at ${zone.replace(/_/g, ' ')}: closed to you`);
     }
@@ -82,11 +84,15 @@ export class Visitor {
   /** the interact key: show the halmi to the guard who stopped you; or do the current step's business where you stand */
   interact(p: { x: number; z: number }, t: number, night: boolean, court: boolean): string | null {
     const st = this.s.stop;
-    if (st && t - st.t < 0.1 && st.needs === 'halmi' && this.s.halmi && this.business(t).has(st.zone)) {
+    // (W18, D-696: the halmi at the road's and the town's posts; on the Terrace the sealed letter for the treasurer, its seal
+    // and its address shown, is the business; after it is handed over, the answer awaited is)
+    const shows = st && (st.needs === 'halmi' ? this.s.halmi : st.needs === 'letter' ? this.s.letter !== 'delivered' : false);
+    if (st && t - st.t < 0.1 && shows && this.business(t).has(st.zone)) {
       if (!this.s.admitted.includes(st.zone)) this.s.admitted.push(st.zone);
       if (st.guard != null) this.W.react(st.guard, 'affirm', t);
       if (st.zone === 'gate_nations') { this.s.escortFrom = t; this.s.step = Math.max(this.s.step, 4); }
-      this.s.stop = null; return this.note(t, `you show the halmi at ${st.zone.replace(/_/g, ' ')}: admitted on your business`);
+      this.s.stop = null; return this.note(t, st.needs === 'halmi' ? `you show your sealed travel document at ${st.zone.replace(/_/g, ' ')}: let through`
+        : `you show the sealed letter for the treasurer at ${st.zone.replace(/_/g, ' ')}: admitted on its business`);
     }
     // while the letter is at the Treasury, the door is where to ask for word (steps 6 and 7)
     const step = ERRAND.steps.find(q => q.n === (this.s.letter === 'handed' ? 7 : this.s.step));
