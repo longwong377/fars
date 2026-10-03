@@ -24,6 +24,8 @@ for (const [i, side] of [[0, 0.1], [1, -0.08], [2, 0.06]]) await shot(`face05-${
 // talking: the middle person speaks (the crowd's talk cycle drives the jaw; the face speaks over it), six moments, each after
 // 0.4 s of frames (the head's following of the eyes and the mouth's coarticulation run on the clock)
 for (const [k, tt] of [0, 0.11, 0.23, 0.37, 0.52, 0.71].entries()) await shot(`talk-${k}`, ([m, tt]) => { const L = window.__lab; L.lineup(m.map((s, j) => (j === 1 ? { ...s, anim: 'talk' } : s)), 0.9, true); L.at(4 + tt - 0.4); L.frameFace(1, 0.55, 0.05); }, [MIX, tt], 12);
+// the mouth up close (0.3 m) over a second of speech: the visemes' shapes
+for (const [k, tt] of [0, 0.09, 0.18, 0.27, 0.36, 0.45].entries()) await shot(`mouth-${k}`, ([m, tt]) => { const L = window.__lab; L.lineup(m.map((s, j) => (j === 2 ? { ...s, anim: 'talk' } : s)), 0.9, true); L.at(5 + tt - 0.4); const r = L.frameFace(2, 0.34, 0.03); L.view(0.93, r.eyeY - 0.035, 0.44, 0.9, r.eyeY - 0.065, 0.1); }, [MIX, tt], 12);
 await shot('talk-man', ([m]) => { const L = window.__lab; L.lineup(m.map((s, j) => (j === 0 ? { ...s, anim: 'talk' } : s)), 0.9, true); L.at(6.9); L.frameFace(0, 0.55, 0.05); }, [MIX], 12);
 writeFileSync(`${OUT}/log.json`, JSON.stringify({ logs: logs.slice(0, 40), seconds: (Date.now() - t0) / 1000 }, null, 1));
 await b.close();

@@ -9973,3 +9973,41 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   from 2 m up to ~290 m over the mountain behind the Terrace; a data fix (reroute round the north end) asked of the lead.
 - Unseen: the cloud cannot draw Q=high (WebGL2: program validation failures and a lost device with the cascade on AND off;
   WebGPU: SwiftShader's 16-texture cap), so the far cascade is verified node-side only; it needs a T4 frame.
+
+## D-790 People up close: faces that speak, listen and look; the Bactrian camel and the zebu from library bodies; library ears that flick (session 18, cloud C14; UD-18, UD-21, UD-19)
+- The face while speaking (src/people/face.ts, new): mouth shapes from a phone stream (the spoken line's transliteration
+  when the voice hands it over, FaceState.say; else a seeded babble in the shape of the period's speech, consonant-vowel and
+  a-heavy, C), coarticulated over a raised-cosine window (+-70 ms, stateless): jaw, rounding (u o w), spreading (i e), the
+  lips pressed (m b p), the lower lip tucked (f v). The brows lift on stressed syllables (some people far more than others),
+  knit a little in thought; the head beats a small nod on the stress; the chest draws breath at the pauses.
+- Listening and looking: saccades as jumps (30 ms) with fixations of 0.3-2.2 s, between the other's eyes and mouth when
+  looking at someone (~70 % on the eyes), a blink after most large saccades, a slight drift; back-channel nods every few
+  seconds and a slow tilt while the other speaks; a faint smile for the one looked at, warmer in some. The head follows the
+  eyes beyond 10-15 degrees (an integrator on the eyes' unclamped need): a captured talking head bowed over its hands lifts
+  to the face it speaks to instead of rolling its eyes up under the brows. The upper lids rest 1-2 mm over the iris (the
+  bind pose's wide stare read as a doll's). All C, from the common picture of visemes (Preston-Blair, MPEG-4) and of
+  conversational gaze.
+- Where it runs: humanRig.faceMotion, per FaceState (WeakMap), only where the caller keeps a clock and animates the face
+  (the crowd's lod 0-1 people: a far person or an impostor bake stays still: the bake is byte-identical); +1.6 us per
+  near person per solve. The controls go to the vertex stage through a 4th extra palette group (bodyShape EX.mouth/vis/brow;
+  PALETTE_STRIDE 744 -> 756 floats, +48 B a person). bodyShape.faceOffset (mirrored term for term in humanMaterial): the
+  lips rounded (corners in, lips forward 7.5 mm), spread, pressed, tucked; the smile (corners up and back, cheeks up); the
+  brows lifted (5.4 mm) or knit; on head and jaw vertices only (eyes, teeth, mouth and lashes excluded; the beard follows).
+  The mouth's frame is measured per body variant from the mesh (the lips' line between the last unweighted and the first
+  jaw-weighted midline vertex; their front; the width by sex and age).
+- Shading: the brows as clumped hair strands laid as brows grow (the inner ends up, the tail out and down), spilling past the
+  map's edge, band-limited (650 and 2800 lines a metre); the eye's white shaded into its corners (0.38) and a deeper upper
+  lid shadow (0.45 -> 0.55). No new texture or sampler (the 16-sampler budget unchanged).
+- Animals (the library is not reachable from the cloud: B820): tools/blender/animals_derive.py reshapes a built library body
+  (its lod0 subdivided once, its maps decoded from KTX2: tools/blender/lib/ktx2png.mjs) and the library route builds the
+  result like any source (animals_real.mjs, registry `derive: {from, recipe}`; the derive script joins the input hash):
+  camel and camel_pack from the dromedary (one hump made two, over the withers and the loins, the saddle between where the
+  pack's bundle rides; the dark winter hair under the throat, on the upper fore legs and the humps' tops, painted into the
+  coat through the UVs; a browner coat), zebu from the cow (a rounded hump over the withers, the deep dewlap, grey-white;
+  the cow's ears kept). Credits: "Dromader" and "Cow" by hendrikReyneke, CC-BY-4.0, modified (ASSET_LEDGER). The boar was
+  tried from the hyena and left as it was (it read as a hyena with a beak); the boar and the hare stay procedural.
+- Ears and tails (B550): a library model's ears are found on its mesh (animalRig realEars: near the poll, the head's thin
+  parts, whose opposite surface lies within 5 cm or a fifth of the head's length along -normal; horned and antlered heads
+  left out; animalModels passes the normals): they flick now (1.5-2.4 cm on donkeys, horses, sheep, dogs, camels). The
+  camels' and the dromedary's tails swing (tail_r 0.06 / 0.07; a library tail's lever capped at 0.42 m so the hair against
+  the hocks is not torn: TAIL_LEVER_REAL); the camel_pack's lying tear (lod1, 4 cm) gone with it.

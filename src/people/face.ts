@@ -86,6 +86,14 @@ export function visemeAt(ph: Phones | null, seed: number, t: number, out: FaceSh
   return out;
 }
 
+/** the breath taken in a pause between phrases at time t of a phone stream: 0..1 (a 0.3 s swell in each pause) */
+export function pauseAt(ph: Phones, t: number): number {
+  let i = 0; for (let lo = 0, hi = ph.t.length - 1; lo <= hi;) { const m = (lo + hi) >> 1; if (ph.t[m] <= t) { i = m; lo = m + 1; } else hi = m - 1; }
+  if (ph.cls[i] !== '_' && t >= 0) return 0;
+  const a = t < 0 ? -0.3 : ph.t[i], b = t < 0 ? 0 : (ph.t[i + 1] ?? ph.dur), u = (t - a) / Math.max(0.05, b - a);
+  return Math.sin(Math.PI * Math.min(1, Math.max(0, u)));
+}
+
 /** the speaking person's stress beat at time t: 0..1, peaking ~60 ms after a stressed vowel starts (the brows and the
  *  head's small nod ride it) */
 export function stressAt(ph: Phones | null, seed: number, t: number): number {
