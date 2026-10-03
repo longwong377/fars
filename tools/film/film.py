@@ -37,10 +37,13 @@ def reset():
                 prefs.compute_device_type = kind; prefs.get_devices()
                 if any(d.type == kind for d in prefs.devices):
                     for d in prefs.devices: d.use = d.type == kind
-                    sc.cycles.device = 'GPU'; break
+                    sc.cycles.device = 'GPU'
+                    if kind == 'OPTIX': sc.cycles.denoiser = 'OPTIX'
+                    break
             except Exception: pass
     sc.cycles.samples = SAMPLES; sc.cycles.use_denoising = True
-    sc.cycles.denoiser = 'OPENIMAGEDENOISE'; sc.cycles.use_adaptive_sampling = True; sc.cycles.adaptive_threshold = 0.03
+    if sc.cycles.device != 'GPU': sc.cycles.denoiser = 'OPENIMAGEDENOISE'
+    sc.cycles.use_adaptive_sampling = True; sc.cycles.adaptive_threshold = 0.03
     sc.cycles.max_bounces = 6; sc.cycles.volume_bounces = 1; sc.cycles.glossy_bounces = 3; sc.cycles.transmission_bounces = 2
     sc.cycles.volume_step_rate = float(arg('--vstep', '4')); sc.cycles.caustics_reflective = False; sc.cycles.caustics_refractive = False
     sc.render.resolution_x, sc.render.resolution_y = RES; sc.render.resolution_percentage = 100
