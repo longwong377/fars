@@ -8,6 +8,7 @@ import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { NavGrid } from '../src/people/navgrid';
 import { PeopleSim, PLACES, type Env } from '../src/people/sim';
 import { segAt, type Population, type Seg } from '../src/people/population';
+import { PROPS } from '../src/people/props';
 import { checkPlan } from '../src/people/planCheck';
 import { COURT, KING, RETINUE, DELEGATIONS_BY_ORIGIN, COURT_PRIVATE } from '../src/people/court';
 import { CAMPS, TENT_KINDS, campPlace } from '../src/people/camps';
@@ -48,7 +49,7 @@ describe('the delegations’ dress (D-199: the Apadana reliefs, form B, colours 
   it('23 peoples, one each, numbered I-XXIII; every piece, dye and gift is one the systems have; the sources resolve; NOT SEEN is said', () => {
     expect(DELEGATIONS.length).toBe(23); expect(new Set(DELEGATIONS.map(d => d.origin)).size).toBe(23); expect(new Set(DELEGATIONS.map(d => d.relief)).size).toBe(23);
     expect([...COURT.visitors.origins].sort()).toEqual(DELEGATIONS.map(d => d.origin).sort());
-    const props = new Set(['bowl', 'jar', 'cloth', 'basket', 'sack', 'spear']);
+    const props = new Set(['bowl', 'jar', 'cloth', 'basket', 'sack', 'spear', ...Object.keys(PROPS).filter(k => k.startsWith('gift_'))]); // (D-780: the modelled gifts)
     for (const d of DELEGATIONS) { expect(DRESSES, d.id).toContain(d.dress); const opt = COSTUMES[COSTUME_OF[d.dress]].opt;
       for (const id of d.pieces) expect(opt, `${d.id} ${id}`).toContain(id);
       expect(['long', 'short', 'none']).toContain(d.beard);
@@ -88,28 +89,26 @@ describe('the king (D-199: B9, Q-335)', () => {
     expect(L.far).toBe('persian');
     const absent = new PeopleSim(1, nav, env).pop; expect(absent.court).toBeNull(); expect(absent.persons.some(p => p.sub.startsWith('court:king'))).toBe(false);
   });
-  it('gives audience on about two mornings in five: walks to the Apadana with staff and lotus, enthroned, walks back; otherwise unseen in the Hadish', () => {
-    const K = P.court!, rows: string[] = []; let aud = 0, days = 0;
+  it('is seen daily (D-780, C1\'s ask): the audience most mornings (enthroned under the canopy, his bearers and escort at their posts), the drive out in the chariot most afternoons, the hunt; otherwise unseen in the Hadish', () => {
+    const K = P.court!, rows: string[] = []; let aud = 0, days = 0, drives = 0;
     const hidden = new Set(COURT_PRIVATE.map(p => p.id));
-    // D-252: on his day he comes in past the road station and walks up with the parasol over him; then into the Hadish, unseen
+    // D-252, D-780: on his day he comes in past the road station in the royal chariot and walks up with the parasol over him
     { const s = P.plan(K.king, K.firstDay), seen = s.filter(x => x.where !== 'away' && !hidden.has(x.place));
-      expect(seen.map(x => x.act)).toEqual(['rest', 'royal_walk']); expect(seen[0].place).toBe('station'); expect(K.kingDay(K.firstDay).aud).toBe(false);
+      expect(seen.map(x => x.act)).toEqual(['rest', 'walk', 'royal_walk']); expect(seen[0].place).toBe('station'); expect(seen[1].why).toMatch(/royal chariot/); expect(K.kingDay(K.firstDay).aud).toBe(false);
       for (let d = 0; d < K.firstDay; d++) expect(P.present(K.king, d)).toBe(false); }
+    const SEEN = new Set(['royal_walk', 'enthroned', 'walk', 'rest', 'offer', 'eat']);
     for (let d = K.firstDay + 1; d < K.leaveDay; d++) { days++; const s = P.plan(K.king, d), Kd = K.kingDay(d);
       const seen = s.filter(x => x.where !== 'away' && !hidden.has(x.place));
+      expect(seen.every(x => SEEN.has(x.act)), `day ${d}: ${seen.map(x => x.act).join(',')}`).toBe(true);
+      if (s.some(x => /royal chariot/.test(x.why))) drives++;
       if (Kd.aud) { aud++; const th = s.find(x => x.act === 'enthroned')!; expect(th, `day ${d}`).toBeDefined(); expect(th.place).toBe(KING.throne);
         expect(Math.abs(th.t1 - Kd.a1)).toBeLessThan(1e-6); expect(Math.abs(th.t0 - Kd.a0)).toBeLessThan(0.02);
-        expect(seen.every(x => x.act === 'royal_walk' || x.act === 'enthroned'), `day ${d}: ${seen.map(x => x.act).join(',')}`).toBe(true);
-        expect(seen.filter(x => x.act === 'royal_walk').length).toBe(2);
-        // his bearers stand at their posts and his escort at theirs while he sits; they walk when he walks
-        for (const [pid, act] of [[K.bearers.parasol, 'attend_parasol'], [K.bearers.whisk, 'attend_whisk'], ...K.escort.map(e => [e, 'stand_guard'])] as [number, string][]) {
+        // his bearers stand at their posts (the parasol furled under the roof) and his escort at theirs while he sits
+        for (const [pid, act] of [[K.bearers.parasol, 'inspect'], [K.bearers.whisk, 'attend_whisk'], ...K.escort.map(e => [e, 'stand_guard'])] as [number, string][]) {
           if (P.sick(pid, d)) continue; const q = segAt(P.plan(pid, d), (Kd.a0 + Kd.a1) / 2); expect(q.act, `day ${d} ${pid}`).toBe(act); expect(q.place).toMatch(/^court_throne_/); }
-        for (const pid of [K.bearers.parasol, K.bearers.whisk]) { if (P.sick(pid, d)) continue; const w = P.plan(pid, d).filter(x => x.act === 'bear_parasol' || x.act === 'bear_whisk'); const kw = s.filter(x => x.act === 'royal_walk');
-          expect(w.length).toBe(2); for (let i = 0; i < 2; i++) expect(Math.abs(w[i].t0 - kw[i].t0), `day ${d}: bearer leaves ${w[i].t0} king ${kw[i].t0}`).toBeLessThan(0.02); }
-        if (rows.length < 3) rows.push(`day ${d}: enthroned ${Kd.a0.toFixed(2)}-${Kd.a1.toFixed(2)}`); }
-      else expect(seen, `day ${d}`).toEqual([]); }
-    OUT.king = { audienceDays: aud, residentDays: days, share: +(aud / days).toFixed(2), examples: rows }; save(); console.log(JSON.stringify(OUT.king));
-    expect(aud / days).toBeGreaterThan(0.28); expect(aud / days).toBeLessThan(0.5);
+        if (rows.length < 3) rows.push(`day ${d}: enthroned ${Kd.a0.toFixed(2)}-${Kd.a1.toFixed(2)}`); } }
+    OUT.king = { audienceDays: aud, drives, residentDays: days, share: +(aud / days).toFixed(2), examples: rows }; save(); console.log(JSON.stringify(OUT.king));
+    expect(aud / days).toBeGreaterThan(0.7); expect(aud / days).toBeLessThan(0.97); expect(drives / days).toBeGreaterThan(0.4);
     // his rooms are not drawn; the throne and the posts are on the walkable Terrace
     const geo = new PopGeo({ pop: P, nav, town: null, seed: 1 }); expect(geo.spot(K.king, KING.private, 'rest', 3, 10).out).toBe(false); expect(geo.spot(K.king, KING.private, 'rest', 3, 10).ok).toBe(true);
     for (const id of [KING.throne, KING.attend.parasol, KING.attend.whisk, ...KING.attend.escort, 'court_audience', 'court_audience_front', KING.private]) { expect(PLACES[id], id).toBeTruthy(); expect(nav.walkable(PLACES[id].at[0], PLACES[id].at[1]), id).toBe(true); }
