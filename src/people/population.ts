@@ -1066,6 +1066,8 @@ export class Population {
   /** the day's field task of a farming household (E-40 ... E-50): harvest and threshing, the vintage and the fruit take the
    *  whole household; ploughing, the canal, the water turn and hoeing are the men's. The hours follow the heat (the hotter
    *  the day, the earlier the reapers stop) and the size of the holding (2-4 plots) (C) */
+  // (D-651: the field work begins half an hour earlier than before, from first light: s18 C12's pagecheck found the fields
+  // empty at dawn; the heat of the day is worked round, as in the region's villages, C)
   ptask(h: number, d: number, C: DayCtx): PTask | null {
     const agri = C.agri, u = (k: number) => u01(this.seed, S.assign, 7700 + h, d, k), q = this.households[h].q;
     const plots = 2 + Math.floor(u01(this.seed, S.assign, 9000 + h) * 3); const field = `field:${h}:${Math.floor((d + h) / 3) % plots}`;
@@ -1092,18 +1094,18 @@ export class Population {
     // shadow review r8: 81 % of the winnowing in the calm morning, and on hot days the afternoon's session dropped although
     // the modelled afternoon wind was the stronger on every threshing day)
     if (thresh) { const h1 = end(10.5, 12.5), pmW = windy(C.wx.windPM), a = h1 + 0.8 + lerp(1, 4.5, hot), wa = Math.max(h1 + 1.5, Math.min(a, 16)), we = C.sun.set - 0.5;
-      return { kind: 'thresh', act: 'thresh', place: `threshing:${q}`, why: windy(C.wx.windAM) ? 'threshing and winnowing on the village floor (E-43)' : 'threshing: driving the animals round over the sheaves on the village floor (E-43)', h0: rise + 0.4 + lag / 2, h1, all: true, sheaves: false, late,
+      return { kind: 'thresh', act: 'thresh', place: `threshing:${q}`, why: windy(C.wx.windAM) ? 'threshing and winnowing on the village floor (E-43)' : 'threshing: driving the animals round over the sheaves on the village floor (E-43)', h0: rise - 0.1 + lag / 2, h1, all: true, sheaves: false, late,
         pm: pmW ? (we - wa >= 0.75 ? [wa, we] : null) : pmOf(h1), eveningWind: pmW, pmWhy: pmW ? 'winnowing in the afternoon and evening wind (E-43)' : 'turning the threshed straw; the air is too still to winnow (E-43)' }; }
     if (agri.has('E-50') && (h + C.dom) % 3 === 0) return { kind: 'canal', act: 'dig_canal', place: `canal:${q}`, why: 'clearing the village canal (E-50)', h0: 8, h1: 15, all: false, sheaves: false, late };
-    if (agri.has('E-45') && h % 5 < 2 && u(1) < 0.85) { const h1 = end(11, 13); return { kind: 'vintage', act: 'pick_fruit', place: `vineyard:${q}`, why: 'the vintage: picking grapes (E-45)', h0: rise + 0.5 + lag / 2, h1, all: true, sheaves: false, late, pm: pmOf(h1), pmWhy: 'treading the picked grapes in the press (E-45)' }; }
-    if ((agri.has('E-40') || agri.has('E-44')) && !(C.wx.wet && rainHours(C.wx, C.sun.rise + 0.5, C.sun.rise + 5) > 0) && u(3) < 0.8) return { kind: 'plough', act: 'plough', place: field, why: agri.has('E-44') ? 'sowing the summer crops (E-44)' : 'ploughing and sowing barley and wheat (E-40)', h0: rise + 0.6 + lag, h1: Math.min(16, C.sun.set - 1.2 - 0.3 * u(9)), all: false, sheaves: false, late };
-    if (agri.has('E-46') && h % 2 === 0 && u(2) < 0.7) { const h1 = end(10.5, 12), pm = pmOf(h1); return { kind: 'fruit', act: 'pick_fruit', place: `orchard:${q}`, why: 'picking figs and fruit (E-46)', h0: rise + 0.5 + lag / 2, h1, all: true, sheaves: false, late,
+    if (agri.has('E-45') && h % 5 < 2 && u(1) < 0.85) { const h1 = end(11, 13); return { kind: 'vintage', act: 'pick_fruit', place: `vineyard:${q}`, why: 'the vintage: picking grapes (E-45)', h0: rise + 0.0 + lag / 2, h1, all: true, sheaves: false, late, pm: pmOf(h1), pmWhy: 'treading the picked grapes in the press (E-45)' }; }
+    if ((agri.has('E-40') || agri.has('E-44')) && !(C.wx.wet && rainHours(C.wx, C.sun.rise + 0.5, C.sun.rise + 5) > 0) && u(3) < 0.8) return { kind: 'plough', act: 'plough', place: field, why: agri.has('E-44') ? 'sowing the summer crops (E-44)' : 'ploughing and sowing barley and wheat (E-40)', h0: rise + 0.1 + lag, h1: Math.min(16, C.sun.set - 1.2 - 0.3 * u(9)), all: false, sheaves: false, late };
+    if (agri.has('E-46') && h % 2 === 0 && u(2) < 0.7) { const h1 = end(10.5, 12), pm = pmOf(h1); return { kind: 'fruit', act: 'pick_fruit', place: `orchard:${q}`, why: 'picking figs and fruit (E-46)', h0: rise + 0.0 + lag / 2, h1, all: true, sheaves: false, late,
       pm: pm ? [Math.max(pm[0], late - 1.3), late] : null, pmWhy: 'picking the figs that ripened through the day (E-46)' }; }
-    if ((h + d) % 6 === 0 && [1, 2, 3, 4, 5, 6, 7].includes(C.month)) return { kind: 'turn', act: 'irrigate', place: `canal:${q}`, why: 'the household’s turn of water from the canal (CE-19)', h0: rise + 0.4 + lag, h1: rise + 3.4 + lag + 0.4 * u(9), all: false, sheaves: false, late };
+    if ((h + d) % 6 === 0 && [1, 2, 3, 4, 5, 6, 7].includes(C.month)) return { kind: 'turn', act: 'irrigate', place: `canal:${q}`, why: 'the household’s turn of water from the canal (CE-19)', h0: rise - 0.1 + lag, h1: rise + 3.4 + lag + 0.4 * u(9), all: false, sheaves: false, late };
     // the men's share of the field days (population.json field_fraction_by_sex, S1 of shadow review r4): P5.6's fraction
     // counts the women, who keep the house's work on these days; used as the men's chance it left them idle at home
     const frac = POPD.zones.find((z: any) => z.id === 'plain').field_fraction_by_sex.men[C.season];
-    if (u(5) < frac) return { kind: 'field', act: 'field_work', place: field, why: this.fieldWhy(C, u(10)), h0: rise + 0.8 + lag, h1: end(11.5, 14) - 0.4 * u(9), all: false, sheaves: false, late };
+    if (u(5) < frac) return { kind: 'field', act: 'field_work', place: field, why: this.fieldWhy(C, u(10)), h0: rise + 0.3 + lag, h1: end(11.5, 14) - 0.4 * u(9), all: false, sheaves: false, late };
     // no field today: the season's other men's work (lives.json farm_men_other_work, C); in winter often a day at home
     const OW = L.farm_men_other_work, w: Record<string, number> = { ...OW.by_month[String(C.month)] };
     const toHarvest = this.harvestIn(d); if (!(toHarvest >= 1 && toHarvest <= OW.opts.floor.before_harvest_d)) w.floor = 0;
