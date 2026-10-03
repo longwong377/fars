@@ -10300,3 +10300,29 @@ touched; the budget baseline is not re-accepted from such a head.
   in the lane by their street door, beside it and never in the opening, when the door is within 25 m: people in the lanes
   within 25 m of a lane point roughly doubled (q_s1 10:00 18 -> 37, q_w2 12 -> 19, q_n1 11 -> 21; 16:00 q_w2 18 -> 32).
   tests/people_drawn.test.ts: drawn >= 90 % of placed a second after a jump, placed >= 80 % of settled, lanes >= 25 %.
+
+## D-693 The bodies on the GPU, and nobody inside the camera (s18 cloud C5)
+- HumanGPU starts with 256 person slots and grows (new bone and person textures, the compiled materials' texture nodes
+  repointed, the old disposed) when the pool attaches more; the pool holds 400 + 48 and crowded views pass 256 (the gift day
+  445 skinned, cov-252 on the T4 435). The suspected cause of crowded frames drawing nobody, or a body in the bind pose (C6's
+  gift day, the T4's arms-out man); headless the crowd drew all 235 people in the gift day's frustum. The Crowd now makes 640
+  slots at its construction, before any material compiles: no texture swap in play (+~3 MB). On-screen confirmation: a cloud
+  frame of the gift day (renders on the lead's s18-renders-cloud round).
+- Nobody is drawn within EYE_CLEAR 0.5 m across of the eye with their height spanning it (a rig's or a teleport's camera
+  inside the dawn guard at the stair top; the player's capsule keeps people off by physics).
+## D-694 The nav grid takes the town's colliders (s18 cloud C5)
+- tools/build_nav.ts streams the Settlement's colliders over the grid's box (C2's doors in the houses). No house lies in the
+  grid today (q_b1's S edge n 190, the grid ends at 185; q_b3's E edge e -625, the grid starts at -620): the rebuilt grid
+  is byte-identical, not re-committed.
+## D-695 The visitor's footprints and step dust (s18 cloud C5; C12 4-11)
+- src/player/prints.ts: a print at each 0.68 m stride on earth (not the Terrace's paving), alternating sides, fading over
+  240 s, one instanced draw of 160 decals; the player's steps raise the walkers' dust (dust.ts kind 'walk') on dry ground.
+  Placed from crowd.update (the player's position the world passes). Not done: the crowd's own prints; mud from the weather
+  (the prints' wetness is 0 until the world passes it).
+## D-696 The visitor: business, not the halmi, at the palaces; turned back bodily; the visitor by default (s18 cloud C5)
+- W18: a palace's guard asks the stranger's business, shown by the sealed letter carried for the treasurer (C); the halmi,
+  a travel authorisation (PF: B), is asked only at the road's and the town's posts (access.ts LETTER_ZONES). The escort walks
+  at the shoulder (0.9 m aside, 0.45 m ahead), not 1.4 m before the eyes.
+- 4-3: a stranger stopped at a post is walked back 0.8 m from its line at about 1.2 m/s (controller.ts PUSH_M, PUSH_STEP),
+  not held at an invisible line; main.ts still applies the position (a teleport each frame of 4 cm).
+- settings.ts: playerMode defaults to 'visitor'. Ask (main.ts, not mine): keep ?test pages observer unless &visitor.
