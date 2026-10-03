@@ -136,3 +136,12 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-620..D-629 | s17 | C8 sound (Q-1550..Q-1559, B650..B659) | cloud-s17-c8-sound | merged into cloud-s17-int (s17 final cloud round, 2026-10-03) |
 | D-630..D-639 | s17 | C9 the walk (Q-1560..Q-1569, B660..B669) | cloud-s17-c9-walk | merged into cloud-s17-int (s17 final cloud round, 2026-10-03) |
 | D-640..D-649 | s17 | C10 life everywhere (Q-1570..Q-1579, B670..B679) | cloud-s17-c10-life | merged into cloud-s17-int (s17 final cloud round, 2026-10-03) |
+| D-650..D-659 | s18 | C1 the new-day tick (Q-1580..Q-1589, B680..B689) | cloud-s18-c1-tick | in flight |
+| D-660..D-669 | s18 | C2 town roofs and lane fill (Q-1590..Q-1599, B690..B699) | cloud-s18-c2-town | in flight |
+| D-670..D-679 | s18 | C3 river and plain (Q-1600..Q-1609, B700..B709) | cloud-s18-c3-plain | in flight |
+| D-680..D-689 | s18 | C4 sky, night and far shadow (Q-1610..Q-1619, B710..B719) | cloud-s18-c4-sky | in flight |
+| D-690..D-699 | s18 | C5 crowds, doors and the walk (Q-1620..Q-1629, B720..B729) | cloud-s18-c5-walk | in flight |
+| D-700..D-709 | s18 | C6 cloud eyes (Q-1630..Q-1639, B730..B739) | s18-renders-cloud | in flight |
+| D-710..D-719 | s18 | C7 CI and the old failing tests (Q-1640..Q-1649, B740..B749) | cloud-s18-c7-ci | in flight |
+| D-720..D-729 | s18 | C8 the people's depth (Q-1650..Q-1659, B750..B759) | cloud-s18-c8-depth | in flight |
+| D-730..D-739 | s18 | cloud lead (Q-1660..Q-1669, B760..B769) | s17-int / cloud-s17-int | in flight |
