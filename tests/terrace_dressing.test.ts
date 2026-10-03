@@ -32,7 +32,7 @@ describe('D-750 the Terrace dressed for distance', () => {
     const bays = porchBays(parts); expect(bays.filter(b => b.building === 'apadana').length).toBe(15);
     for (const b of bays) { expect(b.yTop).toBeGreaterThan(b.y0 + 3); expect(Math.hypot(b.b.c[0] - b.a.c[0], b.b.c[1] - b.a.c[1])).toBeLessThan(12); }
     const st = standardPlaces(parts); expect(st.filter(s => s.building === 'gate_nations').length).toBe(4); expect(st.filter(s => s.building === 'apadana').length).toBe(4);
-    const g = buildDressings(parts)!; let tris = 0; g.traverse((o: any) => { if (o.isMesh) { tris += o.userData.tris; expect(o.userData.tier).toBe('C'); } });
+    const g = buildDressings(parts)!; let tris = 0; g.traverse((o: any) => { if (o.isMesh) { tris += o.userData.tris ?? 0; expect(o.userData.tier).toBe('C'); } }); // (the kit's windows: instanced, counted in their own bound)
     expect(tris).toBeLessThan(40000); expect(g.userData.windows).toBeGreaterThan(30);
     const f = buildGlazedFrieze(parts)!; expect(f.getObjectByName('c10:dressings')).toBeTruthy(); expect(f.getObjectByName('palace-glazed-bands')).toBeTruthy();
     for (const p of parts) expect(['c10:dressings'].includes((p as any).kind)).toBe(false);
