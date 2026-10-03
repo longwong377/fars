@@ -59,7 +59,7 @@ export function roadRiverCrossings(rivers: RiverProfile[], roads = settlementRoa
         for (const k of near(grids[ri], x0, x1, y0, y1)) {
           if (Math.max(rv.x[k - 1], rv.x[k]) < x0 || Math.min(rv.x[k - 1], rv.x[k]) > x1 || Math.max(rv.y[k - 1], rv.y[k]) < y0 || Math.min(rv.y[k - 1], rv.y[k]) > y1) continue;
           const h = segHit(ax, ay, bx, by, rv.x[k - 1], rv.y[k - 1], rv.x[k], rv.y[k]); if (!h) continue;
-          if (out.some(c => c.road === r.id && c.river === rv.id && Math.hypot(c.x - h[0], c.y - h[1]) < 60)) continue;
+          if (out.some(c => c.river === rv.id && Math.hypot(c.x - h[0], c.y - h[1]) < (c.road === r.id ? 60 : 30))) continue; // (D-670: across roads too, within 30 m: two roads on one line share one ford)
           const a = Math.max(0, k - 4), b = Math.min(rv.x.length - 1, k + 3); let tx = rv.x[b] - rv.x[a], ty = rv.y[b] - rv.y[a]; const l = Math.hypot(tx, ty) || 1; tx /= l; ty /= l;
           out.push({ road: r.id, river: rv.id, x: h[0], y: h[1], i: k, tx, ty, roadW: r.width });
         }

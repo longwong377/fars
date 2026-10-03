@@ -13,7 +13,7 @@ import { realRig, type RealRig } from './animalReal';
  *  the head's along the neck from its root to its middle (the neck bends along its length, as a neck does, instead of
  *  hinging at one ring). The pivots and angles are the procedural rig's, so every gait, graze and lie cycle of the vertex
  *  shader drives the modelled body unchanged (tests/animal_models.test.ts: no edge torn in any pose). */
-export function rigWeights(sp: Species, pos: ArrayLike<number>, F: Form = realForm(sp) ?? animalForm(sp)): { leg: Float32Array; piv: Float32Array; ht: Float32Array; jig: Float32Array } {
+export function rigWeights(sp: Species, pos: ArrayLike<number>, F: Form = realForm(sp) ?? animalForm(sp), nrm?: ArrayLike<number>): { leg: Float32Array; piv: Float32Array; ht: Float32Array; jig: Float32Array } {
   const R = F.rig, B = ANIMAL_BUILD[sp], n = pos.length / 3, g = B.girth;
   const leg = new Float32Array(n * 4), piv = new Float32Array(n * 4), ht = new Float32Array(n * 4), jig = new Float32Array(n * 4);
   const byG = new Map<Group, Prim[]>(); for (const p of F.prims) { const k = p.group === 'gear' ? 'body' : p.group; if (!byG.has(k)) byG.set(k, []); byG.get(k)!.push(p); }
@@ -42,7 +42,34 @@ export function rigWeights(sp: Species, pos: ArrayLike<number>, F: Form = realFo
     if (wh >= wt) ht.set([wh, -ws, R.base[1], R.base[2]], i * 4); else ht.set([0, wt, R.tailRoot[1], R.tailRoot[2]], i * 4);
     jig.set(J(x, y, z, wl, wh, wt, db, dt), i * 4);
   }
+  if (F.real && nrm) realEars(sp, pos, nrm, ht, jig);
   return { leg, piv, ht, jig };
+}
+
+/** s18 C14 (D-790; B550): the ears of a library model, found on its mesh (the build measures no ear landmark): near the poll,
+ *  the head's THIN parts: a vertex whose opposite surface (the nearest vertex facing the other way, behind it along its
+ *  normal) lies within EAR.thin (m, or that share of the head's length) is in an ear; skulls, muzzles and horns are thick.
+ *  The lever (aJig.y) is the distance from the nearest thick head vertex (the ear's root), signed by the side, so the
+ *  shader's flick (animals.ts jiggle) turns each ear about its root, the tip most. Before this a library animal never moved
+ *  an ear (B550). */
+export const EAR = { reach: 1.0, thin: 0.05, thinK: 0.2, cone: 0.8, minLever: 0.01, maxLever: 0.3 };
+function realEars(sp: Species, pos: ArrayLike<number>, nrm: ArrayLike<number>, ht: Float32Array, jig: Float32Array) {
+  // (horned and antlered heads are left out: a horn's tip is thin too, and would flick)
+  const R = realRig(sp); if (!R || ANIMAL_BUILD[sp].horns) return;
+  const t = R.top, m = R.muzzle, hl = Math.hypot(m[1] - t[1], m[2] - t[2]) || 0.2, n = pos.length / 3, near: number[] = [];
+  for (let i = 0; i < n; i++) if (ht[i * 4] > 0.5 && Math.hypot(pos[i * 3] - t[0], pos[i * 3 + 1] - t[1], pos[i * 3 + 2] - t[2]) < EAR.reach * hl && pos[i * 3 + 1] > t[1] - 0.35 * hl) near.push(i);
+  const thin = Math.min(EAR.thin, EAR.thinK * hl), ear = new Uint8Array(near.length);
+  for (let a = 0; a < near.length; a++) { const i = near[a], nx = nrm[i * 3], ny = nrm[i * 3 + 1], nz = nrm[i * 3 + 2];
+    let best = 1e9;
+    for (let b = 0; b < near.length; b++) { const j = near[b]; if (nx * nrm[j * 3] + ny * nrm[j * 3 + 1] + nz * nrm[j * 3 + 2] > -0.3) continue;
+      const dx = pos[j * 3] - pos[i * 3], dy = pos[j * 3 + 1] - pos[i * 3 + 1], dz = pos[j * 3 + 2] - pos[i * 3 + 2], d = Math.hypot(dx, dy, dz);
+      if (d < 1e-5 || d >= best) continue; if (-(dx * nx + dy * ny + dz * nz) < EAR.cone * d) continue; best = d; }
+    ear[a] = best < thin ? 1 : 0; }
+  let mx = 0; for (const i of near) mx += pos[i * 3]; mx /= Math.max(1, near.length); // (the head's own midline: library heads are often turned)
+  for (let a = 0; a < near.length; a++) { if (!ear[a]) continue; const i = near[a]; let root = 1e9;
+    for (let b = 0; b < near.length; b++) { if (ear[b]) continue; const j = near[b]; root = Math.min(root, Math.hypot(pos[j * 3] - pos[i * 3], pos[j * 3 + 1] - pos[i * 3 + 1], pos[j * 3 + 2] - pos[i * 3 + 2])); }
+    if (root < EAR.minLever) continue;
+    jig[i * 4 + 1] = Math.sign(pos[i * 3] - mx || 1) * Math.min(EAR.maxLever, root); }
 }
 
 /** D-362: the secondary-motion weights (aJig) of a vertex, from the same anatomy: x the soft tissue that swings with the gait
@@ -50,6 +77,8 @@ export function rigWeights(sp: Species, pos: ArrayLike<number>, F: Form = realFo
  *  ear leaves the skull, signed by the side: the ear turns about its root), z the tail's lever along its chain (m from the
  *  root, x the tail's weight: the chain bends more towards its tip), w the load's lever (m below the top of the load: the
  *  panniers and sacks swing as pendulums from it; the pad, the cloth and the girth stay with the body) */
+/** s18 C14: the longest tail lever of a library model (m) */
+export const TAIL_LEVER_REAL = 0.42;
 export function jigParts(sp: Species, F: ReturnType<typeof animalForm>) {
   const R = F.rig, B = ANIMAL_BUILD[sp], g = B.girth, L = B.len, by = R.bodyY, bellyY = by - 0.52 * g, backY = by + 0.52 * g;
   const near = (ps: Prim[], x: number, y: number, z: number) => { let d = 1e9; for (const p of ps) { const lb = Math.sqrt((x - p.c[0]) ** 2 + (y - p.c[1]) ** 2 + (z - p.c[2]) ** 2) - p.R; if (lb > d) continue; const v = p.f(x, y, z); if (v < d) d = v; } return d; };
@@ -86,7 +115,9 @@ export function jigParts(sp: Species, F: ReturnType<typeof animalForm>) {
     // (its own weight, blended over a wider band than the swish's: the tail's hair hangs against the quarters, and the chain
     // swings its far end most, so a sharp edge between tail and body would tear there)
     const wj = smoothstep(-0.08, 0.08, db - dt) * smoothstep(-0.02, 0.06, R.tailRoot[2] - z) * (1 - wl);
-    if (wj > 0) out[2] = wj * Math.hypot(x - R.tailRoot[0], y - R.tailRoot[1], z - R.tailRoot[2]);
+    // (s18 C14: a library model's long tail hangs against its hocks: its lever capped, so the chain's end swings as one piece
+    // and the hair beside the leg (part leg-weighted) is not torn from it; the camels)
+    if (wj > 0) out[2] = Math.min(F.real ? TAIL_LEVER_REAL : 9, wj * Math.hypot(x - R.tailRoot[0], y - R.tailRoot[1], z - R.tailRoot[2]));
     // the load
     if (load.length && db < 0.3) { const dL = near(load, x, y, z), dN = near(notLoad, x, y, z), w = smoothstep(-0.01, 0.01, dN - dL);
       if (w > 0) { out[3] = w * (0.02 + Math.max(0, loadTop - y)); out[0] *= 1 - w; } } // (a load does not breathe)

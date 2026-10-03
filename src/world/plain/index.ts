@@ -29,6 +29,7 @@ import { TreeKit, NearTreeSet, ImpostorSet, impostorPx, registerShadowLight, wid
 import { nearCrops } from './crops';
 import { buildNaqsh } from './naqsh';
 import { buildQuarries, quarrySites } from './quarries';
+import { Qanats } from './qanats';
 import { buildCrossings, keepOffChannels, roadRiverCrossings, type FordDetailSites } from './crossings';
 import { doyOf, riverState, marginState } from './seasonal';
 import { riparianMargins } from './riparian';
@@ -123,6 +124,8 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   // s17 (D-560): the farm year near the walker (fieldFill.ts): the harvest's sheaves and stooks, the floors' threshing and straw, ards, folds
   const fieldFill = new FieldFill(zones, villages.map((v, i) => ({ id: v.id, x: v.x, y: v.y, r: v.r, floor: threshingFloor(v, comps[i], opts.seed) })), (e, n) => terrain.surfaceAt(e, -n),
     (e, n) => landUseAt(zones, e, -n).use === 'natural' && !villages.some(v => Math.hypot(v.x - e, v.y - n) < v.r + 20));
+  // D-670: qanat lines (shaft mounds) on the hill-foot fans (qanats.ts; tier C), their own group beside the plain's
+  const qanats = new Qanats(terrain, rivers.rivers, villages); scene.add(qanats.group);
   scene.add(fieldFill.group); // (its own group beside the plain's, as the town's fill: the plain's D-039 handful of meshes is unchanged)
   // trees (D-120): one kit (models, leaf atlas, impostor atlas) shared with the town gardens
   const kit = TreeKit.get({ deferBake: true, impostorPx: impostorPx(opts.quality) }); registerShadowLight(scene); kit.lod0R.value = Q.lod0R; kit.configure(opts.quality);
@@ -242,14 +245,15 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     if (Math.hypot(cam.x - lastMid.x, cam.z - lastMid.z) > (Q.rMid - Q.r3) * 0.25) { lastMid = cam.clone(); rebuildMid(cam); }
     if (Math.hypot(cam.x - lastNear.x, cam.z - lastNear.z) > Q.r3 * 0.08) { lastNear = cam.clone(); rebuildNear(cam); }
     cullNear(ctx.camera);
-    fieldFill.update([cam.x, -cam.z], doyOf(day)); crops.update(cam, terrain); margins.update(cam); (margins as any).wind.value = kit.wind.value;
+    fieldFill.update([cam.x, -cam.z], doyOf(day)); qanats.update(cam.x, -cam.z); crops.update(cam, terrain); margins.update(cam); (margins as any).wind.value = kit.wind.value;
     // shadow casting only near the camera (the CSM cascades end at 600 m; a far caster would still be drawn into every
     // cascade its bounding sphere touches): village cells, Naqsh-e Rustam and the quarries
     for (const c of vb.cells) c.mesh.castShadow = c.centres.some(([x, z]) => Math.hypot(x - cam.x, z - cam.z) < 900);
     const nrNear = Math.hypot(600 - cam.x, -6124 - cam.z) < 1200; for (const m of nrCasters) m.castShadow = nrNear;
     nr.texts.visible = Math.hypot(600 - cam.x, -6124 - cam.z) < 600; // the DNa/DNb carving (~0.2 M triangles) only near the cliff
     qb.update(cam); const qNear = qb.sites.some(s => Math.hypot(s.x - cam.x, -s.y - cam.z) < 900); qb.group.traverse(o => { if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).castShadow = qNear; });
-    const fNear = qNear || fords.crossings.some(c => Math.hypot(c.x - cam.x, -c.y - cam.z) < 600); // the quarries share the fords' mesh (D-257) fords.group.traverse(o => { if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).castShadow = fNear; });
+    const fNear = qb.sites.some(s => Math.hypot(s.x - cam.x, -s.y - cam.z) < 450) || fords.crossings.some(c => Math.hypot(c.x - cam.x, -c.y - cam.z) < 300); // (D-670: the stones' shadows read within ~300 m: 361 k shadow triangles were cast in every village frame) // the quarries share the fords' mesh (D-257)
+    fords.group.traverse(o => { if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).castShadow = fNear; }); // (D-670: this sat inside the comment above: the fords' and quarries' stone cast in every frame)
     const pp = ctx.player?.position ?? cam; syncColliders(pp, cam); syncTrunks(pp);
     vb.update(dt, cam, pp, ctx.clock?.dayIndex ?? 0, ctx.sky?.sunAlt ?? 30);
     void dt;

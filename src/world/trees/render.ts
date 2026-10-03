@@ -153,10 +153,8 @@ export class TreeKit {
     this.bakeMs = performance.now() - t0; if (n) this.bakes++;
     return L ?? this.baker.levels();
   }
-  /** the day of year: foliage state, and the impostors re-baked where a group changed. A day-to-day tick re-bakes in a
-   *  worker (bake_worker.ts: up to ~1 s of work at high quality, off the main thread; the far trees follow within a
-   *  second or two); a jump (loading, the test harness, a first call) bakes here at once, so a frame never shows far
-   *  trees of another season than the near ones after a jump */
+  /** the day of year: foliage state, and the impostors re-baked where a group changed, in a worker (bake_worker.ts: up to
+   *  ~1 s of work at high quality, off the main thread; the far trees follow within a second or two); the first bake here */
   setDay(doy: number) {
     if (doy === this.foliage.doy) return;
     const prev = this.foliage.doy; this.foliage.setDay(doy);
@@ -167,7 +165,10 @@ export class TreeKit {
     this.pre = null;
     const changed = this.models.some((m, r) => { const s = st[groupIndex(m.species.group)], p = this.baked[r]; return !p || p.leaf.some((v, i) => Math.abs(v - s.leaf[i]) >= 0.004) || p.blossom.some((v, i) => Math.abs(v - s.blossom[i]) >= 0.004); });
     if (!changed) return;
-    const step = Number.isNaN(prev) ? 99 : Math.min(Math.abs(doy - prev), 365 - Math.abs(doy - prev)), w = step <= 1 ? this.bakeWorker() : null;
+    // D-670 (C1's sliced day jump: the main-thread re-bake was a 1.7 s frame): every change after the first bake goes to the
+    // worker, jumps too; the far impostors follow within a second or two of the near trees. Only the first bake (nothing drawn
+    // yet) and a page without workers bake here at once
+    const w = Number.isNaN(prev) || !this.baked.length ? null : this.bakeWorker();
     const id = ++this.reqId;
     if (w) { w.postMessage({ id, px: this.baker.px, dither: this.dither, table: this.foliage.data.slice(), atlas: this.workerAtlas ? undefined : this.atlas, wood: this.workerAtlas ? undefined : this.wood }); this.workerAtlas = true; return; }
     this.apply(this.bakeAll());

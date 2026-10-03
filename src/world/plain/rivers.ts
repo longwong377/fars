@@ -47,7 +47,7 @@ function sections(r: RiverProfile): Section[] {
 }
 
 /** one cross-section of the corridor mesh as drawn: centre (grid), left normal and tangent (grid), distance along the river,
- *  and its 13 vertices (0 centre, 1-6 right side outward, 7-12 left side outward): signed lateral offset (m), height
+ *  and its 11 vertices (0 centre, 1-5 right side outward, 6-10 left side outward): signed lateral offset (m), height
  *  (world y, before the distance lift), height above the bed (m) and apron fraction t (0 inside the channel) */
 export interface CorridorSection { ri: number; x: number; y: number; nx: number; ny: number; tx: number; ty: number; s: number; off: Float32Array; hy: Float32Array; hrel: Float32Array; t: Float32Array;
   /** D-670: the bend (+ left / - right turn, 0..1: the point bar is on the turn's side) and the right/left slope factors */ bar: number; slK: [number, number] }
@@ -62,8 +62,9 @@ export const BEND = { inner: 1.0, outer: 0.55, levee: 0.7, slopeVar: 0.15, topVa
 export function buildRivers(terrain: Terrain, rivers: RiverProfile[], canals: Canal[] = [], calm: [number, number][] = []): RiverBuild {
   const court = terrain.meta.court_asl;
   const wy = (asl: number, x: number, y: number) => asl - court - curvatureDrop(x, -y);
-  const PER = 13; // cross-section vertices of the corridor: 0 = centre, 1-6 right side outward, 7-12 left side outward
-  const ORDER = [6, 5, 4, 3, 2, 1, 0, 7, 8, 9, 10, 11, 12]; // right apron edge -> left apron edge
+  // D-670: the apron in two steps (was three: 4 triangles a section less; the frame budget's room for the far field trees)
+  const PER = 11; // cross-section vertices of the corridor: 0 = centre, 1-5 right side outward, 6-10 left side outward
+  const ORDER = [5, 4, 3, 2, 1, 0, 6, 7, 8, 9, 10]; // right apron edge -> left apron edge
   /** quads between two consecutive sections (counter-clockwise seen from above) */
   const quads = (out: number[], s0: number, s1: number) => { for (let m = 0; m < ORDER.length - 1; m++) { const a0 = s0 + ORDER[m], b0 = s0 + ORDER[m + 1], a1 = s1 + ORDER[m], b1 = s1 + ORDER[m + 1]; out.push(a0, a1, b0, b0, a1, b1); } };
   const bankPos: number[] = [], bankCol: number[] = [], bankAttr: number[] = [], bankIdx: number[] = [];
@@ -95,7 +96,7 @@ export function buildRivers(terrain: Terrain, rivers: RiverProfile[], canals: Ca
         rise[side] = ((1 - inner) * BEND.levee * bendK + BEND.topVar * Math.max(0, vn(side * 5.3 + 2, 140))) * calmK; }
       const offs: number[] = [0];
       for (const side of [-1, 1]) { const ts = b / 2 + sl * slK[side] * H, ap = carve + 1.5 * cell - ts;
-        for (const u of [b / 2, b / 2 + sl * slK[side] * H / 2, ts, ts + ap / 3, ts + 2 * ap / 3, ts + ap]) offs.push(side * u); }
+        for (const u of [b / 2, b / 2 + sl * slK[side] * H / 2, ts, ts + ap / 2, ts + ap]) offs.push(side * u); }
       const edgeX = (side: number, u: number) => { const lim = side === turn ? Math.max(top / 2 + 4, radius[i] * 0.8) : 1e9; return Math.min(u, lim); };
       const cs: CorridorSection = { ri, x: q.x, y: q.y, nx, ny, tx: q.tx, ty: q.ty, s: q.s, off: new Float32Array(PER), hy: new Float32Array(PER), hrel: new Float32Array(PER), t: new Float32Array(PER), bar: 0, slK: [0, 0] }; prof.push(cs);
       for (let k = 0; k < PER; k++) {

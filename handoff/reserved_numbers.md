@@ -148,3 +148,6 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-740..D-749 | s18 | C9 the budget (Q-1670..Q-1679, B770..B779) | cloud-s18-c9-budget | in flight |
 | D-750..D-759 | s18 | C10 the Terrace at 100-300 m (Q-1680..Q-1689, B780..B789) | cloud-s18-c10-terrace | in flight |
 | D-760..D-769 | s18 | C11 the opening cinematic and its score, UD-38 (Q-1690..Q-1699, B790..B799) | cloud-s18-c11-cinematic | in flight |
+| D-770..D-779 | s18 | C12 the giant-holes audit (Q-1700..Q-1709, B800..B809) | cloud-s18-c12-holes | in flight |
+| D-780..D-789 | s18 | C13 court, ceremony and dress (Q-1710..Q-1719, B810..B819) | cloud-s18-c13-court | in flight |
+| D-790..D-799 | s18 | C14 people up close and the last procedural animals (Q-1720..Q-1729, B820..B829) | cloud-s18-c14-faces | in flight |

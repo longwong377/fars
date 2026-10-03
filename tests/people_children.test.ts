@@ -241,7 +241,8 @@ describe('the lame and the blind (gap audit item 37, sparingly)', () => {
     const d = 40; let men = 0, lame = 0, old = 0, blind = 0, guards = 0;
     for (const p of sim.pop.persons) { const a = sim.pop.ageOn(p.id, d), k = view.impairOf(p.id, d);
       if (p.job === 'guard') { if (k) guards++; continue; }
-      if (p.sex === 'm' && a >= 22 && a <= 60 && p.agent < 0) { men++; if (k === 1) lame++; } if (a >= 60 && p.agent < 0) { old++; if (k === 2) blind++; } }
+      // (lasting lameness only: D-292's limp of a few days after a hurt at work, injuryOn, is not one of the lame; D-710)
+      if (p.sex === 'm' && a >= 22 && a <= 60 && p.agent < 0) { men++; if (k === 1 && !sim.pop.injuryOn?.(p.id, d)) lame++; } if (a >= 60 && p.agent < 0) { old++; if (k === 2) blind++; } }
     note('impair', { men, lame, lameShare: lame / men, old, blind, blindShare: blind / old });
     expect(guards).toBe(0); expect(lame / men).toBeGreaterThan(IMPAIR.lame.share * 0.5); expect(lame / men).toBeLessThan(IMPAIR.lame.share * 1.6);
     expect(blind / old).toBeGreaterThan(IMPAIR.blind.share * 0.5); expect(blind / old).toBeLessThan(IMPAIR.blind.share * 1.6);

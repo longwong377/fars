@@ -134,7 +134,7 @@ export const SEP = 1.0, SEP_IN = 0.7; const STEP_S = 2;
 /** D-690: a door opening and the apron before it (m from the opening's middle, either side) are kept clear of anyone standing */
 export const DOOR_CLEAR = 1.5;
 /** D-690: how far from its spot a person standing is spread at most (m; in a room or tent, out of doors) */
-export const SPREAD_R = { inside: 5, out: 8 } as const;
+export const SPREAD_R = { inside: 5, out: 12 } as const;
 /** D-690: people standing make way for the stranger within YIELD_R m (YIELD_DOOR_R by a doorway: doorways first), by up to
  *  YIELD_STEP m, turned toward the stranger (C: a step aside, a glance) */
 export const YIELD_R = 2.4, YIELD_DOOR_R = 3.2, YIELD_STEP = 0.85;
@@ -450,7 +450,9 @@ export class PopView {
     if (!s.yOn && kk > 0) { // the side: off the stranger's way, to a clear place
       const [fx, fy] = this.eyeDir, moving = Math.hypot(fx, fy) > 0.3; let best = -1e9, be = 0, bn = 0;
       const lat = moving ? de * -fy + dn * fx : 0, side = lat >= 0 ? 1 : -1;
-      const cands: P2[] = moving ? [[-fy * side, fx * side], [(-fy * side + fx) * 0.7071, (fx * side + fy) * 0.7071], [(-fy * side - fx) * 0.7071, (fx * side - fy) * 0.7071], [fy * side, -fx * side]]
+      // (never across the stranger's way unless standing on it: in a narrow lane the one by the wall stays by the wall,
+      // turned, rather than stepping into the gap left; s18: a child in q_s2's 1.4 m lane pinned the walker so)
+      const cands: P2[] = moving ? [[-fy * side, fx * side], [(-fy * side + fx) * 0.7071, (fx * side + fy) * 0.7071], [(-fy * side - fx) * 0.7071, (fx * side - fy) * 0.7071], ...(Math.abs(lat) < 0.3 ? [[fy * side, -fx * side] as P2] : [])]
         : [[de / (d || 1), dn / (d || 1)], [-dn / (d || 1), de / (d || 1)], [dn / (d || 1), -de / (d || 1)]];
       if (!sp.fixed) for (let c = 0; c < cands.length; c++) { const [ux, uy] = cands[c]; for (const L of [YIELD_STEP, YIELD_STEP * 0.6, YIELD_STEP * 0.4]) {
         const e2 = s.sepE + ux * L, n2 = s.sepN + uy * L;

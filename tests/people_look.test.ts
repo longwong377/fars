@@ -61,7 +61,8 @@ describe('the palette (D-189): natural dyes, desaturated, value-varied, rank kep
     const court = looksOf('persian', 'official', 'm', 200, 40000), work = looksOf('worker', 'mason', 'm', 200, 41000), women = looksOf('woman', 'grinder', 'f', 200, 42000);
     const soil = (Ls: PersonLook[]) => Ls.reduce((a, L) => a + L.wear.soil, 0) / Ls.length;
     note('rank', { chromaCourt: chroma(court), chromaWork: chroma(work), chromaWomen: chroma(women), soilCourt: soil(court), soilWork: soil(work), fadeCourt: court.reduce((a, L) => a + L.wear.fade, 0) / 200, fadeWork: work.reduce((a, L) => a + L.wear.fade, 0) / 200 });
-    expect(chroma(court)).toBeGreaterThan(chroma(work) * 2);
+    // (D-780, holes #11: the working dress is dyed too now, with cheap madder, woad and weld: rank still shows, at 1.5x; was 2x)
+    expect(chroma(court)).toBeGreaterThan(chroma(work) * 1.5); expect(chroma(work)).toBeGreaterThan(14);
     for (const Ls of [court, work, women]) for (const L of Ls) expect(L.wear.soil).toBeGreaterThanOrEqual(0.12);
     expect(soil(work)).toBeGreaterThan(soil(court) * 1.5);
   });
