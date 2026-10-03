@@ -95,6 +95,33 @@ New people: the chiliarch (in Median dress with kandys, gold at the ears and wri
 - props.ts (C5): the gift props.
 - population.json and town.json: the stale "court absent by default" lines rewritten.
 
+## Third pass (the lead's asks, C14's measures, C6's frames)
+- **The king is seen daily.** Seed 1: an audience on 75 of 102 residence mornings, plus the 8 gift days. A drive in the royal
+  chariot on 61 afternoons (drawn mounted until C14's chariot variant). A hunt on 9 mornings. He arrives by chariot.
+  court_fill's audience test is rewritten for this rule.
+- **The banquet as a feast.**
+  - Seats round 38 low tables in the bays, filled by rank (the chiliarch, then the Persians of rank, the officials last),
+    nearest the throne first.
+  - A silver phiale and a jug on every table.
+  - The servers and wine-bearers stand by the tables, the lamp tenders by the walls (C6 saw a standing crowd facing the throne).
+  - The banquet music is in the Apadana.
+  - Not done: couches and reclining (the court's furnishings are at the 450 k budget) and food on the tables beyond the
+    vessels.
+- **The royal women's outing.** On about one afternoon in five, about 77 women and attendants go to the paradise. The women are
+  carried in curtained litters: wo_litter, built in Blender, drawn round the walking woman, its curtains hiding her steps. The
+  bearers are not drawn under the poles; the attendants walk alongside.
+- **Seals:** officials, scribes and stewards in Persian or Median dress wear a cylinder seal on a cord, fitted to the chest
+  (80 %).
+- **Necklaces:** gold for the court women, bronze for 3 in 5 town women. Kohl for 45 % of the town's women.
+- **Barefoot and bare-chested:** most labourers go barefoot. In the heat they strip to the waist, once popview passes `tempC`.
+- **Look-alikes:** 12.8 % → 2.0-3.2 % of crowds.
+- **The gifts are drawn:** a prop class of their own.
+- **Pre-existing test failures, same on the base commit:**
+  - court.test "every sealed letter …": times out at 600 s; it takes 1,120 s here and 1,194 s on base.
+  - impostor_assets "within budget".
+  - court_view "no pop-in" (a forecourt talker at 41.7 m).
+  - performances' CPU timing fails only under load (10.4 ms vs 10 while a render ran).
+
 ## The court's people and dress (later passes)
 - The crown prince and the weapon-bearer stand behind the throne (the Treasury relief). The parasol is furled indoors.
 - Guards: two in three non-Persian guards wear the court robe (Susa archers), and the robes are new and strong.
