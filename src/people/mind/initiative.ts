@@ -143,7 +143,10 @@ export class Initiative implements GoalHost {
   }
 
   save() {
-    return { g: this.goals.save(), m: [...this.moods], c: this.cursor, st: { ...this.stats, examples: this.stats.examples.slice(0, 12) } }; }
+    // (D-720, C1's ask: the counts of the game's own days only; the wall-clock costs (ms, slices, parts) differ between any two
+    // runs and made two saves of the same world differ: they stay in the running world's stats, never in the save)
+    const { days, deeds, done, src, chains, examples } = this.stats;
+    return { g: this.goals.save(), m: [...this.moods], c: this.cursor, st: { days, deeds, done, src, chains, examples: examples.slice(0, 12) } }; }
   load(s: ReturnType<Initiative['save']> | undefined) { this.moods.clear(); this.deedDepth.clear(); this.cursor = 0; this.seen = 0; this.goals.load(s?.g);
     if (!s) return; for (const [k, v] of s.m) this.moods.set(k, v); this.cursor = s.c; Object.assign(this.stats, s.st); }
 }

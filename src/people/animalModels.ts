@@ -59,7 +59,8 @@ export function animalModel(sp: Species): AnimalModel | null {
 export function rigLevel(sp: Species, g: THREE.BufferGeometry) {
   const P = g.getAttribute('position') as THREE.BufferAttribute, pos = new Float32Array(P.count * 3);
   for (let i = 0; i < P.count; i++) { pos[i * 3] = P.getX(i); pos[i * 3 + 1] = P.getY(i); pos[i * 3 + 2] = P.getZ(i); }
-  const W = rigWeights(sp, pos);
+  const N = g.getAttribute('normal') as THREE.BufferAttribute | undefined, nrm = N ? Float32Array.from({ length: N.count * 3 }, (_, k) => N.getComponent(Math.floor(k / 3), k % 3)) : undefined;
+  const W = rigWeights(sp, pos, undefined, nrm); // (s18 C14 D-790: the normals find a library model's ears)
   g.setAttribute('aLeg', new THREE.BufferAttribute(W.leg, 4)); g.setAttribute('aPiv', new THREE.BufferAttribute(W.piv, 4)); g.setAttribute('aHT', new THREE.BufferAttribute(W.ht, 4)); g.setAttribute('aJig', new THREE.BufferAttribute(W.jig, 4));
   return g;
 }

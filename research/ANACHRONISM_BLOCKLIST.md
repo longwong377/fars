@@ -8,7 +8,7 @@ if any asset/tag/text in the world matches. Each asset carries `period`, `source
 | sasanian-fire-temple | Domed (chahar-taq) fire temples | Sasanian | brief §12 |
 | kaba-zartosht? | Ka'ba-ye Zartosht at Naqsh-e Rustam | **Not blocked** — Achaemenid tower; check date vs chosen year (OPEN_QUESTIONS) | — |
 | band-e-amir | Band-e Amir dam and later waterworks | 10th c. CE | brief §12 |
-| modern-landscape | modern roads, asphalt, power lines, tents, fields in rectangular modern layout, villages, plantations, eucalyptus/pine plantations | modern | brief §12 |
+| modern-landscape | modern roads, asphalt, power lines, modern tents, fields in rectangular modern layout, modern villages, plantations, eucalyptus/pine plantations | modern. **s18 D-771 (C):** 'tents' and 'villages' now read 'modern tents' and 'modern villages': court camps, herders' tents and the plain's villages are probable in 467 and built | brief §12 |
 | ruin-graffiti | traveller graffiti (e.g. 19th c. names on Gate of All Nations) | later life of ruin | brief §12 |
 | restoration | concrete, steel, restoration capping, modern stair replacements, scaffolding of modern type, roofs over the tombs | modern | brief §12 |
 | 1971 | 1971 celebration tent city remnants | modern | brief §12 |
@@ -22,13 +22,13 @@ if any asset/tag/text in the world matches. Each asset carries `period`, `source
 | pointed-arch | pointed arches | later | brief §12 |
 | hollywood-slaves | bare-chested slave-soldiers | trope | brief §12 |
 | harem-cliche | harem clichés (veiled dancers etc.) | trope | brief §12 |
-| gold-everything | gilding outside attested zones | trope | brief §12 |
+| gold-everything | gilding everywhere: gold as the default finish of buildings, walls or everyday things | trope. **s18 D-771 (C):** was 'gilding outside attested zones', an attested-only rule; gilding and gold where most probable is allowed: jewellery of rank, the guards' spear butts, the throne, door and furniture fittings, sheet gold on reliefs' crowns and details | brief §12 |
 | hoplite | Greek hoplite gear on Persians (Corinthian helmet, hoplon on Persians) | trope | brief §12 |
 | later-womens-dress | later-period women's dress | later | brief §12 |
 | music-cliche | oud, duduk, santur, orchestral "ancient Persia", equal-temperament harmony | brief §11 | brief §11 |
 | new-world-crops | maize, tomato, potato, chili, tobacco, sunflower, prickly pear | Columbian exchange | common knowledge; tier A |
-| later-crops | rice as a staple crop in Marvdasht, sugar cane, citrus (orange/lemon), cotton fields | later introductions to Fars; rice presence to be checked (OPEN_QUESTIONS) | tier B |
-| later-animals | domestic cat as house pet (uncertain), turkey, water buffalo | verify | tier B/C |
+| later-crops | rice as a staple crop in Marvdasht, sugar cane, citrus (orange/lemon), cotton fields | later introductions to Fars; rice presence to be checked (OPEN_QUESTIONS). (s18 D-771: kept; a ban on staples, not on every trace) | tier B |
+| later-animals | turkey, water buffalo | later introductions | tier B/C. **s18 D-771 (C):** the domestic cat is unblocked: kept for millennia in Egypt and known in the Near East, and the town has Egyptian households; cats as yard and store mousers are probable (C) |
 | glass-windows | glazed window panes | Roman+ | tier A |
 | candles | wax candles | lamps and torches instead; verify | tier B |
 | horseshoes | nailed horseshoes | later | tier A |
@@ -42,6 +42,6 @@ if any asset/tag/text in the world matches. Each asset carries `period`, `source
 | modern-dams | Doroodzan dam, Mulla Sadra dam, Sivand dam and reservoirs; modern canals and pumping | modern (KOR-HSJ2023) | Phase 7 research |
 | modern-plain | Marvdasht city, sugar factory, petrochemical complex, Shiraz–Isfahan highway and bridges, sugar-beet fields | modern (OVERTURE-2026) | Phase 7 research |
 | date-palms-plain | date palms growing on the Marvdasht plain | dates are imported from the lowlands; 44 frost days a year (C) | Phase 7 research |
-| qanat? | qanat shafts and galleries in the plain | not dated to the Achaemenid period (Q-052): **not placed**; unblock only with evidence | Phase 6 research |
+| qanat? | **Allowed** (**s18 D-771 (C):** was blocked: 'not dated to the Achaemenid period: not placed; unblock only with evidence') | silence is not absence: Persian-period qanats are dated elsewhere in the empire (Ayn Manawir, 5th c. BCE, B) and Polybius 10.28 ties them to Persian rule (B claim); a few qanat lines on the Kuh-e Rahmat fans are probable (Q-052) | Phase 6 research; s18 |
 | windcatcher | windcatchers (badgir) on town houses | oldest verified example 14th c. CE (Iranica 'Badgir', search extract): not attested in 467 BCE (D-234) | Phase 6 houses research |
 | fired-brick-house | fired-brick walls or brick vaults in ordinary houses | fired and glazed brick is monumental (Tol-e Ajori, Susa); houses are sun-dried brick (D-234, C) | Phase 6 houses research |

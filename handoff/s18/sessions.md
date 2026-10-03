@@ -20,3 +20,4 @@ Ownership added during the session: C4 + src/world/(fire,firePlaces).ts (night l
 | C13 court, ceremony and dress | src/people/(court,courtYear,looks,outfits,wardrobe*).ts (court/courtYear moved from C1), src/world/furnish_palaces.ts | cloud-s18-c13-court | session_013XYfVtvyaLdsAkB76WYZn3 |
 
 Ownership added after C12's audit (04:35): C2 + src/world/settlement/surfaces.ts and the town-shape rule (plan.ts:43 goes); C10 + src/render/(grime,scans).ts; C5 + src/core/settings.ts playerMode default (visitor) and the player's lamp.
+| C14 people up close and the last procedural animals | src/people/(humans,humanAssets,humanFormat,humanGPU,humanMaterial,humanRig,humanScans,body,bodyShape,drape,softbody,marks,mocap,mocapClips,anim,peopleModels,impostors).ts, src/people/(animalForm,animalModels,animalReal,animalRig,animals).ts | cloud-s18-c14-faces | session_01TrboZqCfzNnJ2kLM351EqN |

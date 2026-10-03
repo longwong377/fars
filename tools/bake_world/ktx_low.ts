@@ -15,7 +15,7 @@ const LIST = join(DIR, 'ktx_low.json'), sha = (p: string) => createHash('sha1').
 const done: Record<string, string> = existsSync(LIST) ? JSON.parse(readFileSync(LIST, 'utf8')).maps ?? {} : {};
 const writeList = () => writeFileSync(LIST, JSON.stringify({ about: 'D-740: ETC1S twins of the KTX2 scans (tools/bake_world/ktx_low.ts), each with the hash of the full KTX2 it stands in for; src/render/lowfirst.ts loads them first', maps: Object.fromEntries(Object.entries(done).sort()) }, null, 1));
 // (qlevel 128: a twin is on screen for the first minute only; ~0.5-1 MB a 2048² map)
-const ETC1S = ['--encode', 'basis-lz', '--clevel', '2', '--qlevel', '128', '--generate-mipmap', '--threads', process.env.THREADS ?? '2'];
+const ETC1S = ['--encode', 'basis-lz', '--clevel', '2', '--qlevel', process.env.QLEVEL ?? '128', '--generate-mipmap', '--threads', process.env.THREADS ?? '2'];
 const scans = Object.keys(JSON.parse(readFileSync(join(DIR, 'ktx.json'), 'utf8')).maps) as string[];
 let n = 0, full = 0, low = 0; const t0 = Date.now();
 for (const k of scans) {

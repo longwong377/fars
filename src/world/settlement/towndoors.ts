@@ -64,13 +64,20 @@ export class TownDoors {
     this.group.name = name;
     this.moving = new Uint8Array(doors.length); this.open = new Float32Array(doors.length).fill(-1); this.target = new Float32Array(doors.length); this.sched = new Float32Array(doors.length);
     const mat = surfaceMaterial(variants === 1 ? 'house_timber' : 'door_planks', { vertexColors: true }) as any; mat.aoNode = attribute('ao', 'float'); // (s17 C1: the town's leaves their own boarded surface)
-    for (let v = 0; v < variants; v++) { const m = new THREE.InstancedMesh(leafGeometry(variants === 1 ? 1 : v), mat, MAXI); m.name = `${name === 'settlement:doors' ? 'settlement-doors' : name}:${v}`; m.count = 0; m.frustumCulled = false; m.castShadow = true; m.receiveShadow = true;
+    for (let v = 0; v < variants; v++) { const m = new THREE.InstancedMesh(leafGeometry(variants === 1 ? 1 : v), mat, MAXI); m.name = `${name === 'settlement:doors' ? 'settlement-doors' : name}:${v}`; m.count = 0; m.frustumCulled = false; m.castShadow = true; m.receiveShadow = true; if (variants > 1) m.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(MAXI * 3).fill(1), 3);
       m.userData = { tier: 'C', src: 'MESO-HOUSE-SX;RECON', note: 'street door leaves (D-234)', describe: () => ({ tier: 'C', src: 'MESO-HOUSE-SX;RECON', note: 'street door: a leaf of poplar planks on battens, turning on a pivot post in a stone socket (B analogue: Babylonian doors on doorposts in sockets of brick or stone, search extract); shut and barred at night, open, ajar or shut by day by the household (C)' }) };
       this.meshes.push(m); this.group.add(m); }
   }
   /** the leaf's mesh: the wood's age (0 grey old .. 2 fresh), and for the town (variants 6, s17 C1) one of the kit's two forms
    *  of that age by a hash of the door, so the doors of a lane differ */
   private variant(d: StreetDoor) { if (this.variants === 1) return 0; const a = d.wood < 0.35 ? 0 : d.wood < 0.7 ? 1 : 2; return this.variants >= 6 && hashString(`${d.id}:form`) / 4294967296 < 0.5 ? a + 3 : a; }
+  /** s18 C2 (D-661, C12's holes audit #5: grey doors everywhere): a door's paint as a tint over its wood: most leaves bare
+   *  weathered poplar, some painted red ochre, a blue-grey or a green-grey earth (C: painted woodwork with mineral earths is
+   *  the region's; which household and what colour C), the paint worn by the wood's age */
+  private paint(d: StreetDoor): THREE.Color { const h = (hashString(`${d.id}:paint`) % 1000) / 1000, wear = 0.55 + 0.45 * d.wood;
+    const T: [number, number, number] = h < 0.6 ? [1, 1, 1] : h < 0.78 ? [1.25, 0.72, 0.6] : h < 0.9 ? [0.72, 0.86, 1.08] : h < 0.97 ? [0.86, 1.02, 0.84] : [1.3, 1.2, 1.0];
+    return this._paint.setRGB(1 + (T[0] - 1) * wear, 1 + (T[1] - 1) * wear, 1 + (T[2] - 1) * wear); }
+  private _paint = new THREE.Color();
   /** the leaf's yaw at openness f */
   private yaw(d: StreetDoor, f: number) { let da = d.openYaw - d.closedYaw; da = ((da + Math.PI * 3) % (Math.PI * 2)) - Math.PI; return d.closedYaw + da * f; }
   update(dt: number, eye: THREE.Vector3, day: number, sunAlt: number, nearTile: (t: number) => boolean) {
@@ -90,10 +97,10 @@ export class TownDoors {
             if (near && !this.moving[i]) this.onSound('door', { x: px, y: d.y + 1, z: pz }, false); // (it starts from rest)
             if (near && t < 0.02 && this.open[i] < 0.02) this.onSound('door_shut', { x: px, y: d.y + 1, z: pz }, this.night); }
           this.moving[i] = this.open[i] !== t ? 1 : 0; } else this.moving[i] = 0;
-        q.setFromAxisAngle(up, this.yaw(d, this.open[i])); pos.set(d.hinge[0], d.y, -d.hinge[1]); scl.set(1, Math.min(1.02, d.h / (DOOR_H - 0.05)), 1); M.compose(pos, q, scl); m.setMatrixAt(n++, M); // the leaf cut to its doorway's lintel (s18 C2, D-660: the draw had slid into this comment in s15: no leaf was drawn)
+        q.setFromAxisAngle(up, this.yaw(d, this.open[i])); pos.set(d.hinge[0], d.y, -d.hinge[1]); scl.set(1, Math.min(1.02, d.h / (DOOR_H - 0.05)), 1); M.compose(pos, q, scl); if (this.variants > 1) m.setColorAt(n, this.paint(d)); m.setMatrixAt(n++, M); // the leaf cut to its doorway's lintel (s18 C2, D-660: the draw had slid into this comment in s15: no leaf was drawn)
         if (this.open[i] < 0.02) shut++;
         this.collider(i, d, this.open[i] < 0.05 && nearTile(d.tile)); }
-      m.count = n; m.instanceMatrix.needsUpdate = true; drawn += n; }
+      m.count = n; m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; drawn += n; }
     // colliders of doors no longer shown
     for (const [i] of this.cols) if (!this.shown[this.variant(this.doors[i])].includes(i)) this.collider(i, this.doors[i], false);
     this.stats.drawn = drawn; this.stats.shut = shut; this.stats.colliders = this.cols.size;

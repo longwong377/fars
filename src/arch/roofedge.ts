@@ -33,7 +33,7 @@ export const ROOFEDGE = { ...RE_ROW.v, proud: 0.006, sample: 0.25, tier: 'C' as 
  *  (grid azimuth, radians CCW from grid east), and its scale along the normal (a spout's length) */
 export interface Piece { kind: 'dentil' | 'spout'; building: string; e: number; n: number; y: number; az: number; len: number }
 /** D-750: a stepped merlon standing on a parapet's coping (grid centre, foot height, the run's grid azimuth, depth across) */
-export interface Crown { building: string; e: number; n: number; y: number; az: number; depth: number }
+export interface Crown { building: string; e: number; n: number; y: number; az: number; depth: number; /** its width and height over the stair merlon's */ scale?: number }
 /** D-750: a wall run's face under its string course (grid centre on the face line, outward normal, length, the band's top) */
 export interface BandFace { building: string; c: [number, number]; n: [number, number]; length: number; y1: number }
 /** D-750: a portico's open front under a roof's edge (grid end points along the edge, outward normal, the slab's underside) */
@@ -46,6 +46,9 @@ export interface RoofEdges { boxes: Box[]; pieces: Piece[]; crowns: Crown[]; ban
  *  (FORT_MERLON), and the working ranges (the garrison, the Treasury's store blocks) their plain coping, as plain roofs of
  *  the working town. The merlon is the stair parapets' (global.r_stair_crenellation: width, height, pitch, depth). */
 export const CROWN_SKIP = /^(fortification|garrison|treasury)/;
+/** D-750 (C, UD-29): the roof lines' merlons over the stair merlon's size: 0.9 m reads as a hairline serration at 300 m on a
+ *  20 m wall (3 px at the player's lens); 1.35x (1.2 m) is within the stepped merlons' range at the Persian sites and reads */
+export const CROWN_SCALE = 1.35;
 /** D-750 (C): the palaces whose wall runs carry a glazed-brick band under the string course (the Apadana towers' frieze,
  *  apadana.r_glazed_frieze, by the same hand round the other halls' outer walls: glazed brick at Persepolis B, its place C) */
 export const BAND_BUILDINGS = ['gate_nations', 'tachara', 'hadish', 'hall100', 'tripylon'];
@@ -167,11 +170,11 @@ export function roofEdges(parts: Part[]): RoofEdges {
           const M = R.fortMerlon, per = M.w + M.gap, nM = Math.floor((s1 - s0 + M.gap) / per), pad = (s1 - s0 - (nM * per - M.gap)) / 2;
           for (let q = 0; q < nM; q++) { const a0 = s0 + pad + q * per; boxes.push(runBox(base, sd, a0, a0 + M.w, R.proud, T, topY + P.h + P.coping.h - 0.02, topY + P.h + P.coping.h + M.h, 'merlon', 'plastered mud-brick merlon of the fortification (D-334, C)')); }
         } else if (crowned) { // D-750: the stepped stone merlons on the coping, kept a parapet's thickness clear of the run's ends
-          const a = s0 + T, z = s1 - T, len = z - a, off = R.proud - T / 2;
-          if (len >= CR.width) {
-            const nM = Math.floor((len - CR.width) / CR.pitch) + 1, m0 = a + (len - (nM - 1) * CR.pitch) / 2;
-            for (let q = 0; q < nM; q++) { const s = m0 + q * CR.pitch;
-              crowns.push({ building: b.building, e: sd.a[0] + ux * s + sd.n[0] * off, n: sd.a[1] + uy * s + sd.n[1] * off, y: topY + P.h + P.coping.h, az: Math.atan2(uy, ux), depth: Math.min(T, CR.max_depth) }); }
+          const a = s0 + T, z = s1 - T, len = z - a, off = R.proud - T / 2, Wd = CR.width * CROWN_SCALE, pitch = CR.pitch * CROWN_SCALE;
+          if (len >= Wd) {
+            const nM = Math.floor((len - Wd) / pitch) + 1, m0 = a + (len - (nM - 1) * pitch) / 2;
+            for (let q = 0; q < nM; q++) { const s = m0 + q * pitch;
+              crowns.push({ building: b.building, e: sd.a[0] + ux * s + sd.n[0] * off, n: sd.a[1] + uy * s + sd.n[1] * off, y: topY + P.h + P.coping.h, az: Math.atan2(uy, ux), depth: Math.min(T, CR.max_depth), scale: CROWN_SCALE }); }
           }
         }
         if (k === 'open' && roof) porches.push({ building: b.building, a: [sd.a[0] + ux * s0, sd.a[1] + uy * s0], b: [sd.a[0] + ux * s1, sd.a[1] + uy * s1], n: [sd.n[0], sd.n[1]], y: b.y0 });
