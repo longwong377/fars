@@ -10046,3 +10046,14 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
 ## D-761 The title film: a pre-rendered main-title sequence over the load, and the in-engine opening cut to "First Light" (session 18, cloud C11; UD-38, UD-39)
 - As the page opens a title film plays over the loading screen (src/shell/film.ts; any key begins it, the browser's gesture rule for sound; any key skips): macro shots in the manner of a prestige historical series' main titles, cut to the theme's bars: an ember over carved rosettes, a reed stylus pressing wedges into clay, an Elamite tablet's lines, the Gate's XPa inscription as its stone has it (op_signs, D-184) in raking dawn light, the glazed rosette frieze with dust in the sun, a brazier catching, the braziers of a night hall flaring down the rows, the colonnade in morning haze, the double-bull capital against the sky, the stair climbing to the sunrise, the parapet's merlons against the sun, the hall backlit, and the name 𐎱𐎠𐎼𐎿 in gold. Built in Blender from the project's data and models (tools/film: carve.ts heightmaps from the period fonts, film.py the shots, assemble.mjs the grade, grain, 24 fps and the encodes: AV1/Opus WebM, H.264/AAC MP4). The game's bull and capital meshes read as faceted in close-up, so they appear only in silhouette, haze and firelight. C throughout (compositions, light, grade).
 - Then the in-engine opening (src/shell/intro.ts, D-590's shots plus the stars over Kuh-e Rahmat first) plays to "First Light", each cut on a bar, its clock following the music, landing on the player's eye as the horn closes the theme's first half; the music rings on into the walk and the director takes over.
+
+## D-772 The in-page truth check: tools/dev/pagecheck.mjs (s18 cloud C12)
+- The built site (dist at /fars/, its own static server with COOP/COEP) is loaded headless with ?norender at the coverage
+  views. The world is stepped, and the scene graph is read per view: what is effectively visible and in the frustum (meshes,
+  instances, triangles, per object key); the crowd's own drawn counts against the out-of-doors people the page's simulation
+  holds within 60 and 250 m (split by open ground, walled court and walking); a roof-area probe for the town; the
+  shadow-casting light's reach.
+- Run on every s17-int head the lead names; results go to handoff/s18/pagecheck.md and to each owner.
+- First run (92d6a6bf): the town lanes are empty in the simulation (everyone at home in the courts at 13:48); people in
+  courts are not drawn from an eye above the walls; the Terrace draws what the simulation holds; the roofs exist in the
+  geometry; the far shadow reaches 2,000 m.

@@ -183,6 +183,8 @@ for (const r of results) {
   md.push('', '</details>', '');
 }
 md.splice(6, 0, '## Flags', '', ...(flags.length ? flags.map(s => '- ' + s) : ['- none']), '', `Page errors (unique): ${errs.size}`, ...[...errs].slice(0, 12).map(([k, n]) => `- ${n}x ${k}`), '');
-writeFileSync(OUT + '.json', JSON.stringify({ tree: TREE, head, results }, null, 1));
+// the json keeps the 80 heaviest rows per view (the full graph is ~2.5 MB a run; --full keeps every row)
+const slim = process.argv.includes('--full') ? results : results.map(r => r.rows ? { ...r, rows: [...r.rows].sort((a, b) => b.tris - a.tris || b.hidden - a.hidden).slice(0, 80) } : r);
+writeFileSync(OUT + '.json', JSON.stringify({ tree: TREE, head, results: slim }));
 writeFileSync(OUT + '.md', md.join('\n') + '\n');
 console.log(T(), 'wrote', OUT + '.md', '\nFLAGS:\n' + flags.join('\n'));
