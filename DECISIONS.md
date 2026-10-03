@@ -10143,9 +10143,6 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   rings for a share of working men; gold plaques on a third of the court robes (drawn as the rosette motif in gold-yellow).
   people_look's rank test: court chroma > 1.5x the working dress's (was 2x; rank still shows).
 - Furnishings (furnish_palaces.ts): the Apadana laid for the banquets (a carpet and a table in each seated bay, lamp stands,
-  hangings on the W, E and N walls); with the court away the halls keep their hangings, and the Apadana a keeper's corner and lamps.
-
-
   hangings on the W, E and N walls: dropped in the second pass for the 450 k budget, the tables then drawn at the model's lowest
   level); with the court away the halls keep their hangings, and the Apadana a keeper's corner and lamps.
 - Second pass (the lead's go-ahead and C12's passes 2-4): the asks applied in activities.ts, calendar.ts (E-28, E-29) and
@@ -10157,6 +10154,12 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   (seats round tables, the servers by the tables, the lamp tenders by the walls, a phiale and a jug on each table); the royal
   women's outing to the paradise; bead necklaces; barefoot labourers and stripping to the waist in the heat (lookInput.tempC);
   fewer look-alikes in a crowd (12.8 % -> 2-3 %); the gifts drawn as a prop class of their own.
+- Fourth pass (the lead's list): night on the Terrace (palace servants keep the lamps and braziers at the halls and the Gate from
+  dusk to the late watch; COURT_NIGHT_FIRES, a brazier per night-watch line, for C4); the top ranks recline on couches at the six
+  tables nearest the throne (workObjects 'feast_couch', the furnishings' couch model as one instanced work object; workAnims
+  'recline', measured on the rig); UD-27 at the court (court.json houses): the Persians of rank as 55 great houses married into
+  one another and into the king's house, with rivals, and the king's favour drifting by the season, shown in the banquet's
+  seats, the audience's places and who talks with whom (all C); court.test's sealed-letter test cut to the court's residence.
 
 ## D-760 An original score, out of world: recorded orchestra, a main theme, an hour for the world, and a director that leaves silence (session 18, cloud C11; UD-38, UD-39)
 - The user's words (UD-38, UD-39) add non-diegetic music to the out-of-world layer, at a Hollywood bar and never recognisable as AI: the brief's "no background score" (§11) gives way to them; its ban on the "ancient Persia" cliché stands and binds the score (blocklist 'music-cliche': no duduk, oud or santur, no augmented-second "exotic" modes, no bent ethnic solo as the theme's identity; after C12's fourth pass the first draft's cor-anglais "duduk", alto-flute "ney" and Phrygian/Hijaz cues were rewritten for solo cello, horn, clarinet and flute in minor, Dorian and Aeolian). Majesty comes from harmony, brass, choir and rhythm; the period's colour (harp, frame drum) is used lightly. Equal temperament is the orchestra's own: the brief's tuning rule governs the world's players (src/audio/music.ts), not the out-of-world score. C.

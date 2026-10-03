@@ -12,7 +12,9 @@
   Until then the drape and hair cards come from the older build, which is harmless: the head pieces are not in those assets.
 - **Pose stand-ins:**
   - The proskynesis cycle is new (workAnims.ts 'proskynesis'). Its far impostor reuses the harp_h@30.9 frame (0.09 m match).
-  - Diners sit with the 'sit' pose and a bowl. There is no table-side reclining.
+  - Most diners sit on the floor with the 'sit' pose and a bowl. Only the 12 at the couch tables recline (new 'recline' pose,
+    measured on the rig, never seen in a frame). Their far impostor is the 'sit' frame. The couch is a work object, so it
+    appears when its diner arrives and goes when he leaves.
 - **No gallop and no driven chariot.** Riders mount at the walk gait, including the 7.5 m/s couriers. The gallop and the
   chariot are C14's now.
 - **Routed by the lead to other owners:**
@@ -31,6 +33,11 @@
 - The banquet uses the place `court_audience`, an ORDERED place in popgeo.ts, so diners get seats.
 - **Pre-existing failures, also on the base commit:** humans_faces "the kandys hangs past the knee" and court_view "no pop-in"
   (a forecourt talker at 41.7 m).
+- **court.test's sealed-letter test still exceeds 600 s** on this 4-core box (909 s with the court's sim cut to its residence
+  plus 30 days). Each day's first plan advances the town's economy to that day, and the year of it is the cost; see Tests.
+- **Favour, houses and rivalries are words and places only.** Nothing in the view shows a rival's glance or a kinsman's
+  greeting beyond who stands with whom. The talk lines name the ally house's head; the dialogue system (C8) does not read
+  them yet.
 
 ## What a player now meets (node census, seed 1; handoff/s18/c13_court_census.md)
 The court is in residence from day 14 to day 117 (103 days). Each of those days carries a programme (src/people/ceremony.ts,
@@ -108,8 +115,7 @@ New people: the chiliarch (in Median dress with kandys, gold at the ears and wri
   - A silver phiale and a jug on every table.
   - The servers and wine-bearers stand by the tables, the lamp tenders by the walls (C6 saw a standing crowd facing the throne).
   - The banquet music is in the Apadana.
-  - Not done: couches and reclining (the court's furnishings are at the 450 k budget) and food on the tables beyond the
-    vessels.
+  - Couches: since the fourth pass, for the 12 top ranks (below). Not done: food on the tables beyond the vessels.
 - **The royal women's outing.** On about one afternoon in five, up to six royal women go to the paradise, each in a curtained
   litter. The litter is wo_litter, built in Blender for shoulder carry: poles at 1.45 m, the cabin on them. Each litter is carried
   by four attendants of one household (C14's carry_bier variants); they leave and arrive together, the woman unseen inside.
@@ -140,6 +146,32 @@ New people: the chiliarch (in Median dress with kandys, gold at the ears and wri
 ## Frames (crude, SwiftShader WebGL2, seed 1, day 19)
 See handoff/s18/c13_frames/ (if present): the forecourt and N stair at 09:12 on the gift day, the audience in the hall at
 09:24, and the banquet at 20:06.
+
+## Fourth pass (the lead's list, 08:05)
+- **Night on the Terrace.** Every residence night about 50 palace servants fetch oil, fill and light the lamps at the Gate,
+  the forecourt, the Apadana portico, the Tachara, the Hadish and the Tripylon, then keep the lamps and a brazier burning by
+  the night watch until 22.8-23.5 h. The sentries stand on the night lines, now including the two before the Apadana's N
+  facade. `COURT_NIGHT_FIRES` (court.ts) lists a brazier at each night-watch line; C4 is asked to light them. Seen in no frame.
+- **Couches.** The six tables nearest the throne each stand between two gilded couches, one N and one S, in place of their
+  floor seats. The couch is the furnishings' m_couch model (lod1, 1.2 k triangles), drawn as one instanced work object
+  ('feast_couch') under each recliner, so it is outside the halls' 450 k budget. The chiliarch and the 11 most favoured
+  Persians of rank recline (workAnims 'recline'): on the left elbow on the bolster, legs along the couch, chest turned to the
+  table, the cup lifted every ~14 s. Measured on the rig (tests/court_ceremony.test.ts) for every man's body: the seat within
+  6 cm of the mattress top, nothing off the couch, the elbow within 9 cm of the bolster's top. The error follows stature: a
+  1.50 m body sinks 6 cm into the mattress, a 1.79 m body floats 6 cm above it. The pose cannot know the body; only a lift by
+  stature in the crowd (C5) would fix it.
+- **UD-27 at the court** (court.json `houses`; CourtResidents.houses/favour):
+  - the 550 Persians of rank form 55 great houses (each tent of ten one house's following, its eldest at its head);
+  - each house is married into 2-3 others; 6 are kin to the king by marriage; most have a rival house;
+  - the king's favour per house drifts every 12 days, and a rival's rise lowers it.
+  It shows in three places:
+  - **banquet seats:** the 40 nearest the throne average favour 0.89, the last 40 0.39;
+  - **the audience** (seed 1, day 34): the favoured spend 37 % of the morning on the Terrace in the hall, the out of favour
+    13 % ("waiting below the E stair to be called, his house out of the king's favour this season"). The most favoured stand
+    near the throne, and the head of a king-kin house stands near the king "whose wife is of his house";
+  - **talk:** the men of a house gather at one place each day. A man meets the house he is married into, its head named
+    (165 such talks that morning). Rivals' places are avoided, and 48 men talk low about their rival house.
+- **Sealed-letter test:** see Tests.
 
 ## Tests
 - tests/court_ceremony.test.ts (new, 5 tests): the programme, the seats, the people on the programme's days, well-formed plans.
