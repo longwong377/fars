@@ -82,6 +82,12 @@ export function coverCell(env: CoverEnv, ix: number, iz: number, seed: number, d
     // stubble: the cut stalks cover the plot; grazed down and greying as the months pass (its straw cover 0.75 -> 0.25)
     const n = st.straw > 0.45 ? 2 : 1, age = Math.min(1, Math.max(0, (0.75 - st.straw) / 0.5));
     for (let i = 0; i < n; i++) put('stubble', 20 + i, 1, mixC(COL.stubble, COL.stubbleOld, age), -u.plot.angle + (u01(seed, ix, iz, i, 13) - 0.5) * 0.12); // (its rows along the plot's strip: the sowing ran with the plough)
+  } else if (st && st.height >= 0.05 && u.row !== 'fallow') {
+    // s17 (D-560, Vagon's tip1 frame: the young wheat read as a lawn): the weeds of an unweeded ancient field (wild grasses,
+    // darnel, the field's herbs) in clumps among the crop, 0-3 a 2 m cell by a patch noise, larger than the crop's young
+    // blades, the season's green to straw (C)
+    const patch = herbDensity(cx * 1.7 + 311, cz * 1.7 - 97), n = Math.floor(patch * patch * 4 + u01(seed, ix, iz, 70) * 0.8);
+    for (let i = 0; i < n; i++) put(u01(seed, ix, iz, i, 71) < 0.3 ? 'sward' : 'tuft', 70 + i, 0.9 + 0.7 * u01(seed, ix, iz, i, 72));
   } else if (wild && u.use !== 'orchard' || u.row === 'orchard_floor') {
     // the herb layer: tufts at the shader's density and the season's amount, fewer on trodden ground
     const dens = herbDensity(cx, cz), trT = Math.min(1, Math.max(0, (tr - 0.2) / 0.3)), n = Math.floor(dens * amount * 7 * (1 - trT) + u01(seed, ix, iz, 9) * (1 - trT)); // (none on the roads, the approach and the foot: trodden over ~0.5)

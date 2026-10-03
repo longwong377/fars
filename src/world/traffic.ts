@@ -178,7 +178,7 @@ export class Traffic {
   /** D-570: the hinterland's people on the four roads (roadFolk.ts) */
   readonly folk: RoadFolk;
   constructor(private seed: number, private src: TrafficSource, plan: TownPlan | null) {
-    this.folk = src.folk ?? new RoadFolk(seed, src.cal, plan); if (src.court?.tents?.length) this.buildTrain(src.court.tents, plan);
+    this.folk = src.folk ?? new RoadFolk(seed, src.cal, plan); this.folk.setPlan(plan); if (src.court?.tents?.length) this.buildTrain(src.court.tents, plan);
     const W = FEAT.road_royal_west.polyline as P2[], S = FEAT.road_south_tirazzish.polyline as P2[], stair = (PLACE.stair_foot?.at ?? [-52, 118.5]) as P2;
     const site = (id: string) => plan?.sites.find(s => s.id === id);
     const st = site('stables'), sto = site('stores');
@@ -222,6 +222,13 @@ export class Traffic {
       if (dry && R.timberIn && h01(this.seed, d, 77) < 1 / 9) { const n = 2 + (h01(this.seed, d, 78) < 0.5 ? 1 : 0), arrive = 9 + 7 * h01(this.seed, d, 79);
         for (let i = 0; i < n; i++) P.push({ key: `tb${d}:${i}`, kind: 'cart', in: R.timberIn, arrive, gap: i * CART_M, hold: 1.5, out: null, seed: d * 211 + i,
           whyIn: 'driving an ox cart of roof timbers to the drum ground for the building works', whyHold: 'holding the timber cart while the beams are levered off at the drum ground', whyOut: 'driving the emptied timber cart back to the royal road' }); } }
+    // D-570 (V3's stone cart, s17): building stone for the Hall of 100 Columns' door and window frames and bases, from the quarry
+    // to the drum ground on its working days (dry, not the winter months 9-11): 3-6 ox carts a day spread over the daylight, each
+    // held while the blocks are levered off, then driven back to the quarry the way it came (C: carts, numbers and loads; the
+    // stone from Majdabad by petrography, B)
+    if (this.drumRoute && !(C as any).wx?.wet && !((C.month ?? 1) >= 9 && (C.month ?? 1) <= 11)) { const sun = (C as any).sun ?? { rise: 6, set: 18 }, n = 3 + Math.floor(4 * h01(this.seed, d, 91));
+      for (let i = 0; i < n; i++) P.push({ key: `sc${d}:${i}`, kind: 'cart', in: this.drumRoute, arrive: sun.rise + 2.5 + (sun.set - sun.rise - 5) * (i + h01(this.seed, d, 92 + i)) / n, gap: 0, hold: 0.6, out: null, seed: d * 233 + i,
+        whyIn: 'driving an ox cart of building stone from the quarry to the Hall of 100 Columns’ works', whyHold: 'holding the stone cart at the drum ground while the blocks are levered off', whyOut: 'driving the emptied stone cart back to the quarry' }); }
     C.couriers.forEach((x, k) => {
       P.push({ key: `cu${d}:${k}`, kind: 'courier', in: R.courierIn, arrive: x.t, gap: 0, hold: 0, out: null, seed: d * 191 + k, whyIn: 'a courier riding in to the road station on a relay horse (E-20)', whyHold: '', whyOut: '' });
       if (!x.treasury) P.push({ key: `co${d}:${k}`, kind: 'courier', in: null, arrive: x.t + 0.4, gap: 0, hold: 0, out: R.courierOut, seed: d * 197 + k, whyIn: '', whyHold: '', whyOut: 'a courier riding out on a fresh horse with the letter for the next station (E-20)' }); });

@@ -461,3 +461,4 @@
 | Recording `rug_walk` (foot; public/audio/foot/rug_walk_*.ogg) | esc50: [Footsteps_Carpet.wav](http://www.freesound.org/people/mlsulli/sounds/234855/) sha256 d1b33538a11d | CC0 | mlsulli | C (a present-day recording standing for the period's sound) |
 
 <!-- D-620 recordings: end -->
+| Poly Haven Weathered Planks (public/textures/weathered_planks/diff.jpg, arm.jpg; from branch assets-archive textures/polyhaven/weathered_planks): the town street doors' boarded leaves (src/render/scans.ts door_planks; s17 C1, D-550) | Poly Haven (Dimitrios Savva photography, Dario Barresi processing) | CC0 1.0 | none | C (surface grain only; colour and form the project's) |

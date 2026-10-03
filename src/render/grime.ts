@@ -194,7 +194,7 @@ const CLASS: Record<string, GrimeClass> = {
   mudbrick: 'plaster', mudbrick_painted: 'plaster', mudbrick_bare: 'plaster', plaster: 'plaster', mud_plaster: 'plaster', house_plaster: 'plaster', house_brick: 'plaster', baked_brick: 'plaster', village_mud: 'plaster',
   roof_earth: 'plaster', mud_roof: 'plaster', house_roof: 'plaster', matting: 'plaster',
   earth: 'ground', court_fill: 'ground', road: 'ground', bank: 'ground', refuse: 'ground',
-  plaster_red: 'floor', timber: 'timber', roof_timber: 'timber', house_timber: 'timber', scaffold: 'timber',
+  plaster_red: 'floor', timber: 'timber', roof_timber: 'timber', house_timber: 'timber', door_planks: 'timber', scaffold: 'timber',
 };
 export const grimeClass = (name: string): GrimeClass => CLASS[name] ?? 'none';
 /** drift 1Ïƒ (fraction of the albedo) at 100 m, 10 m and 1 m, and the warm/cool shift, per class (C). The 1 m octave only where the

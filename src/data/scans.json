@@ -868,5 +868,26 @@
    "diff.jpg (sRGB)",
    "arm.jpg (R ao, G roughness, B metal)"
   ]
+ },
+ "weathered_planks": {
+  "meanLinear": [
+   0.0826,
+   0.05833,
+   0.04426
+  ],
+  "meanAO": 0.894,
+  "meanRough": 0.7365,
+  "name": "Weathered Planks",
+  "authors": [
+   "Dimitrios Savva",
+   "Dario Barresi"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/weathered_planks",
+  "res": "2k",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)"
+  ]
  }
 }

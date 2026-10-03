@@ -12,7 +12,7 @@
 // colours and the flowers shown in their months. Without the models: the D-310 scans (nearest real forms), then the procedural
 // stand-ins (flagged PLACEHOLDER).
 import * as THREE from 'three/webgpu';
-import { attribute, positionLocal, float, vec3, mix, uniform, length, smoothstep, cameraPosition } from 'three/tsl';
+import { attribute, positionLocal, float, vec3, vec4, mix, uniform, length, smoothstep, cameraPosition, cameraViewMatrix, normalView, faceDirection, texture, uv } from 'three/tsl';
 import type { P2 } from '../people/navgrid';
 import { CELL, type CellCtx, type SmallWorld } from './smallLife';
 import { scanProp, scanMaterial, fitProp, type ScanProp } from '../render/scanProps';
@@ -154,6 +154,11 @@ export class GroundFlora {
         const vis = k === 'cushion' ? this.uBloomA : k === 'camelthorn' ? this.uBloomC : this.uHeads;
         const sm = lifeMaterial(lm, { fallback: [0.35, 0.4, 0.25], tint, roughness: 0.9, side: THREE.DoubleSide, flowerVis: vis });
         sm.positionNode = positionLocal.mul(grow);
+        // s17 (D-560, V2's probe frames: camelthorn and thistle cards drawn black): thin spiny cards lit like a low canopy: the
+        // facing-corrected geometry normal bent two thirds toward the sky (no card ever faces away from the light into black),
+        // and the baked occlusion (the normal texture's alpha) kept to a third of its depth
+        sm.normalMap = null; sm.normalNode = mix(normalView.mul(faceDirection), cameraViewMatrix.mul(vec4(0, 1, 0, 0)).xyz, 0.65).normalize();
+        if (lm.nrm) sm.aoNode = texture(lm.nrm, uv()).a.mul(0.3).add(0.7);
         const mk = (lvl: string) => { const g = lm.levels[lvl].clone(); g.setAttribute('fpos', new THREE.InstancedBufferAttribute(new Float32Array(FLORA[k].max * 3), 3));
           const im = new THREE.InstancedMesh(g, sm, FLORA[k].max); im.count = 0; im.frustumCulled = false; im.castShadow = false; im.receiveShadow = true; im.name = `flora-${k}:model:${lvl}`;
           im.userData = { tier: mesh.userData.tier, src: 'SMALL-R;RECON', placeholder: false, note: `${FLORA[k].name}: modelled as the species (tools/blender/life_flora.py; D-332: forms from botanical descriptions, C); near the viewer only, stands and density reconstructed (C)` };
@@ -170,6 +175,7 @@ export class GroundFlora {
           const tint = k === 'cushion' ? mix(vec3(0.3, 0.33, 0.22), vec3(0.4, 0.42, 0.3), positionLocal.y.mul(2).clamp(0, 1)) : k === 'camelthorn' ? mix(vec3(0.2, 0.28, 0.1), vec3(0.36, 0.27, 0.17), this.uDry)
             : mix(mix(vec3(0.48, 0.42, 0.3), vec3(0.2, 0.3, 0.11), this.uGreen), mix(vec3(0.55, 0.47, 0.34), vec3(0.45, 0.2, 0.45), this.uFlower), part);
           const sm = scanMaterial(p, tint, { roughness: 0.9, side: THREE.DoubleSide }); sm.positionNode = positionLocal.mul(grow);
+          if (k !== 'cushion') { sm.normalMap = null; sm.normalNode = mix(normalView.mul(faceDirection), cameraViewMatrix.mul(vec4(0, 1, 0, 0)).xyz, 0.65).normalize(); } // (s17: the cards lit as a canopy, as the models above)
           for (const lod of [0, 1]) {
             const sg = fitProp(p.lods[lod], u); sg.setAttribute('fpos', new THREE.InstancedBufferAttribute(new Float32Array(per * 3), 3));
             const im = new THREE.InstancedMesh(sg, sm, per); im.count = 0; im.frustumCulled = false; im.castShadow = false; im.receiveShadow = true; im.name = `flora-${k}:${p.id}:lod${lod}`;

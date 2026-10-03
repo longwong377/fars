@@ -85,6 +85,8 @@ export const SCAN_USE: Record<string, ScanUse> = {
   timber: { scan: 'rough_wood', scale: 1.2, alb: 0.6, height: 0.002, rough: 0.5 },
   roof_timber: { scan: 'rough_wood', scale: 1.2, alb: 0.6, height: 0.002, rough: 0.5 },
   house_timber: { scan: 'rough_wood', scale: 1.2, alb: 0.6, height: 0.002, rough: 0.5 },
+  // s17 C1 (Vagon's probe frames: the door leaves read as poles): the street doors' boarded leaves, Poly Haven Weathered Planks (CC0; vertical boards)
+  door_planks: { scan: 'weathered_planks', scale: 1.0, alb: 0.6, height: 0.002, rough: 0.5 },
   scaffold: { scan: 'rough_wood', scale: 1.2, alb: 0.6, height: 0.002, rough: 0.5 },
   // D-301 (every inch real: the interiors). The halls' and rooms' own surfaces: the red lime-plaster floors (a trowelled clay
   // floor's marks, fine cracks and uneven sheen: the burnished coat was hand-laid, not poured), the Treasury's clay-painted mud
@@ -137,7 +139,7 @@ export const ALB_MIN = 0.3;
 export const SCANNABLE: Record<string, true> = Object.fromEntries(['limestone', 'limestone_merlon', 'limestone_carved', 'limestone_dark',
   'terrace', 'terrace_now', 'terrace_foot', 'stone_rough', 'stone_plain', 'takht_stone', 'nr_dressed', 'nr_rock', 'rubble', 'kaba_white', 'mudbrick', 'mudbrick_painted', 'roof_earth', 'mudbrick_bare',
   'house_brick', 'baked_brick', 'mud_plaster', 'house_plaster', 'house_socle', 'house_roof', 'mud_roof', 'plaster', 'village_mud', 'earth', 'court_fill', 'road', 'bank',
-  'refuse', 'timber', 'roof_timber', 'house_timber', 'scaffold'].map(k => [k, true]));
+  'refuse', 'timber', 'roof_timber', 'house_timber', 'door_planks', 'scaffold'].map(k => [k, true]));
 /** the scan applied to a surface at a strength that reads (T-A7's anti-proxy: alb >= ALB_MIN), or null; what the builders record
  *  in material.userData.scan (node as well: there no texture loads, the tag says what the page applies) */
 // merged D-300/D-301: in the browser null when the scans are off (?noscans) or this scan did not load; in node (no texture

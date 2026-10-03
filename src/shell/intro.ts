@@ -41,7 +41,7 @@ export const SHOTS: IntroShot[] = [
   // the town N of the Terrace from just over its roofs, looking S to the Terrace with the low sun raking across from the E;
   // lanes, courts, smoke from the first fires
   { id: 'town', what: 'the town waking', dur: 15, atRise: 0.35,
-    keys: [{ e: -110, n: 880, h: 24, az: 166, pitch: -11, fov: 45 }, { e: -165, n: 850, h: 20, az: 172, pitch: -10, fov: 45 }, { e: -225, n: 830, h: 17, az: 180, pitch: -9, fov: 45 }] },
+    keys: [{ e: -280, n: 880, h: 24, az: 150, pitch: -12, fov: 45 }, { e: -320, n: 862, h: 20, az: 154, pitch: -11, fov: 45 }, { e: -360, n: 846, h: 17, az: 158, pitch: -10, fov: 45 }] }, // (moved W over the quarter after the cloud's first frame, 01:36: from e -165 the town lay off the right edge and the frame was empty plain)
   // the W face of the Terrace from the plain, the camera rising past the wall's top: the Grand Stair, the Gate, the columns
   // of the Apadana in the first sun over Rahmat
   { id: 'terrace', what: 'the Terrace in the first sun', dur: 16, atRise: 1.1,
