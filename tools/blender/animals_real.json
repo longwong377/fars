@@ -223,7 +223,8 @@
     0.62,
     0.5,
     0.42
-   ]
+   ],
+   "no_udder": true
   },
   "mule": {
    "class": "large",

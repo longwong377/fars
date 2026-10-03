@@ -35,7 +35,7 @@ await Promise.all(Array.from({ length: JOBS }, async () => { while (q.length) { 
   if (!existsSync(glb)) { const r = await fetch(`https://huggingface.co/datasets/allenai/objaverse/resolve/main/glbs/${e.shard}/${e.uid}.glb`); if (!r.ok) throw new Error(`fetch ${r.status}`); writeFileSync(glb, Buffer.from(await r.arrayBuffer())); }
   // the gear of a pack or riding animal, from the anatomy (tools/blender/sources/animal_gear.ts)
   let gear = null; if (e.gear) { await run(process.platform === 'win32' ? 'npx.cmd' : 'npx', ['tsx', 'tools/blender/sources/animal_gear.ts', w, sp, '0.006']); gear = `${w}/gear.ply`; }
-  const job = { sp, gear, glb, out_dir: w, tris: C.tris, tex: C.tex, len: b.len, h: b.h, girth: b.girth, biped: b.biped, head: b.head, rot: e.rot ?? null, kz: e.kz ?? null, drop: e.drop ?? [], tint: e.tint ?? null, tail_r: e.tail_r ?? null, device: 'GPU' };
+  const job = { sp, gear, glb, out_dir: w, tris: C.tris, tex: C.tex, len: b.len, h: b.h, girth: b.girth, biped: b.biped, head: b.head, rot: e.rot ?? null, kz: e.kz ?? null, drop: e.drop ?? [], tint: e.tint ?? null, tail_r: e.tail_r ?? null, no_udder: !!e.no_udder, device: 'GPU' };
   writeFileSync(`${w}/job.json`, JSON.stringify(job, null, 1));
   await run(BLENDER, ['-b', '--factory-startup', '--python', 'tools/blender/animals_real.py', '--', `${w}/job.json`]);
   const st = JSON.parse(readFileSync(`${w}/stats.json`, 'utf8')), rig = JSON.parse(readFileSync(`${w}/rig.json`, 'utf8'));

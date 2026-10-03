@@ -9741,3 +9741,6 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
 - animals.ts: a library model's coat darkens to ~0.6 of its albedo with the weather's surface wetness (WEATHER.wetness, the
   ground's own uniform), loses its fuzz rim and takes a duller sheen. Probe: shots/wx-rain-spring-w7.png, wx-herd-30m-w7.png
   (the spring green of D-522 reads on the plain at 30 m).
+- D-523 addendum (s17, V5): the ox (drawn from the cow model) has no udder: tools/blender/animals_real.py `no_udder` presses
+  what hangs below the belly line between the hind legs and the navel up to the belly (72 vertices on the cow model) before
+  the levels and bakes are made.
