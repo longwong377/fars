@@ -10175,3 +10175,8 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   performers.ts (the banquet's music); the proskynesis pose; the crown prince and the weapon-bearer behind the throne, the parasol
   furled indoors; the plain kidaris; guards in the court robe; head pieces fitted by the head's radius, not its support function;
   the delegations' gifts modelled (tools/blender/model_props.py gift_*); the stale 'court absent by default' texts rewritten.
+
+## D-663 A kept town, washing in the courts (s18 cloud C2: the lead's V9 note and C12's W11)
+- The town's plaster loss (V9's EarthWeatherDef on house_plaster) 7 % → 1.5 % of the face: the houses are re-plastered each spring; the bricks show where houses.ts's own losses put them (by the household's upkeep and the wall's age), the splash and streaks kept (surfaces.ts).
+- No washing lines across the public lanes (C12 W11): each line now hangs across the household's own court, wall to wall over a straight run of 2-7 court cells, for six houses in ten (fillPlan.ts; C); the roofs keep theirs.
+- tests/plain.test.ts's village_p22 frame (C7: 2.04 M > 2.0 M on D-660) passes on this head: D-662's far-level trims (roofs a top, door infills, the crests) won it back.
