@@ -97,9 +97,11 @@ describe('the court in residence (D-182)', () => {
   }, 600_000);
   it('every sealed letter for the Treasury is handed over while the desk is open, every day of the year, with and without the court (D-229)', () => {
     // (the plans are read on every day a letter comes and on every seventh day besides, to see no letter carried that the
-    // calendar did not send: the year's plans cost ~20 min on a 4-core box, the letters' days a fraction; C7 D-710. D-780: the
-    // court's sim through its residence and a month after, the year beyond it the court-less town's, checked in full by `absent`)
-    for (const S of [absent, court]) { const P = S.pop, last = S === court ? Math.min(354, P.court!.year.leave + 30) : 354; let cal = 0, carried = 0; const bad: string[] = [];
+    // calendar did not send; C7 D-710. D-780: the cost is not the plans but the town's economy, which the first plan of a day
+    // advances to that day (population.touches: ~1-1.7 s a day here, 600 s for the court-less year alone). The letters' hours are
+    // checked against the desk on every day of the year from the calendar; the plans and the desk's receipts over the court's
+    // sim through its residence and a month after, and the court-less town's over the first half of the year)
+    for (const S of [absent, court]) { const P = S.pop, last = S === court ? Math.min(354, P.court!.year.leave + 30) : 177; let cal = 0, carried = 0; const bad: string[] = [];
       for (let d = 0; d < 354; d++) { const L = P.cal.ctx(d).letters; for (const x of L) expect(x.go + P.walkH('station', 'stair_foot', d, 'town', 'terrace') + 0.1 + TREASURY_DESK.hand, `day ${d}`).toBeLessThanOrEqual(TREASURY_DESK.close + 1e-9); }
       for (let d = 0; d < last; d++) { const L = P.cal.ctx(d).letters; cal += L.length; if (!L.length && d % 7) continue;
         for (const m of P.messengers) if (P.present(m, d)) carried += P.plan(m, d).filter(s => s.why === LETTER_WHY).length;
