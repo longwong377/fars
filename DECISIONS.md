@@ -9973,3 +9973,31 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   from 2 m up to ~290 m over the mountain behind the Terrace; a data fix (reroute round the north end) asked of the lead.
 - Unseen: the cloud cannot draw Q=high (WebGL2: program validation failures and a lost device with the cascade on AND off;
   WebGPU: SwiftShader's 16-texture cap), so the far cascade is verified node-side only; it needs a T4 frame.
+
+## D-750 The Terrace at 100-300 m: crowned, banded, hung and flagged (s18 cloud C10; UD-19, UD-29, UD-35, UD-36)
+- **Why:** Vagon's final train (s17-renders final2) showed the Gate, the palaces and the Terrace's edge as plain boxes from the
+  stair, the town and the plain: flat roof lines, blank walls, open stone porticoes, nothing moving in the wind.
+- **What (render geometry only; no parts, colliders, grid or plan changed; every class C, tiered in F3):**
+  1. Stepped stone merlons on every palace roof line (roofedge.ts `crowns`: Gate, Apadana, Tachara, Hadish, Harem; not the
+     fortification, which keeps its mud merlons, nor the garrison and Treasury) at 1.35x the stair merlon (UD-29: 0.9 m is a
+     hairline at 300 m), and on the Terrace's edge parapet at the stair size (terrace.parapet_height: "low crenellated parapet").
+     The Blender merlon's own geometry and material (no new pipeline), instanced in 23 chunks of 128 m per building so the far
+     levels (far_terrace.ts) apply per chunk; MerlonNear inside 16 m. ~2,900 merlons; duplicates where two parapet lines
+     coincide (a wall top flush with a roof edge) dropped.
+  2. Glazed-brick bands (the Apadana frieze's rosettes, 1.62 m, 18 courses) under the string course of the Gate's, the
+     Tachara's and the Hadish's outer wall runs (glazed.ts `palaceBandFaces`).
+  3. The porticoes' hangings (dressings.ts; Esther 1:6 for the practice, B): two tied-back curtains per front-row bay and a
+     scalloped valance under the capitals, white, green, blue and purple; 30 bays (Apadana 15, Tachara 3, Hadish 7, Harem 5).
+  4. Royal standards (Xenophon Cyr. 7.1.4 for the standard, B): 12 poles with bronze finials and swallow-tailed purple-red
+     banners over the Gate's corners, the Apadana towers, the Tachara and the Hadish (static cloth: no wind shader).
+  5. Blind windows in dark stone frames with gorge cornices on the Apadana towers' free outer faces (52; global.r_window's
+     frame by analogy).
+  Materials are ones the world already compiles (the merlon, the torches' textile/wood, the brazier stone, bronze, glazed):
+  no new shader, no new sampler. Dressings ride under the glazed-frieze mesh (world.ts adds it); ~30 k triangles.
+- **Measured (cloud, SwiftShader WebGL2, Q=test, one page, each view with the additions hidden then shown; handoff/s18/c10):**
+  stair foot +0.65 M triangles / +39 draws (11.83 -> 12.48 M; +0.95 M before the 128 m chunks), approach 700 m +0.35 M / +27,
+  plain 930 m +0.27 M / +27, Rahmat 350 m +0.41 M / +30, on the Terrace (inside the Apadana stair) +0.81 M / +41. Upper bounds:
+  the far levels are built in a worker and a 3-frame test render may draw before they land. Frame time and memory unmeasured
+  (the T4's budget run decides; the merge budget binds).
+- **Unseen:** the tower windows (committed after the last render); any frame at Q=high; the cloth and merlons under the T4's
+  shadows and lighting; whether the banners' static droop reads as cloth at 20 m.
