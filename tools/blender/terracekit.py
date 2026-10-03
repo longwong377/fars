@@ -86,13 +86,65 @@ def plinth(seed, fine=True):
     pts += [(0.02, 0.22), (0.02, 0.24), (0.0, 0.24)]
     return sweep(pts, lambda x, i: RED, 2 if fine else 1, lambda x, i: 0.0, seed, f'plinth{seed}' if fine else 'plinthL', 0.004 if fine else 0)
 
+COAT, DARK = (0.82, 0.8, 0.74), (0.1, 0.085, 0.07)
+
+def window(seed, fine=True, W=1.5, H=3.0, D=0.35):
+    """a Persepolis stone window frame round a blind opening W x H, origin at the opening's foot centre on the wall face: the
+    recess D deep (dark), three stepped fasciae round it (the rock-tomb doorways' frame, A for the form), a sill, and over the
+    lintel a torus and the Egyptian gorge with its tongues (painted blue and white), all under the whitish coat (D-752)"""
+    r = random.Random(seed); verts, faces, col, shade = [], [], [], []
+    def box(x0, x1, y0, y1, z0, z1, c, skip_back=True):
+        b = len(verts)
+        for (x, y, z) in [(x0, y0, z0), (x1, y0, z0), (x1, y1, z0), (x0, y1, z0), (x0, y0, z1), (x1, y0, z1), (x1, y1, z1), (x0, y1, z1)]:
+            verts.append(G(x, y, z)); col.append(c); shade.append(0.95 + 0.06 * r.random())
+        for f in [(4, 5, 6, 7), (0, 1, 5, 4), (1, 2, 6, 5), (2, 3, 7, 6), (3, 0, 4, 7)] + ([] if skip_back else [(3, 2, 1, 0)]):
+            faces.append(tuple(b + i for i in f))
+    hw = W / 2
+    # the recess: its back and reveals (dark), as a box set into the wall
+    b = len(verts)
+    for (x, y, z) in [(-hw, 0, -D), (hw, 0, -D), (hw, H, -D), (-hw, H, -D), (-hw, 0, 0), (hw, 0, 0), (hw, H, 0), (-hw, H, 0)]:
+        verts.append(G(x, y, z)); col.append(DARK); shade.append(1.0)
+    for f in [(0, 1, 2, 3), (0, 4, 5, 1), (1, 5, 6, 2), (2, 6, 7, 3), (3, 7, 4, 0)]: faces.append(tuple(b + i for i in f))
+    # the three fasciae: each a frame band a little wider and less proud than the one inside it
+    for k, (w, p) in enumerate([(0.14, 0.12), (0.12, 0.08), (0.12, 0.04)]):
+        o = sum(x[0] for x in [(0.14, 0), (0.12, 0), (0.12, 0)][:k]); a0, a1 = hw + o, hw + o + w
+        box(-a1, -a0, -o - w if fine else -a1 + hw, H + o, 0, p, COAT); box(a0, a1, -o - w if fine else -a1 + hw, H + o, 0, p, COAT)
+        box(-a1, a1, H + o, H + o + w, 0, p, COAT)
+    T = hw + 0.38
+    box(-T, T, -0.5, -0.38, 0, 0.14, COAT)  # the sill
+    # the head: a torus band and the gorge over it, swept across the frame
+    yH = H + 0.38
+    box(-T - 0.04, T + 0.04, yH, yH + 0.09, 0, 0.16, COAT)
+    m = 6 if fine else 2; nx = 18 if fine else 1; base = len(verts); prof = []
+    for j in range(m + 1):
+        a = math.pi - (math.pi / 2) * j / m; prof.append((0.3 + 0.28 * math.cos(a), yH + 0.09 + 0.36 * math.sin(a)))
+    prof += [(0.32, yH + 0.45), (0.32, yH + 0.53), (0.0, yH + 0.53)]
+    n = len(prof)
+    for kx in range(nx + 1):
+        x = -T - 0.08 + (2 * T + 0.16) * kx / nx
+        for i, (z, y) in enumerate(prof):
+            tongue = 0.012 * (0.5 + 0.5 * math.cos(2 * math.pi * ((x * 8) % 1.0 - 0.5))) if fine and 0 < i < m else 0
+            verts.append(G(x, y, z + tongue)); col.append((BLUE if int((x + 10) * 8) % 2 == 0 else WHITE) if i <= m else COAT); shade.append(1.0)
+    for kx in range(nx):
+        for i in range(n - 1):
+            a = base + kx * n + i; faces.append((a, a + n, a + n + 1, a + 1))
+    faces.append(tuple(base + i for i in range(n))); faces.append(tuple(base + nx * n + i for i in range(n))[::-1])
+    name = f'window{seed}' if fine else 'windowL'
+    me = bpy.data.meshes.new(name); me.from_pydata(verts, [], faces); me.update()
+    bm = bmesh.new(); bm.from_mesh(me); bmesh.ops.recalc_face_normals(bm, faces=bm.faces); bm.to_mesh(me); bm.free(); me.update()
+    ob = bpy.data.objects.new(name, me); bpy.context.scene.collection.objects.link(ob)
+    a = me.attributes.new('shade', 'FLOAT', 'POINT'); pc = me.attributes.new('paint', 'FLOAT_COLOR', 'POINT')
+    for i, v in enumerate(shade): a.data[i].value = v
+    for i, c in enumerate(col): pc.data[i].color = (c[0], c[1], c[2], 1)
+    return ob
+
 def bake_ao(ob):
     sc = bpy.context.scene; sc.render.engine = 'CYCLES'; sc.cycles.samples = 64; sc.cycles.device = 'CPU'; sc.cycles.seed = 0
     sc.render.bake.target = 'VERTEX_COLORS'
     if sc.world is None: sc.world = bpy.data.worlds.new('w')
     sc.world.light_settings.distance = 0.4
     # the wall behind z = 0 (game) and the floor/roof it meets: a slab behind, Blender y > 0
-    bpy.ops.mesh.primitive_cube_add(size=1, location=(0.5, 0.5 + 0.0005, 0.5)); wall = bpy.context.active_object; wall.scale = (6, 1, 6)
+    bpy.ops.mesh.primitive_cube_add(size=1, location=(0.5, 0.5 + 0.0005, 0.5)); wall = bpy.context.active_object; wall.scale = (8, 1, 12)
     for o in bpy.context.scene.objects: o.hide_render = (o is not ob and o is not wall)
     me = ob.data; ca = me.color_attributes.new('ao', 'FLOAT_COLOR', 'POINT'); me.color_attributes.active_color = ca
     if not me.materials: me.materials.append(bpy.data.materials.new('m'))
@@ -115,8 +167,10 @@ def main():
     obs['corniceL'] = cornice(9, False)
     for s in range(2): obs[f'plinth{s}'] = plinth(s)
     obs['plinthL'] = plinth(9, False)
+    obs['window0'] = window(0)
+    obs['windowL'] = window(9, False)
     for ob in obs.values(): bake_ao(ob)
-    out = {'about': 'D-803 Terrace kit batch 1 (tools/blender/terracekit.py): the palaces\' wall-head cornice and wall-foot plinth, modelled and AO-baked in Blender (Cycles, vertex AO); game axes (x along the wall 0..1 m, y up, z out of its face); c = paint (sRGB); tier C', 'blender': bpy.app.version_string, 'pieces': {}}
+    out = {'about': 'D-803 Terrace kit (tools/blender/terracekit.py): batch 1 the palaces\' wall-head cornice and wall-foot plinth, batch 2 the stone window frame, modelled and AO-baked in Blender (Cycles, vertex AO); game axes (x along the wall 0..1 m, y up, z out of its face); c = paint (sRGB); tier C', 'blender': bpy.app.version_string, 'pieces': {}}
     for name, ob in obs.items(): out['pieces'][name] = export(ob)
     with open(OUT, 'w') as f: json.dump(out, f, separators=(',', ':'))
     print('[terracekit] wrote', OUT, {k: v['tris'] for k, v in out['pieces'].items()})
