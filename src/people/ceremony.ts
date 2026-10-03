@@ -51,14 +51,14 @@ export const inResidence = (seed: number, d: number) => { const Y = courtYear(se
 export const isGiftDay = (seed: number, d: number) => courtSetDays(seed).gift.includes(d);
 export const isHuntDay = (seed: number, d: number) => courtSetDays(seed).hunt.includes(d);
 export const isBanquetNight = (seed: number, d: number) => inResidence(seed, d) && courtSetDays(seed).banquet.has(d);
-/** the king's ordinary audience by the seed's draw (the king's illness aside: CourtResidents.audienceDay); a gift day always
- *  holds one, a hunt day none */
+/** the king's audience by the seed's draw (the king's illness aside: CourtResidents.audienceDay): most mornings of the
+ *  residence (C1's ask, the king seen daily: court.json ceremony.audience_share), a gift day always, a hunt day never */
 export function audienceDraw(seed: number, d: number): boolean {
   if (!inResidence(seed, d) || isHuntDay(seed, d)) return false; if (isGiftDay(seed, d)) return true;
   return u01(seed, S.aud, d) < CE.audience_share;
 }
-/** the king rides out this morning (no audience, no hunt) */
-export const isRideDay = (seed: number, d: number) => inResidence(seed, d) && !audienceDraw(seed, d) && !isHuntDay(seed, d) && d !== courtSetDays(seed).kingGifts && rng(seed, S.ride, d) < CE.ride.share;
+/** the king drives out this afternoon (not on a hunt day, not on the day of his gifts) */
+export const isRideDay = (seed: number, d: number) => inResidence(seed, d) && !isHuntDay(seed, d) && d !== courtSetDays(seed).kingGifts && rng(seed, S.ride, d) < CE.ride.share;
 /** the hours of a day's events (shared by everyone in them) */
 export function ceremonyHours(seed: number, d: number) {
   const u = (k: number) => rng(seed, S.hours, d, k), R = CE.ride, H = CE.hunt, B = CE.banquet, G = CE.gift_days;
@@ -90,6 +90,9 @@ export const FEAST_SEATS: { at: P2; heading: number; table: P2 }[] = (() => {
     for (let k = 0; k < N; k++) { const a = (k + 0.5) / N * 2 * Math.PI, at: P2 = [+(t[0] + R * Math.sin(a)).toFixed(2), +(t[1] + R * Math.cos(a)).toFixed(2)];
       out.push({ at, heading: (Math.atan2(t[0] - at[0], t[1] - at[1]) * 180 / Math.PI + 360) % 360, table: t }); }
   }
+  // D-780 (the lead: guests by rank): the seats nearest the king's place first, so the first diners (the chiliarch, then the
+  // Persians of rank, the officials last: CourtResidents.seatOf) sit closest to the throne (C)
+  const K0 = F.king_at as P2; out.sort((a, b) => Math.hypot(a.table[0] - K0[0], a.table[1] - K0[1]) - Math.hypot(b.table[0] - K0[0], b.table[1] - K0[1]) || a.at[0] - b.at[0] || a.at[1] - b.at[1]);
   return out;
 })();
 /** the low tables of the banquet (their centres): furnish_palaces.ts lays one in each bay with seats */

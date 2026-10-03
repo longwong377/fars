@@ -1,0 +1,91 @@
+{
+ "_meta": {
+  "src": "ORACC ARIo (Schmitt 2009), CC0, via oracc/catf ario.catf; data/corpus/ario_dn_captions.catf",
+  "tool": "tools/build_naqsh_captions.ts",
+  "tier": "A (the edition) / C (restorations carved, the captions' places on the façade)"
+ },
+ "DNc": {
+  "ario": "Q007154",
+  "op_signs": [
+   "ga-u-ba-ru-u-va : pa-a-ta-i-ša-u-va-ra-i-ša : da-a-ra",
+   "ya-va-ha-u-ša : xa-ša-a-ya-θa-i-ya-ha-ya-a : ra-ta-i-ba-ra"
+  ]
+ },
+ "DNd": {
+  "ario": "Q007155",
+  "op_signs": [
+   "a-sa-pa-ca-na-a : va-ça-ba-ra : da-a-ra-ya-va-ha-u-ša : xa-ša"
+  ]
+ },
+ "DNe": {
+  "ario": "Q007156",
+  "lines": [
+   [
+    "i-ya-ma : pa-a-ra-sa"
+   ],
+   [
+    "i-ya-ma : ma-a-da"
+   ],
+   [
+    "i-ya-ma : u-va-ja"
+   ],
+   [
+    "i-ya-ma : pa-ra-θa-va"
+   ],
+   [
+    "i-ya-ma : ha-ra-i-va"
+   ],
+   [
+    "i-ya-ma : ba-a-xa-ta-ra-i-ya"
+   ],
+   null,
+   [
+    "i-ya-ma : u-va-a-ra-za-mi-i-ya"
+   ],
+   [
+    "i-ya-ma : za-ra-ka"
+   ],
+   [
+    "i-ya-ma : ha-ra-u-va-ta-i-ya"
+   ],
+   null,
+   null,
+   [
+    "i-ya-ma : ha-i-du-u-ya"
+   ],
+   null,
+   [
+    "i-ya-ma : sa-ka-a : ta-i-ga-ra-xa-u-da-a"
+   ],
+   [
+    "i-ya-ma : ba-a-ba-i-ru-u-ša"
+   ],
+   [
+    "i-ya-ma : a-θa-u-ra-i-ya"
+   ],
+   null,
+   null,
+   [
+    "i-ya-ma : a-ra-mi-i-na"
+   ],
+   null,
+   [
+    "i-ya-ma : sa-pa-ra-di-i-ya"
+   ],
+   [
+    "i-ya-ma : ya-u-na"
+   ],
+   null,
+   null,
+   null,
+   null,
+   null,
+   [
+    "i-ya-ma : ma-ca-i-ya-a"
+   ],
+   [
+    "i-ya-ma : ka-ra-ka-a"
+   ]
+  ]
+ }
+}

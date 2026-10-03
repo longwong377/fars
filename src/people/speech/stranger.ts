@@ -67,6 +67,9 @@ export const MARKET = 'market';
 /** D-455: a day's hire at the market (porterage, loads carried), paid at evening: a thirtieth of a shekel (B: the Neo-Babylonian
  *  hire contracts' shekel a month for a hired man; C for Pārsa) after three hours at the work */
 export const DAY_WAGE = 1 / 30, DAY_HOURS = 3;
+/** D-720 (W6): the day's hire paid as it was, in kind: barley to the day's hire's worth at the market's price (the beer is drunk
+ *  at the stall); DAY_WAGE stays its worth in silver (the law's reckoning of days worked off, deeds/law.ts) */
+export const dayGrain = (grainPrice: number) => DAY_WAGE / Math.max(1e-6, grainPrice);
 /** D-455: the stalls' margin over the market's own price, and what they give for grain brought in (C; a house gets 0.9) */
 const STALL_SELL = 1.12, STALL_BUY = 0.82;
 /** the languages, by family (a related tongue is learned a third as fast from the other: C) */
@@ -100,7 +103,10 @@ export type SAct =
   | { a: 'join'; day: number; kind: GroupKind; q?: string; hh?: string }
   | { a: 'leave_group'; day: number }
   | { a: 'buy' | 'sell'; day: number; /** a household, or MARKET (the stalls of the market ground) */ hh: string; good: 'grain' | 'fuel' | 'goods'; qty: number }
-  | { a: 'daywork'; day: number } | { a: 'daypaid'; day: number };
+  | { a: 'daywork'; day: number } | { a: 'daypaid'; day: number }
+  /** D-720 (the holes audit 4-12): bread, beer or a meal bought from a house or a seller at the market and eaten there, paid in
+   *  weighed silver or in barley (barter) */
+  | { a: 'meal'; day: number; hh: string; what: 'bread' | 'beer' | 'meal'; barter?: boolean };
 export interface Verdict { ok: boolean; why: string; /** the economy events it made (when applied) */ ev?: number[] }
 
 interface Job { employer: string; from: number; wage: 'grain' | 'cash'; worked: number; missed: number; run: number; owed: number; lastPay: number; ev: number; need: string; host?: boolean }
@@ -187,6 +193,7 @@ export class Stranger {
       case 'claim': return { ok: true, why: 'said' };
       case 'buy': case 'sell': return this.deal(s, false);
       case 'daywork': return this.dayCheck(s.day);
+      case 'meal': return this.meal(s, false);
       default: return { ok: true, why: '' };
     }
   }
@@ -226,10 +233,12 @@ export class Stranger {
         this.leaveGroup(day); return this.joinGroup(s, day, v.why); }
       case 'leave_group': this.leaveGroup(day); return { ok: true, why: 'left' };
       case 'buy': case 'sell': return this.deal(s, true);
+      case 'meal': return this.meal(s, true);
       case 'daywork': { const v = this.dayCheck(day); if (!v.ok) { this.bump('daywork_refused'); return v; }
         const e = this.ev('day_hired', [this.E.market.dearEv], MARKET, PLAYER); this.dayHire = { day: s.day, ev: e }; return { ok: true, why: v.why, ev: [e] }; }
       case 'daypaid': { const D = this.dayHire; if (!D || D.day !== s.day || D.paid) return { ok: false, why: 'no hire to pay' };
-        D.paid = true; this.purse.cash += DAY_WAGE; this.deeds.labour++; const e = this.ev('day_paid', [D.ev], MARKET, PLAYER, DAY_WAGE); return { ok: true, why: 'paid for the day', ev: [e] }; }
+        // (D-720, W6: hired labour was paid in kind: barley, the day's ration (A, the Fortification texts), and beer drunk at the stall)
+        const g = dayGrain(this.E.price('grain', this.E.day)); D.paid = true; this.purse.grain += g; this.deeds.labour++; const e = this.ev('day_paid', [D.ev], MARKET, PLAYER, +g.toFixed(3)); return { ok: true, why: 'paid for the day in barley, with a jug of beer', ev: [e] }; }
     }
   }
   /** D-455: is there a day's hire at the market (no regular work or group, not already hired today, and loads to carry today:
@@ -361,12 +370,32 @@ export class Stranger {
     return { ok: true, why: 'sold at the market', ev: [this.ev('sold_at_market', [M.cheapEv], PLAYER, MARKET, price)] };
   }
 
+  /** D-720 (4-12): a meal bought: its barley's worth (a loaf ~0.5 kg of barley, a jug of beer ~0.6, bread, beer and onions ~1.2: C)
+   *  at the market's price of the day (dear in a shortage and before the harvest: Economy.price), with the seller's margin (a house
+   *  that sells from its door a quarter, the market's bread and beer sellers an eighth: C); paid in weighed silver, or in barley
+   *  at a third over (barter, or no silver); a house sells only from its spare (not when its own bread runs short) */
+  private meal(s: Extract<SAct, { a: 'meal' }>, apply: boolean): Verdict {
+    const day = Math.min(s.day, this.E.day), units = s.what === 'bread' ? 0.5 : s.what === 'beer' ? 0.6 : 1.2, market = s.hh === MARKET, H = market ? null : this.H(s.hh);
+    if (!market && (!H || H.dead)) return { ok: false, why: 'no such house' };
+    if (H && H.grain < H.eaters * GRAIN_EAT * 10 + units) return { ok: false, why: 'they have no bread to spare: their own is running short' };
+    if (market && this.E.market.grain < this.E.hh.size) return { ok: false, why: 'the bread sellers have hardly anything: barley is scarce' };
+    const price = +(units * this.E.price('grain', day) * (market ? 1.12 : 1.25)).toFixed(4), grain = +(units * 1.33).toFixed(3);
+    const inGrain = (s.barter || this.purse.cash < price) && this.purse.grain >= grain;
+    if (!inGrain && this.purse.cash < price) return { ok: false, why: `the stranger has nothing to pay with (${silverSpoken(price)} or some barley)` };
+    const what = s.what === 'bread' ? 'bread' : s.what === 'beer' ? 'a jug of beer' : 'bread, beer and onions';
+    if (!apply) return { ok: true, why: `${what} for ${inGrain ? 'a little barley' : silverSpoken(price)}` };
+    if (inGrain) { this.purse.grain -= grain; if (H) H.grain += grain - units; else this.E.market.grain += grain; }
+    else { this.purse.cash -= price; if (H) { H.cash += price; H.grain -= units; } }
+    this.mealOn = day; this.hungry = 0; this.deeds.trades++;
+    return { ok: true, why: `ate ${what}`, ev: [this.ev('bought_meal', [], PLAYER, market ? MARKET : s.hh, inGrain ? grain : price)] };
+  }
+  private mealOn = -1;
   /** the stranger's bread for the day (a man's ration of ~0.8 kg, C): the host's table, the house he belongs to, the gang's
    *  ration day, a day worked for a house that feeds its hands; else his own stores; else hunger, which people see */
   private fedOn = -1;
   private eat(day: number) {
     if (this.fedOn >= day || !this.active) return; this.fedOn = day; this.night(day);
-    const fed = !!this.stay || this.group?.kind === 'household' || (this.group?.kind === 'gang' && this.attended.has(day)) || (!!this.job && this.attended.has(day));
+    const fed = this.mealOn === day || !!this.stay || this.group?.kind === 'household' || (this.group?.kind === 'gang' && this.attended.has(day)) || (!!this.job && this.attended.has(day));
     if (fed) { this.hungry = 0; return; }
     if (this.purse.grain >= 0.8) { this.purse.grain -= 0.8; this.hungry = 0; return; }
     const cost = 0.8 * this.E.price('grain', day); if (this.purse.cash >= cost) { this.purse.cash -= cost; this.hungry = 0; return; }

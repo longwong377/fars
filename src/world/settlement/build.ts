@@ -7,7 +7,7 @@ import type { Physics } from '../../player/physics';
 import type { Terrain } from '../../terrain/heightfield';
 import type { FireSystem, FireKind, FireSchedule } from '../fire';
 import { surfaceMaterial } from '../../render/materials';
-import { attribute, positionLocal, positionWorld, cameraPosition, vec3, textureLoad, ivec2, int, float, step, vec2, fract, smoothstep, fwidth, mix, clamp } from 'three/tsl';
+import { attribute, positionLocal, positionWorld, textureLoad, ivec2, int, float, step, vec2, fract, smoothstep, fwidth, mix, clamp } from 'three/tsl';
 import { SiteHouses, plasterBatch, newHB, TILE, NEAR_R, NEAR0, NEAR0_HYST, HOUSE_PARTS, POLE_GAP, seasonOf, type HB } from './houses';
 import { interiorRing } from '../interiors/ring';
 import { TownDoors } from './towndoors';
@@ -47,7 +47,7 @@ const NS_W = 512, NS_H = 240; export const NEAR_STATE = new THREE.DataTexture(ne
 /** a tile is shown within NEAR_R and hidden beyond NEAR_R + NEAR_HYST (fewer merges as the visitor walks) */
 const NEAR_HYST = 16;
 /** small fittings drawn near only; large ones (ovens, kilns, wells ...) also on the far level */
-const FAR_FITTINGS = new Set(['oven', 'kiln', 'forge', 'well', 'column', 'trough', 'manger']);
+const FAR_FITTINGS = new Set(['oven', 'kiln', 'forge', 'well', 'column', 'trough', 'manger', 'bed', 'path']);
 const SKIP_FITTINGS = new Set(['tree', 'channel', 'ditch', 'midden', 'pen_dung', 'pit', 'pool']);
 export interface Desc { tier: string; src: string; note: string; placeholder?: boolean; lod?: string; part?: number }
 interface ColBox { x: number; y: number; z: number; hx: number; hy: number; hz: number; rot: number }
@@ -65,10 +65,12 @@ export function partDesc(desc: Desc[], o: number, far: boolean): Desc | null {
   base.part = part; if (far) { base.lod = "far"; base.note = `${base.note} [${FAR_LOD_NOTE}]`; }
   return base;
 }
+/** s18 C2 (D-665): the lower-city belt's quarters (plan.ts q_b*) drawn in the mesh of the quarter beside them */
+const BELT_WITH: Record<string, string> = { q_b1: 'q_w1', q_b3: 'q_w3', q_b4: 'q_s1', q_b5: 'q_n1', q_b6: 'q_w1' };
 /** town meshes farther than this from the camera cast no shadows (they would only fill the Terrace's far cascades) */
 export const SHADOW_RANGE = 150;
-/** the town's trodden ground over the terrain near the eye (m; s18 C2, D-660: was 0.1, over the fill's and the people's feet) */
-export const GROUND_LIFT = 0.01;
+/** the town's trodden ground over the terrain (m): the terrain's coarser LODs must not poke through (fillPlan.ts TOWN_LIFT) */
+export const GROUND_LIFT = 0.1;
 
 export class Settlement {
   readonly group = new THREE.Group();
@@ -112,7 +114,8 @@ export class Settlement {
     const clusters = new Map<string, Cluster>();
     const quarters = this.plan.sites.filter(s => s.meta.kind === 'quarter');
     const clusterOf = (s: Site): string => {
-      if (s.meta.kind === 'quarter') return s.id;
+      if (s.meta.kind === 'quarter') return BELT_WITH[s.id] ?? s.id;
+      if (s.id === 'official' || s.id === 'stables' || s.id === 'waystation' || s.id === 'stores') return 'compounds'; // (s18 C2, D-667: the small walled compounds in one mesh) // (s18 C2, D-665: the belt's quarters in their neighbours' meshes: no new draws)
       // low garden and orchard walls in one mesh that casts no shadow; the four estates in one mesh
       if (s.plots.length && s.plots.every(p => p.kind === 'garden')) return 'gardens';
       if (s.id.startsWith('estate_')) return 'estates';
@@ -129,7 +132,7 @@ export class Settlement {
       const cl = getC(clusterOf(s), s.frame.c); const col: SiteCol = { id: s.id, c: s.frame.c, r: Math.hypot(s.W, s.H) / 2 + 5, boxes: [], live: null };
       this.cols.push(col); this.buildSite(s, si, cl, () => B(cl, 'stone'), col, H);
     });
-    this.doors = new TownDoors(this.houses.flatMap(h => h.doors), phys); this.group.add(this.doors.group);
+    this.doors = new TownDoors(this.houses.flatMap(h => h.doors), phys, 3); this.group.add(this.doors.group); // (s18 C2, D-667: three leaves by the wood's age, the paint varying them: tests/settlement_build's 45 meshes)
     this.roofWear = new RoofWear(this.houses); this.group.add(this.roofWear.group); // s17 C1 (D-550): leaking and fresh roofs from the sim (setSource)
     this.wallWear = new WallWear(this.houses); this.group.add(this.wallWear.group); this.roofWear.onSource = f => this.wallWear.setSource(f); // s17 C1: smoke over the doors, splashed feet, fresh coats
     phase('sites');
@@ -212,10 +215,8 @@ export class Settlement {
       this.group.add(m); this.info.tris += b.tris; this.info.meshes++; if (cl.id === 'gardens') m.castShadow = false; else this.casters.push(m);
     }
     if (ground.tris) { const gm = surfaceMaterial('road', { vertexColors: true }) as any; gm.polygonOffset = true; gm.polygonOffsetFactor = -4; gm.polygonOffsetUnits = -8;
-      // s18 C2 (D-660): 1 cm over the terrain round the eye, rising to 10 cm by 140 m (the terrain's coarser LODs must not poke
-      // through there). It was 10 cm everywhere: the lanes' fill, litter and people stand on the terrain's height (fill.ts, the
-      // nav grid), so 98 % of the litter and the mats lay under the lane's earth and every jar and tool stood 10 cm sunk in it
-      gm.positionNode = positionLocal.add(vec3(0, smoothstep(float(30), float(140), positionLocal.xz.sub(cameraPosition.xz).length()).mul(0.1 - GROUND_LIFT), 0));
+      // (s18 C2, D-662: 10 cm over the terrain again: lowered to 1 cm near the eye (D-660), the terrain's finer mesh rose through
+      // the 4 m quads in hard-edged green strips across the squares; the fill is lifted onto it instead, fillPlan.ts TOWN_LIFT)
       const m = new THREE.Mesh(ground.toGeometry(), gm); m.name = 'settlement:ground'; m.receiveShadow = true; m.matrixAutoUpdate = false; const own = ground.owner;
       m.userData = { tier: 'C', src: 'RECON', note: gDesc[0].note, describe: (hit: any) => gDesc[own[hit?.faceIndex ?? -1]] ?? gDesc[0] }; this.group.add(m); this.info.tris += ground.tris; this.info.meshes++; }
     if (refuse.tris) { const m = new THREE.Mesh(refuse.toGeometry(), mats.refuse); m.name = 'settlement:refuse'; m.receiveShadow = true; m.matrixAutoUpdate = false; const own = refuse.owner;
@@ -441,6 +442,26 @@ export function fittingGeom(s: Site, f: Site['fittings'][0], mud: Batch, H: (e: 
   const at = (du: number, dv: number): P2 => { const c = Math.cos(th), sn = Math.sin(th); return [g[0] + du * c - dv * sn, g[1] + du * sn + dv * c]; };
   const pot = lin(POT), st = lin(STONE), tim = lin(TIMBER), mc = lin(MUD);
   switch (f.kind) {
+    case 'bed': { // s18 C2 (D-666): a raised planting bed of the garden: a mud-brick kerb round tilled dark earth, furrowed (C)
+      const L = (f.len ?? 5) / 2, Wd = (f.wid ?? 5) / 2, kh = 0.24, kt = 0.14, kerb = sh(mc, 0.95), soil = lin([0.3, 0.24, 0.18]), soilD = lin([0.24, 0.19, 0.14]);
+      if (far) { mud.box(g[0], g[1], th, L, Wd, y - 0.1, y + kh - 0.04, sh(kerb, 0.8), soil, d); break; }
+      for (const [cu, cv, hu, hv] of [[0, Wd - kt / 2, L, kt / 2], [0, -Wd + kt / 2, L, kt / 2], [L - kt / 2, 0, kt / 2, Wd - kt], [-L + kt / 2, 0, kt / 2, Wd - kt]] as const) { const q = at(cu, cv); mud.box(q[0], q[1], th, hu, hv, y - 0.1, y + kh, sh(kerb, 0.85), kerb, d); }
+      const q0 = at(0, 0); mud.box(q0[0], q0[1], th, L - kt, Wd - kt, y - 0.1, y + kh - 0.05, soilD, soil, d, false, 1);
+      for (let k = 1; k < 5; k++) { const fv = -Wd + kt + (2 * (Wd - kt) * k) / 5, q = at(0, fv); mud.box(q[0], q[1], th, L - kt - 0.1, 0.05, y + kh - 0.05, y + kh - 0.035, soilD, sh(soilD, 0.8), d, false, 1); }
+      break; }
+    case 'sluice': { // s18 C2 (D-671): two dressed stone cheeks either side of the channel, a timber board in their slots, its lifting bar
+      const wd = 0.3, tb = lin([0.4, 0.33, 0.25]);
+      for (const sg of [-1, 1]) { const q = at(0, sg * (wd + 0.18)); mud.box(q[0], q[1], th, 0.22, 0.18, y - 0.3, y + 0.75, sh(st, 0.85), st, d); }
+      mud.box(g[0], g[1], th, 0.04, wd + 0.12, y - 0.25, y + 0.45, sh(tb, 0.8), tb, d);
+      { const q = at(0, 0); mud.box(q[0], q[1], th, 0.05, wd + 0.42, y + 0.8, y + 0.88, sh(tb, 0.8), tb, d); }
+      break; }
+    case 'path': { // s18 C2 (D-666): a garden walk: packed pale gravel between low stone edges, worn darker down its middle (C)
+      const L = (f.len ?? 8) / 2, Wd = (f.wid ?? 2) / 2, grav = lin([0.66, 0.6, 0.5]), worn = lin([0.56, 0.5, 0.41]);
+      mud.box(g[0], g[1], th, L, Wd, y - 0.05, y + 0.03, grav, grav, d, false, 1);
+      if (far) break;
+      mud.box(g[0], g[1], th, L, Wd * 0.35, y + 0.03, y + 0.034, worn, worn, d, false, 1);
+      for (const sg of [-1, 1]) { const q = at(0, sg * (Wd + 0.06)); mud.box(q[0], q[1], th, L, 0.07, y - 0.05, y + 0.09, sh(st, 0.85), st, d); }
+      break; }
     case 'hearth': {
       // D-325 (near): the modelled hearth (eleven field stones round the ash bed), the cooking pot, the bowls and the basket
       const h0 = (hashString(`${s.id}:${f.u.toFixed(1)}:${f.v.toFixed(1)}`) % 1000) / 1000;

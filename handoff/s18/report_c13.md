@@ -1,27 +1,36 @@
 # s18 cloud C13: court, ceremony and dress (D-780)
 
 ## Broken, placeholder, unseen (first)
-- **People taking part are not yet drawn doing it.** The plans hold the ceremonies (words, places, times, measured below), but a
-  performance is chosen by activities.ts variants (C8's file), and the variants are not in yet. Until C8 adds them
-  (handoff/s18/c13_asks.md, ready to paste):
-  - riders on a ride, a hunt or at exercise are drawn **walking at a horse's speed with no horse**. Only the couriers ride
-    already, because their words match the existing `/courier riding/` variant.
-  - the leader's proskynesis and the chiliarch's raised hand are drawn as **'inspect'** (hands clasped);
-  - banquet diners are drawn with the **'eat' sit-and-bread** pose (not seated at a table with a cup);
-  - gift animals are not led up the stair: the words are there, the animals are not;
-  - servers with wine show the jar; servers with dishes show bread.
-- **No gallop.** Couriers move at 7.5 m/s and the hunt at ~5 m/s with the walk gait (C9: a gallop cycle). The royal chariot
-  stays parked (fauna.ts, C9).
-- **Silent ceremonies.** There is no banquet music and no drums with the column: the court supper's harps in the Hadish are
-  unchanged (audio/performers.ts, unowned). The Apadana's lamp stands are **unlit** on banquet nights (C4's fire.ts).
-- **Not in the event log.** The chronicle and the soak do not see the programme yet: calendar.ts (C1) needs one line, given in
-  the asks.
-- **Wardrobe not reaching the view.** The daily wardrobe's chosen garments still never reach the drawn look:
-  popview.lookInput (C5) does not pass `outfit`. The palette change in looks.ts is what is seen.
-- The banquet uses the place `court_audience` (an ORDERED place in popgeo.ts) so diners get seats without a popgeo edit;
-  a separate `court_feast` place would be cleaner (C1's popgeo ORDERED set).
-- Gold appliqués are drawn as the existing rosette motif in a gold-yellow trim colour (one material bit), not as metal plaques.
-- Frames: crude SwiftShader frames only (below); nothing judged at the player's lens on a GPU.
+- **No frame of mine.** Two crude SwiftShader runs never reached 'ready': 40 min on a busy box, then 60 min stopped by me.
+  C6's frames are the eyes:
+  - the gift day read EMPTY at 08:30 although the plans hold 300+ people within 60 m (a draw issue, C5);
+  - the banquet read as a standing crowd. Since then the servers and lamp tenders stand by the tables and walls, and the guests
+    are seated by rank. Not re-seen.
+- **people_hair and people_cloth are STALE** (tests/people_models "current: its inputs hash"). Their input hash covers all of
+  src/people/outfits.ts, and D-780 changed it (the workers' bronze rings, the kidaris, the radial head fit). They can only be
+  rebuilt on Vagon, because the makehuman sources are on C:. Ask: `node tools/blender/build.mjs people_hair people_cloth`.
+  Until then the drape and hair cards come from the older build, which is harmless: the head pieces are not in those assets.
+- **Pose stand-ins:**
+  - The proskynesis cycle is new (workAnims.ts 'proskynesis'). Its far impostor reuses the harp_h@30.9 frame (0.09 m match).
+  - Diners sit with the 'sit' pose and a bowl. There is no table-side reclining.
+- **No gallop and no driven chariot.** Riders mount at the walk gait, including the 7.5 m/s couriers. The gallop and the
+  chariot are C14's now.
+- **Routed by the lead to other owners:**
+  - lamps lit on banquet nights (C9 + C4, the fireOcc bake);
+  - the daily wardrobe on the look (C5);
+  - the parasol following the king's route (C5);
+  - household religion (C1, C2).
+- **Not done:**
+  - the delegations' mantles, tassels and the chin wrap of the soft cap;
+  - the lion bands on the throne covers and the canopy;
+  - drums and trumpets with the column (no trumpet instrument exists).
+- **Fewer banquet furnishings than planned.** The banquet's 38 tables are drawn at the model's lowest level and have no carpet
+  or lamp of their own, and there are no hangings on the Apadana's W, E and N walls. With them the court's furnishings were
+  600-700 k triangles against the 450 k budget (tests/model_props). Measured now: 441 k.
+- Gold appliqués are the rosette motif in a gold-yellow trim colour (one material bit), not metal plaques.
+- The banquet uses the place `court_audience`, an ORDERED place in popgeo.ts, so diners get seats.
+- **Pre-existing failures, also on the base commit:** humans_faces "the kandys hangs past the knee" and court_view "no pop-in"
+  (a forecourt talker at 41.7 m).
 
 ## What a player now meets (node census, seed 1; handoff/s18/c13_court_census.md)
 The court is in residence from day 14 to day 117 (103 days). Each of those days carries a programme (src/people/ceremony.ts,
@@ -52,25 +61,81 @@ Every morning of the residence holds an audience, a gift day, a ride, a hunt or 
 
 New people: the chiliarch (in Median dress with kandys, gold at the ears and wrists) and 356 royal-road couriers.
 
-## Dress (tools/dev/dress_census.ts, seed 1; looks.ts, garments.ts, delegations.json)
+## Dress (tools/dev/dress_census.ts, seed 1; looks.ts, garments.ts, delegations.json; final numbers)
 | people | main garment dyed, before → after | main colour C*ab | ornaments |
 |---|---|---|---|
-| everyone, court away (3,000 drawn) | 16 % → 63 % | 14.9 → 22.4 | 21 % → 40 % |
-| working men | 0 % → 58 % | 11.5 → 20.5 | 0 % → 34 % (bronze) |
-| children | 0 % → 51 % | 12.2 → 21.0 | – |
-| women | 50 % → 79 % | 21.4 → 26.0 | 67 % → 89 % |
-| the court on day 40 (1,700) | 45 % → 80 % | 20.9 → 26.3 | gold 38 % → 43 %, rosettes or gold plaques 7 % → 15 % |
-| guards | 57 % → 83 % (yellow, purple and white Susa robes) | 23.4 → 25.5 | 77 % → 96 % |
-| delegations | 38-48 % → 73-74 % | 19-21 → 25-29 | – |
+| everyone, court away (3,000 drawn) | 16 % → 64 % | 14.9 → 22.2 | 21 % → 40 % |
+| working men | 0 % → 65 % | 11.5 → 21.7 | 0 % → 34 % (bronze) |
+| children | 0 % → 59 % | 12.2 → 21.8 | – (a third with a cloth band) |
+| women | 50 % → 69 % | 21.4 → 23.1 | 67 % → 90 % (necklaces for 3 in 5) |
+| the court on day 40 (1,690) | 45 % → 79 % | 20.9 → 26.3 | gold 38 % → 44 %; rosettes or gold plaques 7 % → 23 % |
+| guards | 57 % → 80 % (Susa yellow, purple and white; now including 2 in 3 non-Persian guards in the robe) | 23.4 → 27.9 | 77 % → 94 % |
+| delegations | 38-48 % → 56-79 % | 19-21 → 24-29 | – |
 
-Persians' robes are never undyed. 60 % wear torques (was 30 %). A third wear gold plaques, drawn as the rosette in gold-yellow.
+- Persians of rank never wear an undyed robe; half wear gold plaques (the rosette motif in gold-yellow).
+- Look-alikes in a crowd (C14's tools/dev/look_clones.ts): 11.6-12.8 % of 40-person crowds held a look-alike pair; now 2.0-3.2 %
+  on seeds 1-4 (target 2 %). The rest are mostly same-age children (popview.childStature gives every child of an age one height:
+  an ask for C5) and women in the same headcloth.
+- Most working men and many women go barefoot.
+- Labourers strip to the waist above 30 °C (the bare-chested wrap's mesh). This only shows once popview passes `tempC` in
+  lookInput (C5).
+- Fixed: one line comment of mine, placed mid-line, cut off a working man's headgear draw and its `break` (in at eeb45211, out
+  at 8592fe19). For those commits the worker case fell into the women's.
 
 ## Halls (furnish_palaces.ts)
-- **Court in residence:** the Apadana is laid for the banquets: 38 low tables on carpets in the bays, 23 lamp stands and
-  72 hangings on the W, E and N walls. This is on top of the throne's canopy, burners and carpet road.
-- **Court away:** the Apadana keeps the hangings behind the throne's place, a keeper's corner and lamp stands. The Hadish and
-  the Harem keep their hangings.
-- 90 k triangles in use (budget 450 k).
+- **Court in residence:** the Apadana is laid for the banquets with 38 low tables in the bays (304 seats). This is on top of the
+  throne's canopy, burners, carpets and hangings. The use state is 441 k triangles (budget 450 k).
+- **Court away:** the Apadana keeps the hangings behind the throne's place, a keeper's corner and lamp stands at the corners. The
+  Tachara's side rooms and the Hadish keep their hangings. The stored state is 279 k triangles (budget 300 k).
+
+## Applied in other owners' files (the lead's go-ahead, kept small)
+- activities.ts (C8): variants for riders, led horses and gift animals by delegation, the bow, banquet diners and servers, and
+  beaters. PropKind gift_*.
+- calendar.ts (C1): the programme in the event log. New rows in events_calendar.json: E-28 the great banquet, E-29 the ride and
+  the hunt.
+- performers.ts: a court_banquet gig in the Apadana (3 harps, 5 singers, a frame drum). The lead wired banquetHall in world.ts.
+- workAnims.ts / impostors.ts: the proskynesis cycle.
+- props.ts (C5): the gift props.
+- population.json and town.json: the stale "court absent by default" lines rewritten.
+
+## Third pass (the lead's asks, C14's measures, C6's frames)
+- **The king is seen daily.** Seed 1: an audience on 75 of 102 residence mornings, plus the 8 gift days. A drive in the royal
+  chariot on 61 afternoons (drawn mounted until C14's chariot variant). A hunt on 9 mornings. He arrives by chariot.
+  court_fill's audience test is rewritten for this rule.
+- **The banquet as a feast.**
+  - Seats round 38 low tables in the bays, filled by rank (the chiliarch, then the Persians of rank, the officials last),
+    nearest the throne first.
+  - A silver phiale and a jug on every table.
+  - The servers and wine-bearers stand by the tables, the lamp tenders by the walls (C6 saw a standing crowd facing the throne).
+  - The banquet music is in the Apadana.
+  - Not done: couches and reclining (the court's furnishings are at the 450 k budget) and food on the tables beyond the
+    vessels.
+- **The royal women's outing.** On about one afternoon in five, up to six royal women go to the paradise, each in a curtained
+  litter. The litter is wo_litter, built in Blender for shoulder carry: poles at 1.45 m, the cabin on them. Each litter is carried
+  by four attendants of one household (C14's carry_bier variants); they leave and arrive together, the woman unseen inside.
+  Other attendants walk beside. Open: the crew's formation round the litter in crowd.ts (Q-196, C14/C5).
+- **Seals:** officials, scribes and the treasury's men in Median dress wear a cylinder seal on a cord, fitted to the chest
+  (80 %). The Persian costume's mesh cannot take it: its far levels are at their triangle budget.
+- **Necklaces:** bronze for 3 in 5 town women; the court women have none, for the same budget. Kohl for 45 % of the town's
+  women.
+- **Barefoot and bare-chested:** most labourers go barefoot. In the heat they strip to the waist, once popview passes `tempC`.
+- **Look-alikes:** 12.8 % → 2.0-3.2 % of crowds.
+- **The gifts are drawn:** a prop class of their own.
+- **Pre-existing test failures, same on the base commit:**
+  - court.test "every sealed letter …": times out at 600 s; it takes 1,120 s here and 1,194 s on base.
+  - impostor_assets "within budget".
+  - court_view "no pop-in" (a forecourt talker at 41.7 m).
+  - performances' CPU timing fails only under load (10.4 ms vs 10 while a render ran).
+
+## The court's people and dress (later passes)
+- The crown prince and the weapon-bearer stand behind the throne (the Treasury relief). The parasol is furled indoors.
+- Guards: two in three non-Persian guards wear the court robe (Susa archers), and the robes are new and strong.
+- The king's crown is the plain kidaris. The gorytos is named as a combined bow case and quiver.
+- Head pieces are fitted radially. The support-function fit stood 12 mm off the head on average and up to 36 mm: C14's
+  floating headband.
+- The 23 peoples' skin means sit a little further apart, sd 0.16 → 0.12.
+- The delegations' gifts are modelled in Blender and carried: an ibex-handled amphora, armlets, a tusk, akinakes, bows and
+  folded garments, 17 of the gifts in all. Bowls and cups keep the lobed phiale.
 
 ## Frames (crude, SwiftShader WebGL2, seed 1, day 19)
 See handoff/s18/c13_frames/ (if present): the forecourt and N stair at 09:12 on the gift day, the audience in the hall at

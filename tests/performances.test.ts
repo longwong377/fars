@@ -17,7 +17,7 @@ import { HumanGPU } from '../src/people/humanGPU';
 import { Crowd, CARRIED_MAX, THINGS_DIST, IN_PLACE_RATE, yawOf } from '../src/people/crowd';
 import { ACTIVITIES, ABSTRACT_PLACEHOLDERS, performanceFor, type ActivityId, type Performance } from '../src/people/activities';
 import { activityLint } from '../src/people/activityLint';
-import { PROPS, PROP_CLASSES, PROP_NOTES, propGeometry, propUnionGeometry, propSlot } from '../src/people/props';
+import { PROPS, PROP_CLASSES, PROP_NOTES, propGeometry, propUnionGeometry, propSlot, CARRY_POSE } from '../src/people/props';
 import { propOf, type ViewPerson } from '../src/people/popview';
 import { WORK_NOTES, workGeometry, type WorkKind } from '../src/people/workObjects';
 import { SPECIES, ANIMAL_BUILD, animalGeometry, animalFrame, deformAnimal, animalsFor, lieDrop, grazeReach } from '../src/people/animals';
@@ -316,12 +316,12 @@ describe('population people perform too (the D-142 × D-143 merge)', () => {
       const act = v.moving && !ACTIVITIES[v.act].moving ? 'walk' : v.act, want = performanceFor(act, v.why, Math.round(p.animK * 159));
       expect(p.drawnFrame, `p${v.pid} drawn`).toBe(frame());
       expect(p.act, `p${v.pid}`).toBe(act); expect(p.why, `p${v.pid}`).toBe(v.why);
-      expect((p.perf as { variant?: number } | null)?.variant, `p${v.pid}`).toBe(want.variant); expect(p.anim, `p${v.pid}`).toBe(want.anim); expect(p.actPlaceholder).toBe(false);
+      expect((p.perf as { variant?: number } | null)?.variant, `p${v.pid}`).toBe(want.variant); expect(p.anim, `p${v.pid}`).toBe(v.moving && v.prop && want.anim === 'walk' && !want.prop && CARRY_POSE[v.prop] ? CARRY_POSE[v.prop] : want.anim); expect(p.actPlaceholder).toBe(false); // (D-691: a walker with goods walks in the carrying pose)
     }
     const get = (pid: number) => crowd.persons.get(`p${pid}`)!;
     expect(get(1).anim).toBe('drive'); expect(get(1).prop).toBe('goad');
     expect(get(2).anim).toBe('winnow'); expect(get(2).prop).toBe('fork');
-    expect(get(3).anim).toBe('walk'); expect(get(3).prop).toBe('sack'); // the plan's goods, carried as D-142's prop
+    expect(get(3).anim).toBe('carry_shoulder'); expect(get(3).prop).toBe('sack'); // the plan's goods, carried as D-142's prop (D-691: on the shoulder, the carrying pose)
     expect(get(4).anim).toBe('pat'); expect(get(4).prop, 'a variant that leaves the prop out keeps the hands free').toBeNull();
     expect(get(5).act).toBe('walk'); expect(get(5).prop, 'stepping aside on arriving, the reaper carries the sickle he came to reap with').toBe('sickle');
     expect(get(6).anim).toBe('hoe'); expect(get(6).prop).toBe('hoe');
@@ -382,6 +382,24 @@ describe('population people perform too (the D-142 × D-143 merge)', () => {
     expect(Math.min(...B.map(v => v.distanceTo(new THREE.Vector3(-30, 0, -30)))), 'household 5\'s bier at bearer p10').toBeLessThan(0.5);
     expect(Math.min(...B.map(v => v.distanceTo(new THREE.Vector3(-34, 0, -38)))), 'household 6\'s bier at bearer p12').toBeLessThan(0.5);
     console.log(rows.join('\n'));
+  }, 120_000);
+  it('a carried litter walks with its four bearers in formation: each at his corner by the shoulder his pole is on, the litter at their centre (s18 C14)', () => {
+    const crowd = makeCrowd(), frame = () => (crowd as any).frame as number;
+    const cam = new THREE.PerspectiveCamera(70, 16 / 9, 0.1, 5000); cam.position.set(0, 1.6, 0); cam.lookAt(0, 1.2, -20); cam.updateMatrixWorld();
+    const W = 'carrying a royal woman’s curtained litter down to the paradise', WL = W + ', the pole on his left shoulder';
+    // the plan puts the four anywhere along the road (Q-196): here metres apart and abreast
+    const V = [vpOf(30, -3, 18, 'carry_bier', W, { place: 'garden_pw', hh: 9, moving: true, heading: 0 }), vpOf(31, 2, 21, 'carry_bier', WL, { place: 'garden_pw', hh: 9, moving: true, heading: 0 }),
+      vpOf(32, 4, 17, 'carry_bier', W, { place: 'garden_pw', hh: 9, moving: true, heading: 0 }), vpOf(33, -1, 24, 'carry_bier', WL, { place: 'garden_pw', hh: 9, moving: true, heading: 0 })];
+    const P = V.map(v => [crowd.attachPop(v.pid), v] as const);
+    for (let k = 0; k < 3; k++) { for (const [p, v] of P) { p.vp = v; p.vpFrame = frame() + 1; } crowd.update(0.1 * (k + 1), cam.position, null, cam); }
+    const m = crowd.group.getObjectByName('work:litter') as THREE.InstancedMesh, M = new THREE.Matrix4(); expect(m.count, 'one litter').toBe(1);
+    m.getMatrixAt(0, M); const L = new THREE.Vector3().setFromMatrixPosition(M);
+    const roots = P.map(([p]) => new THREE.Vector3(p.root[0], 0, p.root[2])), c = roots.reduce((a, r) => a.add(r), new THREE.Vector3()).multiplyScalar(1 / 4);
+    expect(c.distanceTo(new THREE.Vector3(L.x, 0, L.z)), 'the litter at the crew\'s centre').toBeLessThan(1e-3);
+    const d = roots.map(r => [Math.abs(r.x - c.x), Math.abs(r.z - c.z)]).sort((x, y) => x[0] - y[0]);
+    for (const [dx, dz] of d) { expect(dx).toBeCloseTo(0.46, 3); expect(dz).toBeCloseTo(1.0, 3); }
+    // the left-shoulder pair on one side, the others on the other
+    const side = (i: number) => Math.sign(roots[i].x - c.x); expect(side(1)).toBe(side(3)); expect(side(0)).toBe(side(2)); expect(side(0)).not.toBe(side(1));
   }, 120_000);
   it('no shared work object moves when the camera turns, the field of view changes or the drawn set changes (performers culled, turned to impostors, leaving, arriving, stepping aside, the LOD caps): each within 3 cm of where it first stood (session 6)', () => {
     const crowd = makeCrowd(), frame = () => (crowd as any).frame as number;

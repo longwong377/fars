@@ -17,6 +17,7 @@
 // Tier C throughout: the places are the town's own (the exchange lane of the town, the officials' building, the royal
 // store: town.json facilities), the hours and durations reasoned.
 import { segAt, coldWear, dustWear, wetSpells, type Population, type Seg, type Where } from '../population';
+import { relabelCuts } from '../deeds/engine';
 import { nobodyWith } from '../wardrobe/washing';
 import { checkPlan } from '../planCheck';
 import type { ActivityId } from '../activities';
@@ -97,7 +98,7 @@ export class EconPlans {
     this.inFit.add(pid);
     try { for (const st of this.steps(day).get(pid) ?? []) {
       let r = this.fit(segs, st), why = r ? '' : 'no time in the day';
-      if (r) { r = this.dress(this.feed(segs, r, st), day); baseIss ??= this.issues(pid, day, base); why = this.breaks(pid, day, segs, r, baseIss); if (why) r = null; }
+      if (r) { r = relabelCuts(segs, this.dress(this.feed(segs, r, st), day)); baseIss ??= this.issues(pid, day, base); why = this.breaks(pid, day, segs, r, baseIss); if (why) r = null; }
       out.push({ step: st, ok: !!r, why: why || undefined }); if (r) segs = r; } } finally { this.inFit.delete(pid); }
     this.cache.set(k, segs); this.laid.set(k, out); if (this.cache.size > 40000) this.cache.clear(); return segs;
   }
@@ -277,7 +278,9 @@ export class EconPlans {
   pick(hid: number, day: number, role: Role, key: number, market = false): number | null {
     const P = this.pop; if (!P.households[hid]) return null;
     // (a rich house's own business, the pledges and the suits, may go by its servants and stewards: D-340, C)
-    const mem = P.membersOn(hid, day).filter(x => P.present(x, day) && P.persons[x].agent < 0 && (!SUPERVISED.has(P.persons[x].job) || (role === 'house' && /^(servant|steward)$/.test(P.persons[x].job))) && !P.sick(x, day));
+    // (D-720, C7's root cause: the court's people (the king's whisk-bearer, a delegation's leader) were sent to keep a market
+    // stall on an audience morning; their days are the court's, as a traveller's are the road's and a herder's the band's)
+    const mem = P.membersOn(hid, day).filter(x => P.present(x, day) && P.persons[x].agent < 0 && !P.court?.owns(x) && P.persons[x].job !== 'traveller' && P.persons[x].job !== 'herder' && (!SUPERVISED.has(P.persons[x].job) || (role === 'house' && /^(servant|steward)$/.test(P.persons[x].job))) && !P.sick(x, day));
     const age = (x: number) => P.ageOn(x, day), m = (x: number) => P.persons[x].sex === 'm';
     let pool: number[];
     if (role === 'man' || role === 'house') pool = mem.filter(x => m(x) && age(x) >= 18 && age(x) <= 70);
@@ -349,7 +352,7 @@ export class EconPlans {
         step(me, 'man', errand(7, 15, x, [['exchange', this.dur(e, 1, 2), herd ? 'bargaining for ewes to make up the flock after the loss' : 'bargaining for a draught ox to replace the one the house lost']],
           ['walk', herd ? 'going to buy ewes' : 'going to buy an ox'], ['walk', herd ? 'driving the ewes home' : 'leading the new ox home'])); break; }
       case 'loan': case 'loan_refused': case 'repaid': { if (me === null || other === null) break; const L = this.headName(other, day);
-        const why = e.kind === 'loan' ? `asking at ${L} for a loan of silver; it is weighed out, to be repaid with a tenth more after the harvest`
+        const why = e.kind === 'loan' ? `asking at ${L} for a loan of silver; it is weighed out, to be repaid after the harvest with a fifth more for the year, reckoned by the months it runs`
           : e.kind === 'loan_refused' ? `asking at ${L} for a loan of silver; refused: ${E.events.some(x => x.actor === e.actor && x.kind === 'default' && x.day > day - 240 && x.day <= day) ? 'the house did not pay the last one' : 'the house has nothing left to pledge'}`
             : `bringing the silver owed back to ${L} and seeing it weighed`;
         step(me, 'man', errand(7, 18, `h:${other}`, [['talk', this.dur(e, 0.3, 0.7), why]], ['walk', `going to ${L}`], ['walk', 'going back'])); break; }

@@ -5,7 +5,7 @@
 //  - tether lines on the trodden ground either side of the approach, 50-120 m W of the stair foot: the animals of the day's
 //    deliveries and the mounts of those who went up the stair (the palace's kitchens, stores and offices were supplied by
 //    pack animal; PF travel and fodder texts ration donkeys, mules, horses and camels on the roads: B for the animals in the
-//    service, C for these lines, their place and numbers; donkeys and saddle horses only, for the draw budget), standing tied to a ground rope between two stakes, heads at a
+//    service, C for these lines, their place and numbers; donkeys, and a day's mules, saddle horses or Bactrian camels; D-740), standing tied to a ground rope between two stakes, heads at a
 //    heap of fodder, from mid-morning to mid-afternoon; their loads set down beside them in pairs of sacks;
 //  - the dung swept up along each line into low heaps, and the fodder (straw and chaff) piled at the line's end;
 // All positions are closed-form in (seed, day, hour) like the town's animals (fauna.ts, D-210). Drawn with the animals' rig
@@ -25,10 +25,16 @@ export const FOOT_LINES: { id: string; a: P2; b: P2; pitch: number }[] = [
 /** the day's traffic at the foot (C): slots filled on an ordinary day, arrivals from 07:00 to 10:30, departures from 12:30 to
  *  16:30; the species of a slot's animal (shares: C, the delivery donkey the commonest) */
 export const FOOT_DAY = { fill: [0.35, 0.8] as [number, number], arrive: [7, 10.5] as [number, number], leave: [12.5, 16.5] as [number, number],
-  species: [['donkey', 0.75], ['horse_saddle', 0.25]] as [Species, number][] };
+  species: [['donkey', 0.7], ['second', 0.3]] as [Species | 'second', number][],
+  /** D-740: the day's second kind (the share above), by day: mules, saddle horses or Bactrian camels (C) */
+  second: [['mule', 0.4], ['horse_saddle', 0.35], ['camel', 0.25]] as [Species, number][] };
+/** D-740: the second kind of animal tied at the foot on `day` (one a day: two species' draws at most, the budget below) */
+export function footSecond(seed: number, day: number): Species { let u = hf(seed, day, 17); for (const [s, p] of FOOT_DAY.second) { if (u < p) return s; u -= p; } return 'mule'; }
 /* (D-227 render 2: with four species (donkey, mule, saddle horse, camel) and shadow-casting heaps and loads the stair view drew 22
    more calls (each species once per near shadow cascade too), over the plain views' budget of 10: two species, and the low heaps
-   and loads cast no shadow; mules and camels at the foot are left out, C) */
+   and loads cast no shadow; mules and camels at the foot were left out, C). s18 C9 (D-740): back, as PF's travel and fodder
+   texts have them in the service (B). Within the budget (two species' draws at once): donkeys every day, and the day's
+   second kind, mules, saddle horses or Bactrian camels (footSecond), so over the days the foot shows all four (C) */
 const fr = (x: number) => x - Math.floor(x);
 export const hf = (a: number, b = 0, c = 0) => fr(Math.sin(a * 12.9898 + b * 78.233 + c * 37.719) * 43758.5453);
 
@@ -49,7 +55,7 @@ export function footAnimal(slot: FootSlot, day: number, hour: number, seed: numb
   if (hf(seed + id, day, 1) > share) return null;
   const a = D.arrive[0] + (D.arrive[1] - D.arrive[0]) * hf(seed + id, day, 2), b = D.leave[0] + (D.leave[1] - D.leave[0]) * hf(seed + id, day, 3);
   if (hour < a || hour > b) return null;
-  let u = hf(seed + id, day, 4), sp: Species = 'donkey'; for (const [s, p] of D.species) { if (u < p) { sp = s; break; } u -= p; }
+  let u = hf(seed + id, day, 4), sp: Species = 'donkey'; for (const [s, p] of D.species) { if (u < p) { sp = s === 'second' ? footSecond(seed, day) : s; break; } u -= p; }
   // eating at the fodder most of the time, now and then head up and a shift of the feet (C)
   const eat = fr(t / (17 + 9 * hf(id, 5)) + hf(id, 6)) < 0.7 ? 1 : 0;
   Object.assign(out, { sp, e: slot.e, n: slot.n, x: 0, z: 0, yaw: slot.yaw + (hf(id, day, 7) - 0.5) * 0.5, phase: t * 1.3 + id, walk: 0, graze: eat, lie: 0, coat: hf(seed + id, day, 8) });

@@ -179,7 +179,12 @@ export class Minds {
 
   // ---------------------------------------------------------------- initiative: what a mind does of its own accord
   /** the deeds the town's minds take up on a day (with or without the stranger): drawn over the state, at most `max` */
-  deeds(day: number, max = 300, held?: (pid: number, other: number) => boolean): Deed[] { const out: Deed[] = []; for (const _ of this.deedParts(day, out, max, held)); return out; }
+  /** D-720: the day's own deeds: how many people are looked at (a seeded share of the town; its turn comes round) and the most
+   *  deeds a day (D-462's cost). Measured (tools/dev/minds_rate.ts, seed 1, days 55-60, node, a busy box): 4000/300 509 deeds and
+   *  666 people a day for 226 ms; 12000/900 629 and 862 for 255 ms (taken: +8 % of the minds' day); 20000/1500 743 and 1036 for
+   *  301 ms; 40000/3000 1045 and 1462 for 361 ms (the day's catch-up would grow by ~40 %: when the budget allows) */
+  daily = { sample: 12000, max: 900 };
+  deeds(day: number, max = this.daily.max, held?: (pid: number, other: number) => boolean): Deed[] { const out: Deed[] = []; for (const _ of this.deedParts(day, out, max, held)); return out; }
   /** the same, in slices (D-461: a generator yielding every few hundred people, for the living world's sliced days); first the
    *  deeds the world's events called for (observe) */
   *deedParts(day: number, out: Deed[], max = 300, held?: (pid: number, other: number) => boolean): Generator<void> {
@@ -201,7 +206,7 @@ export class Minds {
       } }
     // (2) needs and ties: a sample of the town each day (a seeded tenth), so every house's turn comes round
     const n = P.persons.length, start = Math.floor(u01(this.seed, S.pick, day) * n), step = 7919;
-    for (let i = 0, x = start; i < Math.min(n, 4000) && out.length < max; i++, x = (x + step) % n) { if (i % 500 === 499) yield;
+    for (let i = 0, x = start; i < Math.min(n, this.daily.sample) && out.length < max; i++, x = (x + step) % n) { if (i % 500 === 499) yield;
       const p = P.persons[x]; if (!P.present(x, day) || P.ageOn(x, day) < 16) continue;
       const u = rng(x, 0), nd = this.ctx.need(x, day);
       // a hungry house borrows from a friend or kin; the desperate and the hard, rarely, steal (C)
@@ -243,12 +248,15 @@ export class Minds {
 
   /** the minds' state for a save: feelings that have not faded to nothing by `day` (D-459: a year kept every brush; the late
    *  save was 2.76 MB of deeds), rounded to a millionth, as arrays (D-461). The memories are ids into the deed log, which a
-   *  save does not keep: they start afresh */
-  save(day = Infinity) { const r = (x: number) => Math.round(x * 1e6) / 1e6, f: [number, number[][]][] = [];
+   *  save keeps only for the weighty deeds of ten days (D-720): the rest start afresh */
+  save(day = Infinity, /** D-720: the deeds the save keeps (deeds/engine.ts recentSave): the memories of them are saved */ keep?: ReadonlySet<number>) { const r = (x: number) => Math.round(x * 1e6) / 1e6, f: [number, number[][]][] = [];
     for (const [a, m] of this.feel) { const l: number[][] = [];
       for (const [k, h] of m) { const n = Number.isFinite(day) ? Math.max(0, day - h.day) : 0; let big = 0; for (const x of Object.keys(FADE) as (keyof Feel)[]) big = Math.max(big, Math.abs(h.f[x] * Math.pow(FADE[x], n))); if (big >= 0.02) l.push([k, r(h.f.aff), r(h.f.anger), r(h.f.fear), r(h.f.grat), r(h.f.resp), h.day]); }
       if (l.length) f.push([a, l]); }
-    return { f, mem: [] as [number, number[]][], own: [...this.own] }; }
+    // (D-720: the memories of the deeds kept go with the save, so what a person lately did or suffered survives a load; the
+    // per-person deed counts are a measure, not state: not saved, 70 KB of a 600 KB save)
+    const mem: [number, number[]][] = []; if (keep?.size) for (const [a, ids] of this.memory) { const k = ids.filter(i => keep.has(i)); if (k.length) mem.push([a, k]); }
+    return { f, mem, own: [] as [number, number][] }; }
   load(s: ReturnType<Minds['save']> | undefined) { this.feel.clear(); this.memory.clear(); this.own.clear(); if (!s) return;
     for (const [a, l] of s.f) this.feel.set(a, new Map((l as unknown[][]).map(x => x.length === 3 ? [x[0] as number, { f: x[1] as Feel, day: x[2] as number }] : [x[0] as number, { f: { aff: x[1], anger: x[2], fear: x[3], grat: x[4], resp: x[5] } as Feel, day: x[6] as number }]))); for (const [k, v] of s.mem) this.memory.set(k, v); for (const [k, v] of s.own) this.own.set(k, v); }
 }

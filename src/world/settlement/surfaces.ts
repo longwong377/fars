@@ -6,7 +6,12 @@ import { SURFACES, SurfaceDef, type EarthWeatherDef } from '../../render/materia
 /** D-477 (C): the town's and villages' walls weathered for 5-30 m (EarthWeatherDef): a damp, splashed base to ~1 m, mud streaks
  *  from the earth tops 2-3 m down, patchy recoating, a bleached and rounded crest, and plaster fallen from ~7 % of the faces (the
  *  bricks behind): an unrendered, lived-in town where each household renews its own walls when it can */
-const HOUSE_WEATHER: EarthWeatherDef = { base: { h: 1.3, dark: 0.2, dirt: 0.35 }, top: { h: 0.5, bleach: 0.08, round: 0.6 }, wash: { amp: 0.3, len: 2.6 }, coat: 0.1, loss: { cover: 0.07, depth: 0.01 } };
+// (s18 C2, D-669: the damp foot 1.3 m -> 0.6 m, toward the earth 0.35 -> 0.15, darker 0.2 -> 0.12: it pulled the lower half of
+// every lane face back to tan under the household's wash, the T4 frame's 'bare tan boxes'; a worn band, not half the wall)
+// (s18 C2, D-667: the mud streaks from the tops halved, 0.3 -> 0.15: on the T4 they ran down the faces as black lines)
+// (s18 C2, D-663: the loss 7 % -> 1.5 %, a few patches: the town is re-plastered each spring and kept, not a ruin; the
+// poorest and oldest houses show their bricks through houses.ts's own losses, by the household's upkeep and the wall's age)
+const HOUSE_WEATHER: EarthWeatherDef = { base: { h: 0.6, dark: 0.12, dirt: 0.15 }, top: { h: 0.5, bleach: 0.08, round: 0.6 }, wash: { amp: 0.15, len: 2.6 }, coat: 0.1, loss: { cover: 0.015, depth: 0.01 } };
 export const SETTLEMENT_SURFACES: Record<string, SurfaceDef> = {
   // town house walls: straw-tempered mud render over mud brick in the local loam (base colour per house from vertex
   // colours); roofs and wall tops: packed earth over reeds and poles

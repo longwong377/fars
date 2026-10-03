@@ -189,9 +189,9 @@ export function grimeSample(): any {
 /** grime classes by surface (what each kind of surface takes) */
 export type GrimeClass = 'stone' | 'plaster' | 'ground' | 'floor' | 'timber' | 'none';
 const CLASS: Record<string, GrimeClass> = {
-  limestone: 'stone', limestone_merlon: 'stone', limestone_carved: 'stone', limestone_dark: 'stone', terrace: 'stone', terrace_foot: 'stone', terrace_now: 'stone', stone_rough: 'stone',
+  limestone: 'stone', limestone_merlon: 'stone', limestone_carved: 'stone', limestone_dark: 'stone', frame_coat: 'stone', terrace: 'stone', terrace_foot: 'stone', terrace_now: 'stone', stone_rough: 'stone',
   stone_plain: 'stone', takht_stone: 'stone', nr_dressed: 'stone', nr_rock: 'stone', rubble: 'stone', kaba_white: 'stone', house_socle: 'stone',
-  mudbrick: 'plaster', mudbrick_painted: 'plaster', mudbrick_bare: 'plaster', plaster: 'plaster', mud_plaster: 'plaster', house_plaster: 'plaster', house_brick: 'plaster', baked_brick: 'plaster', village_mud: 'plaster',
+  mudbrick: 'plaster', mudbrick_painted: 'plaster', palace_plaster: 'plaster', mudbrick_bare: 'plaster', plaster: 'plaster', mud_plaster: 'plaster', house_plaster: 'plaster', house_brick: 'plaster', baked_brick: 'plaster', village_mud: 'plaster',
   roof_earth: 'plaster', mud_roof: 'plaster', house_roof: 'plaster', matting: 'plaster',
   earth: 'ground', court_fill: 'ground', road: 'ground', bank: 'ground', refuse: 'ground',
   plaster_red: 'floor', timber: 'timber', roof_timber: 'timber', house_timber: 'timber', door_planks: 'timber', scaffold: 'timber',
@@ -203,9 +203,10 @@ export const DRIFT: Record<Exclude<GrimeClass, 'none'>, { a100: number; a10: num
   stone: { a100: 0.05, a10: 0.055, a1: 0.025, chroma: 0.012 }, plaster: { a100: 0.06, a10: 0.07, a1: 0.035, chroma: 0.015 },
   ground: { a100: 0.07, a10: 0.065, a1: 0.04, chroma: 0.02 }, floor: { a100: 0.03, a10: 0.03, a1: 0.02, chroma: 0.008 }, timber: { a100: 0.04, a10: 0.05, a1: 0.03, chroma: 0.015 },
 };
-/** lichen's cover inside its patches (share of the area, C): the Terrace's open retaining walls and the fieldstone footings most, the
+/** D-752 (holes.md #6): none on the 467 Terrace's own stone (15-50 years from the quarry, kept by a court; the foot's rough blocks a
+ *  trace). Was: lichen's cover inside its patches (share of the area, C): the Terrace's open retaining walls and the fieldstone footings most, the
  *  palaces' dressed walls a little, the carved and polished stone none; the ruin (Now view) and the living rock much more */
-export const LICHEN: Record<string, number> = { terrace: 0.12, terrace_foot: 0.16, limestone: 0.05, stone_plain: 0.1, takht_stone: 0.1, house_socle: 0.12, rubble: 0.15, nr_rock: 0.22, terrace_now: 0.3 };
+export const LICHEN: Record<string, number> = { terrace: 0, terrace_foot: 0.03, limestone: 0, stone_plain: 0.1, takht_stone: 0.1, house_socle: 0.12, rubble: 0.15, nr_rock: 0.22, terrace_now: 0.3 };
 const MX_SD = 0.265; // the measured 1Ïƒ of mx_noise_float (materials.ts MX_NOISE_SD)
 /** soot's linear albedo (wood soot on plaster, C) and the ash's (grey with charcoal) */
 export const SOOT_ALB: [number, number, number] = [0.028, 0.025, 0.023], ASH_ALB: [number, number, number] = [0.13, 0.125, 0.118], DAMP_K = 0.22;

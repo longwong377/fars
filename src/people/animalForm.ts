@@ -25,7 +25,7 @@ export const FAMILY: Record<Species, Family> = {
   deer: 'cervid', stag: 'cervid', gazelle: 'antelope', gazelle_m: 'antelope',
   boar: 'suid', camel: 'camelid', dromedary: 'camelid', camel_pack: 'camelid',
   dog: 'canid', wolf: 'canid', fox: 'canid', hyena: 'canid',
-  lion: 'felid', lioness: 'felid', cheetah: 'felid', leopard: 'felid',
+  lion: 'felid', lioness: 'felid', cheetah: 'felid', leopard: 'felid', cat: 'felid',
   hare: 'hare', hen: 'fowl', cock: 'fowl',
 };
 /** rig groups: what a vertex follows (the torso and the gear are rigid; each leg swings about its hip and bends at its

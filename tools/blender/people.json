@@ -512,24 +512,24 @@
        },
        {
         "kind": "curly_dense",
-        "locks": 8,
+        "locks": 10,
         "strands": 64,
         "lock_r": 0.045,
         "body": 16,
         "body_w": 5,
-        "curl_r": 0.05,
-        "curl_pitch": 0.075,
-        "phase_sd": 0.5,
-        "irregular": 0.7,
+        "curl_r": 0.042,
+        "curl_pitch": 0.09,
+        "phase_sd": 0.9,
+        "irregular": 1.0,
         "wave": 0.02,
         "len": [
          0.75,
          1
         ],
-        "fray": 0.4,
+        "fray": 0.55,
         "width": 1.1,
         "tone_sd": 0.25,
-        "strays": 4,
+        "strays": 8,
         "src": {
          "image": "hair/afro01/afro_diffuse.png",
          "rect": [
@@ -549,17 +549,17 @@
         "body_w": 4.5,
         "curl_r": 0.065,
         "curl_pitch": 0.09,
-        "phase_sd": 0.6,
-        "irregular": 0.9,
+        "phase_sd": 0.9,
+        "irregular": 1.1,
         "wave": 0.03,
         "len": [
          0.65,
          1
         ],
-        "fray": 0.6,
+        "fray": 0.7,
         "width": 1.1,
         "tone_sd": 0.25,
-        "strays": 8,
+        "strays": 12,
         "drift": 0.08,
         "src": {
          "image": "hair/afro01/afro_diffuse.png",
@@ -611,9 +611,9 @@
         "wave": 0.02,
         "curl_r": 0.055,
         "curl_pitch": 0.13,
-        "phase_sd": 0.25,
+        "phase_sd": 0.4,
         "sync": true,
-        "irregular": 0.2,
+        "irregular": 0.4,
         "roll": 0.22,
         "roll_r": 0.12,
         "roll_turns": 1.6,
@@ -624,7 +624,7 @@
         "fray": 0.2,
         "width": 1.1,
         "tone_sd": 0.22,
-        "strays": 2,
+        "strays": 4,
         "src": {
          "image": "hair/afro01/afro_diffuse.png",
          "rect": [
@@ -663,18 +663,18 @@
         "body": 12,
         "body_w": 4.5,
         "curl_r": 0.035,
-        "curl_pitch": 0.045,
-        "phase_sd": 0.3,
-        "irregular": 0.35,
+        "curl_pitch": 0.06,
+        "phase_sd": 0.7,
+        "irregular": 0.75,
         "wave": 0.01,
         "len": [
          0.8,
          1
         ],
-        "fray": 0.2,
+        "fray": 0.35,
         "width": 1.1,
         "tone_sd": 0.22,
-        "strays": 2,
+        "strays": 5,
         "src": {
          "image": "hair/afro01/afro_diffuse.png",
          "rect": [

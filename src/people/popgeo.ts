@@ -9,6 +9,7 @@
 // Everything here is reconstruction (C): the plans say "at the well of q_s1"; which well and where round it is this
 // module's choice, deterministic per (person, place), so a person comes back to the same spot. Rules that are judgements
 // are named where they are made; the dev overlay prints `Spot.what`.
+import { worksLayout, type WorkSpot } from '../world/plain/works';
 import type { Population } from './population';
 import { TERRACE_ABSTRACT, SACRIFICE, fieldOffset, NAQSH } from './population';
 import { PRECINCT, ALTAR_SPOT, BURIAL, precinctAt } from '../world/settlement/precinct';
@@ -86,6 +87,9 @@ export interface GeoOpts {
 const T = townJson as any, L = livesJson as any;
 /** D-255: the acts of the Treasury's metal trades (at its metal workshops) */
 const METAL_ACTS = new Set<ActivityId>(['smith', 'goldsmith', 'polish_metal', 'cut_seal']), METAL_TRADES = new Set(['shiner', 'sealcutter']);
+/** D-651: the acts of the sim and the works' stations they are done at (src/world/plain/works.ts spots) */
+const WORK_STATION: Partial<Record<string, string[]>> = { mould_brick: ['mould'], haul: ['stack', 'mix'], carry_jar: ['mix'], lay_brick: ['stack'], grind: ['grind'], knead: ['bake'], bake: ['bake'], brew: ['brew'],
+  tan: ['soak', 'scrape'], press_oil: ['press', 'tread'], herd: ['herd'], tend_animals: ['herd', 'water'], butcher: ['slaughter'], dig_canal: ['dig'], carry_sack: ['stack'] };
 const FAC: Record<string, P2> = Object.fromEntries((T.facilities as any[]).map(f => [f.id, f.at as P2]));
 const S = { spot: salt('popgeo-spot'), ring: salt('popgeo-ring'), dir: salt('popgeo-dir'), vil: salt('popgeo-village'), pick: salt('popgeo-pick') };
 const rad = (d: number) => (d * Math.PI) / 180;
@@ -260,6 +264,19 @@ export class PopGeo {
       return this.sp(e, n, true, face ? headingOf(face[0] - e, face[1] - n) : this.hash(pid, key, 9) * 360, net, what, vi >= 0 ? { v: vi } : {}); }
     return this.none(key, `${what}: no clear ground found`);
   }
+  // ---------------------------------------------------------------- D-651: the plain-side works as built (C3's D-670)
+  private worksBy: Map<string, WorkSpot[]> | null = null;
+  /** a worker at the works as built (src/world/plain/works.ts worksLayout(plan).spots: the act's own station where there is
+   *  one, else any of the yard's), 1.2-3.5 m round it facing the work: several to a station, never on one point. Null when
+   *  the yard has no stations (the open ground of before) */
+  private atWorks(facs: string[], pid: number, place: string, act: ActivityId): Spot | null {
+    if (!this.worksBy) { this.worksBy = new Map(); for (const w of worksLayout(this.plan as any).spots) (this.worksBy.get(w.facility) ?? this.worksBy.set(w.facility, []).get(w.facility)!).push(w); }
+    const all = facs.flatMap(f => this.worksBy!.get(f) ?? []); if (!all.length) return null;
+    const want = WORK_STATION[act], mine = want ? all.filter(w => want.includes(w.act)) : [], pool = mine.length ? mine : all;
+    const w = pool[Math.floor(this.hash(pid, place, 61) * pool.length)], a = this.hash(pid, place, 62) * Math.PI * 2, r = 1.2 + 2.3 * this.hash(pid, place, 63);
+    const e = w.e + Math.cos(a) * r, n = w.n + Math.sin(a) * r;
+    return this.sp(e, n, true, headingOf(w.e - e, w.n - n), 'open', `${w.facility} (D-670 works, ${w.act}): C`);
+  }
   private inNav(e: number, n: number) { return e > NAV.e0 && e < NAV.e0 + NAV.w * NAV.cell && n > NAV.n0 && n < NAV.n0 + NAV.h * NAV.cell; }
   /** a spot at a grid point (a detailed agent's leg end: the town edge, a lane mouth, a street door) */
   spotAtPoint(p: P2): Spot { const l = this.town?.locate(p[0], p[1]); return this.sp(p[0], p[1], true, 0, l ? 'town' : 'open', 'a point of the way'); }
@@ -315,18 +332,18 @@ export class PopGeo {
       // D-255: the tannery by the canal NE of the Terrace, downwind of the town, and the sesame-oil press by the royal stores:
       // not built; their people work in the open at the town.json places with the beams, vats, frames, mortars and jars their
       // performances carry (activities.ts; C)
-      case 'tannery': return this.openNear(FAC.tannery, 10, pid, place, 'the tannery by the canal: NOT BUILT, open ground at its town.json place; its beams, vats and drying frames are drawn with the tanners (C)');
-      case 'oil_press': return this.openNear(FAC.oil_press, 7, pid, place, 'the sesame-oil press by the royal stores: NOT BUILT, open ground at its town.json place; its mortars and jars are drawn with the pressers (C)');
+      case 'tannery': return this.atWorks(['tannery'], pid, place, act) ?? this.openNear(FAC.tannery, 10, pid, place, 'the tannery by the canal: NOT BUILT, open ground at its town.json place; its beams, vats and drying frames are drawn with the tanners (C)');
+      case 'oil_press': return this.atWorks(['oil_press'], pid, place, act) ?? this.openNear(FAC.oil_press, 7, pid, place, 'the sesame-oil press by the royal stores: NOT BUILT, open ground at its town.json place; its mortars and jars are drawn with the pressers (C)');
       case 'ws_textile': return this.workshop(pid, place, [-700, -1000], ['textile'], 10, indoor, 'textile workshop: ');
-      case 'brewery': return this.workshop(pid, place, FAC.brewery, ['brewery'], 3, indoor, 'brewery: ');
+      case 'brewery': return this.atWorks(['brewery'], pid, place, act) ?? this.workshop(pid, place, FAC.brewery, ['brewery'], 3, indoor, 'brewery: ');
       case 'craft_zone': { const x = this.plotIx.get('pw_area_b-yard'); if (!x || !this.plan) return this.none(place, 'Area B not built'); return this.inPlot(this.plan.sites[x[0]], x[1], pid, 'craft_zone', indoor, 'town', undefined, 'Area B craft yard: ') ?? this.none(place, 'empty'); }
       case 'store_town': case 'royal_store': return this.compound(pid, 'stores', place, indoor, 'the storehouse (D-043): ');
       case 'official_bldg': return this.compound(pid, 'official', place, indoor, 'the official building: ');
       case 'station': return this.compound(pid, 'stables', place, indoor, 'the state stable by the royal road W (D-043), standing in for the road station (C): ');
       case 'garden_pw': return this.compound(pid, 'area_c_garden', place, indoor, 'Persepolis West Area C garden: ');
-      case 'mill': return this.openNear(FAC.mill, 14, pid, place, 'the mill: NOT BUILT, grinding in the open at its town.json place (C)', FAC.mill);
-      case 'stockyard': return this.openNear(FAC.stockyard, 18, pid, place, 'the stockyard: NOT BUILT, open ground at its town.json place (C)', FAC.stockyard);
-      case 'brickyard': return this.openNear(FAC.brickyard, 20, pid, place, 'the brickyard by the canal: NOT BUILT, open ground (C)');
+      case 'mill': return this.atWorks(['mill'], pid, place, act) ?? this.openNear(FAC.mill, 14, pid, place, 'the mill: NOT BUILT, grinding in the open at its town.json place (C)', FAC.mill);
+      case 'stockyard': return this.atWorks(['stockyard'], pid, place, act) ?? this.openNear(FAC.stockyard, 18, pid, place, 'the stockyard: NOT BUILT, open ground at its town.json place (C)', FAC.stockyard);
+      case 'brickyard': return this.atWorks(this.hash(pid, 'brickfield', 64) < 0.4 ? ['terrace_bricks'] : ['brickyard'], pid, place, act) ?? this.openNear(FAC.brickyard, 20, pid, place, 'the brickyard by the canal: NOT BUILT, open ground (C)');
       case 'offering_place': return this.precinct(pid, tail, act, day, hour);
       case 'mountain': case 'river': case 'crown_fields': case 'clay_pit': return this.openNear(FAC[head], head === 'crown_fields' ? 120 : 20, pid, place, `${head} (town.json, open ground, C)`, FAC[head]);
       case 'terrace_edge': return this.openNear(PLACES.town.at, 6, pid, place, 'the Terrace approach, W');
@@ -399,7 +416,10 @@ export class PopGeo {
     const clear = K ? (e: number, n: number) => !this.nearPost(e, n) && (place !== 'forecourt' || !courtKeepClear(e, n)) : null;
     let s: P2 | null = null, face: P2 | null = null;
     for (let t = 0; t < (clear && P?.kind !== 'post' ? 24 : 8) && !s; t++) { let e: number, n: number;
-      if (A) { e = A.c[0] + (this.hash(pid, place, 13 + 50 * t) * 2 - 1) * A.h[0]; n = A.c[1] + (this.hash(pid, place, 14 + 50 * t) * 2 - 1) * A.h[1]; }
+      // (D-651, C5's count: uniform points in a court bunched people under a metre apart, and the crowd leaves those undrawn:
+      // the court's slots 1.2 m apart, one drawn per person)
+      if (A) { const sl = this.slotsOf(anchor, A); if (sl.length) { const q = sl[Math.floor(this.hash(pid, place, 13 + 50 * t) * sl.length)]; e = q[0]; n = q[1]; }
+        else { e = A.c[0] + (this.hash(pid, place, 13 + 50 * t) * 2 - 1) * A.h[0]; n = A.c[1] + (this.hash(pid, place, 14 + 50 * t) * 2 - 1) * A.h[1]; } }
       else if (P.kind === 'post') { e = P.at[0]; n = P.at[1]; }
       else if (P.span) { const [[x0, y0], [x1, y1]] = P.span; e = x0 + (x1 - x0) * this.hash(pid, place, 13 + 50 * t); n = y0 + (y1 - y0) * this.hash(pid, place, 14 + 50 * t); }
       // round a hearth, where a whole work gang or watch eats, up to 8 m out (evenly by area; C); an oven's bakers and
@@ -418,6 +438,15 @@ export class PopGeo {
     const fo = K && FACING_ACTS.test(act) ? focusOf(place, s[0], s[1]) : null;
     const hd = face ? headingOf(face[0] - s[0], face[1] - s[1]) : fo ? headingOf(fo[0] - s[0], fo[1] - s[1]) + (this.hash(pid, place, 16) - 0.5) * 30 /* (±15°: looking about, C) */ : P?.heading ?? this.hash(pid, place, 15) * 360;
     return this.sp(s[0], s[1], !(P as { hidden?: boolean } | undefined)?.hidden /* D-199: the king's rooms are not drawn */, hd, 'nav', `Terrace: ${place}${fo ? ', facing what is waited on (C: D-221)' : ''}${inRoof ? ', gone in under the nearest roof (C: D-244)' : ''}`, { anchor, ...(K && P?.kind === 'post' ? { fixed: true } : {}) });
+  }
+  /** D-651: the standing places of an open court or hall (an anchor box): its walkable points 1.2 m apart, off the aisles,
+   *  each seeing the anchor in a straight line; cached per anchor */
+  private slots = new Map<string, P2[]>();
+  private slotsOf(anchor: string, A: { c: P2; h: P2 }): P2[] {
+    const c = this.slots.get(anchor); if (c) return c; const out: P2[] = [], ap = this.anchorPt(anchor), PITCH = 1.2;
+    for (let x = A.c[0] - A.h[0] + PITCH / 2; x < A.c[0] + A.h[0]; x += PITCH) for (let y = A.c[1] - A.h[1] + PITCH / 2; y < A.c[1] + A.h[1]; y += PITCH)
+      if (this.nav.walkable(x, y) && !inAisle(x, y) && (!ap || this.nav.lineClear([x, y], ap))) out.push([x, y]);
+    this.slots.set(anchor, out); return out;
   }
   /** D-276: the room ranges' places for people (terrace_rooms.ts, rooms.ts roomFittings), laid out once. Each room gets an
    *  anchor of its own (`room:<id>`, a pace inside its first doorway, or inside its open front): the cached routes reach it,
@@ -489,7 +518,9 @@ export class PopGeo {
     else if (place === 'court_kitchen' && indoor) {
       const K = RR.rooms.filter(q => q.room.range === 'royal_kitchens');
       if (K.length) gen = k => { const x = K[Math.floor(this.hash(pid, place, 36 + k) * K.length)], W = x.fit.work;
-        if (W.length && this.hash(pid, place, 37 + k) < 0.5) { const w = W[Math.floor(this.hash(pid, place, 38 + k) * W.length)]; return { p: [w[0], w[1]], heading: deg(w[2]), what: 'at work in the royal kitchens' }; }
+        // (D-651, C5's count: on the station's point every cook of it stood on one spot and was not drawn: round it, 0.9-2.2 m)
+        if (W.length && this.hash(pid, place, 37 + k) < 0.5) { const w = W[Math.floor(this.hash(pid, place, 38 + k) * W.length)], a = w[2] + Math.PI + (this.hash(pid, place, 39 + k) - 0.5) * 2.4, r = 0.9 + 1.3 * this.hash(pid, place, 40 + k);
+          const p: P2 = [w[0] + Math.sin(a) * r, w[1] + Math.cos(a) * r]; return { p, heading: headingOf(w[0] - p[0], w[1] - p[1]), what: 'at work in the royal kitchens' }; }
         return inRoom(x, k, 'in the royal kitchens'); }; }
     // the Treasury's staff at the benches: anywhere in its rooms (treasury_inside), or at the benches of the Hall of 99
     // Columns near the store's anchor (treasury_store); never in a doorway's approach or between the benches' rows

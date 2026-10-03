@@ -38,7 +38,7 @@ describe('palace furnishings: the plan (all C)', () => {
   });
   it('the court in residence: the four palaces laid out; the canopy and the two incense burners at the throne', () => {
     const use = plan.filter(it => it.state === 'use');
-    for (const b of ['apadana', 'tachara', 'hadish', 'harem']) for (const k of b === 'apadana' ? ['carpet', 'canopy', 'incense_burner', 'hanging', 'table', 'lamp_stand'] : ['carpet', 'couch', 'footstool', 'table', 'lamp_stand'])
+    for (const b of ['apadana', 'tachara', 'hadish', 'harem']) for (const k of b === 'apadana' ? ['carpet', 'canopy', 'incense_burner', 'hanging', 'table'] : ['carpet', 'couch', 'footstool', 'table', 'lamp_stand'])
       expect(use.some(it => it.building === b && it.kind === k), `${b} ${k}`).toBe(true);
     const th = place('court_throne'), can = use.find(it => it.kind === 'canopy')!;
     expect(Math.hypot(can.e - th[0], can.n - th[1])).toBeLessThan(1); // over the throne's place

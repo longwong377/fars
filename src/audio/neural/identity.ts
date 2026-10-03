@@ -32,7 +32,7 @@ export const VOICE_POOL: { m: string[]; f: string[] } = {
 };
 /** voices that read as older (C: the deep British and American voices of the pool; with the older tract and pace) */
 export const OLDER = new Set(['am_onyx', 'bm_daniel', 'bm_fable', 'bf_isabella', 'af_river']);
-/** the regional colour: the trained languages whose voices a people's blend draws one voice from (C) */
+/** the regional colour (D-336; D-720: no longer drawn from: it gave modern accents, kept for the record) */
 export const COLOUR: Record<string, string[]> = {
   Persian: ['hi', 'en-gb'], Median: ['hi', 'en-gb'], Iranian: ['hi', 'en-gb'], Bactrian: ['hi'], Sogdian: ['hi'], Elamite: ['hi', 'it'],
   Babylonian: ['it', 'hi'], Syrian: ['it', 'hi'], Aramaic: ['it', 'hi'], Egyptian: ['hi', 'it'],
@@ -49,9 +49,14 @@ export function neuralVoice(p: VoiceSeed): NeuralVoice {
   const pickFrom = (xs: string[], not: string[]) => { const c = xs.filter(x => !not.includes(x)); return c[r.int(0, c.length - 1)]; };
   const names: string[] = [];
   if (old) { const o = pool.filter(n => OLDER.has(n)); if (o.length) names.push(pickFrom(o, names)); }
-  if (cpool.length && r.chance(0.8)) names.push(pickFrom(cpool, names));
+  // D-720 (the holes audit: Persians heard British or Hindi, Greeks Italian): no regional colour pool any more; four style voices of
+  // four different trained languages, none over two-fifths of the blend, so no one modern accent leads (the averaged prosody of
+  // many is nobody's); the person stays their own by the draw, the tract and the pace. PLACEHOLDER-QUALITY until heard on the T4
+  void cpool;
+  const langOf = (n: string) => LANG_OF.get(n)!, used = () => new Set(names.map(langOf));
+  for (let k = 0; names.length < 4 && k < 40; k++) { const c = pool.filter(n => !names.includes(n) && !used().has(langOf(n))); if (!c.length) break; names.push(c[r.int(0, c.length - 1)]); }
   while (names.length < 3) names.push(pickFrom(pool, names));
-  const w = names.map(() => -Math.log(1 - r.next() * 0.999) + 0.15);
+  const w = names.map(() => 1 + 0.3 * r.next()); // (near-even: blendStyle normalises, so no voice is over two-fifths)
   const mix = names.map((n, i) => [n, +w[i].toFixed(4)] as const);
   const tract = child ? 1.34 - 0.02 * Math.max(0, p.age - 3) + 0.04 * (r.next() - 0.5) : (old ? 0.965 : 1) * (0.94 + 0.12 * r.next());
   const speed = (child ? 1.02 : old ? 0.9 : 1) * (0.9 + 0.18 * r.next());

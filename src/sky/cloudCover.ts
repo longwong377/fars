@@ -9,7 +9,7 @@ import { cloudNoiseVolume } from './cloudNoise';
 import { airOptics, opticalDepth, type AirOptics } from './aerial';
 import { marchDepth } from './cloudLight';
 
-export const CLOUD = { base: 1500, top: 3600, baseTile: 7000, weatherTile: 46000, detailTile: 1400, n: 64 } as const;
+export const CLOUD = { base: 1500, top: 3600, baseTile: 7000, weatherTile: 46000, detailTile: 1400, n: 64, /** D-680: m of the base shapes' warp by the weather field (clouds.ts) */ warp: 12000 } as const;
 const smooth = (a: number, b: number, x: number) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
 const remap = (v: number, a: number, b: number, c: number, d: number) => ((v - a) / Math.max(b - a, 1e-4)) * (d - c) + c;
@@ -32,8 +32,10 @@ export function sample3(u: number, v: number, w: number): [number, number, numbe
 /** `fixedC`: use this effective cover everywhere instead of cov × the weather field (the local-cover calibration) */
 export function density(x: number, y: number, z: number, cov: number, fixedC?: number): number {
   const h = clamp01((y - CLOUD.base) / (CLOUD.top - CLOUD.base));
-  const lo = sample3(x / CLOUD.baseTile, y / CLOUD.baseTile, z / CLOUD.baseTile)[0];
-  const weather = sample3(x / CLOUD.weatherTile, 0.37, z / CLOUD.weatherTile)[0];
+  const wv = sample3(x / CLOUD.weatherTile, 0.37, z / CLOUD.weatherTile), weather = wv[0];
+  // D-680: the base shapes' lookup warped by the weather field (as the shader): see clouds.ts
+  const xw = x + (wv[1] - 0.5) * CLOUD.warp, zw = z + (wv[2] - 0.5) * CLOUD.warp;
+  const lo = sample3(xw / CLOUD.baseTile, y / CLOUD.baseTile, zw / CLOUD.baseTile)[0];
   const top = 0.35 + lo * 0.6;
   const shape = smooth(0, 0.06, h) * (1 - smooth(top * 0.7, top, h));
   const c = fixedC !== undefined ? clamp01(fixedC) : clamp01(cov * (weather * 0.8 + 0.6));

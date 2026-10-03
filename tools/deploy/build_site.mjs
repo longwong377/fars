@@ -35,6 +35,10 @@ run(`npx vite build${process.env.NOMINIFY ? ' --minify false' : ''}${process.env
     const src = readFileSync(join(root, 'src/render/scans.ts'), 'utf8'), body = /export const GROUND = \{([\s\S]*?)\} as const/.exec(src)?.[1] ?? '';
     const ids = [...body.matchAll(/:\s*'([^']+)'/g)].map(m => m[1]); if (ids.length < 8) throw new Error(`build_site: GROUND table not read (${ids.length} ids)`);
     for (const id of ids) for (const f of ['diff', 'disp']) rm(join(T, id, f + '.jpg')); }
+  // (and the other images whose KTX2 the page loads instead: ktx_maps.json's, the people's scan layers, the bark scans)
+  const mf = join(dist, 'ktx_maps.json'); if (existsSync(mf)) for (const k of Object.keys(JSON.parse(readFileSync(mf, 'utf8')).maps ?? {})) if (existsSync(join(dist, k.replace(/\.(jpg|png|webp)$/, '.ktx2')))) rm(join(dist, k));
+  const H = join(dist, 'generated/humans/scans'); if (existsSync(join(H, 'scans.ktx2'))) { for (const f of readdirSync(H)) if (/^(skin|cloth)_.*\.jpg$/.test(f)) rm(join(H, f)); rm(join(dist, 'models/people/people_cloth_folds.png')); }
+  const BK = join(dist, 'models/trees/bark'); if (existsSync(join(BK, 'bark.ktx2'))) for (const f of readdirSync(BK)) if (f.endsWith('.jpg')) rm(join(BK, f));
   lap(`jpgs with a KTX2 left out: ${n} files, ${(b / 1048576).toFixed(1)} MB`); }
 // textures low first (src/render/lowfirst.ts): a 512-px copy of every scan jpg beside it, and textures/low.json (each full
 // file's size): a first visit loads the copies before it can walk and the full scans after (sharp, in the lockfile)
@@ -83,4 +87,7 @@ console.log(`[site] dist: ${files.length} files, ${MB(total)}; largest: ${top.ma
 writeFileSync(join(dist, 'site.json'), JSON.stringify({ base, builtAt: new Date().toISOString(), commit: (() => { try { return execSync('git rev-parse HEAD', { cwd: root }).toString().trim(); } catch { return null; } })(), files: files.length, bytes: total }, null, 1));
 if (big.length) throw new Error(`files over GitHub Pages' 100 MB limit: ${big.map(([f, b]) => `${f} ${MB(b)}`).join(', ')}`);
 if (total > 1e9) throw new Error(`the site is ${MB(total)}: over GitHub Pages' 1 GB limit`);
+// s18 C9 (D-740): the deploy's own ceiling, under Pages' 1 GB so a growth is caught before it breaks the site (the budget, by
+// part, in handoff/s18/report_c9.md: the title film 12 MB, the score 44 MB); SITE_MAX_MB=… overrides for a local check
+{ const max = +(process.env.SITE_MAX_MB ?? 950) * 1048576; if (total > max) throw new Error(`the site is ${MB(total)}: over the deploy's ${MB(max)} ceiling (D-740); prune or re-encode before adding`); }
 lap('done');

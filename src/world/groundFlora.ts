@@ -23,17 +23,25 @@ import { resolveCell, sameLook, bumpYaw } from './plain/variety';
  *  camelthorn's (summer) */
 export const FLORA_BLOOM = { cushion: [0, 0, 0, 0.3, 1, 0.6, 0, 0, 0, 0, 0, 0], camelthorn: [0, 0, 0, 0, 0, 0.8, 1, 0.7, 0.2, 0, 0, 0] };
 
-export type FloraKind = 'cushion' | 'camelthorn' | 'thistle';
+export type FloraKind = 'cushion' | 'camelthorn' | 'thistle' | 'shrub' | 'grass' | 'deadwood' | 'flower';
 export const FLORA_R = 36;
 /** per kind: the contexts and, for each, the share of cells holding it and how many there; size range (m) */
 export const FLORA: Record<FloraKind, { name: string; where: Partial<Record<CellCtx, [number, number, number]>>; size: [number, number]; max: number }> = {
   cushion: { name: 'tragacanth thorn cushion (Astragalus)', where: { rock: [0.6, 3, 7], steppe: [0.3, 1, 4] }, size: [0.3, 0.7], max: 900 },
   camelthorn: { name: 'camelthorn (Alhagi)', where: { steppe: [0.3, 2, 5], field: [0.05, 1, 2] }, size: [0.25, 0.5], max: 700 },
   thistle: { name: 'thistles', where: { steppe: [0.25, 2, 6], field: [0.08, 1, 3] }, size: [0.4, 0.9], max: 700 },
+  // D-670 (s18, Vagon's CC0 plant scans: real meshes for the plain's open ground; the kinds drawn only from scans): the steppe's
+  // wild shrubs (sumac-kin Searsia, a broom-like needle bush: the Zagros foot's Rhus, almond scrub and broom, C), bunch grasses
+  // (Bermuda grass and steppe grasses, straw by summer), dead wood (a fallen trunk, a stump, roots, rare) and the spring
+  // flowers (dandelion, celandine, March-May)
+  shrub: { name: 'wild shrubs (sumac-kin, broom)', where: { rock: [0.16, 1, 2], steppe: [0.07, 1, 1] }, size: [0.8, 1.7], max: 260 },
+  grass: { name: 'bunch grasses (Bermuda grass, steppe grasses)', where: { steppe: [0.75, 2, 6], field: [0.3, 1, 3], rock: [0.45, 1, 4], water: [0.6, 2, 5] }, size: [0.22, 0.55], max: 1600 },
+  deadwood: { name: 'dead wood (a fallen trunk, a stump, roots)', where: { steppe: [0.012, 1, 1], rock: [0.02, 1, 1], water: [0.03, 1, 1] }, size: [0.35, 0.8], max: 40 },
+  flower: { name: 'spring flowers (dandelion, celandine)', where: { steppe: [0.2, 1, 4], field: [0.1, 1, 2], water: [0.25, 1, 3] }, size: [0.1, 0.25], max: 700 },
 };
 function h32(...v: number[]) { let h = 2166136261 >>> 0; for (const x of v) { h = Math.imul(h ^ (x | 0), 16777619) >>> 0; h = Math.imul(h ^ (h >>> 15), 2246822519) >>> 0; } return h >>> 0; }
 const u01 = (...v: number[]) => h32(...v) / 4294967296;
-const KIDX: Record<FloraKind, number> = { cushion: 1, camelthorn: 2, thistle: 3 };
+const KIDX: Record<FloraKind, number> = { cushion: 1, camelthorn: 2, thistle: 3, shrub: 4, grass: 5, deadwood: 6, flower: 7 };
 /** session 12 (D-310): the CC0 scans (Poly Haven; src/render/scanProps.ts) each kind is drawn with, when loaded; the procedural
  *  forms below are then the stand-ins (hidden, still filled: tests and the A/B). No Astragalus or Alhagi scan exists in a CC0
  *  library: the nearest forms are used (a dense low twiggy shrub squashed to the cushion's dome, a low twiggy shrub, upright
@@ -42,7 +50,13 @@ export const FLORA_SCANS: Record<FloraKind, { ids: string[]; fit: 'box' | 'heigh
   cushion: { ids: ['shrub_03_v1', 'shrub_03_v2', 'shrub_03_v3', 'shrub_03_v4'], fit: 'box' },
   camelthorn: { ids: ['shrub_03_v1', 'shrub_03_v2', 'shrub_03_v3', 'shrub_03_v4'], fit: 'height' },
   thistle: { ids: ['nettle_plant_v1', 'nettle_plant_v2', 'nettle_plant_v5', 'nettle_plant_v6'], fit: 'height' },
+  shrub: { ids: ['searsia_burchellii', 'searsia_lucida_v1', 'wild_rooibos_bush_v1'], fit: 'height' },
+  grass: { ids: ['grass_medium_01_v1', 'grass_medium_01_v2', 'grass_medium_01_v3', 'grass_medium_01_v4', 'grass_medium_02_v1', 'grass_medium_02_v2', 'grass_medium_02_v3', 'grass_bermuda_01_v1', 'grass_bermuda_01_v2', 'grass_bermuda_01_v3'], fit: 'height' },
+  deadwood: { ids: ['dead_tree_trunk', 'dead_tree_trunk_02', 'tree_stump_01', 'root_cluster_01'], fit: 'height' },
+  flower: { ids: ['dandelion_01_v1', 'dandelion_01_v2', 'celandine_01_v1', 'celandine_01_v2'], fit: 'height' },
 };
+/** D-670: kinds drawn only from scans (no modelled species, no stand-in shown) */
+const SCAN_ONLY = new Set<FloraKind>(['shrub', 'grass', 'deadwood', 'flower']);
 export const FLORA_LOD_NEAR = 12;
 /** one plant: grid (e, n), index, size (m), yaw; s17 (D-560): its proportions (asp: width over height, 0.8-1.25) and its lean
  *  (radians about grid e and n, up to ~9 deg): no two plants of a model within 20 m stand as copies of each other */
@@ -64,7 +78,7 @@ export function floraCellItems(seed: number, k: FloraKind, ix: number, iy: numbe
 }
 /** s17 (D-560): the roadside weeds of one 8 m cell: thistles and camelthorn (and a few thorn cushions) on the verges of the paths
  *  (verge.ts), whatever the cell's context; 24 candidate points a cell (s17: was 14, the verges read thin), those on a verge kept by kind share (C) */
-export const VERGE_FLORA: Record<FloraKind, number> = { thistle: 0.34, camelthorn: 0.2, cushion: 0.05 };
+export const VERGE_FLORA: Record<FloraKind, number> = { thistle: 0.34, camelthorn: 0.2, cushion: 0.05, shrub: 0, grass: 0, deadwood: 0, flower: 0 };
 export function vergeFloraItems(seed: number, k: FloraKind, ix: number, iy: number) {
   const out: FloraItem[] = [];
   for (let i = 0; i < 24; i++) { const e = (ix + u01(seed, ix, iy, i, 71)) * CELL, nn = (iy + u01(seed, ix, iy, i, 72)) * CELL, z = vergeZone(e, nn); if (z?.zone !== 'verge') continue;
@@ -109,10 +123,10 @@ function thistleGeometry() { const s = new THREE.BoxGeometry(0.012, 1, 0.012); s
  *  earlier plant within 20 m turned (variety.ts); `ctxOf` the cells' context, `memo` caches raw cells (per kind) */
 const twinF = (a: FloraItem, b: FloraItem) => sameLook({ s: a.sz, asp: a.asp, yaw: a.yaw, lean: a.lean }, { s: b.sz, asp: b.asp, yaw: b.yaw, lean: b.lean });
 export function floraCell(seed: number, k: FloraKind, ix: number, iy: number, ctxOf: (ix: number, iy: number) => CellCtx, memo?: Map<number, FloraItem[]>): FloraItem[] {
-  const raw = (x: number, y: number) => { const key = ((x + 32768) * 65536 + (y + 32768)) * 4 + KIDX[k]; let l = memo?.get(key); if (l) return l;
+  const raw = (x: number, y: number) => { const key = ((x + 32768) * 65536 + (y + 32768)) * 8 + KIDX[k]; let l = memo?.get(key); if (l) return l;
     const cx = ctxOf(x, y), w = FLORA[k].where[cx]; l = [...(w ? floraCellItems(seed, k, x, y, w) : []), ...(cx !== 'none' && cx !== 'water' ? vergeFloraItems(seed, k, x, y) : [])];
     if (memo) { if (memo.size > 60000) memo.clear(); memo.set(key, l); } return l; };
-  const rk = -1 - (((ix + 32768) * 65536 + (iy + 32768)) * 4 + KIDX[k]), hit = memo?.get(rk); if (hit) return hit; // (the resolved cell: the same wherever the viewer is)
+  const rk = -1 - (((ix + 32768) * 65536 + (iy + 32768)) * 8 + KIDX[k]), hit = memo?.get(rk); if (hit) return hit; // (the resolved cell: the same wherever the viewer is)
   const res = resolveCell(ix, iy, CELL, raw, twinF, (t, j) => ({ ...t, yaw: bumpYaw(t.yaw, j) })); memo?.set(rk, res); return res;
 }
 
@@ -125,15 +139,15 @@ export class GroundFlora {
   /** D-332: per kind the modelled levels (near, far) */
   readonly model = new Map<FloraKind, { near: THREE.InstancedMesh; far: THREE.InstancedMesh }>();
   private cells = new Map<number, CellCtx>(); private rawMemo = new Map<number, FloraItem[]>(); private ctxOf = (ix: number, iy: number) => this.ctx(ix, iy);
-  private scanCounts: Record<FloraKind, number[]> = { cushion: [], camelthorn: [], thistle: [] };
+  private scanCounts: Record<FloraKind, number[]> = { cushion: [], camelthorn: [], thistle: [], shrub: [], grass: [], deadwood: [], flower: [] };
   private last: { e: number; n: number; month: number } = { e: 1e9, n: 1e9, month: -1 };
   private m4 = new THREE.Matrix4(); private q = new THREE.Quaternion(); private eu = new THREE.Euler(); private v = new THREE.Vector3(); private s = new THREE.Vector3();
-  stats: Record<FloraKind, number> = { cushion: 0, camelthorn: 0, thistle: 0 };
+  stats: Record<FloraKind, number> = { cushion: 0, camelthorn: 0, thistle: 0, shrub: 0, grass: 0, deadwood: 0, flower: 0 };
   /** per kind: the scans drawn and their meshes ([scan * 2 + level]) */
   readonly scan = new Map<FloraKind, { props: ScanProp[]; slots: THREE.InstancedMesh[]; per: number }>();
   constructor(private seed: number, private world: SmallWorld) {
     this.group.name = 'ground-flora';
-    const geos: Record<FloraKind, THREE.BufferGeometry> = { cushion: cushionGeometry(), camelthorn: camelthornGeometry(), thistle: thistleGeometry() };
+    const geos: Record<FloraKind, THREE.BufferGeometry> = { cushion: cushionGeometry(), camelthorn: camelthornGeometry(), thistle: thistleGeometry(), shrub: cushionGeometry(), grass: thistleGeometry(), deadwood: cushionGeometry(), flower: thistleGeometry() };
     for (const k of Object.keys(FLORA) as FloraKind[]) {
       const g = geos[k], fpos = new THREE.InstancedBufferAttribute(new Float32Array(FLORA[k].max * 3), 3); g.setAttribute('fpos', fpos);
       const m = new THREE.MeshStandardNodeMaterial({ roughness: 0.9, side: THREE.DoubleSide });
@@ -145,8 +159,9 @@ export class GroundFlora {
       const mesh = new THREE.InstancedMesh(g, m, FLORA[k].max); mesh.count = 0; mesh.frustumCulled = false; mesh.castShadow = false; mesh.receiveShadow = true; mesh.name = `flora-${k}`;
       mesh.userData = { tier: k === 'cushion' ? 'B/C' : 'C', src: 'SMALL-R', note: `${FLORA[k].name}: near the viewer only, stands and density reconstructed (C)` };
       this.meshes.set(k, mesh); this.group.add(mesh);
-      // D-332: the modelled species first
-      const lm = lifeModel(k);
+      // D-332: the modelled species (D-670: only where no real scan of the kind loaded: Vagon's T4 frames showed the modelled cards as
+      // pale blobs with no stems; the scans are real plants)
+      const lm = FLORA_SCANS[k].ids.some(id => !!scanProp(id)) ? null : lifeModel(k as any);
       if (lm) {
         const L = attribute('life', 'vec4'), part = L.x, ONE3 = vec3(1, 1, 1);
         const tint = k === 'cushion' ? ONE3 : k === 'camelthorn' ? mix(ONE3, vec3(1.8, 0.96, 1.7), this.uDry.mul(float(1).sub(part)))
@@ -158,7 +173,10 @@ export class GroundFlora {
         // facing-corrected geometry normal bent two thirds toward the sky (no card ever faces away from the light into black),
         // and the baked occlusion (the normal texture's alpha) kept to a third of its depth
         sm.normalMap = null; sm.normalNode = mix(normalView.mul(faceDirection), cameraViewMatrix.mul(vec4(0, 1, 0, 0)).xyz, 0.65).normalize();
-        if (lm.nrm) sm.aoNode = texture(lm.nrm, uv()).a.mul(0.3).add(0.7);
+        // D-670 (Vagon's T4 frame: pale blobs with no ground contact): the plant darkens toward its foot (the shade and the soil
+        // splashed on the lowest leaves over its first ~12 cm), so it sits in the ground instead of floating on it
+        const foot = smoothstep(0.0, 0.12, positionLocal.y.mul(grow)).mul(0.55).add(0.45);
+        sm.aoNode = lm.nrm ? texture(lm.nrm, uv()).a.mul(0.3).add(0.7).mul(foot) : foot;
         const mk = (lvl: string) => { const g = lm.levels[lvl].clone(); g.setAttribute('fpos', new THREE.InstancedBufferAttribute(new Float32Array(FLORA[k].max * 3), 3));
           const im = new THREE.InstancedMesh(g, sm, FLORA[k].max); im.count = 0; im.frustumCulled = false; im.castShadow = false; im.receiveShadow = true; im.name = `flora-${k}:model:${lvl}`;
           im.userData = { tier: mesh.userData.tier, src: 'SMALL-R;RECON', placeholder: false, note: `${FLORA[k].name}: modelled as the species (tools/blender/life_flora.py; D-332: forms from botanical descriptions, C); near the viewer only, stands and density reconstructed (C)` };
@@ -172,7 +190,8 @@ export class GroundFlora {
         for (const p of props) {
           const u = p.size[1] > 0 ? scanUnit(k, p) : [1, 1, 1] as [number, number, number];
           const part = smoothstep(0.78, 0.95, positionLocal.y); // the head of a stem (thistle) or the top of the plant
-          const tint = k === 'cushion' ? mix(vec3(0.3, 0.33, 0.22), vec3(0.4, 0.42, 0.3), positionLocal.y.mul(2).clamp(0, 1)) : k === 'camelthorn' ? mix(vec3(0.2, 0.28, 0.1), vec3(0.36, 0.27, 0.17), this.uDry)
+          const tint = SCAN_ONLY.has(k) ? (k === 'grass' ? mix(vec3(1, 1, 1), vec3(1.25, 1.05, 0.62), this.uDry) : vec3(1, 1, 1)) // (D-670: the scan's own colour; the grass straw by summer)
+            : k === 'cushion' ? mix(vec3(0.3, 0.33, 0.22), vec3(0.4, 0.42, 0.3), positionLocal.y.mul(2).clamp(0, 1)) : k === 'camelthorn' ? mix(vec3(0.2, 0.28, 0.1), vec3(0.36, 0.27, 0.17), this.uDry)
             : mix(mix(vec3(0.48, 0.42, 0.3), vec3(0.2, 0.3, 0.11), this.uGreen), mix(vec3(0.55, 0.47, 0.34), vec3(0.45, 0.2, 0.45), this.uFlower), part);
           const sm = scanMaterial(p, tint, { roughness: 0.9, side: THREE.DoubleSide }); sm.positionNode = positionLocal.mul(grow);
           if (k !== 'cushion') { sm.normalMap = null; sm.normalNode = mix(normalView.mul(faceDirection), cameraViewMatrix.mul(vec4(0, 1, 0, 0)).xyz, 0.65).normalize(); } // (s17: the cards lit as a canopy, as the models above)
@@ -198,13 +217,14 @@ export class GroundFlora {
     this.uBloomA.value = FLORA_BLOOM.cushion[month] > 0.25 ? 1 : 0; this.uBloomC.value = FLORA_BLOOM.camelthorn[month] > 0.25 ? 1 : 0; this.uHeads.value = S.thistleFlower > 0.05 || (month >= 6 && month <= 11) ? 1 : 0;
     if (Math.hypot(viewer[0] - this.last.e, viewer[1] - this.last.n) < 4 && month === this.last.month) return false;
     this.last = { e: viewer[0], n: viewer[1], month };
-    const counts: Record<FloraKind, number> = { cushion: 0, camelthorn: 0, thistle: 0 }, mn: Record<FloraKind, [number, number]> = { cushion: [0, 0], camelthorn: [0, 0], thistle: [0, 0] };
+    const counts = Object.fromEntries(Object.keys(FLORA).map(k => [k, 0])) as Record<FloraKind, number>, mn = Object.fromEntries(Object.keys(FLORA).map(k => [k, [0, 0]])) as Record<FloraKind, [number, number]>;
     for (const k of Object.keys(FLORA) as FloraKind[]) this.scanCounts[k] = (this.scan.get(k)?.slots ?? []).map(() => 0);
     const i0 = Math.floor((viewer[0] - FLORA_R) / CELL), i1 = Math.floor((viewer[0] + FLORA_R) / CELL), j0 = Math.floor((viewer[1] - FLORA_R) / CELL), j1 = Math.floor((viewer[1] + FLORA_R) / CELL);
     for (let ix = i0; ix <= i1; ix++) for (let iy = j0; iy <= j1; iy++) {
       if (Math.hypot((ix + 0.5) * CELL - viewer[0], (iy + 0.5) * CELL - viewer[1]) > FLORA_R + CELL) continue;
       const cx = this.ctx(ix, iy);
       for (const k of Object.keys(FLORA) as FloraKind[]) {
+        if (k === 'flower' && (month < 2 || month > 4)) continue; // (D-670: the spring flowers, March-May)
         void cx; const items = floraCell(this.seed, k, ix, iy, this.ctxOf, this.rawMemo); if (!items.length) continue;
         const sc = this.scanCounts[k];
         const mesh = this.meshes.get(k)!, fpos = mesh.geometry.getAttribute('fpos') as THREE.InstancedBufferAttribute;

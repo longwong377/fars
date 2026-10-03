@@ -71,18 +71,20 @@ export class Batch {
     if (flip) { this.tri(i0, i2, i1, owner); this.tri(i0, i3, i2, owner); } else { this.tri(i0, i1, i2, owner); this.tri(i0, i2, i3, owner); }
   }
   /** oriented box: grid centre (e, n), angle theta (CCW from grid east), half sizes hu (along u), hv (along v), y0..y1 */
-  box(e: number, n: number, theta: number, hu: number, hv: number, y0: number, y1: number, cBot: RGB, cTop: RGB, owner = -1, bottom = false) {
+  box(e: number, n: number, theta: number, hu: number, hv: number, y0: number, y1: number, cBot: RGB, cTop: RGB, owner = -1, bottom = false, faces = 31) {
     const cs = Math.cos(theta), sn = Math.sin(theta);
     const U = [cs, 0, -sn], V = [-sn, 0, -cs], C = [e, 0, -n];
     const P = (su: number, sv: number, y: number) => [C[0] + U[0] * hu * su + V[0] * hv * sv, y, C[2] + U[2] * hu * su + V[2] * hv * sv];
     const [a0, b0, c0, d0] = [P(-1, -1, y0), P(1, -1, y0), P(1, 1, y0), P(-1, 1, y0)], [a1, b1, c1, d1] = [P(-1, -1, y1), P(1, -1, y1), P(1, 1, y1), P(-1, 1, y1)];
-    this.quad(a1, b1, c1, d1, [0, 1, 0], cTop, cTop, cTop, cTop, owner);
+    // (s18 C2: `faces` a mask of the faces drawn: 1 top, 2 +u, 4 −u, 8 +v, 16 −v; the far level leaves out the faces that lie
+    // inside the walls)
+    if (faces & 1) this.quad(a1, b1, c1, d1, [0, 1, 0], cTop, cTop, cTop, cTop, owner);
     if (bottom) this.quad(a0, b0, c0, d0, [0, -1, 0], cBot, cBot, cBot, cBot, owner);
     const nU = U, nV = V, mU = [-U[0], 0, -U[2]], mV = [-V[0], 0, -V[2]];
-    this.quad(b0, c0, c1, b1, nU, cBot, cBot, cTop, cTop, owner);
-    this.quad(d0, a0, a1, d1, mU, cBot, cBot, cTop, cTop, owner);
-    this.quad(c0, d0, d1, c1, nV, cBot, cBot, cTop, cTop, owner);
-    this.quad(a0, b0, b1, a1, mV, cBot, cBot, cTop, cTop, owner);
+    if (faces & 2) this.quad(b0, c0, c1, b1, nU, cBot, cBot, cTop, cTop, owner);
+    if (faces & 4) this.quad(d0, a0, a1, d1, mU, cBot, cBot, cTop, cTop, owner);
+    if (faces & 8) this.quad(c0, d0, d1, c1, nV, cBot, cBot, cTop, cTop, owner);
+    if (faces & 16) this.quad(a0, b0, b1, a1, mV, cBot, cBot, cTop, cTop, owner);
   }
   /** vertical prism (cylinder/cone frustum) with a top cap; r0 at y0, r1 at y1 */
   cyl(e: number, n: number, r0: number, r1: number, y0: number, y1: number, sides: number, cBot: RGB, cTop: RGB, owner = -1, cap = true) {

@@ -13,7 +13,7 @@
 //  3. Washing lines across the narrow lanes between two houses' walls (washing: PF wool and linen; the line C).
 //  4. The Terrace: the masons' yard's waste (chips, quarry blocks, rubble), the goods set down at the stair foot, the
 //     garrison's water jars and fuel, the Treasury store's sacks and jars, standards at the gates and stairs (C).
-import { LANE, SQUARE, OUT, toLocal, type Site, type Plot, type Craft } from './settlement/site';
+import { LANE, SQUARE, OUT, COURT, toLocal, type Site, type Plot, type Craft } from './settlement/site';
 import placesJson from '../data/people_places.json';
 
 export type RGB = [number, number, number];
@@ -82,14 +82,23 @@ export const rotFacing = (de: number, dn: number) => Math.atan2(de, -dn);
 
 export interface FillStats { market: number; stalls: number; lane: number; door: number; line: number; terrace: number; squares: number; /** s17 C1: the gap fill along the walls and the lanes' litter */ gap?: number; litter?: number; tethers?: number }
 
+/** s18 C2 (D-662): the town's things stand on its trodden ground, drawn 10 cm over the terrain (settlement/build.ts
+ *  GROUND_LIFT), not on the terrain's height the fill and the nav grid take: 1,959 of them lay wholly under it, the rest sunk */
+export const TOWN_LIFT = 0.1;
 /** the town's fill from its sites (every quarter; compounds have no lanes or squares) */
 export function townFill(sites: Site[], seed = 1, villages: Site[] = [], markets: [number, number][] = []): { items: FillItem[]; stats: FillStats } {
   const items: FillItem[] = [], st: FillStats = { market: 0, stalls: 0, lane: 0, door: 0, line: 0, terrace: 0, squares: 0, gap: 0, litter: 0, tethers: 0 };
   // s17 C1 (D-550): the simulation's market grounds (Population.quarters' points: where popgeo stands each selling household's
   // stall, market:<q>:<hid>, D-359), each to the site it lies in
   const mk = new Map<Site, [number, number][]>(); for (const xy of markets) { const s = sites.find(x => { const [u, v] = toLocal(x.frame, xy[0], xy[1]); return x.inb(x.ci(u), x.cj(v)); }); if (s) (mk.get(s) ?? mk.set(s, []).get(s)!).push(toLocal(s.frame, xy[0], xy[1])); else openMarket(xy, sites, seed, items, st); }
-  for (const s of sites) siteFill(s, seed, items, st, false, mk.get(s));
+  for (const s of sites) { const n0 = items.length; siteFill(s, seed, items, st, false, mk.get(s)); for (let k = n0; k < items.length; k++) items[k].dy += TOWN_LIFT; }
   for (const s of villages) siteFill(s, seed, items, st, true);
+  // s18 C2 (D-670, C12 4-12): the fruit on the stalls by the season (no fresh pomegranates in spring): the fresh fruit at the
+  // harvest only, and in the warm and the cold months the same spreads sell dried fruit and nuts (raisins, dried apricots,
+  // dates, walnuts: C, the PF rations' dried fruit, B)
+  const DRIED: RGB[] = [[0.3, 0.16, 0.12], [0.66, 0.38, 0.14], [0.45, 0.3, 0.18], [0.52, 0.4, 0.26]];
+  for (let k = items.length - 1; k >= 0; k--) { const it = items[k]; if (it.m !== 'fill_produce' || it.at !== 'market' || it.seas !== undefined) continue;
+    it.seas = 1; items.push({ ...it, seas: 6, col: { ...(it.col ?? {}), fruit: DRIED[strHash(`${it.e},${it.n}`) % DRIED.length] } }); }
   // (s17 C1: the plan is cached as JSON in the baked world, 21-25 MB with the villages (C4): positions to the centimetre, turns
   // and sizes to the thousandth, the sale hour to the minute's hundredth; nothing the eye or the colliders can tell)
   const r2 = (x: number) => Math.round(x * 100) / 100, r3 = (x: number) => Math.round(x * 1000) / 1000;
@@ -136,6 +145,16 @@ export function siteFill(s: Site, seed: number, items: FillItem[], st: FillStats
   const W = s.W, H = s.H, sid = strHash(s.id) ^ seed, th = s.frame.theta, C = Math.cos(th), S = Math.sin(th), first = items.length;
   const toG = (u: number, v: number) => s.grid(u, v), dirG = (du: number, dv: number): [number, number] => [du * C - dv * S, du * S + dv * C];
   const doorEdge = (i: number, j: number, di: number, dj: number) => s.doors.has(dj === 1 ? s.eh(i, j) : dj === -1 ? s.eh(i, j - 1) : di === 1 ? s.ev(i, j) : s.ev(i - 1, j));
+  // s18 C2 (D-663, C12 W11): the household's washing on a line across its own court, wall to wall over a straight run of 2-7
+  // court cells, for six houses in ten (C: washing dried in the court and on the roof, not across the public lane)
+  if (!outside) { const done = new Set<number>();
+    for (let j = 1; j < H - 1; j++) for (let i = 1; i < W - 1; i++) { const k = s.k(i, j), pl = s.cell[k]; if (pl < 0 || done.has(pl) || s.sub[k] !== COURT) continue; const P = s.plots[pl];
+      if (!['house', 'house_large', 'workshop'].includes(P.kind) || P.height < 2.4) { done.add(pl); continue; } done.add(pl); if (u01(sid, pl, 31) > 0.6) continue;
+      for (const [di, dj] of [[1, 0], [0, 1]] as const) { if (s.at(i - di, j - dj) !== pl || s.sub[s.k(i - di, j - dj)] === COURT) continue; // the run starts at a wall of its own house
+        let n = 0; while (n < 8 && s.inb(i + di * n, j + dj * n) && s.cell[s.k(i + di * n, j + dj * n)] === pl && s.sub[s.k(i + di * n, j + dj * n)] === COURT) n++;
+        if (n < 2 || n > 7 || !s.inb(i + di * n, j + dj * n) || s.cell[s.k(i + di * n, j + dj * n)] !== pl) continue;
+        const off = 0.3 + 0.4 * u01(sid, pl, 32), mu = s.u0 + i + (di ? n / 2 : off), mv = s.v0 + j + (dj ? n / 2 : off), [e, nn] = toG(mu, mv), [de, dn] = dirG(di, dj);
+        items.push({ m: 'fill_line', e, n: nn, dy: Math.min(0, P.height - 2.7), rot: Math.atan2(dn, de), s: [(n + 0.1) / 3, 1, 1], col: { cloth_a: cloth(u01(sid, pl, 33)), cloth_b: cloth(u01(sid, pl, 34)) }, day: true, at: 'line' }); st.line++; break; } } }
   // the cells taken by the site's own fittings and fixtures (wells, troughs, firewood, drains ...): kept 1.2 m clear
   const taken: [number, number][] = [...s.fittings.map(f => [f.u, f.v] as [number, number]), ...(s.fixtures ?? []).filter(f => f.u || f.v).map(f => [f.u, f.v] as [number, number])];
   const bucket = (pts: [number, number][]) => { const m = new Map<number, [number, number][]>(); for (const p of pts) { const kk = (Math.floor(p[0] / 4) + 512) * 4096 + Math.floor(p[1] / 4) + 512; (m.get(kk) ?? m.set(kk, []).get(kk)!).push(p); } return m; };
@@ -206,7 +225,8 @@ export function siteFill(s: Site, seed: number, items: FillItem[], st: FillStats
   // their household's spread): along the walls within MARKET_R of the point, every 2.6 m, a seller's spread on a reed mat (a
   // trade's goods, set out by day, sold out through the afternoon), a stall with its awning where the lane is wide; clear of
   // doors and fittings, the lane left passable (C: the analogues as for the squares' markets)
-  for (const [mu, mv] of markets) for (const R of [MARKET_R, MARKET_R * 2]) { const spots: [number, number][] = [];
+  for (const [mu, mv] of markets) { const n0 = items.length;
+  for (const R of [MARKET_R, MARKET_R * 2]) { const spots: [number, number][] = [];
     if (R > MARKET_R && items.some(it => it.at === 'market' && Math.hypot(...toLocal(s.frame, it.e, it.n).map((x, q) => x - [mu, mv][q]) as [number, number]) < MARKET_R)) break; // (the near ring held the market)
     const cand: { u: number; v: number; du: number; dv: number; w: number; d: number }[] = [];
     for (let j = Math.max(0, s.cj(mv) - R); j <= Math.min(H - 1, s.cj(mv) + R); j++) for (let i = Math.max(0, s.ci(mu) - R); i <= Math.min(W - 1, s.ci(mu) + R); i++) {
@@ -225,6 +245,9 @@ export function siteFill(s: Site, seed: number, items: FillItem[], st: FillStats
         if (!open(s.at(s.ci(gu), s.cj(gv)))) continue; const sj = sc * (0.93 + 0.14 * u01(k, x * 10, z * 10, 5)), gone = u01(k, x * 10, z * 10, 6);
         items.push({ m, e, n, dy: stall ? y : 0.012, rot: rotFacing(de, dn) + (u01(k, x * 10, z * 10) - 0.5) * 0.5, s: [sj, sj, sj], col, day: true, ...(gone < 0.45 ? { until: 12.5 + 6 * gone / 0.45 } : {}), at: 'market' }); st.market++; } } }
 
+  // (s18 C2, D-666: a point on the open ground of the site's raster, no wall within reach to set the spreads along: the
+  // open-ground market there, as for a point outside every site)
+  if (!items.slice(n0).some(it => it.at === 'market')) openMarket(toG(mu, mv), [s], seed, items, st); }
   // 2. the lane frontage and 3. the washing lines
   const lines: [number, number][] = [];
   for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) { const k = j * W + i, c = s.cell[k]; if (c !== LANE && c !== SQUARE && !(outside && c === OUT)) continue;
@@ -242,7 +265,7 @@ export function siteFill(s: Site, seed: number, items: FillItem[], st: FillStats
         doorThings(i, j, di, dj, w, P, key);
         continue; }
       // a washing line to the facing wall
-      if (w >= 2 && w <= 4 && s.at(i - di * w, j - dj * w) >= 0 && u01(...key, 7) < 0.05 && P.height >= 2.6) {
+      if (u01(...key, 7) < 0 && w >= 2 && w <= 4 && s.at(i - di * w, j - dj * w) >= 0 && u01(...key, 7) < 0.05 && P.height >= 2.6) { // (s18 C2, D-663: no washing across the public lanes, C12 W11: it hangs in the courts, courtLines below, and on the roofs)
         const mu = wu - di * w / 2, mv = wv - dj * w / 2;
         if (!lines.some(([a, b]) => Math.hypot(a - mu, b - mv) < 7)) { lines.push([mu, mv]);
           const [e, n] = toG(mu, mv), [de, dn] = dirG(-di, -dj);

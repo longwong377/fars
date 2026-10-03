@@ -69,6 +69,22 @@ describe('the court’s people take part (court.ts plans on the programme’s da
     expect(whys(r, /exercising a horse/).size).toBeGreaterThan(200);
     expect(K.couriers.length).toBeGreaterThan(200); expect(whys(r, /courier riding/).size).toBeGreaterThanOrEqual(2);
   }, 120_000);
+  it('UD-27 at the court: the great houses are married into one another and have rivals; the king’s favour seats them and places them', () => {
+    const H = K.houses(), N: number[] = K.byGroup.get('nobles');
+    expect(H.hh.length).toBeGreaterThan(20); expect(H.allies.every((a: number[]) => a.length >= 1)).toBe(true); expect(H.rivals.filter((a: number[]) => a.length).length).toBeGreaterThan(H.hh.length / 2);
+    for (let i = 0; i < H.hh.length; i++) for (const j of H.rivals[i]) expect(H.allies[i]).not.toContain(j);
+    // the favour moves over the residence
+    const Y = courtYear(seed); let moved = 0; for (let i = 0; i < H.hh.length; i++) if (Math.abs(K.houseFavour(i, Y.arrive + 2) - K.houseFavour(i, Y.leave - 2)) > 0.15) moved++; expect(moved).toBeGreaterThan(H.hh.length / 4);
+    // the banquet: the most favoured sit nearest the throne
+    const bd = [...courtSetDays(seed).banquet][2], ds = N.filter(p => K.seatOf(p, bd) >= 0).sort((a, b) => K.seatOf(a, bd) - K.seatOf(b, bd)), mf = (xs: number[]) => xs.reduce((s, p) => s + K.favour(p, bd), 0) / xs.length;
+    expect(mf(ds.slice(0, 40))).toBeGreaterThan(mf(ds.slice(-40)) + 0.3);
+    // an audience morning: the favoured stand in the hall more than the out of favour; men talk with their allies by name
+    let d = Y.arrive + 3; while (!courtProgramme(seed, d).some(e => e.kind === 'audience') || courtProgramme(seed, d).some(e => e.kind === 'gift_day')) d++;
+    const hall = { hi: [0, 0], lo: [0, 0] }; let ally = 0;
+    for (const p of N) { if (!pop.present(p, d)) continue; const f = K.favour(p, d), b = f > 0.66 ? hall.hi : f < 0.33 ? hall.lo : null;
+      for (const s of pop.plan(p, d)) { if (/joined to by marriage/.test(s.why)) ally++; if (!b || s.t1 < 8.5 || s.t0 > 12 || !/^(apadana_hall|court_portico|forecourt|gate_hall|court_apadana_e)$/.test(s.place)) continue; b[1] += s.t1 - s.t0; if (s.place === 'apadana_hall') b[0] += s.t1 - s.t0; } }
+    expect(hall.hi[0] / hall.hi[1]).toBeGreaterThan(1.5 * hall.lo[0] / hall.lo[1]); expect(ally).toBeGreaterThan(50);
+  }, 120_000);
   it('every plan of a court person on the programme’s days is contiguous and ends the day', () => {
     const SD = courtSetDays(seed), days = [SD.kingGifts, SD.gift[0], SD.hunt[0], SD.birthday];
     for (const d of days) for (let pid = K.first; pid < K.end; pid += 7) { if (!pop.present(pid, d)) continue; const P = pop.plan(pid, d);

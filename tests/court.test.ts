@@ -46,7 +46,7 @@ describe('the court in residence (D-182)', () => {
       expect(day).toBeGreaterThanOrEqual(Math.max(TER.day.all_seasons.range[0], 0.8 * TER.day.all_seasons.w)); expect(day).toBeLessThanOrEqual(Math.min(TER.day.all_seasons.range[1], 1.2 * TER.day.all_seasons.w));
       expect(night).toBeGreaterThanOrEqual(Math.max(TER.night.all_seasons.range[0], 0.8 * TER.night.all_seasons.w)); expect(night).toBeLessThanOrEqual(Math.min(TER.night.all_seasons.range[1], 1.2 * TER.night.all_seasons.w)); }
     // without the court the Terrace is the court-absent Terrace
-    expect(onTerrace(absent.pop, 45, 10)).toBeLessThan(1200);
+    expect(onTerrace(absent.pop, 45, 10)).toBeLessThanOrEqual(Math.max(...Object.values((popData as any).zones.find((z: any) => z.id === 'terrace').court_absent.day).map((v: any) => v.range[1]))); // (D-651: population.json's own court-absent range, was a fixed 1,200 before the nine gangs)
     console.log(rows.join('\n'));
   }, 300_000);
   it('the groups are as court.json sizes them; names from the attested pools by origin; sources resolve', () => {
@@ -97,10 +97,13 @@ describe('the court in residence (D-182)', () => {
   }, 600_000);
   it('every sealed letter for the Treasury is handed over while the desk is open, every day of the year, with and without the court (D-229)', () => {
     for (const S of [absent, court]) { const P = S.pop; let cal = 0, carried = 0; const bad: string[] = [];
-      for (let d = 0; d < 354; d++) { const L = P.cal.ctx(d).letters; cal += L.length;
+      // (the plans are read on every day a letter comes and on every seventh day besides, to see no letter carried that the
+      // calendar did not send: the year's plans cost ~20 min on a 4-core box, the letters' days a fraction; C7 D-710)
+      for (let d = 0; d < 354; d++) { const L = P.cal.ctx(d).letters; cal += L.length; if (!L.length && d % 7) continue;
         for (const x of L) expect(x.go + P.walkH('station', 'stair_foot', d, 'town', 'terrace') + 0.1 + TREASURY_DESK.hand, `day ${d}`).toBeLessThanOrEqual(TREASURY_DESK.close + 1e-9);
         for (const m of P.messengers) if (P.present(m, d)) carried += P.plan(m, d).filter(s => s.why === LETTER_WHY).length;
-        for (const x of receipts(P, d, pid => P.plan(pid, d))) bad.push(`${S === court ? 'court' : 'absent'} day ${d}: ${x.pid} ${x.note}`); }
+        // (D-780: the desk's receipts checked on the days that bring letters or a caravan: the whole year's plans of everyone took 1,100-1,200 s)
+        if (L.length || P.caravan(d)) for (const x of receipts(P, d, pid => P.plan(pid, d))) bad.push(`${S === court ? 'court' : 'absent'} day ${d}: ${x.pid} ${x.note}`); }
       expect(bad).toEqual([]); expect(carried).toBe(cal); expect(cal).toBeGreaterThan(50); }
   }, 600_000);
   it('the king’s spearmen hold their posts by the rota: the watch’s files at their slots, one man in five away at his meal at most', () => {
