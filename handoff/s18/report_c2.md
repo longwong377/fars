@@ -1,4 +1,4 @@
-# s18 cloud C2: the town (D-660..D-671)
+# s18 cloud C2: the town (D-660..D-674)
 
 Branch cloud-s18-c2-town. Frames: crude cloud software frames (SwiftShader WebGL2, quality=test, 1280x720 at the player's
 lens), in handoff/s18/c2_frames/: `_base` = d2ef51b (the session's start), `_after2` = 9522767b (D-660..D-662). The head's
@@ -21,7 +21,8 @@ frames (the plaster, D-668/669; the life objects, D-670) are rendering; they are
   (cov-037) are those, the material's streaks (halved, D-667) or something else is unseen.
 - **Cost:** the town plan builds in ~37 s in node (19 s at the start; baked in the browser, live in tests and the bake);
   plots 1,505 → 2,016.
-- tests/population.test.ts: re-run after the belt pending at the time of writing (see the last section).
+- **tests/population.test.ts was not seen to pass after the belt**: it ran past its 50-min timeout twice on this loaded 4-core box (a render alongside); CI (C7) must run it. The belt changes which houses households take (the nearest of their zone), not their number.
+- **Vagon's Poly Haven props** (s18-face-assets) not converted: the lane and court fill draws the project's own modelled props (m_*.glb), which already hold hand-made stools, brooms, ladders and baskets; the scan-prop system already holds the wicker baskets, the bowl and the crate; the buckets (coopered, iron-hooped) read modern. Plaster001 is taken (D-674).
 
 ## What a player now meets (measured, node)
 - **Roofs** (D-660, D-662): the town was never roofless (a ray down every house room: the far level roofs 92 % of 6,878
@@ -43,6 +44,9 @@ frames (the plaster, D-668/669; the life objects, D-670) are rendering; they are
   (q_b1-0015); summer bedding and harvest fruit on the roofs, an ash heap and a latrine screen in every court, a niche lamp
   and offering in every living room, seasonal stall goods, washing in the courts not across the lanes.
 - **The paradise garden** (D-666, D-671): raised beds under every tree, an understorey, stone-edged walks, an inlet and sluice.
+- **Neighbourhood shrines** (D-672): one walled shrine court per quarter (15), offering table, bowls, figurines, a lamp lit at night.
+- **Dawn view census** (D-672): at C6's intro-town camera no ray reaches a room's floor: every room roofed; the dark holes are the courts' inner faces (washed full now, D-668).
+- **Walls** (D-673, D-674): the footing's ledge toned so it no longer floats; the plaster's grain a lime-plaster scan (ambientCG Plaster001, CC0).
 - **Budgets:** settlement_build 5/5 (meshes 45, was 51 at the start; 1.04 M triangles ≤ 1.2 M), houses 9/9 (far level
   < 800 k), the village P22 frame inside 2.0 M (no halos in villages).
 

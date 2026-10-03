@@ -69,7 +69,7 @@ export const SCAN_USE: Record<string, ScanUse> = {
   // foot), its colour led by the scan; the flat roofs and wall tops the rolled kahgel coat (Raked Dirt: clay with chopped
   // straw, the roller's lines)
   mud_plaster: { scan: 'dirt_floor', scale: 2.07, scale2: 9.1, alb: 0.75, chroma: 0.45, height: 0.003, rough: 0.4 },
-  house_plaster: { scan: 'dirt_floor', scale: 2.07, scale2: 9.1, alb: 0.75, chroma: 0.45, height: 0.003, rough: 0.4 },
+  house_plaster: { scan: 'plaster001', scale: 2.07, scale2: 9.1, alb: 0.8, chroma: 0.3, height: 0.003, rough: 0.4 }, // (s18 C2, D-674: ambientCG Plaster001, hand-laid lime plaster, the lead's ask: the walls read plastered; was the Dirt Floor scan's earth)
   house_socle: { scan: 'stone_wall', scale: 2.0, alb: 1.0, hue: 0.75, chroma: 0.8, height: 0.01, rough: 0.6, nor: 1.4 },
   house_roof: { scan: 'raked_dirt', scale: 1.1, scale2: 6.3, alb: 0.85, chroma: 0.6, height: 0.004, rough: 0.4 },
   mud_roof: { scan: 'raked_dirt', scale: 1.1, scale2: 6.3, alb: 0.85, chroma: 0.6, height: 0.004, rough: 0.4 },

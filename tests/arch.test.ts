@@ -177,7 +177,8 @@ describe('review MJ-1/MJ-2 regressions', () => {
   });
   it('Apadana N and E stair landings adjoin the podium edge (no trench) and no step lies inside a landing', () => {
     const ap = parts.filter(p => p.building === 'apadana') as any[];
-    const landings = ap.filter(p => p.kind === 'landing'), steps = ap.filter(p => p.kind === 'step');
+    const stair = (p: any) => !/D-753/.test(p.note ?? ''); // (D-753: the corner towers' own stairs are not the façade stairs)
+    const landings = ap.filter(p => p.kind === 'landing' && stair(p)), steps = ap.filter(p => p.kind === 'step' && stair(p));
     expect(landings.length).toBe(6); expect(steps.length).toBe(4 * 2 * 30);
     const nEdge = manifest.apadana.nStairEdge as number;
     const nLand = landings.filter(l => l.c[1] > nEdge - 1); // N stair landings lie N of the podium edge

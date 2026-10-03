@@ -69,7 +69,7 @@ export const P = { whole: 0, wall: 1, socle: 2, roof: 3, eave: 4, ceiling: 5, do
 const MUD: RGB = [0.56, 0.47, 0.36], POLE: RGB = [0.5, 0.43, 0.34], BRUSH: RGB = [0.52, 0.45, 0.31], MAT: RGB = [0.5, 0.43, 0.3], STONE: RGB = [0.53, 0.51, 0.47];
 const sh = (c: RGB, k: number): RGB => [c[0] * k, c[1] * k, c[2] * k];
 /** s18 C2 (D-660): the roofs' straw-and-clay finish coat, sun-bleached (linear; C) */
-const ROOF_COAT: RGB = lin([0.74, 0.64, 0.5]);
+const ROOF_COAT: RGB = lin([0.8, 0.64, 0.44]); // (s18 C2, D-672: warmer: at dawn the roofs read cold grey on C6's intro frame)
 /** s18 C2 (D-661): the washes (sRGB): gypsum and lime whites (never pure: the loam shows through), yellow ochres, red ochres */
 const WASH = { white: [[0.9, 0.88, 0.82], [0.86, 0.84, 0.78], [0.92, 0.89, 0.8]] as RGB[], ochre: [[0.82, 0.62, 0.32], [0.78, 0.58, 0.32], [0.84, 0.68, 0.4]] as RGB[], red: [[0.66, 0.4, 0.28], [0.6, 0.36, 0.26], [0.7, 0.46, 0.33]] as RGB[], cream: [[0.9, 0.82, 0.64], [0.87, 0.78, 0.58]] as RGB[], pink: [[0.86, 0.64, 0.56], [0.82, 0.58, 0.5]] as RGB[] };
 const mixc = (a: RGB, b: RGB, t: number): RGB => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
@@ -322,7 +322,7 @@ export class SiteHouses {
   }
   /** s18 C2 (D-660): a roof's top colour on every level: the plot's earth under a straw-and-clay coat, sun-bleached paler and
    *  warmer than the walls' plaster, each roof renewed at its own time (C) */
-  roofCol(r: RoomEl): RGB { return sh(mixc(this.pcol[r.plot], ROOF_COAT, 0.45 + 0.25 * hi(r.room, this.si, 8)), 0.92 + 0.18 * hi(r.room, this.si, 7)); }
+  roofCol(r: RoomEl): RGB { return sh(mixc(this.pcol[r.plot], ROOF_COAT, 0.65 + 0.2 * hi(r.room, this.si, 8)), 0.92 + 0.18 * hi(r.room, this.si, 7)); }
   /** the plot of a site-local point (−1 outside any) */
   private plotOf(u: number, v: number) { const k = this.cellAt(u, v); return k >= 0 ? this.s.cell[k] : -1; }
   /** D-324: an exposed wall top on the far level: both faces up to the worn line (stations ~3 m apart and at the rain's deeper
@@ -575,10 +575,10 @@ export class SiteHouses {
         const ysoc = (x: number) => gAt(x) + soc;
         const dist = this.openDist(w, sg), aoF = (y: number) => { const yr = y - floor; if (!dist) return 1; const [D, Ho] = dist; const dh = Ho - yr; const v = dh > 0 ? 1 - dh / Math.hypot(dh, D) : 1; return Math.max(0.3, Math.min(1, v * (sd.cls === 'court' ? 0.88 : 0.95) * (0.82 + 0.18 * smooth(yr / 1.2)))); };
         const stc = lin(STONE), stcol = sh(stc, 0.9 + 0.2 * hi(we.plot, 5));
-        this.face(B.stone, { ax, sA: along0, sB: along1, cc, t, sg, yb: () => sp.y0 + 0.2, yt: ysoc, holes: [], bulge: 0, seed, col: (_x, y) => sh(stcol, 0.86 + 0.14 * smooth((y - floor) / 0.4)), owner: this.owner(we.plot, P.socle), ao: aoF, y0: () => -1000, ytop: 1e4, off: 0.035 });
+        this.face(B.stone, { ax, sA: along0, sB: along1, cc, t, sg, yb: () => sp.y0 + 0.2, yt: ysoc, holes: [], bulge: 0, seed, col: (_x, y) => sh(stcol, 0.94 + 0.12 * smooth((y - floor) / 0.4)), owner: this.owner(we.plot, P.socle), ao: (y: number) => Math.min(1, aoF(y) + 0.1), y0: () => -1000, ytop: 1e4, off: 0.035 });
         // the footing's top ledge
         B.stone.set('ao', 0.9); { const n = Math.max(1, Math.ceil(len / 1.5)); for (let k = 0; k < n; k++) { const a = along0 + (len * k) / n, z = along0 + (len * (k + 1)) / n, ya = ysoc(a), yz = ysoc(z);
-          const p = (x: number, o2: number, y: number) => this.wp(...P2l(x, sg * (t / 2 + o2)), y); B.stone.quad(p(a, 0, ya), p(z, 0, yz), p(z, 0.035, yz), p(a, 0.035, ya), [0, 1, 0], stcol, stcol, stcol, stcol, this.owner(we.plot, P.socle)); } } B.stone.set('ao', 1);
+          const p = (x: number, o2: number, y: number) => this.wp(...P2l(x, sg * (t / 2 + o2)), y); const lc = sh(stcol, 0.78); B.stone.quad(p(a, 0, ya), p(z, 0, yz), p(z, 0.035, yz), p(a, 0.035, ya), [0, 1, 0], lc, lc, lc, lc, this.owner(we.plot, P.socle)); } } B.stone.set('ao', 1); // (s18 C2, D-673: the ledge's top toned down and the face lifted: the lit top over the shaded face read as a strip floating over a black gap)
         const nv = doorVar(s.plots[we.plot].id);
         if (nicheHere && sd.cls === 'open' && nv.niche) { const nw = 0.1 + 0.06 * hi(seed, 61), nh = 0.13 + 0.07 * hi(seed, 62), ny = floor + 1.1 + 0.35 * hi(seed, 63), sc = nicheHere.len > 0 ? sB - 0.35 - 0.25 * hi(seed, 64) : sA + 0.35 + 0.25 * hi(seed, 64);
           if (sc - nw - 0.01 > sA + 0.1 && sc + nw + 0.01 < sB - 0.1) { faceHoles.push({ s0: sc - nw, s1: sc + nw, y0: ny, y1: ny + 2 * nh, through: false, depth: 0.12 + 0.08 * hi(seed, 65) });
