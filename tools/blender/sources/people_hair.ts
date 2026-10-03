@@ -14,7 +14,7 @@
 import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { decodeHumanAssets, type HumanAssets, type HumanVariant } from '../../../src/people/humanAssets';
 import { HB, PART, type HBone } from '../../../src/people/humanFormat';
-import { beardMask } from '../../../src/people/outfits';
+import { beardMask } from '../../../src/people/faceRegions'; // (s18 C14: not outfits.ts: the garments' edits no longer stale the hair)
 import { decodePNG } from '../../humans/png';
 
 const [srcDir, outDir, argJson] = process.argv.slice(2);
