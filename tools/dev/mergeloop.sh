@@ -18,4 +18,8 @@ for b in $(git branch -r | grep 'origin/cloud-s18-' | sed 's/^ *//'); do
   echo "== $b"
   if git merge --no-edit -q $b >/dev/null 2>&1; then git log -1 --format='merged %h'; else finish || exit 1; fi
 done
+# every other branch with commits not in HEAD (the s18 lost-work audit: never let finished work sit unmerged)
+DATA='assets-archive|models-archive|s18-face-assets|s18-mocap|vagon-|renders|cloud-s18-'
+git fetch -q origin '+refs/heads/*:refs/remotes/origin/*' 2>/dev/null
+for b in $(git branch -r | grep -v HEAD | sed 's/^ *//' | grep -vE "$DATA"); do n=$(git rev-list --no-merges --count HEAD..$b); [ "$n" -gt 0 ] && echo "UNMERGED $b: $n"; done
 echo DONE
