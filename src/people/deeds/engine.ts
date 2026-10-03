@@ -24,6 +24,8 @@ import { VERBS } from './verbs';
 import { Joint, sayNo, HIRE_WAGE } from './joint';
 import type { Actor, Deed, DeedRec, Effect, Outcome, Good } from './types';
 import { Law, type Case } from './law';
+import { latelyOf } from './lately';
+import { LATELY } from '../converse/life';
 export type { Case } from './law';
 
 export interface WorldPort {
@@ -92,6 +94,8 @@ export class DeedWorld {
       lay: (pid, d, seg) => this.lay(pid, d, seg), layDays: (pid, d, n, act, why) => this.layDays(pid, d, n, act, why), whereOf: (pl, pid, d) => this.whereOf(pl, pid, d),
       strangerAbout: d => this.mine.some(m => d - m.t / 24 < 14 && m.t / 24 <= d + 1) || !!(E(d)?.hasStranger && E(d)!.stranger().active) });
     this.agency = new Initiative(this);
+    // D-720: what each person has lately done and had done to them, for their life record (what they can tell)
+    LATELY.set(w.pop, (pid, day) => latelyOf({ minds: this.minds, rec: id => this.rec(id), name: a => this.name(a) }, pid, day));
   }
   private hh(a: Actor, day: number): string | null { return a === 'player' ? null : `h:${this.w.pop.home(a, day)}`; }
   private name(a: Actor) { return a === 'player' ? 'the stranger' : (this.w.pop.nameOf(a) ?? 'someone').replace(/^\*/, ''); }
@@ -347,10 +351,17 @@ export class DeedWorld {
   // (D-459, the late save 3.66 MB: the overlays of days gone by, the promises settled and the faded feelings are not kept)
   save() { const d0 = this.dayDone - 1;
     return { mine: this.mine, minds: this.minds.save(this.dayDone), inj: [...this.injuries].filter(([, v]) => v.until > d0), law: this.law.save(), promises: this.promises.filter(p => !p.kept && !p.broken), skills: [...this.skills],
-      lays: [...this.lays].filter(([k]) => Number(k.split(':')[1]) >= d0), dayDone: this.dayDone, n: this.log.length, joint: this.joint.save(), agency: this.agency.save() }; }
+      lays: [...this.lays].filter(([k]) => Number(k.split(':')[1]) >= d0), dayDone: this.dayDone, n: this.log.length, joint: this.joint.save(), agency: this.agency.save(),
+      // D-720: the deeds of the last ten days and the count of all (a save loaded began the ids again at 0: the memories' ids then
+      // read other deeds, the town's talk of deeds (initiative.ts, from its last id seen) stopped until the count caught up, and
+      // what a person had lately done or suffered was gone); kept lean: the outcome's effects and witnesses are spent
+      next: this.next, recent: this.recentSave(d0 - 9) }; }
+  private recentSave(from: number) { let i = this.log.length; while (i > 0 && this.log[i - 1].day >= from) i--;
+    return this.log.slice(i).map(r => ({ id: r.id, day: r.day, t: r.t, deed: r.deed, out: { ok: r.out.ok, why: r.out.why, ...(r.out.refused ? { refused: true } : {}) } })); }
   load(s: ReturnType<DeedWorld['save']> | undefined) { if (!s) return; this.mine = s.mine; this.minds.load(s.minds); this.injuries.clear(); for (const [k, v] of s.inj) this.injuries.set(k, v);
     this.law.load((s as any).law ?? { cases: (s as any).cases }); this.promises.splice(0, this.promises.length, ...s.promises); this.skills.clear(); for (const [k, v] of s.skills) this.skills.set(k, v);
-    this.lays = new Map(s.lays); this.dayDone = s.dayDone; this.evSeen = 0; this.joint.load(s.joint); this.agency.load(s.agency); }
+    this.lays = new Map(s.lays); this.dayDone = s.dayDone; this.evSeen = 0;
+    const rs = ((s as any).recent ?? []) as DeedRec[]; this.log.splice(0, this.log.length, ...rs); this.base = ((s as any).next ?? s.n ?? 0) - rs.length; this.joint.load(s.joint); this.agency.load(s.agency); }
 }
 
 /** a segment laid into a day: the base is cut around it (the overlays' shared rule) */

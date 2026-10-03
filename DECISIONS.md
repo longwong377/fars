@@ -9884,3 +9884,24 @@ road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Ra
   stacks, heaps and folds drawn to 2.2 km; crop guards' reed shelters at irrigated plot edges and herders' wattle pens with
   their huts on the fallow (the kit's models), to 2.2 km (fieldFill.ts LAND). Census (plain_census, 18 Apr): bare 3.0 % and
   repeats 0.0 % as in s17; field trees near paths 25 -> 77.
+
+## D-720 Follow thirty: the people answer from their own lives without the model, and the town's deeds and yesterday reach their talk (session 18, cloud C8; UD-07, UD-08, UD-11, UD-21, UD-24, UD-32)
+- Measured (tools/dev/follow30.ts; REVIEWS/follow30.json): thirty people drawn by seed across the town, the villages, the Terrace's
+  staff, the road folk, the court in residence and the camps (seeds 1, 7, 42; day 60 with five days run live; the world as world.ts
+  builds it), each followed through the day, the next day and the day a season on, and asked five things (who, house, work, the
+  year, cares) through talkTurn. Before: 0 of 150 replies from their own life (ui.ts ownLine's three glosses answered everyone
+  whenever the model was not loaded: a first visit for minutes, any card that cannot hold it, the cloud); news "heard of wrong the
+  house of X" (the deeds' rumour kinds had no words); the court's people told they came "with a newly sent work group", lived in
+  "the garrison quarters", with nine unrelated tent-fellows as "kinswoman of the house" and no friend; 18 of 30 with nothing done
+  by or to them that they could tell; no townsfolk deed reached anyone's brief (briefOf carried the stranger's deeds only).
+- Fixed for everyone: converse/ownlines.ts OwnMind plays the person in the SAME turn as the model (the trust gate, the simulation's
+  word on an ask, deeds, the sandbox, memory and gossip are the simulation's): first-person answers from the life record in their
+  manner (temperament, oath, age; a question back, an oath, a proverb once a talk), a refusal said and tagged; ui.ts uses it
+  whenever the model is not loaded. deeds/lately.ts: what each person lately did, had done to them, was talked of in or saw among
+  the townsfolk (the minds' memories), worded from their side and registered into lifeRecord (the Lately line, ground.ts, own
+  lines); life.ts yesterday (their own plan's doings of the day before that today does not repeat). The deeds' save keeps the
+  count of all deeds and ten days of the log (a loaded save began the ids again at 0: memories read other deeds and the town's
+  talk of deeds stopped until the count caught up). Tier C throughout.
+- Not fixed (other owners or by design): the court's retinue servants can spend a whole day at the camp at rest and knucklebones
+  (court.ts: asked of the lead); the minds' deeds touch ~600 people a day of 81,000 (initiative.ts caps feeling-driven deeds at 300
+  a day, D-462's cost): most people have no deed of the townsfolk to tell in a given week; aims.ts "a trade for X" reads oddly.
