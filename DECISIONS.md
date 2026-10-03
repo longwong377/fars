@@ -9725,6 +9725,11 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   (sss view uniform 1 beside sunlit plinths and jambs: 0.6 m rays with 6 cm samples stepped through vertical occluders) and the
   contact AO near white (0.9). Now SSS_MAX_DISTANCE 1.0 m, SSS_THICKNESS 0.12 m, and the contact AO sharpened by CONTACT_AO_POW
   1.8 in the composite (pipeline.ts). C; lab-verified only.
+- (D-500, mocap) CMU takes re-fetched (T:/fars-assets-s12/mocap/cmu) and baked through tools/mocap/bake.ts (the old clips
+  reproduce byte for byte): sweep_a (13_23), sweep_b (14_13 mop), drink_a (13_09), dance_a (55_01), dance_b (90_31). The
+  sweepers' body layer is now a sweeping capture (weight 0.22, the broom hand within 3.5 cm). drink and dance are baked but
+  NOT wired: a new pose cycle needs impostor frames of its own (tests/impostor_frames: drink 0.27 m from the nearest frame),
+  i.e. tools/dev/imp_keys.ts --cover and an impostor re-render; next pass (B530).
 
 
 ## D-521 (s17, V5): rain that reads (mixed streaks, splashes), dust that shows, a weather probe
