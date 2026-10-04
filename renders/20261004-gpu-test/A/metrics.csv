@@ -1,0 +1,4 @@
+id,part,area,sub,day,hour,w,e,n,eye,az,pitch,ms,jpgKB,luma,dark,bright,drawCalls,tris,peopleVisible,walking,crowdPeople,crowdImp,sunAlt
+review-terrace-from-plain-16h,A,review,,25,16,clear,-600,60,1.6,75,4,263243,65,114.2,0.00,0.00,770,11941550,29642,1713,401,3713,32.3
+review-apadana-hall,A,review,,25,10,clear,1.9,12,1.6,161,6,110465,90,60.9,0.29,0.00,780,17693297,29946,690,401,5978,60.9
+review-lane-q_s1,A,review,,25,10,clear,-478,-881,1.6,189,-4,103241,52,59.5,0.45,0.00,438,9065272,29317,679,400,2562,60.9
