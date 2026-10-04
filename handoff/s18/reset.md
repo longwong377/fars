@@ -48,3 +48,7 @@ The big forms are still code boxes (398 modelled files are props, columns, anima
 - C14: the base body reworked in Blender (anatomy, variety by age/work, skin, hair on every head); C13 D-804: the garments
   as baked cloth simulation.
 Budgets bind (load, frame, heap, 950 MB dist). Verification: the review loop.
+
+## Cycle 2 (Vagon T4, 2026-10-04, s17-int 8dcd136e; quality=low 1024x576 because the 16 GB box cannot hold the page at high; 7 of 13 review views): critic 4.3/10, player 4.3/10
+Per frame (both): terrace-from-plain 4/4, Apadana hall 6/6, lane q_s1 5/5, market 4.5/4.5, town-20m 3/3, house interior 3/3, face 4/4.
+Top items, both reviewers: (1) people: clone faces, stiff mannequin poses, dithered beards/hair, floating blue-skinned figures, a blue cylinder prop in the market; (2) ground/vegetation: flat smear, sparse sprite specks; (3) no life outside the hall (town-20m and lane: no people, smoke, goods; house a black maroon box, no light source); (4) flat wall/interior planes, no GI/AO; (5) noisy dithered sky in town-20m. Best: Apadana hall 6. Frames: renders/20261004-gpu-test/A on s18-renders-cloud.
